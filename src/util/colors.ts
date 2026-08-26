@@ -14,7 +14,7 @@ export function isHexColor(value: string): boolean {
   return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim());
 }
 
-function expandHex(hex: string): string {
+export function expandHex(hex: string): string {
   const cleaned = hex.trim().toLowerCase();
   if (/^#[0-9a-f]{6}$/.test(cleaned)) return cleaned;
   if (/^#[0-9a-f]{3}$/.test(cleaned)) {

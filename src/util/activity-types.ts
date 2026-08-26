@@ -3,16 +3,14 @@ import type { ColorTuple } from "./colors";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { GREEN, ORANGE } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { defaultBaseColorForDomain, isHexColor, shadesFromBaseColor } from "./colors.ts";
+import { defaultBaseColorForDomain, expandHex, isHexColor, shadesFromBaseColor } from "./colors.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isRecord } from "./record.ts";
 
 const FALLBACK_EXERCISE_NAME = "Exercise";
 const FALLBACK_HOBBY_NAME = "Hobby";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function cleanFolderSegment(label: string): string {
   const cleaned = label
@@ -76,29 +74,19 @@ function resolveBaseColor(
   if (typeof value.baseColor === "string" && isHexColor(value.baseColor)) {
     return value.baseColor.trim().toLowerCase().length === 4
       ? shadesFromBaseColor(value.baseColor)[2]
-      : expandToSix(value.baseColor.trim());
+      : expandHex(value.baseColor.trim());
   }
   const fromColors = colorTuple(value.colors, fallbackColors)[2];
   if (typeof fromColors === "string" && isHexColor(fromColors)) {
-    return expandToSix(fromColors.trim());
+    return expandHex(fromColors.trim());
   }
   return defaultBaseColorForDomain(domain);
-}
-
-function expandToSix(hex: string): string {
-  const cleaned = hex.trim().toLowerCase();
-  if (/^#[0-9a-f]{6}$/.test(cleaned)) return cleaned;
-  if (/^#[0-9a-f]{3}$/.test(cleaned)) {
-    const [, r, g, b] = cleaned;
-    return `#${r}${r}${g}${g}${b}${b}`;
-  }
-  return defaultBaseColorForDomain("exercise");
 }
 
 function withDerivedColors(
   activity: Omit<ActivityType, "colors"> & { colors?: ColorTuple },
 ): ActivityType {
-  const baseColor = expandToSix(activity.baseColor);
+  const baseColor = expandHex(activity.baseColor);
   return {
     ...activity,
     baseColor,

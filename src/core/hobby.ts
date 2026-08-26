@@ -1,5 +1,8 @@
 /** Pure hobby timer logic. No Obsidian imports. */
 
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { ensureTrailingNewline } from "../util/markdown.ts";
+
 export type TimeLogEntry = {
   date: string;
   minutes: number;
@@ -346,10 +349,6 @@ function trimTrailingBlankLines(lines: string[]): string[] {
     next.pop();
   }
   return next;
-}
-
-function ensureTrailingNewline(markdown: string): string {
-  return markdown.endsWith("\n") ? markdown : `${markdown}\n`;
 }
 
 function emptyToNull(value: string): string | null {

@@ -29,14 +29,6 @@ export type HeatmapPaintState = {
   maps: Array<Map<string, DayActivity>>;
 };
 
-export function escapeHtmlAttr(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
 export function formatHeatmapTooltip(
   template: string,
   date: string,
@@ -172,40 +164,6 @@ export function appendHeatmapWeeks(
     }
   }
   parent.createDiv({ cls: "fitness-weeks-end-pad" });
-}
-
-export function heatmapWeeksHtml(
-  weeks: HeatmapDayCell[][],
-  colors: readonly string[],
-  tooltip: string,
-  tooltipOpen: string,
-): string {
-  const parts: string[] = [];
-  for (const week of weeks) {
-    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
-    parts.push(
-      `<div class="fitness-week${isTodayWeek ? " is-today-week" : ""}">`,
-    );
-    for (const day of week) {
-      const color = day.isCurrentYear ? colorForLevel(colors, day.level) : EMPTY_CELL;
-      const cls = cellClass(day);
-      const testid = day.isToday ? "atomic-heatmap-today" : "atomic-heatmap-cell";
-      const tip = formatHeatmapTooltip(
-        day.path ? tooltipOpen : tooltip,
-        day.fullDate,
-        day.minutes,
-      );
-      const pathAttr = day.path
-        ? ` data-path="${escapeHtmlAttr(day.path)}"`
-        : "";
-      parts.push(
-        `<div class="${cls}" data-testid="${testid}" data-minutes="${day.minutes}" data-date="${escapeHtmlAttr(day.fullDate)}"${pathAttr} style="background-color:${escapeHtmlAttr(color)}" title="${escapeHtmlAttr(tip)}"></div>`,
-      );
-    }
-    parts.push("</div>");
-  }
-  parts.push('<div class="fitness-weeks-end-pad"></div>');
-  return parts.join("");
 }
 
 function colorForLevel(colors: readonly string[], level: number): string {

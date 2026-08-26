@@ -1,12 +1,10 @@
 /** Pure fitness domain logic — no Obsidian imports. */
 
-export type SetRow = {
-  exercise: string;
-  muscle: string;
-  weight: string | number;
-  reps: string | number;
-  notes: string;
-};
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { extractYmdFromPath } from "./dates.ts";
+export type { SetRow } from "./core/set-table";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+export { parseSetTable } from "./core/set-table.ts";
 
 export type Cue = { text: string; date: string; focus?: string };
 
@@ -95,41 +93,6 @@ export function rowVolumeKg(
   return toKg(row.weight, unit) * reps;
 }
 
-export function parseSetTable(markdown: string): SetRow[] {
-  const lines = String(markdown || "").split(/\r?\n/);
-  const rows: SetRow[] = [];
-  let inTable = false;
-  let headerSeen = false;
-  for (const line of lines) {
-    if (!line.trim().startsWith("|")) {
-      if (inTable && headerSeen) break;
-      continue;
-    }
-    const cells = line
-      .split("|")
-      .slice(1, -1)
-      .map((c) => c.trim());
-    if (!cells.length) continue;
-    const joined = cells.join(" ").toLowerCase();
-    if (!headerSeen) {
-      if (joined.includes("exercise") && joined.includes("muscle")) {
-        headerSeen = true;
-        inTable = true;
-      }
-      continue;
-    }
-    if (cells.every((c) => /^:?-{1,}:?$/.test(c))) continue;
-    rows.push({
-      exercise: cells[0] || "",
-      muscle: cells[1] || "",
-      weight: cells[2] || "",
-      reps: cells[3] || "",
-      notes: cells[4] || "",
-    });
-  }
-  return rows;
-}
-
 export function durationToLevel(minutes: unknown): number {
   const n = Number(minutes);
   if (!Number.isFinite(n) || n <= 0) return 0;
@@ -140,9 +103,8 @@ export function durationToLevel(minutes: unknown): number {
 }
 
 export function yearFromDailyPath(path: string, fallbackYear: number): number {
-  const m = String(path || "").match(/(\d{4})-\d{2}-\d{2}/);
-  if (m) return Number(m[1]);
-  return fallbackYear;
+  const ymd = extractYmdFromPath(path);
+  return ymd ? Number(ymd.slice(0, 4)) : fallbackYear;
 }
 
 export function normalizeCue(text: string): string {

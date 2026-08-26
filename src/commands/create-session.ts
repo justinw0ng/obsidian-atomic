@@ -1,10 +1,11 @@
-import { App, FuzzySuggestModal, Notice } from "obsidian";
+import { App, Notice } from "obsidian";
 import { GYM_LOCATIONS } from "../core";
 import {
   CUSTOM_LOCATION_SENTINEL,
   gymCreateLocationNeedsDetail,
   resolveGymCreateLocation,
 } from "../core/property-options";
+import { genericExerciseBody, golfBody, gymBody } from "../core/session-note";
 import type { VaultDataSource } from "../data/vault-source";
 import { ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -12,9 +13,7 @@ import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { promptText } from "../util/prompt-text.ts";
-// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
-import { yamlScalar } from "../util/yaml";
+import { suggestItem } from "../util/suggest-item";
 
 function suggestOne(
   app: App,
@@ -22,126 +21,10 @@ function suggestOne(
   items: string[],
   labels?: string[],
 ): Promise<string | null> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const modal = new (class extends FuzzySuggestModal<string> {
-      getItems(): string[] {
-        return items;
-      }
-      getItemText(item: string): string {
-        const i = items.indexOf(item);
-        return labels && labels[i] ? labels[i] : item;
-      }
-      onChooseItem(item: string) {
-        if (settled) return;
-        settled = true;
-        resolve(item);
-      }
-      onClose() {
-        if (settled) return;
-        settled = true;
-        resolve(null);
-      }
-    })(app);
-    modal.setPlaceholder(placeholder);
-    modal.open();
+  return suggestItem(app, placeholder, items, (item) => {
+    const index = items.indexOf(item);
+    return labels && labels[index] ? labels[index] : item;
   });
-}
-
-function gymBody(
-  activity: ActivityType,
-  date: string,
-  location: string,
-  locationDetail: string,
-  weightUnit: string,
-  language: Language,
-): string {
-  const muscleHints =
-    language === "en"
-      ? ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Quads", "Hamstrings", "Glutes", "Calves", "Core"]
-      : [
-          "Chest / 胸",
-          "Back / 背",
-          "Shoulders / 肩",
-          "Biceps / 二頭",
-          "Triceps / 三頭",
-          "Quads / 股四頭",
-          "Hamstrings / 腿後腱",
-          "Glutes / 臀",
-          "Calves / 小腿",
-          "Core / 核心",
-        ];
-  return `---
-type: session
-date: ${date}
-activity: ${yamlScalar(activity.id)}
-duration_min:
-location: ${yamlScalar(location)}
-location_detail: ${yamlScalar(locationDetail)}
-weight_unit: ${weightUnit}
----
-
-# ${activity.label} — ${date}
-
-<!-- 💪 ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
-
-${defaultAtomicBlockFence("atomic-gym-log", language)}
-| ${t("template.gymTable.exercise", language)} | ${t("template.gymTable.muscle", language)} | ${t("template.gymTable.weight", language)} | ${t("template.gymTable.reps", language)} | ${t("template.gymTable.notes", language)} |
-| --- | --- | --- | --- | --- |
-${activity.supportsCues ? `
-## ${t("template.reminders", language)}
-
-- 
-` : ""}
-`;
-}
-
-function golfBody(activity: ActivityType, date: string, language: Language): string {
-  return `---
-type: session
-date: ${date}
-activity: ${yamlScalar(activity.id)}
-duration_min:
-location:
-focus: []
-club: []
-felt:
----
-
-# ${activity.label} — ${date}
-
-<!-- ${t("template.golfLocationHint", language)} -->
-<!-- ${t("template.golfFocusHint", language)} -->
-<!-- ${t("template.golfClubHint", language)} -->
-<!-- ${t("template.golfFeltHint", language)} -->
-${activity.supportsCues ? `
-## ${t("template.reminders", language)}
-
-- 
-` : ""}
-`;
-}
-
-function genericExerciseBody(
-  activity: ActivityType,
-  date: string,
-  language: Language,
-): string {
-  return `---
-type: session
-date: ${date}
-activity: ${yamlScalar(activity.id)}
-duration_min:
-location:
----
-
-# ${activity.label} — ${date}
-${activity.supportsCues ? `
-## ${t("template.reminders", language)}
-
-- 
-` : ""}
-`;
 }
 
 async function promptSessionDate(
@@ -259,24 +142,4 @@ export async function createActivitySession(
       path: target,
     }),
   );
-}
-
-export async function createGymSession(
-  app: App,
-  data: VaultDataSource,
-  activity: ActivityType,
-  timezone: string,
-  language: Language,
-): Promise<void> {
-  await createActivitySession(app, data, activity, timezone, language);
-}
-
-export async function createGolfSession(
-  app: App,
-  data: VaultDataSource,
-  activity: ActivityType,
-  timezone: string,
-  language: Language,
-): Promise<void> {
-  await createActivitySession(app, data, activity, timezone, language);
 }

@@ -2,11 +2,7 @@
 
 import type { FitnessSettings } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { isSafeVaultFolder } from "./vault-path.ts";
-
-function normalizeSlashes(path: string): string {
-  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
-}
+import { isSafeVaultFolder, normalizeSlashes } from "./vault-path.ts";
 
 function normalizeVaultPath(path: string): string {
   return normalizeSlashes(path.trim());

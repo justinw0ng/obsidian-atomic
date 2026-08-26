@@ -145,14 +145,19 @@ export function extractYmdFromPath(path: string): string | null {
   return m ? m[1] : null;
 }
 
-export function extractYearFromFrontmatterOrPath(
-  yearFm: unknown,
-  path: string,
+export function resolveBlockYear(
+  opts: Record<string, string>,
   fallbackYear: number,
+  extra: { frontmatterYear?: unknown; sourcePath?: string } = {},
 ): number {
-  const n = Number(yearFm);
-  if (Number.isFinite(n) && n >= 1970 && n <= 2100) return n;
-  const ymd = extractYmdFromPath(path);
-  if (ymd) return Number(ymd.slice(0, 4));
+  if (opts.year && Number(opts.year)) return Number(opts.year);
+  if (extra.frontmatterYear !== undefined) {
+    const n = Number(extra.frontmatterYear);
+    if (Number.isFinite(n) && n >= 1970) return n;
+  }
+  if (extra.sourcePath) {
+    const ymd = extractYmdFromPath(extra.sourcePath);
+    if (ymd) return Number(ymd.slice(0, 4));
+  }
   return fallbackYear;
 }

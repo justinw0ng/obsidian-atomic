@@ -5,11 +5,7 @@ import {
   parseReminders,
   type Cue,
 } from "../core";
-import {
-  formatMonthLabel,
-  nowMonth,
-  nowYear,
-} from "../dates";
+import { formatMonthLabel, nowMonth, nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
@@ -20,10 +16,7 @@ export function resolveCuesYear(
   frontmatterYear: unknown,
   timezone: string,
 ): number {
-  if (opts.year && Number(opts.year)) return Number(opts.year);
-  const n = Number(frontmatterYear);
-  if (Number.isFinite(n) && n >= 1970) return n;
-  return nowYear(timezone);
+  return resolveBlockYear(opts, nowYear(timezone), { frontmatterYear });
 }
 
 export async function renderCues(

@@ -1,9 +1,5 @@
-import { FuzzySuggestModal, Notice, Plugin } from "obsidian";
-import {
-  createActivitySession,
-  createGolfSession,
-  createGymSession,
-} from "./commands/create-session";
+import { Notice, Plugin } from "obsidian";
+import { createActivitySession } from "./commands/create-session";
 import { createHobbyItem, createReadingItem } from "./commands/create-reading-item";
 import { registerCodeblocks, renderTrackedBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
@@ -28,6 +24,7 @@ import {
   collectAtomicDataRoots,
   pathAffectsAtomicRefresh,
 } from "./util/refresh-path";
+import { suggestItem } from "./util/suggest-item";
 
 const REFRESH_DEBOUNCE_MS = 300;
 
@@ -261,32 +258,12 @@ export default class FitnessPlugin extends Plugin {
       new Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
-    return new Promise((resolve) => {
-      let settled = false;
-      const modal = new (class extends FuzzySuggestModal<ActivityType> {
-        getItems(): ActivityType[] {
-          return activities;
-        }
-
-        getItemText(activity: ActivityType): string {
-          return activity.label;
-        }
-
-        onChooseItem(activity: ActivityType) {
-          if (settled) return;
-          settled = true;
-          resolve(activity);
-        }
-
-        onClose() {
-          if (settled) return;
-          settled = true;
-          resolve(null);
-        }
-      })(this.app);
-      modal.setPlaceholder(t(placeholderKey, this.settings.language));
-      modal.open();
-    });
+    return suggestItem(
+      this.app,
+      t(placeholderKey, this.settings.language),
+      activities,
+      (activity) => activity.label,
+    );
   }
 
   private chooseExerciseActivity(): Promise<ActivityType | null> {
@@ -323,7 +300,7 @@ export default class FitnessPlugin extends Plugin {
       new Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
-    await createGymSession(
+    await createActivitySession(
       this.app,
       this.data,
       activity,
@@ -338,7 +315,7 @@ export default class FitnessPlugin extends Plugin {
       new Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
-    await createGolfSession(
+    await createActivitySession(
       this.app,
       this.data,
       activity,

@@ -6,13 +6,11 @@ import { t, type Language } from "../i18n/index.ts";
 import { showNotice } from "../util/notice.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isRecord } from "../util/record.ts";
 
 export const READING_BOOKSHELF_REL = "atomics/hobbies/Reading/Bookshelf.base";
 export const READING_ITEMS_FOLDER = "atomics/hobbies/Reading/Items";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function callPluginIdLookup(method: unknown, self: object, id: string): unknown {
   if (typeof method !== "function") return undefined;

@@ -10,7 +10,6 @@ import {
 import type FitnessPlugin from "./main";
 import type { ActivityType } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
-import type { Language } from "./i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isLanguage, t } from "./i18n/index.ts";
 import {
@@ -83,6 +82,28 @@ class ConfirmDeleteActivityModal extends Modal {
   }
 }
 
+type SettingsKey = "language" | "timezone" | "dashboardPath";
+
+type BoundControl =
+  | { type: "dropdown"; key: SettingsKey; options: Record<string, string> }
+  | {
+      type: "text";
+      key: SettingsKey;
+      placeholder?: string;
+      validate?: (value: string) => string | void;
+    };
+
+type SettingsRow =
+  | { kind: "heading"; name: string; desc: string }
+  | { kind: "control"; name: string; desc: string; key: SettingsKey }
+  | {
+      kind: "custom";
+      name: string;
+      desc: string;
+      aliases?: string[];
+      paint: (setting: Setting) => void;
+    };
+
 export class FitnessSettingTab extends PluginSettingTab {
   plugin: FitnessPlugin;
   private pendingExerciseName = "";
@@ -99,101 +120,37 @@ export class FitnessSettingTab extends PluginSettingTab {
   }
 
   getSettingDefinitions(): SettingDefinitionItem[] {
-    const language = this.plugin.settings.language;
-    const items: SettingDefinitionItem[] = [
-      {
-        name: t("settings.language", language),
-        desc: t("settings.languageDesc", language),
-        control: {
-          type: "dropdown",
-          key: "language",
-          options: {
-            "zh-Hant-en": t("settings.languageOption.zh-Hant-en", language),
-            en: t("settings.languageOption.en", language),
-          },
-        },
-      },
-      {
-        name: t("settings.timezone", language),
-        desc: t("settings.timezoneDesc", language),
-        control: {
-          type: "text",
-          key: "timezone",
-          placeholder: "Asia/Hong_Kong",
-        },
-      },
-      {
-        name: t("settings.dashboardPath", language),
-        desc: t("settings.dashboardPathDesc", language),
-        control: {
-          type: "text",
-          key: "dashboardPath",
-          placeholder: DEFAULT_SETTINGS.dashboardPath,
-          validate: (value) => {
-            const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
-            if (!isSafeVaultFolder(next)) {
-              return t("notice.folderUnsafe", this.plugin.settings.language);
-            }
-          },
-        },
-      },
-      {
-        name: t("settings.exerciseTypes", language),
-        desc: t("settings.exerciseTypesDesc", language),
-        render: (setting) => {
-          setting.setHeading();
-        },
-      },
-    ];
-
-    for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
-      items.push(...this.activityDefinitionItems(activity, { showCues: true }));
-    }
-
-    items.push({
-      name: t("settings.addExerciseType", language),
-      desc: t("settings.addExerciseTypeDesc", language),
-      render: (setting) => {
-        this.paintAddActivity(setting, "exercise");
-      },
+    return this.settingsRows().map((row) => {
+      switch (row.kind) {
+        case "control":
+          return {
+            name: row.name,
+            desc: row.desc,
+            control: this.controlFor(row.key),
+          };
+        case "heading":
+          return {
+            name: row.name,
+            desc: row.desc,
+            render: (setting) => {
+              setting.setHeading();
+            },
+          };
+        case "custom":
+          return {
+            name: row.name,
+            desc: row.desc,
+            aliases: row.aliases,
+            render: (setting) => {
+              row.paint(setting);
+            },
+          };
+        default: {
+          const _exhaustive: never = row;
+          return _exhaustive;
+        }
+      }
     });
-
-    items.push({
-      name: t("settings.hobbyTypes", language),
-      desc: t("settings.hobbyTypesDesc", language),
-      render: (setting) => {
-        setting.setHeading();
-      },
-    });
-
-    for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
-      items.push(...this.activityDefinitionItems(activity, { showCues: false }));
-    }
-
-    items.push({
-      name: t("settings.addHobbyType", language),
-      desc: t("settings.addHobbyTypeDesc", language),
-      render: (setting) => {
-        this.paintAddActivity(setting, "hobby");
-      },
-    });
-
-    items.push({
-      name: t("settings.gymExercises", language),
-      desc: t("settings.gymExercisesDesc", language),
-      render: (setting) => {
-        setting.setHeading();
-      },
-    });
-    items.push({
-      name: t("settings.gymImport", language),
-      desc: t("settings.gymImportDesc", language),
-      render: (setting) => {
-        this.paintGymImport(setting);
-      },
-    });
-
-    return items;
   }
 
   getControlValue(key: string): unknown {
@@ -237,132 +194,194 @@ export class FitnessSettingTab extends PluginSettingTab {
     this.paintSettings(this.containerEl);
   }
 
-  private paintSettings(containerEl: HTMLElement): void {
+  private settingsRows(): SettingsRow[] {
     const language = this.plugin.settings.language;
-    containerEl.empty();
+    const rows: SettingsRow[] = [
+      {
+        kind: "control",
+        name: t("settings.language", language),
+        desc: t("settings.languageDesc", language),
+        key: "language",
+      },
+      {
+        kind: "control",
+        name: t("settings.timezone", language),
+        desc: t("settings.timezoneDesc", language),
+        key: "timezone",
+      },
+      {
+        kind: "control",
+        name: t("settings.dashboardPath", language),
+        desc: t("settings.dashboardPathDesc", language),
+        key: "dashboardPath",
+      },
+      {
+        kind: "heading",
+        name: t("settings.exerciseTypes", language),
+        desc: t("settings.exerciseTypesDesc", language),
+      },
+    ];
 
-    this.paintLanguage(new Setting(containerEl), language);
-    this.paintTimezone(new Setting(containerEl), language);
-    this.paintDashboardPath(new Setting(containerEl), language);
-
-    new Setting(containerEl)
-      .setName(t("settings.exerciseTypes", language))
-      .setDesc(t("settings.exerciseTypesDesc", language))
-      .setHeading();
     for (const activity of allExerciseActivities(this.plugin.settings.activityTypes)) {
-      this.paintActivityRows(containerEl, activity, { showCues: true });
+      rows.push(...this.activityRows(activity, { showCues: true }));
     }
-    this.paintAddActivity(
-      new Setting(containerEl)
-        .setName(t("settings.addExerciseType", language))
-        .setDesc(t("settings.addExerciseTypeDesc", language)),
-      "exercise",
-    );
 
-    new Setting(containerEl)
-      .setName(t("settings.hobbyTypes", language))
-      .setDesc(t("settings.hobbyTypesDesc", language))
-      .setHeading();
+    rows.push({
+      kind: "custom",
+      name: t("settings.addExerciseType", language),
+      desc: t("settings.addExerciseTypeDesc", language),
+      paint: (setting) => {
+        this.paintAddActivity(setting, "exercise");
+      },
+    });
+    rows.push({
+      kind: "heading",
+      name: t("settings.hobbyTypes", language),
+      desc: t("settings.hobbyTypesDesc", language),
+    });
+
     for (const activity of allHobbyActivities(this.plugin.settings.activityTypes)) {
-      this.paintActivityRows(containerEl, activity, { showCues: false });
+      rows.push(...this.activityRows(activity, { showCues: false }));
     }
-    this.paintAddActivity(
-      new Setting(containerEl)
-        .setName(t("settings.addHobbyType", language))
-        .setDesc(t("settings.addHobbyTypeDesc", language)),
-      "hobby",
-    );
 
-    new Setting(containerEl)
-      .setName(t("settings.gymExercises", language))
-      .setDesc(t("settings.gymExercisesDesc", language))
-      .setHeading();
-    this.paintGymImport(
-      new Setting(containerEl)
-        .setName(t("settings.gymImport", language))
-        .setDesc(t("settings.gymImportDesc", language)),
-    );
+    rows.push({
+      kind: "custom",
+      name: t("settings.addHobbyType", language),
+      desc: t("settings.addHobbyTypeDesc", language),
+      paint: (setting) => {
+        this.paintAddActivity(setting, "hobby");
+      },
+    });
+    rows.push({
+      kind: "heading",
+      name: t("settings.gymExercises", language),
+      desc: t("settings.gymExercisesDesc", language),
+    });
+    rows.push({
+      kind: "custom",
+      name: t("settings.gymImport", language),
+      desc: t("settings.gymImportDesc", language),
+      paint: (setting) => {
+        this.paintGymImport(setting);
+      },
+    });
+    return rows;
   }
 
-  private paintLanguage(setting: Setting, language: Language): void {
-    setting
-      .setName(t("settings.language", language))
-      .setDesc(t("settings.languageDesc", language))
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("zh-Hant-en", t("settings.languageOption.zh-Hant-en", language))
-          .addOption("en", t("settings.languageOption.en", language))
-          .setValue(language)
-          .onChange(async (value) => {
-            if (!isLanguage(value)) return;
-            this.plugin.settings.language = value;
-            await this.plugin.saveSettings();
-            this.redrawSettings();
-            await this.plugin.refreshAll();
-            new Notice(t("notice.reloadForCommands", value));
-          }),
-      );
-  }
-
-  private paintTimezone(setting: Setting, language: Language): void {
-    setting
-      .setName(t("settings.timezone", language))
-      .setDesc(t("settings.timezoneDesc", language))
-      .addText((text) =>
-        text
-          .setPlaceholder("Asia/Hong_Kong")
-          .setValue(this.plugin.settings.timezone)
-          .onChange(async (value) => {
-            this.plugin.settings.timezone = value.trim() || "Asia/Hong_Kong";
-            await this.plugin.saveSettings();
-            void this.plugin.refreshAll();
-          }),
-      );
-  }
-
-  private paintDashboardPath(setting: Setting, language: Language): void {
-    setting
-      .setName(t("settings.dashboardPath", language))
-      .setDesc(t("settings.dashboardPathDesc", language))
-      .addText((text) =>
-        text
-          .setPlaceholder(DEFAULT_SETTINGS.dashboardPath)
-          .setValue(this.plugin.settings.dashboardPath)
-          .onChange(async (value) => {
-            const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
-            if (!isSafeVaultFolder(next)) {
-              new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
-              return;
-            }
-            this.plugin.settings.dashboardPath = next;
-            await this.plugin.saveSettings();
-          }),
-      );
-  }
-
-  private activityDefinitionItems(
+  private activityRows(
     activity: ActivityType,
     options: { showCues: boolean },
-  ): SettingDefinitionItem[] {
+  ): SettingsRow[] {
     const language = this.plugin.settings.language;
     return [
       {
+        kind: "custom",
         name: activity.label,
         desc: t("settings.activityId", language, { id: activity.id }),
         aliases: [activity.id],
-        render: (setting) => {
+        paint: (setting) => {
           this.paintActivityControls(setting, activity, options);
         },
       },
       {
+        kind: "custom",
         name: t("settings.baseColor", language, { label: activity.label }),
         desc: t("settings.baseColorDesc", language),
         aliases: [activity.id, "color"],
-        render: (setting) => {
+        paint: (setting) => {
           this.paintColorControls(setting, activity);
         },
       },
     ];
+  }
+
+  private controlFor(key: SettingsKey): BoundControl {
+    const language = this.plugin.settings.language;
+    switch (key) {
+      case "language":
+        return {
+          type: "dropdown",
+          key: "language",
+          options: {
+            "zh-Hant-en": t("settings.languageOption.zh-Hant-en", language),
+            en: t("settings.languageOption.en", language),
+          },
+        };
+      case "timezone":
+        return {
+          type: "text",
+          key: "timezone",
+          placeholder: "Asia/Hong_Kong",
+        };
+      case "dashboardPath":
+        return {
+          type: "text",
+          key: "dashboardPath",
+          placeholder: DEFAULT_SETTINGS.dashboardPath,
+          validate: (value) => {
+            const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
+            if (!isSafeVaultFolder(next)) {
+              return t("notice.folderUnsafe", this.plugin.settings.language);
+            }
+          },
+        };
+      default: {
+        const _exhaustive: never = key;
+        return _exhaustive;
+      }
+    }
+  }
+
+  private paintBoundControl(setting: Setting, key: SettingsKey): void {
+    const control = this.controlFor(key);
+    switch (control.type) {
+      case "dropdown":
+        setting.addDropdown((dropdown) => {
+          for (const [value, label] of Object.entries(control.options)) {
+            dropdown.addOption(value, label);
+          }
+          dropdown.setValue(String(this.getControlValue(key) ?? ""));
+          dropdown.onChange((value) => {
+            void this.setControlValue(key, value);
+          });
+        });
+        return;
+      case "text":
+        setting.addText((text) => {
+          if (control.placeholder) text.setPlaceholder(control.placeholder);
+          text.setValue(String(this.getControlValue(key) ?? ""));
+          text.onChange((value) => {
+            void this.setControlValue(key, value);
+          });
+        });
+        return;
+      default: {
+        const _exhaustive: never = control;
+        return _exhaustive;
+      }
+    }
+  }
+
+  private paintSettings(containerEl: HTMLElement): void {
+    containerEl.empty();
+    for (const row of this.settingsRows()) {
+      const setting = new Setting(containerEl).setName(row.name).setDesc(row.desc);
+      switch (row.kind) {
+        case "heading":
+          setting.setHeading();
+          break;
+        case "control":
+          this.paintBoundControl(setting, row.key);
+          break;
+        case "custom":
+          row.paint(setting);
+          break;
+        default: {
+          const _exhaustive: never = row;
+          return _exhaustive;
+        }
+      }
+    }
   }
 
   private async saveAndRefresh(): Promise<void> {
@@ -376,27 +395,6 @@ export class FitnessSettingTab extends PluginSettingTab {
     let index = 2;
     while (used.has(`${baseId}-${index}`)) index += 1;
     return `${baseId}-${index}`;
-  }
-
-  private paintActivityRows(
-    containerEl: HTMLElement,
-    activity: ActivityType,
-    options: { showCues: boolean },
-  ): void {
-    const language = this.plugin.settings.language;
-    this.paintActivityControls(
-      new Setting(containerEl)
-        .setName(activity.label)
-        .setDesc(t("settings.activityId", language, { id: activity.id })),
-      activity,
-      options,
-    );
-    this.paintColorControls(
-      new Setting(containerEl)
-        .setName(t("settings.baseColor", language, { label: activity.label }))
-        .setDesc(t("settings.baseColorDesc", language)),
-      activity,
-    );
   }
 
   private paintActivityControls(

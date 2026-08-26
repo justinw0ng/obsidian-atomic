@@ -232,15 +232,6 @@ export class VaultDataSource {
     return af instanceof TFile ? af : null;
   }
 
-  isUnderSeriesFolder(path: string, folders: string[]): boolean {
-    const norm = normalizePath(path);
-    return folders.some((f) => {
-      if (!isSafeVaultFolder(f)) return false;
-      const p = normalizePath(f);
-      return norm === p || norm.startsWith(p + "/");
-    });
-  }
-
   getFolder(path: string): TFolder | null {
     const af = this.app.vault.getAbstractFileByPath(normalizePath(path));
     return af instanceof TFolder ? af : null;

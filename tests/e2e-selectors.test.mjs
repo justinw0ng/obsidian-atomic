@@ -39,7 +39,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(gymLog, /innerHTML/);
 
   const createSession = src("src/commands/create-session.ts");
-  assert.match(createSession, /atomic-gym-log/);
+  assert.match(createSession, /gymBody/);
+  const sessionNote = src("src/core/session-note.ts");
+  assert.match(sessionNote, /atomic-gym-log/);
 
   const gymSetup = src("src/commands/gym-log-setup.ts");
   assert.match(gymSetup, /atomic-gym-log-setup-modal/);
@@ -62,6 +64,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-setting-gym-exercises/);
   assert.match(settings, /atomic-color-swatch/);
   assert.match(settings, /getSettingDefinitions\(/);
+  assert.match(settings, /settingsRows\(\)/);
   assert.doesNotMatch(settings, /setWarning\(/);
   assert.doesNotMatch(settings, /setDestructive\(/);
   assert.doesNotMatch(settings, /\.update\(/);

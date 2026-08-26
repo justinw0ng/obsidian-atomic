@@ -5,7 +5,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   buildHobbyItemPath,
-  buildReadingItemPath,
   readingItemMarkdown,
 } from "../src/commands/hobby-item.ts";
 import { defaultAtomicBlockFence } from "../src/util/codeblock-defaults.ts";
@@ -23,21 +22,21 @@ test("buildHobbyItemPath creates safe hobby item paths", () => {
   );
 });
 
-test("buildReadingItemPath creates safe Reading item paths", () => {
+test("buildHobbyItemPath creates safe Reading item paths", () => {
   assert.equal(
-    buildReadingItemPath("atomics/hobbies/Reading", "Atomic Habits"),
+    buildHobbyItemPath("atomics/hobbies/Reading", "Atomic Habits"),
     "atomics/hobbies/Reading/Items/Atomic Habits.md",
   );
   assert.equal(
-    buildReadingItemPath("atomics/hobbies/Reading", "../Atomic/Habits"),
+    buildHobbyItemPath("atomics/hobbies/Reading", "../Atomic/Habits"),
     "atomics/hobbies/Reading/Items/Atomic Habits.md",
   );
   assert.equal(
-    buildReadingItemPath("atomics/hobbies/Reading", ""),
+    buildHobbyItemPath("atomics/hobbies/Reading", ""),
     "atomics/hobbies/Reading/Items/Untitled Book.md",
   );
   assert.throws(
-    () => buildReadingItemPath("../Reading", "Atomic Habits"),
+    () => buildHobbyItemPath("../Reading", "Atomic Habits"),
     /Hobby folder must be a safe vault-relative folder/,
   );
 });
