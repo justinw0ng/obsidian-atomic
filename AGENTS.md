@@ -2,10 +2,6 @@
 
 Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic Tracker habit tracking. Default plugin-created content lives under `atomics/**`; see `README.md` for feature and data-layout details. Built-in domains are exercise (Gym/Golf sessions and cues) and general habits (Reading by default: item notes, timers, Bases bookshelf, book shelf). Activities support `enabled`, `baseColor` (one picker → four heatmap shades), and settings delete. `atomic-heatmap` accepts `activity: all|id|id1, id2`.
 
-## Skills
-
-- `.cursor/skills/obsidian-plugin-e2e/SKILL.md` is the end-to-end develop, verify, and ship playbook for an Obsidian community plugin (architecture, Selenium health check, plugin-review lint, GitHub Release, directory submit). Read it before scaffolding, E2E, release, or community-directory work. This repo is the reference implementation.
-
 ## Cursor Cloud specific instructions
 
 - This is an Obsidian plugin, not a standalone/web app. There is no server to run; the UI runs inside the Obsidian desktop client.
