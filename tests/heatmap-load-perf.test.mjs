@@ -8,8 +8,8 @@ import { BLUE, GREEN, ORANGE } from "../src/types.ts";
 import { durationMapFromHobbyLogs, durationMapFromSessions } from "../src/util/duration-map.ts";
 import { markdownFilesInFolder } from "../src/util/folder-files.ts";
 import {
+  appendHeatmapWeeks,
   buildHeatmapWeeks,
-  heatmapWeeksHtml,
 } from "../src/util/heatmap-model.ts";
 import { sessionMetaFromFile } from "../src/util/session-meta.ts";
 
@@ -113,19 +113,27 @@ test("four heatmaps over 1000+ notes load within 500ms without scanning unrelate
     ),
   ];
   const colors = [GREEN, ORANGE, GREEN, BLUE];
-  const html = maps.map((activityMap, i) => {
+  const painted = maps.map((activityMap, i) => {
     const weeks = buildHeatmapWeeks({
       year,
       todayStr: `${year}-08-14`,
       language: "en",
       activityMap,
     });
-    return heatmapWeeksHtml(
+    const host = {
+      style: { backgroundColor: "" },
+      createDiv() {
+        return host;
+      },
+    };
+    appendHeatmapWeeks(
+      host,
       weeks,
       colors[i],
       "{date}: {minutes} min",
       "{date}: {minutes} min - click to open",
     );
+    return weeks.length;
   });
   const elapsed = performance.now() - t0;
 
@@ -135,10 +143,9 @@ test("four heatmaps over 1000+ notes load within 500ms without scanning unrelate
   assert.equal(readingFiles.length, 80);
   assert.equal(markdownFilesInFolder(unrelated).length, 1000);
   assert.equal(markdownFilesInFolder(vault).length, 1000 + 365 * 3 + 80);
-  assert.equal(html.length, 4);
-  for (const markup of html) {
-    assert.match(markup, /data-testid="atomic-heatmap-today"/);
-    assert.match(markup, /data-testid="atomic-heatmap-cell"/);
+  assert.equal(painted.length, 4);
+  for (const weekCount of painted) {
+    assert.ok(weekCount >= 52);
   }
   assert.ok(
     elapsed < LOAD_BUDGET_MS,

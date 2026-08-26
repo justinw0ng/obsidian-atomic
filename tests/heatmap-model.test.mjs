@@ -4,10 +4,8 @@ import { GREEN } from "../src/types.ts";
 import {
   appendHeatmapWeeks,
   buildHeatmapWeeks,
-  escapeHtmlAttr,
   formatHeatmapTooltip,
   heatmapDomIsPainted,
-  heatmapWeeksHtml,
   sameHeatmapPaintState,
 } from "../src/util/heatmap-model.ts";
 
@@ -93,36 +91,7 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
   assert.equal(parent.children.at(-1), pad);
 });
 
-test("heatmapWeeksHtml keeps cell hooks and escapes attributes", () => {
-  const weeks = buildHeatmapWeeks({
-    year: 2026,
-    todayStr: "2026-01-01",
-    language: "en",
-    activityMap: new Map([
-      [
-        "2026-01-01",
-        {
-          minutes: 30,
-          path: 'atomics/exercise/Gym/2026/a"b.md',
-        },
-      ],
-    ]),
-  });
-  const html = heatmapWeeksHtml(
-    weeks,
-    GREEN,
-    "{date}: {minutes} min",
-    "{date}: {minutes} min - click to open",
-  );
-  assert.match(html, /data-testid="atomic-heatmap-today"/);
-  assert.match(html, /data-testid="atomic-heatmap-cell"/);
-  assert.match(html, /data-path="atomics\/exercise\/Gym\/2026\/a&quot;b.md"/);
-  assert.match(html, /is-today-week/);
-  assert.match(html, /fitness-weeks-end-pad/);
-});
-
-test("escapeHtmlAttr and tooltip formatting stay literal", () => {
-  assert.equal(escapeHtmlAttr(`a&b"c<d>`), "a&amp;b&quot;c&lt;d&gt;");
+test("heatmap tooltip formatting stays literal", () => {
   assert.equal(
     formatHeatmapTooltip("{date}: {minutes} min", "Jan 1, 2026", 12),
     "Jan 1, 2026: 12 min",

@@ -5,13 +5,9 @@ import { DEFAULT_READING_STATUS } from "../core/reading-status.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { isSafeVaultFolder } from "../util/vault-path.ts";
+import { isSafeVaultFolder, normalizeSlashes } from "../util/vault-path.ts";
 
 const FALLBACK_BOOK_TITLE = "Untitled Book";
-
-function normalizeSlashes(path: string): string {
-  return path.replace(/\\/g, "/").replace(/\/+/g, "/");
-}
 
 export function cleanBookTitle(title: string): string {
   const cleaned = String(title || "")
@@ -28,10 +24,6 @@ export function buildHobbyItemPath(activityFolder: string, title: string): strin
   }
   const base = normalizeSlashes(activityFolder.trim()).replace(/\/$/, "");
   return `${base}/Items/${cleanBookTitle(title)}.md`;
-}
-
-export function buildReadingItemPath(activityFolder: string, title: string): string {
-  return buildHobbyItemPath(activityFolder, title);
 }
 
 export function readingItemMarkdown(

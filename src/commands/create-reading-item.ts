@@ -5,33 +5,51 @@ import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 import { showNotice } from "../util/notice";
 import { promptText } from "../util/prompt-text";
-import {
-  buildHobbyItemPath,
-  buildReadingItemPath,
-  readingItemMarkdown,
-} from "./hobby-item";
+import { buildHobbyItemPath, readingItemMarkdown } from "./hobby-item";
 
-export async function createHobbyItem(
+type ItemNoticeKeys = {
+  titleKey: "modal.hobbyItemTitle" | "modal.readingItemTitle";
+  openedKey: "notice.openedExistingHobbyItem" | "notice.openedExistingReadingItem";
+  createdKey: "notice.createdHobbyItem" | "notice.createdReadingItem";
+  failedKey: "notice.hobbyItemFailed" | "notice.readingItemFailed";
+};
+
+const HOBBY_COPY: ItemNoticeKeys = {
+  titleKey: "modal.hobbyItemTitle",
+  openedKey: "notice.openedExistingHobbyItem",
+  createdKey: "notice.createdHobbyItem",
+  failedKey: "notice.hobbyItemFailed",
+};
+
+const READING_COPY: ItemNoticeKeys = {
+  titleKey: "modal.readingItemTitle",
+  openedKey: "notice.openedExistingReadingItem",
+  createdKey: "notice.createdReadingItem",
+  failedKey: "notice.readingItemFailed",
+};
+
+async function createItemNote(
   app: App,
   data: VaultDataSource,
-  hobbyActivity: ActivityType,
+  activity: ActivityType,
   language: Language,
+  copy: ItemNoticeKeys,
 ): Promise<void> {
   const title = await promptText(
     app,
-    t("modal.hobbyItemTitle", language, { label: hobbyActivity.label }),
+    t(copy.titleKey, language, { label: activity.label }),
     "",
     language,
   );
   if (title === null) return;
-  const path = buildHobbyItemPath(hobbyActivity.folder, title);
+  const path = buildHobbyItemPath(activity.folder, title);
 
   try {
     if (data.exists(path)) {
       await data.openPath(path);
       showNotice(
-        t("notice.openedExistingHobbyItem", language, {
-          label: hobbyActivity.label,
+        t(copy.openedKey, language, {
+          label: activity.label,
           path,
         }),
       );
@@ -40,19 +58,28 @@ export async function createHobbyItem(
 
     await data.createNote(
       path,
-      readingItemMarkdown(title, language, hobbyActivity.id),
+      readingItemMarkdown(title, language, activity.id),
     );
     await data.openPath(path);
     showNotice(
-      t("notice.createdHobbyItem", language, {
-        label: hobbyActivity.label,
+      t(copy.createdKey, language, {
+        label: activity.label,
         path,
       }),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    showNotice(t("notice.hobbyItemFailed", language, { message }));
+    showNotice(t(copy.failedKey, language, { message }));
   }
+}
+
+export async function createHobbyItem(
+  app: App,
+  data: VaultDataSource,
+  hobbyActivity: ActivityType,
+  language: Language,
+): Promise<void> {
+  await createItemNote(app, data, hobbyActivity, language, HOBBY_COPY);
 }
 
 export async function createReadingItem(
@@ -61,38 +88,5 @@ export async function createReadingItem(
   readingActivity: ActivityType,
   language: Language,
 ): Promise<void> {
-  const title = await promptText(
-    app,
-    t("modal.readingItemTitle", language),
-    "",
-    language,
-  );
-  if (title === null) return;
-  const path = buildReadingItemPath(readingActivity.folder, title);
-
-  try {
-    if (data.exists(path)) {
-      await data.openPath(path);
-      showNotice(
-        t("notice.openedExistingReadingItem", language, {
-          path,
-        }),
-      );
-      return;
-    }
-
-    await data.createNote(
-      path,
-      readingItemMarkdown(title, language, readingActivity.id),
-    );
-    await data.openPath(path);
-    showNotice(
-      t("notice.createdReadingItem", language, {
-        path,
-      }),
-    );
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    showNotice(t("notice.readingItemFailed", language, { message }));
-  }
+  await createItemNote(app, data, readingActivity, language, READING_COPY);
 }

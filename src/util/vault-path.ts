@@ -1,6 +1,6 @@
 /** Pure vault-relative folder validation (no Obsidian imports). */
 
-function normalizeSlashes(path: string): string {
+export function normalizeSlashes(path: string): string {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
 

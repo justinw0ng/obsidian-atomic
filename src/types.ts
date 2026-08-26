@@ -1,16 +1,6 @@
 import type { GymExercisePair, GymLogSetup } from "./core/gym-log";
 import type { Language } from "./i18n/types";
 
-export type SeriesKind = "gym" | "golf" | "generic";
-
-export interface SeriesConfig {
-  id: string;
-  label: string;
-  folder: string;
-  colors: [string, string, string, string];
-  kind: SeriesKind;
-}
-
 export type Domain = "exercise" | "hobby";
 
 export type NoteModel = "dailySession" | "item";
