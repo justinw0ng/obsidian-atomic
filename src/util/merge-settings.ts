@@ -9,10 +9,8 @@ import { DEFAULT_SETTINGS } from "../types.ts";
 import { activityTypeFromSeries, normalizeActivityType } from "./activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isRecord } from "./record.ts";
 
 function safeVaultPath(value: unknown, fallback: string): string {
   if (typeof value !== "string") return fallback;

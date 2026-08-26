@@ -62,6 +62,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-setting-gym-exercises/);
   assert.match(settings, /atomic-color-swatch/);
   assert.match(settings, /getSettingDefinitions\(/);
+  assert.match(settings, /settingsRows\(\)/);
   assert.doesNotMatch(settings, /setWarning\(/);
   assert.doesNotMatch(settings, /setDestructive\(/);
   assert.doesNotMatch(settings, /\.update\(/);

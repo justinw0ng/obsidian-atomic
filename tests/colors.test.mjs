@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { BLUE, GREEN, ORANGE } from "../src/types.ts";
 import {
   defaultBaseColorForDomain,
+  expandHex,
   isHexColor,
   shadesFromBaseColor,
 } from "../src/util/colors.ts";
@@ -36,6 +37,12 @@ test("isHexColor accepts #rgb and #rrggbb", () => {
   assert.equal(isHexColor("#fff"), true);
   assert.equal(isHexColor("30a14e"), false);
   assert.equal(isHexColor(""), false);
+});
+
+test("expandHex expands #rgb and falls back to the exercise base", () => {
+  assert.equal(expandHex("#30a14e"), "#30a14e");
+  assert.equal(expandHex("#fff"), "#ffffff");
+  assert.equal(expandHex("not-a-color"), GREEN[2]);
 });
 
 test("defaultBaseColorForDomain returns built-in mid shades", () => {
