@@ -13,6 +13,7 @@ test("resolveBlockYear prefers opts.year then frontmatter then fallback", () => 
   );
   assert.equal(resolveBlockYear({}, 2026, { frontmatterYear: "nope" }), 2026);
   assert.equal(resolveBlockYear({}, 2026, { frontmatterYear: 0 }), 2026);
+  assert.equal(resolveBlockYear({}, 2026, { frontmatterYear: 2101 }), 2101);
 });
 
 test("resolveBlockYear ignores a non-numeric year option", () => {
