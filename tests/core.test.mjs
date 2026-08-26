@@ -65,6 +65,25 @@ test("parseSetTable reads rows", () => {
   assert.equal(rows[1].weight, "BW");
 });
 
+test("parseSetTable keeps empty data rows and stops at the first non-table line", () => {
+  const md = `# Gym
+| Exercise | Muscle | Weight | Reps | Notes |
+| --- | --- | --- | --- | --- |
+| Bench | Chest | 60 | 8 | |
+|  |  |  |  |  |
+| Pull-up | Back | BW | 6 | warmup |
+
+## Reminders
+| Exercise | Muscle | Weight | Reps | Notes |
+| --- | --- | --- | --- | --- |
+| Ignored | Core | 10 | 10 | |
+`;
+  const rows = parseSetTable(md);
+  assert.equal(rows.length, 3);
+  assert.equal(rows[1].exercise, "");
+  assert.equal(rows[2].exercise, "Pull-up");
+});
+
 test("durationToLevel buckets", () => {
   assert.equal(durationToLevel(0), 0);
   assert.equal(durationToLevel(null), 0);

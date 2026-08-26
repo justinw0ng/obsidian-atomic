@@ -1,7 +1,7 @@
 import type { VaultDataSource } from "../data/vault-source";
 import { parseSetTable, rowVolumeKg } from "../core";
 import { sumMinutesForYear } from "../core/hobby";
-import { monthShortForLanguage, nowYear } from "../dates";
+import { monthShortForLanguage, nowYear, resolveBlockYear } from "../dates";
 import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
 import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -65,10 +65,7 @@ export function resolveDashboardYear(
   frontmatterYear: unknown,
   timezone: string,
 ): number {
-  if (opts.year && Number(opts.year)) return Number(opts.year);
-  const n = Number(frontmatterYear);
-  if (Number.isFinite(n) && n >= 1970) return n;
-  return nowYear(timezone);
+  return resolveBlockYear(opts, nowYear(timezone), { frontmatterYear });
 }
 
 export async function renderDashboard(

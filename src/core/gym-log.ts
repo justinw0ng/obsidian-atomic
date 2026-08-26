@@ -1,12 +1,11 @@
 /** Pure gym set-table and exercise-catalog helpers — no Obsidian imports. */
 
-export type GymSetRow = {
-  exercise: string;
-  muscle: string;
-  weight: string | number;
-  reps: string | number;
-  notes: string;
-};
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { findSetTableRange, isAlignmentRow, isEmptySetTableRow, parsePipeCells, type SetRow } from "./set-table.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { ensureTrailingNewline } from "../util/markdown.ts";
+
+export type GymSetRow = SetRow;
 
 export type GymExercisePair = {
   exercise: string;
@@ -20,7 +19,6 @@ export const CUSTOM_MUSCLE_SENTINEL = "__atomic_custom_muscle__";
 export const GYM_LOG_BLOCK_KIND = "atomic-gym-log";
 
 const GYM_LOG_FENCE_RE = /```atomic-gym-log\b/;
-const SET_TABLE_ALIGN_RE = /^:?-{1,}:?$/;
 const DAILY_SESSION_FILE_RE = /\d{4}-\d{2}-\d{2}\.md$/i;
 
 export type SetTableHeaders = {
@@ -289,11 +287,6 @@ function normalizePairPart(value: string): string {
     .replace(/\s+/g, " ");
 }
 
-function ensureTrailingNewline(markdown: string): string {
-  const source = String(markdown || "");
-  return source.endsWith("\n") ? source : `${source}\n`;
-}
-
 function withSingleTrailingNewline(markdown: string): string {
   return `${String(markdown || "").replace(/\n+$/, "")}\n`;
 }
@@ -303,55 +296,8 @@ function joinMarkdownSeams(parts: string[]): string {
   return parts.filter((part) => part.length > 0).join("\n\n");
 }
 
-function parsePipeCells(line: string): string[] {
-  if (!line.trim().startsWith("|")) return [];
-  return line
-    .split("|")
-    .slice(1, -1)
-    .map((cell) => cell.trim());
-}
-
-function isSetTableHeader(cells: string[]): boolean {
-  const joined = cells.join(" ").toLowerCase();
-  return joined.includes("exercise") && joined.includes("muscle");
-}
-
-function isAlignmentRow(cells: string[]): boolean {
-  return cells.length > 0 && cells.every((cell) => SET_TABLE_ALIGN_RE.test(cell));
-}
-
-function isEmptySetTableRow(cells: string[]): boolean {
-  return cells.length > 0 && cells.every((cell) => cell === "");
-}
-
 function hasSetTableHeader(markdown: string): boolean {
   return findSetTableRange(String(markdown || "").split(/\r?\n/)) !== null;
-}
-
-function findSetTableRange(
-  lines: string[],
-): { header: number; firstData: number; end: number; columnCount: number } | null {
-  let header = -1;
-  let columnCount = 5;
-  for (let i = 0; i < lines.length; i += 1) {
-    const cells = parsePipeCells(lines[i] ?? "");
-    if (!isSetTableHeader(cells)) continue;
-    header = i;
-    columnCount = cells.length;
-    break;
-  }
-  if (header < 0) return null;
-
-  let firstData = header + 1;
-  while (firstData < lines.length && isAlignmentRow(parsePipeCells(lines[firstData] ?? ""))) {
-    firstData += 1;
-  }
-  let end = firstData - 1;
-  for (let i = firstData; i < lines.length; i += 1) {
-    if (!String(lines[i] ?? "").trim().startsWith("|")) break;
-    end = i;
-  }
-  return { header, firstData, end, columnCount };
 }
 
 function pairsFromSetTable(markdown: string): GymExercisePair[] {

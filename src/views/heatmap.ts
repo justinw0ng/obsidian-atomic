@@ -1,5 +1,10 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { monthShortForLanguage, parseYmd, ymdInZone } from "../dates";
+import {
+  monthShortForLanguage,
+  nowYear,
+  resolveBlockYear,
+  ymdInZone,
+} from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
@@ -165,10 +170,7 @@ function renderOneHeatmap(
     if (!week.length) continue;
     const first = week[0];
     const monthName = monthShortForLanguage(first.y, first.m, first.d, language);
-    if (monthName !== lastMonth && first.d <= 7 && first.isCurrentYear) {
-      monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
-      lastMonth = monthName;
-    } else if (monthName !== lastMonth && first.d <= 7) {
+    if (monthName !== lastMonth && first.d <= 7) {
       monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
       lastMonth = monthName;
     } else {
@@ -309,10 +311,5 @@ export function resolveHeatmapYear(
   sourcePath: string,
   timezone: string,
 ): number {
-  if (opts.year && Number(opts.year)) return Number(opts.year);
-  const fromPath = parseYmd(
-    sourcePath.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || "",
-  );
-  if (fromPath) return fromPath.y;
-  return Number(ymdInZone(new Date(), timezone).slice(0, 4));
+  return resolveBlockYear(opts, nowYear(timezone), { sourcePath });
 }
