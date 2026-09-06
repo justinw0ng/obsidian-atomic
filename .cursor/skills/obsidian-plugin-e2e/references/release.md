@@ -45,13 +45,12 @@ Atomic's release job:
 3. `npm run typecheck`, `npm test`, `npm run build`
 4. Refuse if tag `VERSION` already exists
 5. Commit version files, tag `VERSION` (no `v`), push branch and tag
-6. Zip `PLUGIN_ID/main.js|manifest.json|styles.css`
-7. Attest the three plugin files
-8. `softprops/action-gh-release` with assets: `main.js`, `manifest.json`, `styles.css`, and the zip
+6. Attest the three plugin files with `actions/attest` (OIDC). Do not attest locally — invalid provenance is worse than none.
+7. `softprops/action-gh-release` with assets **exactly**: `main.js`, `manifest.json`, `styles.css`
 
-Tag format: `1.1.3`, not `v1.1.3`. `PLUGIN_ID` in the workflow must equal `manifest.json` `id` (`atomic-tracker`).
+Do not attach `atomic-tracker-*.zip` (or any other extra file) to the GitHub Release. A zip is optional for local sideload only; Obsidian downloads the three plugin files and flags unsupported extras. Tag format: `1.1.3`, not `v1.1.3`. Plugin id stays in `manifest.json` (`atomic-tracker`).
 
-You can run the same steps locally if Actions is unavailable. The directory only cares that the tag exists and the three binaries are attached.
+You can run the same steps locally if Actions is unavailable. Skip attestation unless you have a valid Actions/OIDC path. The directory only cares that the tag exists and the three binaries are attached.
 
 ### Cursor Cloud Agents
 

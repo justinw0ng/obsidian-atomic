@@ -22,6 +22,15 @@ function yamlKeyBlock(yaml, indent, key) {
   return end === -1 ? rest : rest.slice(0, end);
 }
 
+function yamlBlockScalar(yaml, indent, key) {
+  const needle = `\n${indent}${key}: |\n`;
+  const start = yaml.indexOf(needle);
+  assert.notEqual(start, -1, `missing ${key} block scalar`);
+  const rest = yaml.slice(start + needle.length);
+  const end = rest.search(new RegExp(`\\n${indent}\\S`));
+  return end === -1 ? rest : rest.slice(0, end);
+}
+
 test("plugin source path list is non-empty and has no duplicates", () => {
   const globs = readPluginSourceGlobs();
   assert.ok(globs.length > 0);
@@ -107,6 +116,26 @@ test("release.yml bumps the version, tags, and creates a GitHub release", () => 
   assert.match(release, /tag_name: \$\{\{ steps\.version\.outputs\.version \}\}/);
   assert.match(release, /body: \$\{\{ inputs\.release_notes \}\}/);
   assert.match(release, /generate_release_notes: true/);
+});
+
+test("release.yml publishes only the three Obsidian plugin files", () => {
+  const release = readFileSync(
+    join(root, ".github/workflows/release.yml"),
+    "utf8",
+  );
+  const filesBlock = yamlBlockScalar(release, "          ", "files");
+  assert.match(filesBlock, /^\s+main\.js$/m);
+  assert.match(filesBlock, /^\s+manifest\.json$/m);
+  assert.match(filesBlock, /^\s+styles\.css$/m);
+  assert.doesNotMatch(filesBlock, /\.zip/);
+  assert.doesNotMatch(filesBlock, /archive/);
+  assert.doesNotMatch(release, /Package plugin zip/);
+  assert.doesNotMatch(release, /atomic-tracker-.*\.zip/);
+  assert.match(release, /uses: actions\/attest@v4/);
+  assert.match(
+    release,
+    /subject-path:\s*\|\s*\n\s+main\.js\s*\n\s+manifest\.json\s*\n\s+styles\.css/,
+  );
 });
 
 test("codeql.yml pull requests stay unfiltered", () => {

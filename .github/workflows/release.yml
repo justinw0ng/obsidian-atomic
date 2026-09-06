@@ -25,9 +25,6 @@ permissions:
   id-token: write
   attestations: write
 
-env:
-  PLUGIN_ID: atomic-tracker
-
 concurrency:
   group: release-${{ inputs.branch }}
   cancel-in-progress: false
@@ -113,25 +110,6 @@ jobs:
           git push origin "HEAD:${BRANCH}"
           git push origin "refs/tags/${VERSION}"
 
-      - name: Package plugin zip
-        id: package
-        run: |
-          set -euo pipefail
-          VERSION="${{ steps.version.outputs.version }}"
-          PLUGIN_ID="${{ env.PLUGIN_ID }}"
-          ARCHIVE="${PLUGIN_ID}-${VERSION}.zip"
-          STAGE="$(mktemp -d)"
-          mkdir -p "${STAGE}/${PLUGIN_ID}"
-          cp main.js manifest.json styles.css "${STAGE}/${PLUGIN_ID}/"
-          (
-            cd "${STAGE}"
-            zip -r "${ARCHIVE}" "${PLUGIN_ID}"
-          )
-          mv "${STAGE}/${ARCHIVE}" "./${ARCHIVE}"
-          echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
-          echo "Packaged ${ARCHIVE}"
-          unzip -l "${ARCHIVE}"
-
       - name: Generate artifact attestation
         uses: actions/attest@v4
         with:
@@ -151,6 +129,5 @@ jobs:
             main.js
             manifest.json
             styles.css
-            ${{ steps.package.outputs.archive }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

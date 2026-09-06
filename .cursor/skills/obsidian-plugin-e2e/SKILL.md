@@ -140,7 +140,7 @@ Release proof:
 
 - `package.json`, `manifest.json`, `versions.json`, and `package-lock.json` share the new semver
 - Git tag equals that semver with **no** `v` prefix
-- GitHub Release attaches `main.js`, `manifest.json`, `styles.css` as binaries (zip is extra)
+- GitHub Release attaches **exactly** `main.js`, `manifest.json`, `styles.css` (no zip or other extras)
 - Default-branch `manifest.json` `version` matches that tag
 
 First listing: [community.obsidian.md](https://community.obsidian.md) after a real GitHub release exists. Later versions are pulled from GitHub automatically. See [release.md](references/release.md).
