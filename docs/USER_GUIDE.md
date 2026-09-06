@@ -64,7 +64,25 @@ Rendered views (heatmap, dashboard, book shelf, timer, gym set log, cues) do not
 
 ---
 
-## 4. Build this plugin from source
+## 4. Install Atomic Tracker
+
+### Manual install from a GitHub Release
+
+For end users who are not building from source:
+
+1. Open the [latest GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases/latest).
+2. Download **`main.js`**, **`manifest.json`**, and **`styles.css`**.
+3. Copy those three files into `<vault>/.obsidian/plugins/atomic-tracker/`. Create the folder if it does not exist.
+
+Do **not** use GitHub’s “Source code (zip)” or any `.zip` asset. Releases do not publish an `atomic-tracker-*.zip`. Obsidian needs those three files sitting in the `atomic-tracker` plugin folder; a source zip is the wrong artifact.
+
+![Plugin folder layout](./images/05-install-plugin-folder.png)
+
+The screenshot may show a demo path under `/tmp/...`. On your machine use `<your-vault>/.obsidian/plugins/atomic-tracker/` with the same three files.
+
+### Build this plugin from source
+
+For developers who want to compile locally:
 
 ```bash
 npm install
@@ -86,10 +104,6 @@ mkdir -p /path/to/vault/.obsidian/plugins
 ln -sfn "$(pwd)" /path/to/vault/.obsidian/plugins/atomic-tracker
 npm run build
 ```
-
-![Plugin folder layout](./images/05-install-plugin-folder.png)
-
-The screenshot may show a demo path under `/tmp/...`. On your machine use `<your-vault>/.obsidian/plugins/atomic-tracker/` with the same three files.
 
 ---
 
@@ -555,7 +569,7 @@ date: 2026-08-08
 
 | Problem | Fix |
 |---------|-----|
-| Plugin not listed | Confirm files are under `.obsidian/plugins/atomic-tracker/` and reload plugins |
+| Plugin not listed | Confirm `main.js`, `manifest.json`, and `styles.css` are under `.obsidian/plugins/atomic-tracker/` and reload plugins. Do not use a source zip. |
 | Restricted mode | Turn on community plugins in Settings |
 | Empty heatmap / dashboard | Enable the habit in settings; add exercise sessions with `date` / duration, or stop a hobby timer so the item has Time log entries |
 | Heatmap says unknown/disabled activities | Fix `activity:` ids, or re-enable the habit in Settings → Atomic Tracker |
