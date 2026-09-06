@@ -1,13 +1,7 @@
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { durationToLevel } from "../core.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import {
-  addDays,
-  formatYmd,
-  fullDateForLanguage,
-  monthShortForLanguage,
-  weekdaySun0,
-} from "../dates.ts";
+import { addDays, formatYmd, fullDateForLanguage, monthShortForLanguage, weekdaySun0 } from "../dates.ts";
 import type { Language } from "../i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { EMPTY_CELL, type DayActivity } from "../types.ts";
