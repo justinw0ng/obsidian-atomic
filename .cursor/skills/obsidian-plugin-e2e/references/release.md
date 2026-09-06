@@ -1,6 +1,6 @@
 # Release and directory
 
-Obsidian installs from a GitHub Release whose **tag equals** `manifest.json` `version`. It does not install from the git tree. A zip in the repo or a `v` prefix on the tag will not load in Community plugins.
+Obsidian installs from a GitHub Release whose **tag equals** `manifest.json` `version`. It does not install from the git tree. A `v` prefix on the tag will not load in Community plugins.
 
 ## Version files
 
@@ -48,7 +48,7 @@ Atomic's release job:
 6. Attest the three plugin files with `actions/attest` (OIDC). Do not attest locally — invalid provenance is worse than none.
 7. `softprops/action-gh-release` with assets **exactly**: `main.js`, `manifest.json`, `styles.css`
 
-Do not attach `atomic-tracker-*.zip` (or any other extra file) to the GitHub Release. A zip is optional for local sideload only; Obsidian downloads the three plugin files and flags unsupported extras. Tag format: `1.1.3`, not `v1.1.3`. Plugin id stays in `manifest.json` (`atomic-tracker`).
+Do not attach `atomic-tracker-*.zip` (or any other extra file) to the GitHub Release. Release assets are only `main.js`, `manifest.json`, and `styles.css`. Manual install copies those three files into `.obsidian/plugins/atomic-tracker/`. Obsidian’s Community plugins download the same three files and flag unsupported extras. Tag format: `1.1.3`, not `v1.1.3`. Plugin id stays in `manifest.json` (`atomic-tracker`).
 
 You can run the same steps locally if Actions is unavailable. Skip attestation unless you have a valid Actions/OIDC path. The directory only cares that the tag exists and the three binaries are attached.
 
@@ -88,4 +88,4 @@ After the plugin is listed, new tags on GitHub are enough. Do not open a directo
 
 ## Sideload / source install
 
-Users who are not on the directory copy `main.js`, `manifest.json`, and `styles.css` into `.obsidian/plugins/<id>/`. Document that path. Atomic's esbuild can deploy with `OBSIDIAN_PLUGIN_OUT`.
+Users who are not on the directory open the latest GitHub Release and copy `main.js`, `manifest.json`, and `styles.css` into `.obsidian/plugins/<id>/` (`atomic-tracker` here). Do not use “Source code (zip)” or any zip asset. Document that path in the user guide. Atomic's esbuild can deploy with `OBSIDIAN_PLUGIN_OUT`.
