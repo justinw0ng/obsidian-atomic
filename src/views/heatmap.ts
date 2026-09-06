@@ -1,10 +1,5 @@
 import type { VaultDataSource } from "../data/vault-source";
-import {
-  monthShortForLanguage,
-  nowYear,
-  resolveBlockYear,
-  ymdInZone,
-} from "../dates";
+import { nowYear, resolveBlockYear, ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
@@ -20,7 +15,9 @@ import {
   heatmapActivityKey,
   heatmapDomIsPainted,
   heatmapLayoutKey,
+  heatmapMonthSlots,
   sameHeatmapPaintState,
+  type HeatmapMonthSlot,
   type HeatmapPaintState,
 } from "../util/heatmap-model";
 import { measureElementWidth } from "../util/element-width";
@@ -117,6 +114,36 @@ function wireHeatmapCellClicks(weeksEl: HTMLElement, data: VaultDataSource): voi
   });
 }
 
+function appendHeatmapMonthSlot(
+  monthRow: HTMLElement,
+  slot: HeatmapMonthSlot,
+): void {
+  switch (slot.kind) {
+    case "label":
+      monthRow.createDiv({
+        cls: "fitness-month-label",
+        text: slot.text,
+        attr: {
+          "data-testid": "atomic-heatmap-month",
+          "data-month": String(slot.month),
+        },
+      });
+      return;
+    case "spacer": {
+      const attr: Record<string, string> = {
+        "data-testid": "atomic-heatmap-month-spacer",
+      };
+      if (slot.month != null) attr["data-month"] = String(slot.month);
+      monthRow.createDiv({ cls: "fitness-month-spacer", attr });
+      return;
+    }
+    default: {
+      const _exhaustive: never = slot;
+      return _exhaustive;
+    }
+  }
+}
+
 function renderOneHeatmap(
   root: HTMLElement,
   data: VaultDataSource,
@@ -165,17 +192,8 @@ function renderOneHeatmap(
 
   const scroll = body.createDiv({ cls: "fitness-heatmap-scroll" });
   const monthRow = scroll.createDiv({ cls: "fitness-month-row" });
-  let lastMonth = "";
-  for (const week of weeks) {
-    if (!week.length) continue;
-    const first = week[0];
-    const monthName = monthShortForLanguage(first.y, first.m, first.d, language);
-    if (monthName !== lastMonth && first.d <= 7) {
-      monthRow.createDiv({ cls: "fitness-month-label", text: monthName });
-      lastMonth = monthName;
-    } else {
-      monthRow.createDiv({ cls: "fitness-month-spacer" });
-    }
+  for (const slot of heatmapMonthSlots(weeks, language)) {
+    appendHeatmapMonthSlot(monthRow, slot);
   }
 
   const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });

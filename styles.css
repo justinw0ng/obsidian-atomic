@@ -1,6 +1,10 @@
 .fitness-plugin {
   --atomic-heatmap-cell: 11px;
   --atomic-heatmap-gap: 1px;
+  --atomic-heatmap-week-pad: 1px;
+  --atomic-heatmap-week-col: calc(
+    var(--atomic-heatmap-cell) + 2 * var(--atomic-heatmap-week-pad)
+  );
   --atomic-heatmap-day-label: 22px;
   --atomic-book-width: 80px;
   --atomic-book-height: 124px;
@@ -136,19 +140,20 @@
   display: flex;
   margin-bottom: 4px;
   flex-wrap: nowrap;
+  gap: var(--atomic-heatmap-gap);
 }
 
 .fitness-plugin .fitness-month-label {
   font-size: 8px;
   color: var(--text-muted);
-  width: calc(var(--atomic-heatmap-cell) + var(--atomic-heatmap-gap));
+  width: var(--atomic-heatmap-week-col);
   text-align: center;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .fitness-plugin .fitness-month-spacer {
-  width: calc(var(--atomic-heatmap-cell) + var(--atomic-heatmap-gap));
+  width: var(--atomic-heatmap-week-col);
   flex-shrink: 0;
 }
 
@@ -202,7 +207,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--atomic-heatmap-gap);
-  padding: 1px;
+  padding: var(--atomic-heatmap-week-pad);
 }
 
 .fitness-plugin .fitness-actions {

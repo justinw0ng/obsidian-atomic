@@ -24,8 +24,11 @@ import {
   HEATMAP_DAY_LABEL_PX,
   HEATMAP_GAP_PX,
   HEATMAP_SCROLL_PAD_PX,
+  HEATMAP_WEEK_PAD_PX,
   heatmapBodyMinWidth,
   heatmapNeedsHorizontalScroll,
+  heatmapTrackWidth,
+  heatmapWeekColumnPx,
   heatmapWeeksWidth,
 } from "../src/util/heatmap-metrics.ts";
 import { hobbyItemFromFileCache } from "../src/util/hobby-item-scan.ts";
@@ -126,6 +129,12 @@ test("heatmap year grid is narrower than the old 16px cells", () => {
   assert.ok(width < oldWidth);
   assert.equal(HEATMAP_CELL_PX, 11);
   assert.equal(HEATMAP_GAP_PX, 1);
+  assert.equal(HEATMAP_WEEK_PAD_PX, 1);
+  assert.equal(heatmapWeekColumnPx(), HEATMAP_CELL_PX + 2 * HEATMAP_WEEK_PAD_PX);
+  assert.equal(
+    heatmapTrackWidth(weeks),
+    weeks * heatmapWeekColumnPx() + (weeks - 1) * HEATMAP_GAP_PX,
+  );
   assert.ok(heatmapNeedsHorizontalScroll(IPHONE_SE, weeks));
   assert.ok(
     heatmapBodyMinWidth(weeks) ===
@@ -262,6 +271,24 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);
   assert.match(styles, /--atomic-heatmap-cell:\s*11px/);
+  assert.match(styles, /--atomic-heatmap-week-pad:\s*1px/);
+  assert.match(styles, /--atomic-heatmap-week-col:/);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.fitness-month-row\s*\{[^}]*gap:\s*var\(--atomic-heatmap-gap\)/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.fitness-month-label\s*\{[^}]*width:\s*var\(--atomic-heatmap-week-col\)/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.fitness-month-spacer\s*\{[^}]*width:\s*var\(--atomic-heatmap-week-col\)/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.fitness-week\s*\{[^}]*padding:\s*var\(--atomic-heatmap-week-pad\)/s,
+  );
   assert.match(styles, /--atomic-book-width:\s*80px/);
   assert.match(
     styles,

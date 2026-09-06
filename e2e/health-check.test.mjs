@@ -128,6 +128,48 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
+  it("aligns heatmap month labels with the today column", async () => {
+    await check(driver, "heatmap-month-align", async () => {
+      await openVaultFile(driver, E2E_FILES.heatmapReading);
+      await waitCss(driver, '[data-testid="atomic-heatmap-today"]');
+      await waitCss(driver, '[data-testid="atomic-heatmap-month"]');
+      const result = await driver.executeScript(`
+        const heatmap = document.querySelector(
+          '[data-testid="atomic-heatmap"][data-activity="reading"]',
+        );
+        const today = heatmap.querySelector('[data-testid="atomic-heatmap-today"]');
+        const week = today.closest('.fitness-week');
+        const weeks = [...heatmap.querySelectorAll('.fitness-week')];
+        const index = weeks.indexOf(week);
+        const slot = heatmap.querySelector('.fitness-month-row').children[index];
+        const weekLeft = week.getBoundingClientRect().left;
+        const slotLeft = slot.getBoundingClientRect().left;
+        return {
+          ymd: today.getAttribute('data-ymd'),
+          slotMonth: slot.getAttribute('data-month'),
+          dx: Math.abs(weekLeft - slotLeft),
+        };
+      `);
+      assert.ok(result.ymd, "today cell is missing data-ymd");
+      const todayMonth = Number(result.ymd.slice(5, 7));
+      const slotMonth = Number(result.slotMonth);
+      assert.ok(
+        Number.isFinite(slotMonth) && slotMonth > 0,
+        `today column is missing data-month (ymd=${result.ymd})`,
+      );
+      assert.ok(
+        slotMonth === todayMonth ||
+          slotMonth === todayMonth - 1 ||
+          (todayMonth === 1 && slotMonth === 12),
+        `today ${result.ymd} sits under month ${slotMonth}`,
+      );
+      assert.ok(
+        result.dx < 2,
+        `month slot and today week differ by ${result.dx}px`,
+      );
+    });
+  });
+
   it("shows property dropdowns on reading, golf, and gym notes", async () => {
     await check(driver, "property-dropdowns", async () => {
       await openVaultFile(driver, E2E_FILES.readingCurrent);

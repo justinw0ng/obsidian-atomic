@@ -1,11 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GREEN } from "../src/types.ts";
+import { monthShortEn, monthShortZh } from "../src/dates.ts";
 import {
   appendHeatmapWeeks,
   buildHeatmapWeeks,
   formatHeatmapTooltip,
   heatmapDomIsPainted,
+  heatmapMonthSlots,
   sameHeatmapPaintState,
 } from "../src/util/heatmap-model.ts";
 
@@ -88,7 +90,47 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
   assert.ok(todayWeek);
   assert.equal(today.dataset.path, 'atomics/exercise/Gym/2026/a"b.md');
   assert.equal(today.dataset.minutes, "30");
+  assert.equal(today.dataset.ymd, "2026-01-01");
   assert.equal(parent.children.at(-1), pad);
+});
+
+test("September 6 2026 sits under 9月, not 10月", () => {
+  const weeks = buildHeatmapWeeks({
+    year: 2026,
+    todayStr: "2026-09-06",
+    language: "zh-Hant-en",
+    activityMap: new Map(),
+  });
+  const slots = heatmapMonthSlots(weeks, "zh-Hant-en");
+  assert.equal(slots.length, weeks.length);
+  const todayIndex = weeks.findIndex((week) => week.some((day) => day.isToday));
+  assert.ok(todayIndex >= 0);
+  const today = weeks[todayIndex].find((day) => day.isToday);
+  assert.equal(today.date, "2026-09-06");
+  assert.equal(today.m, 9);
+  const slot = slots[todayIndex];
+  assert.equal(slot.kind, "label");
+  assert.equal(slot.month, 9);
+  assert.equal(slot.text, monthShortZh(2026, 9, 6));
+  const octoberIndex = slots.findIndex(
+    (entry) => entry.kind === "label" && entry.month === 10,
+  );
+  assert.ok(octoberIndex > todayIndex);
+});
+
+test("month slots keep one column per week for English labels", () => {
+  const weeks = buildHeatmapWeeks({
+    year: 2026,
+    todayStr: "2026-09-06",
+    language: "en",
+    activityMap: new Map(),
+  });
+  const slots = heatmapMonthSlots(weeks, "en");
+  assert.equal(slots.length, weeks.length);
+  const todayIndex = weeks.findIndex((week) => week.some((day) => day.isToday));
+  assert.equal(slots[todayIndex].kind, "label");
+  assert.equal(slots[todayIndex].month, 9);
+  assert.equal(slots[todayIndex].text, monthShortEn(2026, 9, 6));
 });
 
 test("heatmap tooltip formatting stays literal", () => {
