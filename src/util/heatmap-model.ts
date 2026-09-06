@@ -1,7 +1,7 @@
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { durationToLevel } from "../core.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { addDays, formatYmd, fullDateForLanguage, weekdaySun0 } from "../dates.ts";
+import { addDays, formatYmd, fullDateForLanguage, monthShortForLanguage, weekdaySun0 } from "../dates.ts";
 import type { Language } from "../i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { EMPTY_CELL, type DayActivity } from "../types.ts";
@@ -18,6 +18,10 @@ export type HeatmapDayCell = {
   m: number;
   d: number;
 };
+
+export type HeatmapMonthSlot =
+  | { kind: "label"; text: string; month: number }
+  | { kind: "spacer"; month: number | null };
 
 export type HeatmapPaintState = {
   year: number;
@@ -124,6 +128,32 @@ export function buildHeatmapWeeks(params: {
   return weeks;
 }
 
+/** One slot per week so month headers stay on the same column as the grid. */
+export function heatmapMonthSlots(
+  weeks: Array<Array<{ y: number; m: number; d: number }>>,
+  language: Language,
+): HeatmapMonthSlot[] {
+  const slots: HeatmapMonthSlot[] = [];
+  let lastName = "";
+  let lastMonth: number | null = null;
+  for (const week of weeks) {
+    if (!week.length) {
+      slots.push({ kind: "spacer", month: lastMonth });
+      continue;
+    }
+    const first = week[0];
+    const name = monthShortForLanguage(first.y, first.m, first.d, language);
+    if (name !== lastName && first.d <= 7) {
+      slots.push({ kind: "label", text: name, month: first.m });
+      lastName = name;
+      lastMonth = first.m;
+    } else {
+      slots.push({ kind: "spacer", month: lastMonth });
+    }
+  }
+  return slots;
+}
+
 export type HeatmapPaintHost = {
   createDiv(options?: {
     cls?: string;
@@ -150,6 +180,7 @@ export function appendHeatmapWeeks(
           : "atomic-heatmap-cell",
         "data-minutes": String(day.minutes),
         "data-date": day.fullDate,
+        "data-ymd": day.date,
         title: formatHeatmapTooltip(
           day.path ? tooltipOpen : tooltip,
           day.fullDate,
