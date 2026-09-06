@@ -53,6 +53,20 @@ Tag format: `1.1.3`, not `v1.1.3`. `PLUGIN_ID` in the workflow must equal `manif
 
 You can run the same steps locally if Actions is unavailable. The directory only cares that the tag exists and the three binaries are attached.
 
+### Cursor Cloud Agents
+
+Prefer `gh workflow run Release ...` when the agent token can write Actions (`workflow_dispatch` needs `actions: write`):
+
+```bash
+gh workflow run Release --ref main -f bump=patch
+```
+
+If that returns `HTTP 403: Resource not accessible by integration`, it is expected with the default Cursor GitHub App installation token, which is scoped to `actions: read` only. Reconfiguring the Cursor GitHub App install does not raise that per-run token.
+
+Workaround: create a [fine-grained PAT](https://github.com/settings/personal-access-tokens/new) scoped to this repo with **Actions: Read and write** (and Contents as needed for `gh`), then add it under [Cursor Cloud Agents → Secrets](https://cursor.com/dashboard?tab=cloud-agents) as exactly `GH_TOKEN` or `GITHUB_TOKEN` and re-run. Contents write on the default token still works (push, tag, release).
+
+If no PAT is available, fall back to the local bump / tag / release path above.
+
 ## Community directory (first publish)
 
 1. Default branch has `README.md`, `LICENSE`, and a correct `manifest.json`.
