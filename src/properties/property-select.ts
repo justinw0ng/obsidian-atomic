@@ -363,10 +363,14 @@ export function registerPropertySelects(
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        scheduleInject();
-        return;
+      if (mutation.type !== "childList" || mutation.addedNodes.length === 0) {
+        continue;
       }
+      const target = mutation.target;
+      const el = target instanceof Element ? target : target.parentElement;
+      if (el?.closest(".fitness-plugin, .atomic-block-host")) continue;
+      scheduleInject();
+      return;
     }
   });
 

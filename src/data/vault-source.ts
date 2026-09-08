@@ -21,7 +21,7 @@ export class VaultDataSource {
   private readonly sessionListCache = new VaultListCache<SessionMeta[]>();
   private readonly hobbyItemListCache = new VaultListCache<HobbyItemMeta[]>();
   private readonly durationMapCache = new VaultListCache<Map<string, DayActivity>>();
-  private needsMetadataRefresh = false;
+  private readonly needsMetadataRefreshPrefixes = new Set<string>();
 
   constructor(private app: App) {}
 
@@ -47,15 +47,15 @@ export class VaultDataSource {
   }
 
   /**
-   * True when a list scan called `metadataCache.getFileCache()` and got null
-   * (file metadata not indexed yet). Callers should refresh once after
+   * Scan prefixes whose `metadataCache.getFileCache()` was null (index not
+   * ready). Callers should invalidate those prefixes after
    * `metadataCache.resolved`. Empty frontmatter on an existing cache does
-   * not set this flag.
+   * not record a prefix.
    */
-  consumeNeedsMetadataRefresh(): boolean {
-    const needed = this.needsMetadataRefresh;
-    this.needsMetadataRefresh = false;
-    return needed;
+  consumeNeedsMetadataRefreshPrefixes(): string[] {
+    const prefixes = [...this.needsMetadataRefreshPrefixes];
+    this.needsMetadataRefreshPrefixes.clear();
+    return prefixes;
   }
 
   /**
@@ -83,7 +83,7 @@ export class VaultDataSource {
 
     const out: SessionMeta[] = [];
     for (const file of this.markdownNotesInFolder(prefix.replace(/\/$/, ""))) {
-      const cache = this.fileCache(file);
+      const cache = this.fileCache(file, prefix);
       out.push(
         sessionMetaFromFile({
           path: file.path,
@@ -112,7 +112,7 @@ export class VaultDataSource {
 
     const out: HobbyItemMeta[] = [];
     for (const file of this.markdownNotesInFolder(prefix.replace(/\/$/, ""))) {
-      const cache = this.fileCache(file);
+      const cache = this.fileCache(file, prefix);
       const item = hobbyItemFromFileCache({
         path: file.path,
         basename: file.basename,
@@ -277,9 +277,12 @@ export class VaultDataSource {
     return markdownFilesInFolder(asFolderLike(folder)) as TFile[];
   }
 
-  private fileCache(file: TFile): { frontmatter?: Record<string, unknown> } | null {
+  private fileCache(
+    file: TFile,
+    scanPrefix: string,
+  ): { frontmatter?: Record<string, unknown> } | null {
     const cache = this.app.metadataCache.getFileCache(file);
-    if (cache == null) this.needsMetadataRefresh = true;
+    if (cache == null) this.needsMetadataRefreshPrefixes.add(scanPrefix);
     return cache;
   }
 }

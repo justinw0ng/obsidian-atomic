@@ -175,9 +175,6 @@ export function appendHeatmapWeeks(
     });
     for (const day of week) {
       const attr: Record<string, string> = {
-        "data-testid": day.isToday
-          ? "atomic-heatmap-today"
-          : "atomic-heatmap-cell",
         "data-minutes": String(day.minutes),
         "data-date": day.fullDate,
         "data-ymd": day.date,
@@ -187,6 +184,7 @@ export function appendHeatmapWeeks(
           day.minutes,
         ),
       };
+      if (day.isToday) attr["data-testid"] = "atomic-heatmap-today";
       if (day.path) attr["data-path"] = day.path;
       const cell = weekEl.createDiv({ cls: cellClass(day), attr });
       cell.style.backgroundColor = day.isCurrentYear

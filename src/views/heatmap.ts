@@ -161,6 +161,8 @@ function renderOneHeatmap(
       "data-activity": activity.id,
     },
   });
+  // Paint off-document so ~370 cell createDivs do not mutate the live tree.
+  wrap.detach();
   wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
 
   const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
@@ -206,6 +208,7 @@ function renderOneHeatmap(
   );
   wireHeatmapCellClicks(weeksEl, data);
   wireHeatmapScroll(scroll, registry);
+  root.appendChild(wrap);
 }
 
 function wireHeatmapGrid(

@@ -17,11 +17,12 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(heatmap, /"atomic-heatmap-month"/);
   assert.match(heatmap, /appendHeatmapWeeks/);
   assert.match(heatmap, /heatmapMonthSlots/);
+  assert.match(heatmap, /wrap\.detach\(\)/);
   assert.doesNotMatch(heatmap, /innerHTML/);
 
   const heatmapModel = src("src/util/heatmap-model.ts");
   assert.match(heatmapModel, /"atomic-heatmap-today"/);
-  assert.match(heatmapModel, /"atomic-heatmap-cell"/);
+  assert.doesNotMatch(heatmapModel, /"atomic-heatmap-cell"/);
   assert.match(heatmapModel, /"data-ymd"/);
   assert.match(heatmapModel, /appendHeatmapWeeks/);
   assert.match(heatmapModel, /export function heatmapMonthSlots/);
@@ -32,9 +33,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const timer = src("src/views/timer.ts");
   assert.match(timer, /data-testid": "atomic-timer-start"/);
   assert.match(timer, /data-testid": "atomic-timer-stop"/);
+  assert.doesNotMatch(timer, /scheduleRefresh/);
 
   const gymLog = src("src/views/gym-log.ts");
   assert.match(gymLog, /data-testid": "atomic-gym-log"/);
+  assert.match(gymLog, /promptNewGymExercise[\s\S]*scheduleRefresh/s);
   assert.match(gymLog, /"atomic-gym-log-exercise"/);
   assert.match(gymLog, /"atomic-gym-log-weight"/);
   assert.match(gymLog, /"atomic-gym-log-reps"/);
@@ -77,6 +80,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const properties = src("src/properties/property-select.ts");
   assert.match(properties, /"data-testid": "atomic-property-select"/);
+  assert.match(properties, /fitness-plugin, \.atomic-block-host/);
 
   const health = src("e2e/health-check.test.mjs");
   assert.match(health, /atomic-heatmap-month/);

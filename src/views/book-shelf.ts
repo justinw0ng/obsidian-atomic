@@ -28,8 +28,65 @@ export type CoverRef =
   | { kind: "vault"; path: string }
   | { kind: "none" };
 
+export type BookShelfPaintState = {
+  activityId: string;
+  hasActivity: boolean;
+  scale: number;
+  statusKey: string;
+  invalidKey: string;
+  itemKey: string;
+};
+
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 const windowListeners = new WeakMap<HTMLElement, () => void>();
+const bookShelfPaintState = new WeakMap<HTMLElement, BookShelfPaintState>();
+const layoutFrames = new WeakMap<HTMLElement, number>();
+
+export function bookShelfItemKey(items: BookShelfItem[]): string {
+  return items
+    .map(
+      (item) =>
+        `${item.path}\0${item.title}\0${item.status}\0${item.spineColor}\0${item.cover ?? ""}\0${item.description ?? ""}\0${item.authors.join(",")}`,
+    )
+    .join("|");
+}
+
+export function sameBookShelfPaintState(
+  previous: BookShelfPaintState | undefined,
+  next: BookShelfPaintState,
+): boolean {
+  if (!previous) return false;
+  return (
+    previous.activityId === next.activityId &&
+    previous.hasActivity === next.hasActivity &&
+    previous.scale === next.scale &&
+    previous.statusKey === next.statusKey &&
+    previous.invalidKey === next.invalidKey &&
+    previous.itemKey === next.itemKey
+  );
+}
+
+export function bookShelfDomIsPainted(el: {
+  querySelector: (sel: string) => unknown;
+}): boolean {
+  return !!el.querySelector('[data-testid="atomic-bookshelf"]');
+}
+
+function cancelBookShelfLayout(el: HTMLElement): void {
+  const frame = layoutFrames.get(el);
+  if (frame == null) return;
+  window.cancelAnimationFrame(frame);
+  layoutFrames.delete(el);
+}
+
+function requestBookShelfLayout(el: HTMLElement, layout: () => void): void {
+  if (layoutFrames.has(el)) return;
+  const frame = window.requestAnimationFrame(() => {
+    layoutFrames.delete(el);
+    layout();
+  });
+  layoutFrames.set(el, frame);
+}
 
 type OverflowElement = {
   className?: string;
@@ -315,6 +372,7 @@ function bindCoverObjectPosition(img: HTMLImageElement): void {
 }
 
 const COVER_OPEN_CLASS = "is-cover-open";
+const OPENING_CLASS = "is-opening";
 
 export function hoverFinePointer(
   media: Pick<MediaQueryList, "matches"> | null | undefined,
@@ -338,6 +396,9 @@ function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
 function closeOpenCovers(root: ParentNode): void {
   root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
     el.classList.remove(COVER_OPEN_CLASS);
+  });
+  root.querySelectorAll(`.atomic-book-row-books.${OPENING_CLASS}`).forEach((el) => {
+    el.classList.remove(OPENING_CLASS);
   });
 }
 
@@ -425,6 +486,7 @@ function createBook(
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeOpenCovers(shelf);
       button.classList.add(COVER_OPEN_CLASS);
+      parent.classList.add(OPENING_CLASS);
       portal.show();
       return;
     }
@@ -472,6 +534,31 @@ export function renderBookShelf(
   options: Record<string, string>,
   language: Language,
 ): void {
+  const scale = resolveBookShelfScale(options);
+  const { maxWidth, minWidth } = scaledBookSize(scale);
+  const activityId = options.activity?.trim() || "reading";
+  const activity = hobbyActivities(activityTypes).find(
+    (candidate) => candidate.id === activityId,
+  );
+  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
+  const items = activity
+    ? buildBookShelfItems(data.listHobbyItems(activity), activityId, statuses)
+    : [];
+  const paintState: BookShelfPaintState = {
+    activityId,
+    hasActivity: Boolean(activity),
+    scale,
+    statusKey: (statuses ?? []).join(","),
+    invalidKey: invalidStatuses.join(","),
+    itemKey: bookShelfItemKey(items),
+  };
+  if (
+    bookShelfDomIsPainted(el) &&
+    sameBookShelfPaintState(bookShelfPaintState.get(el), paintState)
+  ) {
+    return;
+  }
+
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
   const previousWindowListener = windowListeners.get(el);
@@ -479,13 +566,13 @@ export function renderBookShelf(
     window.removeEventListener("resize", previousWindowListener);
     windowListeners.delete(el);
   }
+  cancelBookShelfLayout(el);
   hideAllPortedDetails();
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
+  bookShelfPaintState.set(el, paintState);
 
-  const scale = resolveBookShelfScale(options);
-  const { maxWidth, minWidth } = scaledBookSize(scale);
   const root = el.createDiv({
     cls: "fitness-plugin atomic-book-shelf",
     attr: {
@@ -493,10 +580,6 @@ export function renderBookShelf(
       "data-scale": String(scale),
     },
   });
-  const activityId = options.activity?.trim() || "reading";
-  const activity = hobbyActivities(activityTypes).find(
-    (candidate) => candidate.id === activityId,
-  );
   if (!activity) {
     root.createEl("p", {
       cls: "fitness-muted",
@@ -505,7 +588,6 @@ export function renderBookShelf(
     return;
   }
 
-  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
   if (invalidStatuses.length > 0) {
     root.createEl("p", {
       cls: "fitness-muted",
@@ -515,11 +597,6 @@ export function renderBookShelf(
     });
   }
 
-  const items = buildBookShelfItems(
-    data.listHobbyItems(activity),
-    activityId,
-    statuses,
-  );
   const emptyText =
     statuses && statuses.length > 0
       ? t("view.bookShelf.emptyFiltered", language, {
@@ -556,7 +633,9 @@ export function renderBookShelf(
   });
 
   if (typeof ResizeObserver !== "undefined") {
-    const observer = new ResizeObserver(() => layout());
+    const observer = new ResizeObserver(() => {
+      requestBookShelfLayout(el, layout);
+    });
     observer.observe(frame);
     resizeObservers.set(el, observer);
     return;
@@ -571,7 +650,7 @@ export function renderBookShelf(
       windowListeners.delete(el);
       return;
     }
-    layout();
+    requestBookShelfLayout(el, layout);
   };
   window.addEventListener("resize", onWindowResize);
   windowListeners.set(el, onWindowResize);

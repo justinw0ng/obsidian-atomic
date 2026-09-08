@@ -5,6 +5,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   bookDetailFixedPosition,
+  bookShelfDomIsPainted,
+  bookShelfItemKey,
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
@@ -14,6 +16,7 @@ import {
   isBookShelfUnclipStop,
   parseCoverRef,
   resolveCoverSrc,
+  sameBookShelfPaintState,
   shelfColorFor,
   shouldUnclipBookShelfAncestor,
   titleLengthClass,
@@ -331,6 +334,48 @@ test("book shelf ports hover details to document.body", () => {
     /if\s*\(\s*!button\.isConnected\s*\)\s*\{[^}]*hide\(\)/s,
   );
   assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
+});
+
+test("sameBookShelfPaintState skips rebuilds when items are unchanged", () => {
+  const item = {
+    path: "atomics/hobbies/Reading/Items/One.md",
+    title: "One",
+    authors: ["A"],
+    status: "reading",
+    spineColor: "#123456",
+    cover: "cover.png",
+  };
+  const state = {
+    activityId: "reading",
+    hasActivity: true,
+    scale: 1,
+    statusKey: "",
+    invalidKey: "",
+    itemKey: bookShelfItemKey([item]),
+  };
+  assert.equal(sameBookShelfPaintState(state, { ...state }), true);
+  assert.equal(
+    sameBookShelfPaintState(state, {
+      ...state,
+      itemKey: bookShelfItemKey([{ ...item, title: "Two" }]),
+    }),
+    false,
+  );
+  assert.equal(sameBookShelfPaintState(state, { ...state, scale: 1.5 }), false);
+  assert.equal(
+    bookShelfDomIsPainted({
+      querySelector: (sel) => (sel.includes("atomic-bookshelf") ? {} : null),
+    }),
+    true,
+  );
+});
+
+test("book shelf refresh skips unchanged paint and throttles layout", () => {
+  const source = readFileSync(join(repoRoot, "src/views/book-shelf.ts"), "utf8");
+  assert.match(source, /sameBookShelfPaintState/);
+  assert.match(source, /requestBookShelfLayout/);
+  assert.match(source, /parent\.classList\.add\(OPENING_CLASS\)/);
+  assert.match(source, /ResizeObserver\(\(\) => \{\s*requestBookShelfLayout/s);
 });
 
 test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {
