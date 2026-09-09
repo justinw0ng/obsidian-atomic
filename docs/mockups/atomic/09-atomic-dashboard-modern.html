@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic — Dashboard modern UI mockup</title>
+  <style>
+    /*
+      Mockup of a redesigned `atomic-dashboard` codeblock.
+      Variables mirror Obsidian theme tokens so the same CSS can move into styles.css
+      almost verbatim. Toggle .theme-dark on <body> to preview dark mode.
+    */
+    :root {
+      --background-primary: #ffffff;
+      --background-secondary: #f6f6f6;
+      --background-modifier-border: #e0e0e0;
+      --background-modifier-hover: rgba(0, 0, 0, 0.05);
+      --text-normal: #222222;
+      --text-muted: #6b6b6b;
+      --text-faint: #9a9a9a;
+      --text-on-accent: #ffffff;
+      --interactive-accent: #7c5cff;
+      --link-color: #5c47d6;
+      --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.05);
+      --radius-l: 12px;
+      --radius-m: 8px;
+      --font-ui-small: 13px;
+      --font-ui-smaller: 12px;
+      --font-interface: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+    }
+    body.theme-dark {
+      --background-primary: #1e1e1e;
+      --background-secondary: #262626;
+      --background-modifier-border: #363636;
+      --background-modifier-hover: rgba(255, 255, 255, 0.06);
+      --text-normal: #dcddde;
+      --text-muted: #9a9a9a;
+      --text-faint: #6f6f6f;
+      --interactive-accent: #a48bff;
+      --link-color: #b5a4ff;
+      --shadow-s: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-interface);
+      color: var(--text-normal);
+      background: var(--background-secondary);
+    }
+
+    /* ---------- Reviewer chrome (not part of the plugin) ---------- */
+    .review-bar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 18px;
+      background: var(--background-primary);
+      border-bottom: 1px solid var(--background-modifier-border);
+    }
+    .review-bar h1 { font-size: 0.95rem; margin: 0 14px 0 0; font-weight: 600; }
+    .review-bar .spacer { flex: 1; }
+    .seg { display: inline-flex; border: 1px solid var(--background-modifier-border); border-radius: 999px; overflow: hidden; }
+    .seg button {
+      border: 0; background: transparent; color: var(--text-muted);
+      font: inherit; font-size: var(--font-ui-small); padding: 5px 12px; cursor: pointer;
+    }
+    .seg button.on { background: var(--interactive-accent); color: var(--text-on-accent); }
+    .review-bar label { font-size: var(--font-ui-small); color: var(--text-muted); display: inline-flex; gap: 6px; align-items: center; }
+
+    .stage { padding: 26px 18px 60px; display: flex; justify-content: center; }
+    .pane {
+      width: 100%;
+      max-width: 1080px;
+      background: var(--background-primary);
+      border: 1px solid var(--background-modifier-border);
+      border-radius: 10px;
+      box-shadow: var(--shadow-s);
+      overflow: hidden;
+      transition: max-width 0.25s ease;
+    }
+    body.narrow .pane { max-width: 440px; }
+    .pane-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px;
+      font-size: var(--font-ui-smaller);
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--background-modifier-border);
+    }
+    .pane-head .crumb b { color: var(--text-muted); font-weight: 500; }
+    .pane-body { padding: 26px 30px 40px; }
+    body.narrow .pane-body { padding: 18px 16px 30px; }
+    .pane-body > h1 { font-size: 1.7rem; margin: 0 0 16px; font-weight: 700; letter-spacing: -0.01em; }
+
+    /* ---------- Annotations ---------- */
+    .anno {
+      display: none;
+      position: absolute;
+      top: -10px; left: -10px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #e8590c; color: #fff; font-size: 12px; font-weight: 700;
+      line-height: 22px; text-align: center;
+      box-shadow: 0 0 0 3px var(--background-primary);
+      z-index: 2;
+    }
+    body.annotate .anno { display: block; }
+    .anno-host { position: relative; }
+    .anno-legend { display: none; margin: 26px auto 0; max-width: 1080px; }
+    body.annotate .anno-legend { display: block; }
+    .anno-legend ol { margin: 0; padding-left: 1.3rem; color: var(--text-muted); font-size: var(--font-ui-small); line-height: 1.55; }
+    .anno-legend li b { color: var(--text-normal); }
+
+    /* ---------- Dashboard block (proposed styles.css additions) ---------- */
+    .fitness-plugin.atomic-dashboard {
+      --atomic-dash-gap: 14px;
+      display: grid;
+      gap: var(--atomic-dash-gap);
+      font-size: 14px;
+    }
+
+    /* Header row: title + year switcher + quick links */
+    .atomic-dash-header {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+    }
+    .atomic-dash-title { display: flex; align-items: baseline; gap: 10px; flex: 1 1 auto; }
+    .atomic-dash-title h2 { margin: 0; font-size: 1.25rem; font-weight: 700; }
+    .atomic-dash-title .sub { color: var(--text-muted); font-size: var(--font-ui-small); }
+    .atomic-dash-year {
+      display: inline-flex; align-items: center; gap: 2px;
+      border: 1px solid var(--background-modifier-border); border-radius: 999px; padding: 2px;
+    }
+    .atomic-dash-year button {
+      border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
+      width: 26px; height: 26px; border-radius: 50%; font: inherit;
+    }
+    .atomic-dash-year button:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+    .atomic-dash-year span { font-weight: 600; font-variant-numeric: tabular-nums; padding: 0 4px; }
+    .atomic-dash-links { display: flex; flex-wrap: wrap; gap: 6px; }
+    .atomic-dash-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--background-modifier-border);
+      border-radius: 999px; padding: 4px 11px;
+      font-size: var(--font-ui-small); color: var(--text-normal);
+      background: var(--background-primary); cursor: pointer; text-decoration: none;
+    }
+    .atomic-dash-chip:hover { background: var(--background-modifier-hover); }
+    .atomic-dash-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* KPI cards */
+    .atomic-dash-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: var(--atomic-dash-gap);
+    }
+    .atomic-dash-card {
+      position: relative;
+      border: 1px solid var(--background-modifier-border);
+      border-radius: var(--radius-l);
+      background: var(--background-primary);
+      padding: 14px 16px;
+      min-width: 0;
+    }
+    .atomic-dash-kpi .label { color: var(--text-muted); font-size: var(--font-ui-small); display: flex; justify-content: space-between; gap: 8px; }
+    .atomic-dash-kpi .value { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 6px; }
+    .atomic-dash-kpi .value small { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-left: 4px; letter-spacing: 0; }
+    .atomic-dash-kpi .hint { color: var(--text-faint); font-size: var(--font-ui-smaller); margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .atomic-dash-kpi .spark { display: inline-flex; align-items: flex-end; gap: 2px; height: 18px; }
+    .atomic-dash-kpi .spark i { width: 4px; border-radius: 1px; background: var(--text-faint); opacity: 0.55; display: block; }
+    .atomic-dash-kpi .spark i.hi { opacity: 1; }
+
+    /* Activity cards */
+    .atomic-dash-section-title {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      margin: 6px 0 -4px;
+    }
+    .atomic-dash-section-title h3 {
+      margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+    }
+    .atomic-dash-section-title .meta { color: var(--text-faint); font-size: var(--font-ui-smaller); }
+    .atomic-dash-activities {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: var(--atomic-dash-gap);
+    }
+    .atomic-dash-activity { --ac: var(--interactive-accent); display: grid; gap: 12px; }
+    .atomic-dash-activity::before {
+      content: ""; position: absolute; left: 16px; right: 16px; top: 0; height: 3px;
+      border-radius: 0 0 3px 3px; background: var(--ac);
+    }
+    .atomic-dash-activity .head { display: flex; align-items: center; gap: 8px; }
+    .atomic-dash-activity .head h4 { margin: 0; font-size: 1rem; font-weight: 600; flex: 1; }
+    .atomic-dash-activity .head .kind { color: var(--text-faint); font-size: var(--font-ui-smaller); border: 1px solid var(--background-modifier-border); border-radius: 999px; padding: 1px 8px; }
+    .atomic-dash-activity .nums { display: flex; gap: 18px; flex-wrap: wrap; }
+    .atomic-dash-activity .num b { display: block; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+    .atomic-dash-activity .num span { color: var(--text-muted); font-size: var(--font-ui-smaller); }
+    .atomic-dash-bars {
+      display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; align-items: end; height: 46px;
+    }
+    .atomic-dash-bars i { display: block; background: var(--ac); border-radius: 2px 2px 0 0; opacity: 0.85; min-height: 2px; }
+    .atomic-dash-bars i.zero { background: var(--background-modifier-border); opacity: 1; }
+    .atomic-dash-bars i.now { outline: 2px solid var(--background-primary); box-shadow: 0 0 0 3px var(--ac); }
+    .atomic-dash-months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; color: var(--text-faint); font-size: 10px; text-align: center; margin-top: -6px; }
+    .atomic-dash-activity .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: var(--font-ui-small); }
+    .atomic-dash-activity .foot a { color: var(--link-color); text-decoration: none; }
+    .atomic-dash-activity .foot a:hover { text-decoration: underline; }
+    .atomic-dash-felt { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--background-modifier-border); }
+    .atomic-dash-felt i { display: block; height: 100%; }
+    .atomic-dash-felt-legend { display: flex; gap: 12px; color: var(--text-muted); font-size: var(--font-ui-smaller); margin-top: 6px; }
+    .atomic-dash-felt-legend b { font-weight: 600; color: var(--text-normal); }
+    .atomic-dash-felt-legend .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+
+    /* Monthly chart */
+    .atomic-dash-chart { display: grid; gap: 10px; }
+    .atomic-dash-chart .legend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--text-muted); font-size: var(--font-ui-smaller); }
+    .atomic-dash-chart .legend .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+    .atomic-dash-cols { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; align-items: end; height: 120px; border-bottom: 1px solid var(--background-modifier-border); padding-bottom: 6px; }
+    body.narrow .atomic-dash-cols { gap: 3px; }
+    .atomic-dash-col { display: flex; gap: 2px; align-items: flex-end; justify-content: center; height: 100%; }
+    .atomic-dash-col i { display: block; width: 100%; max-width: 14px; border-radius: 3px 3px 0 0; min-height: 2px; }
+    .atomic-dash-col i.zero { background: var(--background-modifier-border) !important; }
+    .atomic-dash-chart details summary { cursor: pointer; color: var(--text-muted); font-size: var(--font-ui-small); list-style: none; display: inline-flex; gap: 6px; align-items: center; }
+    .atomic-dash-chart details summary::before { content: "▸"; transition: transform 0.15s; }
+    .atomic-dash-chart details[open] summary::before { transform: rotate(90deg); }
+    .atomic-dash-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: var(--font-ui-small); font-variant-numeric: tabular-nums; }
+    .atomic-dash-table th, .atomic-dash-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--background-modifier-border); }
+    .atomic-dash-table th:first-child, .atomic-dash-table td:first-child { text-align: left; }
+    .atomic-dash-table th { color: var(--text-muted); font-weight: 500; }
+
+    /* Two-column details */
+    .atomic-dash-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--atomic-dash-gap); }
+    .atomic-dash-card h4.card-title { margin: 0 0 12px; font-size: 0.95rem; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+    .atomic-dash-card h4.card-title span { color: var(--text-faint); font-size: var(--font-ui-smaller); font-weight: 400; }
+    .atomic-dash-rank { display: grid; gap: 9px; }
+    .atomic-dash-rank .row { display: grid; grid-template-columns: 92px 1fr auto; align-items: center; gap: 10px; font-size: var(--font-ui-small); }
+    body.narrow .atomic-dash-rank .row { grid-template-columns: 76px 1fr auto; }
+    .atomic-dash-rank .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .atomic-dash-rank .bar { height: 8px; border-radius: 999px; background: var(--background-modifier-border); overflow: hidden; }
+    .atomic-dash-rank .bar i { display: block; height: 100%; border-radius: 999px; background: var(--ac, var(--interactive-accent)); }
+    .atomic-dash-rank .val { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .atomic-dash-rank .val b { color: var(--text-normal); font-weight: 600; }
+    .atomic-dash-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .atomic-dash-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--background-modifier-border); border-radius: 999px;
+      padding: 5px 11px; font-size: var(--font-ui-small);
+    }
+    .atomic-dash-tag b { font-variant-numeric: tabular-nums; color: var(--text-muted); font-weight: 500; }
+    .atomic-dash-tag.lg { font-size: 0.95rem; padding: 7px 14px; border-color: var(--ac); }
+    .atomic-dash-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ac); }
+
+    /* Recent sessions */
+    .atomic-dash-recent { display: grid; }
+    .atomic-dash-recent .row {
+      display: grid; grid-template-columns: 90px 10px 1fr auto; align-items: center; gap: 12px;
+      padding: 9px 0; border-bottom: 1px solid var(--background-modifier-border); font-size: var(--font-ui-small);
+    }
+    body.narrow .atomic-dash-recent .row { grid-template-columns: 10px 1fr auto; }
+    body.narrow .atomic-dash-recent .row .date { display: none; }
+    .atomic-dash-recent .row:last-child { border-bottom: 0; }
+    .atomic-dash-recent .date { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .atomic-dash-recent .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ac); }
+    .atomic-dash-recent .what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .atomic-dash-recent .what a { color: var(--link-color); text-decoration: none; }
+    .atomic-dash-recent .what a:hover { text-decoration: underline; }
+    .atomic-dash-recent .what .path { color: var(--text-faint); margin-left: 8px; }
+    .atomic-dash-recent .dur { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .atomic-dash-recent .more { margin-top: 10px; font-size: var(--font-ui-small); color: var(--text-muted); }
+    .atomic-dash-empty { color: var(--text-muted); font-style: italic; font-size: var(--font-ui-small); }
+  </style>
+</head>
+<body>
+  <div class="review-bar">
+    <h1>Atomic — `atomic-dashboard` modern UI</h1>
+    <div class="seg" id="theme">
+      <button data-v="light" class="on">Light</button>
+      <button data-v="dark">Dark</button>
+    </div>
+    <div class="seg" id="width">
+      <button data-v="wide" class="on">Wide pane</button>
+      <button data-v="narrow">Narrow / mobile</button>
+    </div>
+    <span class="spacer"></span>
+    <label><input type="checkbox" id="annotate" /> Show design annotations</label>
+  </div>
+
+  <div class="stage">
+    <div class="pane">
+      <div class="pane-head"><span class="crumb">atomics / <b>Dashboard</b></span></div>
+      <div class="pane-body">
+        <h1>Dashboard</h1>
+
+        <div class="fitness-plugin atomic-dashboard" data-testid="atomic-dashboard">
+
+          <div class="atomic-dash-header anno-host">
+            <span class="anno">1</span>
+            <div class="atomic-dash-title">
+              <h2>2026 overview</h2>
+              <span class="sub">Jan 1 – Aug 14 · 192 sessions</span>
+            </div>
+            <div class="atomic-dash-year" data-testid="atomic-dashboard-year" title="Switches the block year in place (does not edit the note)">
+              <button aria-label="Previous year">‹</button>
+              <span>2026</span>
+              <button aria-label="Next year">›</button>
+            </div>
+            <div class="atomic-dash-links">
+              <a class="atomic-dash-chip"><span class="dot" style="background:#30a14e"></span>Gym cues</a>
+              <a class="atomic-dash-chip"><span class="dot" style="background:#f76707"></span>Golf cues</a>
+              <a class="atomic-dash-chip"><span class="dot" style="background:#7c5cff"></span>Reading bookshelf</a>
+              <a class="atomic-dash-chip"><span class="dot" style="background:#7c5cff"></span>Book shelf</a>
+            </div>
+          </div>
+
+          <div class="atomic-dash-kpis anno-host">
+            <span class="anno">2</span>
+            <div class="atomic-dash-card atomic-dash-kpi" data-testid="atomic-dashboard-kpi">
+              <div class="label">Exercise sessions</div>
+              <div class="value">192</div>
+              <div class="hint"><span>Gym 96 · Golf 96</span>
+                <span class="spark"><i style="height:16px"></i><i style="height:15px"></i><i style="height:16px"></i><i style="height:16px"></i><i style="height:17px"></i><i style="height:16px"></i><i style="height:17px"></i><i class="hi" style="height:7px"></i><i style="height:2px"></i><i style="height:2px"></i><i style="height:2px"></i><i style="height:2px"></i></span>
+              </div>
+            </div>
+            <div class="atomic-dash-card atomic-dash-kpi" data-testid="atomic-dashboard-kpi">
+              <div class="label">Exercise time</div>
+              <div class="value">214<small>h</small> 58<small>m</small></div>
+              <div class="hint"><span>12,898 min · avg 67 min / session</span></div>
+            </div>
+            <div class="atomic-dash-card atomic-dash-kpi" data-testid="atomic-dashboard-kpi">
+              <div class="label">Volume lifted</div>
+              <div class="value">84,480<small>kg</small></div>
+              <div class="hint"><span>Set-table rows · Gym</span>
+                <span class="spark"><i style="height:17px"></i><i style="height:15px"></i><i style="height:17px"></i><i style="height:17px"></i><i style="height:17px"></i><i style="height:17px"></i><i style="height:18px"></i><i class="hi" style="height:7px"></i><i style="height:2px"></i><i style="height:2px"></i><i style="height:2px"></i><i style="height:2px"></i></span>
+              </div>
+            </div>
+            <div class="atomic-dash-card atomic-dash-kpi" data-testid="atomic-dashboard-kpi">
+              <div class="label">Habit time</div>
+              <div class="value">159<small>h</small> 6<small>m</small></div>
+              <div class="hint"><span>Reading 4,337 · Guitar 5,209 min</span></div>
+            </div>
+          </div>
+
+          <div class="atomic-dash-section-title">
+            <h3>Activities</h3>
+            <span class="meta">Enabled habits only · colors from Settings</span>
+          </div>
+          <div class="atomic-dash-activities anno-host">
+            <span class="anno">3</span>
+
+            <div class="atomic-dash-card atomic-dash-activity" style="--ac:#30a14e" data-testid="atomic-dashboard-activity">
+              <div class="head"><h4>🏋️ Gym</h4><span class="kind">exercise</span></div>
+              <div class="nums">
+                <div class="num"><b>96</b><span>sessions</span></div>
+                <div class="num"><b>5,199</b><span>minutes</span></div>
+                <div class="num"><b>84.5k</b><span>kg volume</span></div>
+              </div>
+              <div class="atomic-dash-bars" title="Sessions per month">
+                <i style="height:93%"></i><i style="height:86%"></i><i style="height:93%"></i><i style="height:93%"></i><i style="height:93%"></i><i style="height:93%"></i><i style="height:100%"></i><i class="now" style="height:36%"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i>
+              </div>
+              <div class="atomic-dash-months"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+              <div class="foot"><a>Open Gym cues →</a><span class="atomic-dash-tag" style="border:0;padding:0;color:var(--text-muted)">last: Aug 14</span></div>
+            </div>
+
+            <div class="atomic-dash-card atomic-dash-activity" style="--ac:#f76707" data-testid="atomic-dashboard-activity">
+              <div class="head"><h4>⛳ Golf</h4><span class="kind">exercise</span></div>
+              <div class="nums">
+                <div class="num"><b>96</b><span>sessions</span></div>
+                <div class="num"><b>7,699</b><span>minutes</span></div>
+              </div>
+              <div class="atomic-dash-bars" title="Sessions per month">
+                <i style="height:93%"></i><i style="height:86%"></i><i style="height:93%"></i><i style="height:93%"></i><i style="height:100%"></i><i style="height:86%"></i><i style="height:93%"></i><i class="now" style="height:43%"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i>
+              </div>
+              <div class="atomic-dash-months"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+              <div>
+                <div class="atomic-dash-felt" title="How sessions felt">
+                  <i style="width:64%;background:#f76707"></i><i style="width:28%;background:#ffa94d"></i><i style="width:8%;background:#ffd8a8"></i>
+                </div>
+                <div class="atomic-dash-felt-legend">
+                  <span><i class="sw" style="background:#f76707"></i>good <b>61</b></span>
+                  <span><i class="sw" style="background:#ffa94d"></i>ok <b>27</b></span>
+                  <span><i class="sw" style="background:#ffd8a8"></i>bad <b>8</b></span>
+                </div>
+              </div>
+              <div class="foot"><a>Open Golf cues →</a></div>
+            </div>
+
+            <div class="atomic-dash-card atomic-dash-activity" style="--ac:#7c5cff" data-testid="atomic-dashboard-activity">
+              <div class="head"><h4>📚 Reading</h4><span class="kind">habit</span></div>
+              <div class="nums">
+                <div class="num"><b>12</b><span>items</span></div>
+                <div class="num"><b>4,337</b><span>minutes</span></div>
+                <div class="num"><b>3</b><span>reading now</span></div>
+              </div>
+              <div class="atomic-dash-bars" title="Timer minutes per month">
+                <i style="height:58%"></i><i style="height:72%"></i><i style="height:50%"></i><i style="height:81%"></i><i style="height:100%"></i><i style="height:64%"></i><i style="height:70%"></i><i class="now" style="height:30%"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i>
+              </div>
+              <div class="atomic-dash-months"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+              <div class="foot"><a>Reading bookshelf →</a><a>Book shelf →</a></div>
+            </div>
+
+            <div class="atomic-dash-card atomic-dash-activity" style="--ac:#e64980" data-testid="atomic-dashboard-activity">
+              <div class="head"><h4>🎸 Guitar</h4><span class="kind">habit</span></div>
+              <div class="nums">
+                <div class="num"><b>1</b><span>item</span></div>
+                <div class="num"><b>5,209</b><span>minutes</span></div>
+              </div>
+              <div class="atomic-dash-bars" title="Timer minutes per month">
+                <i style="height:80%"></i><i style="height:84%"></i><i style="height:90%"></i><i style="height:88%"></i><i style="height:94%"></i><i style="height:100%"></i><i style="height:92%"></i><i class="now" style="height:40%"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i><i class="zero"></i>
+              </div>
+              <div class="atomic-dash-months"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+              <div class="foot"><span class="atomic-dash-empty">Custom general habit — timer items only</span></div>
+            </div>
+          </div>
+
+          <div class="atomic-dash-section-title">
+            <h3>Monthly</h3>
+            <span class="meta">Sessions per month, stacked by activity</span>
+          </div>
+          <div class="atomic-dash-card atomic-dash-chart anno-host" data-testid="atomic-dashboard-monthly">
+            <span class="anno">4</span>
+            <div class="legend">
+              <span><i class="sw" style="background:#30a14e"></i>Gym sessions</span>
+              <span><i class="sw" style="background:#f76707"></i>Golf sessions</span>
+              <span style="margin-left:auto">Volume and habit minutes: see table</span>
+            </div>
+            <div class="atomic-dash-cols" aria-hidden="true">
+              <div class="atomic-dash-col"><i style="height:93%;background:#30a14e"></i><i style="height:93%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:86%;background:#30a14e"></i><i style="height:86%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:93%;background:#30a14e"></i><i style="height:93%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:93%;background:#30a14e"></i><i style="height:93%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:93%;background:#30a14e"></i><i style="height:100%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:93%;background:#30a14e"></i><i style="height:86%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:100%;background:#30a14e"></i><i style="height:93%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i style="height:36%;background:#30a14e"></i><i style="height:43%;background:#f76707"></i></div>
+              <div class="atomic-dash-col"><i class="zero"></i><i class="zero"></i></div>
+              <div class="atomic-dash-col"><i class="zero"></i><i class="zero"></i></div>
+              <div class="atomic-dash-col"><i class="zero"></i><i class="zero"></i></div>
+              <div class="atomic-dash-col"><i class="zero"></i><i class="zero"></i></div>
+            </div>
+            <div class="atomic-dash-months" style="margin-top:0"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span></div>
+            <details>
+              <summary>Show monthly table</summary>
+              <table class="atomic-dash-table">
+                <thead><tr><th>Month</th><th>Gym</th><th>Gym volume (kg)</th><th>Golf</th><th>Reading (min)</th><th>Guitar (min)</th></tr></thead>
+                <tbody>
+                  <tr><td>Jan</td><td>13</td><td>11,440</td><td>13</td><td>512</td><td>640</td></tr>
+                  <tr><td>Feb</td><td>12</td><td>10,560</td><td>12</td><td>634</td><td>672</td></tr>
+                  <tr><td>Mar</td><td>13</td><td>11,440</td><td>13</td><td>441</td><td>720</td></tr>
+                  <tr><td>Apr</td><td>13</td><td>11,440</td><td>13</td><td>712</td><td>704</td></tr>
+                  <tr><td>May</td><td>13</td><td>11,440</td><td>14</td><td>880</td><td>752</td></tr>
+                  <tr><td>Jun</td><td>13</td><td>11,440</td><td>12</td><td>563</td><td>800</td></tr>
+                  <tr><td>Jul</td><td>14</td><td>12,320</td><td>13</td><td>616</td><td>736</td></tr>
+                  <tr><td>Aug</td><td>5</td><td>4,400</td><td>6</td><td>264</td><td>320</td></tr>
+                  <tr><td>Sep</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                  <tr><td>Oct</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                  <tr><td>Nov</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                  <tr><td>Dec</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                </tbody>
+              </table>
+            </details>
+          </div>
+
+          <div class="atomic-dash-columns anno-host">
+            <span class="anno">5</span>
+            <div class="atomic-dash-card" style="--ac:#30a14e" data-testid="atomic-dashboard-muscles">
+              <h4 class="card-title">Muscles <span>by volume · sets</span></h4>
+              <div class="atomic-dash-rank">
+                <div class="row"><span class="name">Legs</span><span class="bar"><i style="width:100%"></i></span><span class="val"><b>24,960</b> kg · 288</span></div>
+                <div class="row"><span class="name">Back</span><span class="bar"><i style="width:77%"></i></span><span class="val"><b>19,200</b> kg · 240</span></div>
+                <div class="row"><span class="name">Chest</span><span class="bar"><i style="width:67%"></i></span><span class="val"><b>16,640</b> kg · 224</span></div>
+                <div class="row"><span class="name">Shoulders</span><span class="bar"><i style="width:50%"></i></span><span class="val"><b>12,480</b> kg · 192</span></div>
+                <div class="row"><span class="name">Arms</span><span class="bar"><i style="width:31%"></i></span><span class="val"><b>7,680</b> kg · 160</span></div>
+                <div class="row"><span class="name">Core</span><span class="bar"><i style="width:14%"></i></span><span class="val"><b>3,520</b> kg · 96</span></div>
+              </div>
+            </div>
+            <div class="atomic-dash-card" style="--ac:#f76707" data-testid="atomic-dashboard-golf-focus">
+              <h4 class="card-title">Golf focus <span>tags across 96 sessions</span></h4>
+              <div class="atomic-dash-tags">
+                <span class="atomic-dash-tag lg"><span class="dot"></span>Tempo <b>41</b></span>
+                <span class="atomic-dash-tag lg"><span class="dot"></span>Alignment <b>33</b></span>
+                <span class="atomic-dash-tag"><span class="dot"></span>Short game <b>28</b></span>
+                <span class="atomic-dash-tag"><span class="dot"></span>Putting <b>22</b></span>
+                <span class="atomic-dash-tag"><span class="dot"></span>Course strategy <b>9</b></span>
+                <span class="atomic-dash-tag"><span class="dot"></span>Bunker <b>4</b></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="atomic-dash-section-title">
+            <h3>Recent sessions</h3>
+            <span class="meta">Latest 10 · click to open the note</span>
+          </div>
+          <div class="atomic-dash-card atomic-dash-recent anno-host" data-testid="atomic-dashboard-recent">
+            <span class="anno">6</span>
+            <div class="row" style="--ac:#30a14e"><span class="date">Thu, Aug 14</span><span class="dot"></span><span class="what"><a>Gym</a><span class="path">atomics/exercise/Gym/2026/2026-08-14.md</span></span><span class="dur">58 min · 880 kg</span></div>
+            <div class="row" style="--ac:#f76707"><span class="date">Wed, Aug 13</span><span class="dot"></span><span class="what"><a>Golf</a><span class="path">atomics/exercise/Golf/2026/2026-08-13.md</span></span><span class="dur">85 min · felt good</span></div>
+            <div class="row" style="--ac:#30a14e"><span class="date">Tue, Aug 12</span><span class="dot"></span><span class="what"><a>Gym</a><span class="path">atomics/exercise/Gym/2026/2026-08-12.md</span></span><span class="dur">52 min · 880 kg</span></div>
+            <div class="row" style="--ac:#f76707"><span class="date">Sun, Aug 10</span><span class="dot"></span><span class="what"><a>Golf</a><span class="path">atomics/exercise/Golf/2026/2026-08-10.md</span></span><span class="dur">80 min · felt ok</span></div>
+            <div class="row" style="--ac:#30a14e"><span class="date">Sat, Aug 09</span><span class="dot"></span><span class="what"><a>Gym</a><span class="path">atomics/exercise/Gym/2026/2026-08-09.md</span></span><span class="dur">55 min · 880 kg</span></div>
+            <div class="row" style="--ac:#f76707"><span class="date">Fri, Aug 08</span><span class="dot"></span><span class="what"><a>Golf</a><span class="path">atomics/exercise/Golf/2026/2026-08-08.md</span></span><span class="dur">78 min · felt good</span></div>
+            <div class="row" style="--ac:#30a14e"><span class="date">Thu, Aug 07</span><span class="dot"></span><span class="what"><a>Gym</a><span class="path">atomics/exercise/Gym/2026/2026-08-07.md</span></span><span class="dur">50 min · 880 kg</span></div>
+            <div class="row" style="--ac:#f76707"><span class="date">Wed, Aug 06</span><span class="dot"></span><span class="what"><a>Golf</a><span class="path">atomics/exercise/Golf/2026/2026-08-06.md</span></span><span class="dur">82 min · felt good</span></div>
+            <div class="row" style="--ac:#30a14e"><span class="date">Tue, Aug 05</span><span class="dot"></span><span class="what"><a>Gym</a><span class="path">atomics/exercise/Gym/2026/2026-08-05.md</span></span><span class="dur">54 min · 880 kg</span></div>
+            <div class="row" style="--ac:#f76707"><span class="date">Sun, Aug 03</span><span class="dot"></span><span class="what"><a>Golf</a><span class="path">atomics/exercise/Golf/2026/2026-08-03.md</span></span><span class="dur">79 min · felt bad</span></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anno-legend">
+    <ol>
+      <li><b>Header</b> — `{year} overview` stays as the H2; a date range + total sessions subtitle replaces the emoji. Year switcher re-renders the block in place (no note edit). Cue / bookshelf links become chips colored by the activity `baseColor`.</li>
+      <li><b>KPI cards</b> — the old bullet list (`Total exercise duration`, `Total set-table volume`, hobby minutes) becomes four cards with a big tabular number, one supporting line, and a 12-bar sparkline. Cards auto-fit: 4 → 2 → 1 columns as the pane narrows.</li>
+      <li><b>Activity cards</b> — one card per <em>enabled</em> activity (exercise + general habits in the same grid). Color rail = `colors[2]`. Exercise: sessions, minutes, optional volume; Golf adds the felt good/ok/bad segmented bar. Habits: items, minutes, optional “reading now” count and bookshelf links. Sparkline per month replaces the inline `fitness-sparkline`.</li>
+      <li><b>Monthly</b> — grouped bar chart replaces the 12-row table as the primary view; the table remains behind a `details` disclosure for exact values, screen readers, and copy-paste.</li>
+      <li><b>Muscles / Golf focus</b> — ranked horizontal bars (volume with set count) and weighted tag chips replace the bordered table and bullet list. Both sections stay conditional on `supportsSetTable` / the `golf` id, as today.</li>
+      <li><b>Recent sessions</b> — a timeline list with weekday-date, activity dot, note link, and a duration/volume/felt summary. In narrow panes the date column collapses and the path truncates.</li>
+    </ol>
+  </div>
+
+  <script>
+    function seg(id, apply) {
+      const root = document.getElementById(id);
+      root.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+        root.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b === btn));
+        apply(btn.dataset.v);
+      });
+    }
+    seg("theme", (v) => document.body.classList.toggle("theme-dark", v === "dark"));
+    seg("width", (v) => document.body.classList.toggle("narrow", v === "narrow"));
+    document.getElementById("annotate").addEventListener("change", (e) => {
+      document.body.classList.toggle("annotate", e.target.checked);
+    });
+    const params = new URLSearchParams(location.search);
+    if (params.get("theme") === "dark") document.querySelector('#theme [data-v="dark"]').click();
+    if (params.get("width") === "narrow") document.querySelector('#width [data-v="narrow"]').click();
+    if (params.get("annotate") === "1") { const c = document.getElementById("annotate"); c.checked = true; c.dispatchEvent(new Event("change")); }
+  </script>
+</body>
+</html>
