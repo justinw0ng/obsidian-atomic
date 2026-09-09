@@ -111,7 +111,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-update-note-ack/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
-  assert.match(health, /卡片式排版/);
+  assert.match(health, /而家用卡片嚟排/);
 
   const styles = src("styles.css");
   assert.doesNotMatch(styles, /:has\(/);

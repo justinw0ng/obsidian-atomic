@@ -164,9 +164,9 @@ test("bundled update notes catalog is bilingual", () => {
     bodies.en,
     /What's new note once|New installs|Demo examples|Start \/ Stop/,
   );
-  assert.match(bodies["zh-Hant"], /總覽/);
-  assert.match(bodies["zh-Hant"], /卡片式排版/);
-  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止/);
+  assert.match(bodies["zh-Hant"], /而家用卡片嚟排/);
+  assert.match(bodies["zh-Hant"], /一目了然/);
+  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版/);
 });
 
 test("requiredUpdateNoteBodies rejects a blank or mismatched note", () => {
