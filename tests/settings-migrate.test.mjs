@@ -83,12 +83,12 @@ test("mergeSettings treats stored settings without gymLogSetup as an upgrade", (
   assert.deepEqual(completed.gymExercises, [{ exercise: "Bench", muscle: "Chest" }]);
 });
 
-test("mergeSettings keeps lastSeenUpdateNoteVersion and defaults missing values to empty", () => {
+test("mergeSettings treats stored settings without lastSeenUpdateNoteVersion as unseen", () => {
   const missing = mergeSettings({
     timezone: "Asia/Hong_Kong",
     gymLogSetup: "complete",
   });
-  assert.equal(missing.lastSeenUpdateNoteVersion, "");
+  assert.equal(missing.lastSeenUpdateNoteVersion, "0.0.0");
 
   const kept = mergeSettings({
     timezone: "Asia/Hong_Kong",
@@ -103,6 +103,13 @@ test("mergeSettings keeps lastSeenUpdateNoteVersion and defaults missing values 
     lastSeenUpdateNoteVersion: " 1.1.7 ",
   });
   assert.equal(padded.lastSeenUpdateNoteVersion, "1.1.7");
+
+  const blank = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymLogSetup: "complete",
+    lastSeenUpdateNoteVersion: "  ",
+  });
+  assert.equal(blank.lastSeenUpdateNoteVersion, "0.0.0");
 });
 
 test("mergeSettings does not resurrect Reading deleted from modern activityTypes", () => {

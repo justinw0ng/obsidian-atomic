@@ -1,0 +1,4 @@
+{
+  "version": "1.1.8",
+  "body": "After this update, Atomic Tracker shows a What's new note when the plugin version changes. Later releases summarize changes since the previous version. One note can cover several pull requests."
+}

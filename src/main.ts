@@ -25,7 +25,6 @@ import {
   collectAtomicDataRoots,
   pathAffectsAtomicRefresh,
 } from "./util/refresh-path";
-import { isRecord } from "./util/record";
 import { suggestItem } from "./util/suggest-item";
 
 const REFRESH_DEBOUNCE_MS = 300;
@@ -33,7 +32,6 @@ const REFRESH_DEBOUNCE_MS = 300;
 export default class FitnessPlugin extends Plugin {
   settings: FitnessSettings = DEFAULT_SETTINGS;
   data!: VaultDataSource;
-  hadStoredSettingsOnLoad = false;
   private liveBlocks: LiveBlock[] = [];
   private refreshTimer: number | null = null;
 
@@ -177,9 +175,7 @@ export default class FitnessPlugin extends Plugin {
   }
 
   async loadSettings() {
-    const raw = await this.loadData();
-    this.hadStoredSettingsOnLoad = isRecord(raw);
-    this.settings = mergeSettings(raw);
+    this.settings = mergeSettings(await this.loadData());
   }
 
   async saveSettings() {

@@ -69,6 +69,7 @@ test("obsidian-plugin-e2e skill names files that still exist", () => {
     "src/core/hobby.ts",
     "src/core/gym-log.ts",
     "src/core/update-notes.ts",
+    "src/core/update-notes.json",
     "src/codeblocks.ts",
     "src/data/vault-source.ts",
     "src/util/vault-path.ts",
@@ -145,8 +146,8 @@ test("skill and AGENTS.md require an in-app update note on every release", () =>
   }
   assert.match(skill, /one note may cover multiple PRs/i);
   assert.match(release, /one note may cover multiple PRs/i);
-  assert.match(release, /src\/core\/update-notes\.ts/);
+  assert.match(release, /src\/core\/update-notes\.json/);
   assert.match(release, /release_notes/);
-  assert.match(agents, /src\/core\/update-notes\.ts/);
+  assert.match(agents, /src\/core\/update-notes\.json/);
   assert.match(agents, /release_notes/);
 });

@@ -156,9 +156,9 @@ Release proof:
 - Git tag equals that semver with **no** `v` prefix
 - GitHub Release attaches **exactly** `main.js`, `manifest.json`, `styles.css` (no zip or other extras)
 - Default-branch `manifest.json` `version` matches that tag
-- Every new release has a non-empty in-app update note in `src/core/update-notes.ts` (`UPDATE_NOTES`). One note may cover multiple PRs since the previous release. Do not finalize Release without it. Users are prompted with the latest update note after they update.
+- Every new release has a non-empty in-app update note in `src/core/update-notes.json`. One note may cover multiple PRs since the previous release. Do not finalize Release without it. Users are prompted with the latest update note after they update.
 
-When a release is confirmed, remind the owner to provide that note **or draft one covering all PRs since the last release** before or while cutting Release. Same text goes in `UPDATE_NOTES` and the workflow `release_notes` input.
+When a release is confirmed, remind the owner to provide that note **or draft one covering all PRs since the last release** before or while cutting Release. Same text goes in `src/core/update-notes.json` and the workflow `release_notes` input.
 
 First listing: [community.obsidian.md](https://community.obsidian.md) after a real GitHub release exists. Later versions are pulled from GitHub automatically. See [release.md](references/release.md).
 
@@ -189,5 +189,5 @@ A change is done when:
 | Hook / CSS bans | `tests/e2e-selectors.test.mjs` |
 | CI / release | `.github/workflows/ci.yml`, `.github/workflows/release.yml` |
 | Version bump | `scripts/bump-version.mjs` |
-| In-app update notes | `src/core/update-notes.ts`, `scripts/set-update-note.mjs` |
+| In-app update notes | `src/core/update-notes.json`, `src/core/update-notes.ts`, `scripts/set-update-note.mjs` |
 | Cloud rules | `AGENTS.md` |

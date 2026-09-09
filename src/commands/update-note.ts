@@ -1,7 +1,7 @@
 import { Modal, Setting } from "obsidian";
 import type FitnessPlugin from "../main";
 import {
-  UPDATE_NOTES,
+  UPDATE_NOTE,
   updateNoteToShow,
   type UpdateNote,
 } from "../core/update-notes";
@@ -19,10 +19,9 @@ export async function persistSeenUpdateNote(
 
 export function promptPendingUpdateNote(plugin: FitnessPlugin): void {
   const note = updateNoteToShow({
-    notes: UPDATE_NOTES,
+    note: UPDATE_NOTE,
     lastSeenVersion: plugin.settings.lastSeenUpdateNoteVersion,
     currentVersion: plugin.manifest.version,
-    hadStoredSettings: plugin.hadStoredSettingsOnLoad,
   });
   if (!note) {
     void persistSeenUpdateNote(plugin);
@@ -60,20 +59,13 @@ class UpdateNoteModal extends Modal {
       button.setButtonText(t("modal.updateNoteAck", language));
       button.setCta();
       button.buttonEl.setAttr("data-testid", "atomic-update-note-ack");
-      button.onClick(() => {
-        void this.acknowledge(true);
-      });
+      button.onClick(() => this.close());
     });
   }
 
-  private async acknowledge(shouldClose: boolean): Promise<void> {
+  onClose(): void {
     if (this.resolved) return;
     this.resolved = true;
-    await persistSeenUpdateNote(this.plugin);
-    if (shouldClose) this.close();
-  }
-
-  onClose(): void {
-    void this.acknowledge(false);
+    void persistSeenUpdateNote(this.plugin);
   }
 }

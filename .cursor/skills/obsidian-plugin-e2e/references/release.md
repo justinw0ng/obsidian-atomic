@@ -40,10 +40,10 @@ Required local/CI commands for plugin changes: `npm run typecheck`, `npm test`, 
 
 Every shipped version has an associated update note. After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**). Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
 
-The catalog is `src/core/update-notes.ts` (`UPDATE_NOTES`). Tests refuse a blank note for the current `manifest.json` version. When a release is confirmed:
+The catalog is `src/core/update-notes.json`. Tests refuse a blank note whose `version` is not the current `manifest.json` version. When a release is confirmed:
 
 1. Remind the owner to provide an update note **or draft one covering all PRs since the last release**.
-2. Put the same text in `UPDATE_NOTES` for the version being shipped (`node scripts/set-update-note.mjs <version> "…"` or the Release workflow `release_notes` input, which writes that catalog after the bump).
+2. Put the same text in `src/core/update-notes.json` for the version being shipped (`node scripts/set-update-note.mjs <version> "…"` or the Release workflow `release_notes` input, which writes that catalog after the bump).
 3. Do not finalize Release without it.
 
 The GitHub Release body uses the same `release_notes` input (auto-generated notes are still appended).
@@ -57,7 +57,7 @@ Atomic's release job:
 3. Write the required in-app update note for the new version (`node scripts/set-update-note.mjs <version>` / `release_notes` input)
 4. `npm run typecheck`, `npm test`, `npm run build`
 5. Refuse if tag `VERSION` already exists
-6. Commit version files **and** `src/core/update-notes.ts`, tag `VERSION` (no `v`), push branch and tag
+6. Commit version files **and** `src/core/update-notes.json`, tag `VERSION` (no `v`), push branch and tag
 7. Attest the three plugin files with `actions/attest` (OIDC). Do not attest locally — invalid provenance is worse than none.
 8. `softprops/action-gh-release` with assets **exactly**: `main.js`, `manifest.json`, `styles.css`
 

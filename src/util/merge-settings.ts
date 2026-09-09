@@ -10,6 +10,8 @@ import { activityTypeFromSeries, normalizeActivityType } from "./activity-types.
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "./vault-path.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { UNSEEN_UPDATE_NOTE_VERSION, parsePluginSemver } from "../core/update-notes.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isRecord } from "./record.ts";
 
 function safeVaultPath(value: unknown, fallback: string): string {
@@ -70,6 +72,12 @@ function legacySeriesActivities(
   return normalized.length > 0 ? normalized : cloneActivities(fallback);
 }
 
+function storedLastSeenUpdateNoteVersion(raw: Record<string, unknown>): string {
+  if (!("lastSeenUpdateNoteVersion" in raw)) return UNSEEN_UPDATE_NOTE_VERSION;
+  const value = stringField(raw.lastSeenUpdateNoteVersion).trim();
+  return parsePluginSemver(value) ? value : UNSEEN_UPDATE_NOTE_VERSION;
+}
+
 export function mergeSettings(raw: unknown): FitnessSettings {
   const base = {
     ...DEFAULT_SETTINGS,
@@ -112,6 +120,6 @@ export function mergeSettings(raw: unknown): FitnessSettings {
     activityTypes,
     gymExercises: normalizeGymExercises(raw.gymExercises),
     gymLogSetup: isGymLogSetup(raw.gymLogSetup) ? raw.gymLogSetup : "pending",
-    lastSeenUpdateNoteVersion: stringField(raw.lastSeenUpdateNoteVersion).trim(),
+    lastSeenUpdateNoteVersion: storedLastSeenUpdateNoteVersion(raw),
   };
 }
