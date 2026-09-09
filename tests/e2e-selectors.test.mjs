@@ -84,6 +84,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(properties, /\.metadata-property/);
   assert.match(properties, /\.bases-td/);
   assert.doesNotMatch(properties, /fitness-plugin, \.atomic-block-host/);
+  assert.match(properties, /instanceOf\(Element\)/);
+  assert.doesNotMatch(properties, /instanceof Element/);
 
   const health = src("e2e/health-check.test.mjs");
   assert.match(health, /atomic-heatmap-month/);

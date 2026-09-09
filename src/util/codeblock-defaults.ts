@@ -160,7 +160,7 @@ function optionLine(
 }
 
 export function isAtomicBlockKind(kind: string): kind is AtomicBlockKind {
-  return (ATOMIC_CODEBLOCK_LANGUAGES as readonly string[]).includes(kind);
+  return ATOMIC_CODEBLOCK_LANGUAGES.includes(kind);
 }
 
 /** Default codeblock body with every option documented as a `#` comment. */

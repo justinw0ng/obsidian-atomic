@@ -12,6 +12,10 @@ Paint with `createDiv` / `createEl` and `el.empty()`. Atomic's heatmap keeps a s
 
 Prefer Obsidian helpers over `document.createElement`. `tests/e2e-selectors.test.mjs` asserts heatmap paint uses `createDiv` and does not call `createElement`.
 
+Use `node.instanceOf(Element)` (and the same helper for `HTMLElement` / `HTMLInputElement`) instead of `instanceof Element`. Obsidian documents `instanceOf` as the cross-window drop-in for DOM nodes; `instanceof` is wrong when the node comes from another window or iframe (popouts, embeds).
+
+Do not write assertions that leave the type unchanged (`@typescript-eslint/no-unnecessary-type-assertion`). Example: `ATOMIC_CODEBLOCK_LANGUAGES` is already `readonly string[]`, so `.includes(kind)` needs no `as readonly string[]`.
+
 Escape any value that still lands in an HTML attribute helper (`escapeHtmlAttr` in `src/util/heatmap-model.ts`).
 
 ## Settings

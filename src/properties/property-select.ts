@@ -299,12 +299,12 @@ function elementTouchesPropertyUi(el: Element): boolean {
 
 function mutationTouchesPropertyUi(mutation: MutationRecord): boolean {
   const target = mutation.target;
-  const el = target instanceof Element ? target : target.parentElement;
+  const el = target.instanceOf(Element) ? target : target.parentElement;
   if (el && (el.matches(PROPERTY_UI_SELECTOR) || el.closest(PROPERTY_UI_SELECTOR))) {
     return true;
   }
   for (const node of Array.from(mutation.addedNodes)) {
-    if (node instanceof Element && elementTouchesPropertyUi(node)) return true;
+    if (node.instanceOf(Element) && elementTouchesPropertyUi(node)) return true;
   }
   return false;
 }

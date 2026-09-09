@@ -104,3 +104,26 @@ test("AGENTS.md points at the obsidian-plugin-e2e skill", () => {
   const agents = read("AGENTS.md");
   assert.match(agents, /\.cursor\/skills\/obsidian-plugin-e2e\/SKILL\.md/);
 });
+
+test("skill and AGENTS.md ban instanceof Element and redundant type assertions", () => {
+  const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
+  const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
+  const agents = read("AGENTS.md");
+  for (const text of [skill, review, agents]) {
+    assert.match(text, /instanceOf\(Element\)/);
+    assert.match(text, /instanceof Element/);
+    assert.match(text, /no-unnecessary-type-assertion/);
+  }
+});
+
+test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", () => {
+  const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
+  const agents = read("AGENTS.md");
+  const cloud = read(".cursor/skills/obsidian-plugin-e2e/references/cloud.md");
+  for (const text of [skill, agents]) {
+    assert.match(text, /Thermo-Nuclear Code Quality Review/);
+    assert.match(text, /REQUEST CHANGES/);
+    assert.match(text, /CodeRabbit/);
+  }
+  assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
+});
