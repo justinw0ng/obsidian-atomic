@@ -10,6 +10,8 @@ import { hobbyActivities } from "../util/activity-types.ts";
 import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale, scaledBookSize } from "../util/book-shelf-layout.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { measureElementWidth } from "../util/element-width.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { sameBookShelfPaintState, type BookShelfPaintState } from "../util/heatmap-model.ts";
 
 export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale };
 
@@ -28,43 +30,11 @@ export type CoverRef =
   | { kind: "vault"; path: string }
   | { kind: "none" };
 
-export type BookShelfPaintState = {
-  activityId: string;
-  hasActivity: boolean;
-  scale: number;
-  statusKey: string;
-  invalidKey: string;
-  itemKey: string;
-};
-
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 const windowListeners = new WeakMap<HTMLElement, () => void>();
 const bookShelfPaintState = new WeakMap<HTMLElement, BookShelfPaintState>();
 const layoutFrames = new WeakMap<HTMLElement, number>();
-
-export function bookShelfItemKey(items: BookShelfItem[]): string {
-  return items
-    .map(
-      (item) =>
-        `${item.path}\0${item.title}\0${item.status}\0${item.spineColor}\0${item.cover ?? ""}\0${item.description ?? ""}\0${item.authors.join(",")}`,
-    )
-    .join("|");
-}
-
-export function sameBookShelfPaintState(
-  previous: BookShelfPaintState | undefined,
-  next: BookShelfPaintState,
-): boolean {
-  if (!previous) return false;
-  return (
-    previous.activityId === next.activityId &&
-    previous.hasActivity === next.hasActivity &&
-    previous.scale === next.scale &&
-    previous.statusKey === next.statusKey &&
-    previous.invalidKey === next.invalidKey &&
-    previous.itemKey === next.itemKey
-  );
-}
+const EMPTY_HOBBY_FILES: HobbyItemMeta[] = [];
 
 export function bookShelfDomIsPainted(el: {
   querySelector: (sel: string) => unknown;
@@ -372,7 +342,6 @@ function bindCoverObjectPosition(img: HTMLImageElement): void {
 }
 
 const COVER_OPEN_CLASS = "is-cover-open";
-const OPENING_CLASS = "is-opening";
 
 export function hoverFinePointer(
   media: Pick<MediaQueryList, "matches"> | null | undefined,
@@ -396,9 +365,6 @@ function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
 function closeOpenCovers(root: ParentNode): void {
   root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
     el.classList.remove(COVER_OPEN_CLASS);
-  });
-  root.querySelectorAll(`.atomic-book-row-books.${OPENING_CLASS}`).forEach((el) => {
-    el.classList.remove(OPENING_CLASS);
   });
 }
 
@@ -486,7 +452,6 @@ function createBook(
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeOpenCovers(shelf);
       button.classList.add(COVER_OPEN_CLASS);
-      parent.classList.add(OPENING_CLASS);
       portal.show();
       return;
     }
@@ -541,16 +506,15 @@ export function renderBookShelf(
     (candidate) => candidate.id === activityId,
   );
   const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
-  const items = activity
-    ? buildBookShelfItems(data.listHobbyItems(activity), activityId, statuses)
-    : [];
+  const files = activity ? data.listHobbyItems(activity) : EMPTY_HOBBY_FILES;
   const paintState: BookShelfPaintState = {
+    files,
     activityId,
     hasActivity: Boolean(activity),
     scale,
-    statusKey: (statuses ?? []).join(","),
-    invalidKey: invalidStatuses.join(","),
-    itemKey: bookShelfItemKey(items),
+    language,
+    statuses,
+    invalidStatuses,
   };
   if (
     bookShelfDomIsPainted(el) &&
@@ -558,6 +522,9 @@ export function renderBookShelf(
   ) {
     return;
   }
+  const items = activity
+    ? buildBookShelfItems(files, activityId, statuses)
+    : [];
 
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);

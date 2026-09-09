@@ -158,9 +158,7 @@ export default class FitnessPlugin extends Plugin {
     this.registerEvent(
       this.app.metadataCache.on("resolved", () => {
         if (!this.liveBlocks.some((block) => block.el.isConnected)) return;
-        const prefixes = this.data.consumeNeedsMetadataRefreshPrefixes();
-        if (!prefixes.length) return;
-        for (const prefix of prefixes) this.data.invalidateListCache(prefix);
+        if (!this.data.invalidateUnreadyPrefixes()) return;
         this.scheduleRefresh();
       }),
     );

@@ -378,10 +378,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.fitness-plugin .atomic-book-row-books.is-opening {
-  perspective: 1400px;
-}
-
 .fitness-plugin .atomic-book-shelf-plank {
   position: absolute;
   left: 0;
@@ -581,8 +577,12 @@
   display: none;
 }
 
-/* Cover-open on every pointer: hover/focus, press, or a first tap (.is-cover-open).
-   Resting books stay flat so WebKit still paints covers. */
+/* Coarse first tap (.is-cover-open). Fine-pointer hover/focus 3D is in the
+   media query below. Resting books stay flat so WebKit still paints covers. */
+.fitness-plugin .atomic-book.is-cover-open {
+  perspective: 1400px;
+}
+
 .fitness-plugin .atomic-book.is-cover-open .atomic-book-volume {
   transform-style: preserve-3d;
   transform: rotateY(-10deg);

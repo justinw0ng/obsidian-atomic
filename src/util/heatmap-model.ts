@@ -73,11 +73,45 @@ export function sameHeatmapPaintState(
     previous.language === next.language &&
     previous.layoutKey === next.layoutKey &&
     previous.activityKey === next.activityKey &&
-    previous.invalidIds.length === next.invalidIds.length &&
-    previous.invalidIds.every((id, i) => id === next.invalidIds[i]) &&
+    sameStringList(previous.invalidIds, next.invalidIds) &&
     previous.maps.length === next.maps.length &&
     previous.maps.every((map, i) => map === next.maps[i])
   );
+}
+
+export type BookShelfPaintState = {
+  files: readonly unknown[];
+  activityId: string;
+  hasActivity: boolean;
+  scale: number;
+  language: Language;
+  statuses: readonly string[] | null;
+  invalidStatuses: readonly string[];
+};
+
+export function sameBookShelfPaintState(
+  previous: BookShelfPaintState | undefined,
+  next: BookShelfPaintState,
+): boolean {
+  if (!previous) return false;
+  return (
+    previous.files === next.files &&
+    previous.activityId === next.activityId &&
+    previous.hasActivity === next.hasActivity &&
+    previous.scale === next.scale &&
+    previous.language === next.language &&
+    sameStringList(previous.statuses, next.statuses) &&
+    sameStringList(previous.invalidStatuses, next.invalidStatuses)
+  );
+}
+
+function sameStringList(
+  left: readonly string[] | null,
+  right: readonly string[] | null,
+): boolean {
+  if (left === right) return true;
+  if (left == null || right == null) return false;
+  return left.length === right.length && left.every((value, i) => value === right[i]);
 }
 
 export function heatmapDomIsPainted(el: { querySelector: (sel: string) => unknown }): boolean {

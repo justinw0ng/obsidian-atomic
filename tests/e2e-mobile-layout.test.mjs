@@ -269,9 +269,10 @@ test("cover-open animation is available without hover-fine pointers", () => {
   );
   assert.ok(restingRow);
   assert.doesNotMatch(restingRow[0], /perspective/);
+  assert.doesNotMatch(flat, /\.is-opening/);
   assert.match(
     flat,
-    /\.atomic-book-row-books\.is-opening\s*\{[^}]*perspective:\s*1400px/s,
+    /\.atomic-book\.is-cover-open\s*\{[^}]*perspective:\s*1400px/s,
   );
 });
 

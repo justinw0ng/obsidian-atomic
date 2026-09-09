@@ -167,21 +167,18 @@ test("list caches key by normalized scan prefix not the raw folder argument", ()
   assert.match(source, /const cacheKey = `\$\{activity\.id\}\\0\$\{prefix\}`/);
   assert.doesNotMatch(source, /\$\{folder\}\\0\$\{year\}/);
   assert.doesNotMatch(source, /activity\.folder\}\\0\$\{year\}/);
-  assert.match(
-    source,
-    /Scan prefixes whose `metadataCache\.getFileCache\(\)` was null/,
-  );
-  assert.match(source, /consumeNeedsMetadataRefreshPrefixes/);
+  assert.match(source, /invalidateUnreadyPrefixes/);
   assert.match(source, /needsMetadataRefreshPrefixes\.add\(scanPrefix\)/);
   assert.doesNotMatch(source, /needsMetadataRefresh = true/);
+  assert.doesNotMatch(source, /consumeNeedsMetadataRefreshPrefixes/);
 });
 
 test("plugin does not refresh every metadataCache changed event", () => {
   const main = readFileSync(join(root, "src/main.ts"), "utf8");
-  assert.match(main, /consumeNeedsMetadataRefreshPrefixes/);
+  assert.match(main, /invalidateUnreadyPrefixes/);
   assert.doesNotMatch(main, /metadataCache\.on\("changed"/);
-  assert.match(main, /invalidateListCache\(prefix\)/);
   assert.doesNotMatch(main, /invalidateListCache\(\s*\)/);
+  assert.doesNotMatch(main, /consumeNeedsMetadataRefreshPrefixes/);
 });
 
 test("heatmap date labels reuse Intl.DateTimeFormat instances", () => {

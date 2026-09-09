@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { sameBookShelfPaintState } from "../src/util/heatmap-model.ts";
 import {
   bookDetailFixedPosition,
   bookShelfDomIsPainted,
-  bookShelfItemKey,
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
@@ -16,7 +16,6 @@ import {
   isBookShelfUnclipStop,
   parseCoverRef,
   resolveCoverSrc,
-  sameBookShelfPaintState,
   shelfColorFor,
   shouldUnclipBookShelfAncestor,
   titleLengthClass,
@@ -336,29 +335,24 @@ test("book shelf ports hover details to document.body", () => {
   assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
 });
 
-test("sameBookShelfPaintState skips rebuilds when items are unchanged", () => {
-  const item = {
-    path: "atomics/hobbies/Reading/Items/One.md",
-    title: "One",
-    authors: ["A"],
-    status: "reading",
-    spineColor: "#123456",
-    cover: "cover.png",
-  };
+test("sameBookShelfPaintState skips on list identity and misses on language", () => {
+  const files = [{ path: "atomics/hobbies/Reading/Items/One.md" }];
   const state = {
+    files,
     activityId: "reading",
     hasActivity: true,
     scale: 1,
-    statusKey: "",
-    invalidKey: "",
-    itemKey: bookShelfItemKey([item]),
+    language: "en",
+    statuses: null,
+    invalidStatuses: [],
   };
-  assert.equal(sameBookShelfPaintState(state, { ...state }), true);
+  assert.equal(sameBookShelfPaintState(state, { ...state, files }), true);
   assert.equal(
-    sameBookShelfPaintState(state, {
-      ...state,
-      itemKey: bookShelfItemKey([{ ...item, title: "Two" }]),
-    }),
+    sameBookShelfPaintState(state, { ...state, files: [...files] }),
+    false,
+  );
+  assert.equal(
+    sameBookShelfPaintState(state, { ...state, language: "zh-Hant-en" }),
     false,
   );
   assert.equal(sameBookShelfPaintState(state, { ...state, scale: 1.5 }), false);
@@ -370,11 +364,14 @@ test("sameBookShelfPaintState skips rebuilds when items are unchanged", () => {
   );
 });
 
-test("book shelf refresh skips unchanged paint and throttles layout", () => {
+test("book shelf skip uses cached files and throttles layout", () => {
   const source = readFileSync(join(repoRoot, "src/views/book-shelf.ts"), "utf8");
+  assert.match(source, /listHobbyItems/);
   assert.match(source, /sameBookShelfPaintState/);
+  assert.match(source, /buildBookShelfItems\(files/);
+  assert.doesNotMatch(source, /bookShelfItemKey/);
+  assert.doesNotMatch(source, /OPENING_CLASS/);
   assert.match(source, /requestBookShelfLayout/);
-  assert.match(source, /parent\.classList\.add\(OPENING_CLASS\)/);
   assert.match(source, /ResizeObserver\(\(\) => \{\s*requestBookShelfLayout/s);
 });
 

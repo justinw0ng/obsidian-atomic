@@ -47,15 +47,16 @@ export class VaultDataSource {
   }
 
   /**
-   * Scan prefixes whose `metadataCache.getFileCache()` was null (index not
-   * ready). Callers should invalidate those prefixes after
-   * `metadataCache.resolved`. Empty frontmatter on an existing cache does
-   * not record a prefix.
+   * Invalidate list caches for scan prefixes whose `getFileCache()` was null
+   * (index not ready). Returns true when at least one prefix was consumed.
+   * Empty frontmatter on an existing cache does not record a prefix.
    */
-  consumeNeedsMetadataRefreshPrefixes(): string[] {
+  invalidateUnreadyPrefixes(): boolean {
     const prefixes = [...this.needsMetadataRefreshPrefixes];
     this.needsMetadataRefreshPrefixes.clear();
-    return prefixes;
+    if (!prefixes.length) return false;
+    for (const prefix of prefixes) this.invalidateListCache(prefix);
+    return true;
   }
 
   /**
