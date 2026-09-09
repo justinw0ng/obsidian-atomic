@@ -46,13 +46,13 @@
   overflow: hidden;
 }
 
-.fitness-plugin,
-.fitness-plugin * {
+.fitness-plugin .fitness-heatmap-scroll,
+.fitness-plugin .atomic-book-row-books {
   -ms-overflow-style: none;
 }
 
-.fitness-plugin::-webkit-scrollbar,
-.fitness-plugin *::-webkit-scrollbar {
+.fitness-plugin .fitness-heatmap-scroll::-webkit-scrollbar,
+.fitness-plugin .atomic-book-row-books::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
@@ -376,7 +376,6 @@
   padding: 12px 4px 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  perspective: 1400px;
 }
 
 .fitness-plugin .atomic-book-shelf-plank {
@@ -578,31 +577,35 @@
   display: none;
 }
 
-/* Cover-open on every pointer: hover/focus, press, or a first tap (.is-cover-open).
-   Resting books stay flat so WebKit still paints covers. */
-.fitness-plugin .atomic-book:is(:hover, :focus-visible, :active, .is-cover-open) .atomic-book-volume {
+/* Coarse first tap (.is-cover-open). Fine-pointer hover/focus 3D is in the
+   media query below. Resting books stay flat so WebKit still paints covers. */
+.fitness-plugin .atomic-book.is-cover-open {
+  perspective: 1400px;
+}
+
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-volume {
   transform-style: preserve-3d;
   transform: rotateY(-10deg);
 }
 
-.fitness-plugin .atomic-book:is(:hover, :focus-visible, :active, .is-cover-open) .atomic-book-pages {
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-pages {
   box-shadow:
     inset -12px 0 16px rgba(0, 0, 0, 0.18),
     6px 10px 20px rgba(0, 0, 0, 0.22);
 }
 
-.fitness-plugin .atomic-book:is(:hover, :focus-visible, :active, .is-cover-open) .atomic-book-cover {
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
   transform-style: preserve-3d;
   transform: rotateY(-155deg);
 }
 
-.fitness-plugin .atomic-book:is(:hover, :focus-visible, :active, .is-cover-open) .atomic-book-cover-face {
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover-face {
   transform: translateZ(3px);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-.fitness-plugin .atomic-book:is(:hover, :focus-visible, :active, .is-cover-open) .atomic-book-cover-inside {
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover-inside {
   display: block;
   position: absolute;
   inset: 0;
@@ -616,7 +619,7 @@
   opacity: 1;
 }
 
-.fitness-plugin .atomic-book:is(:hover, :focus-visible, :active, .is-cover-open) .atomic-book-cover-sleeve {
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover-sleeve {
   display: block;
   position: absolute;
   top: 0;

@@ -186,7 +186,6 @@ export async function renderAtomicGymLog(
           pair,
         ]);
         await plugin.saveSettings();
-        plugin.scheduleRefresh();
         weightInput.value = "";
         repsInput.value = "";
         notesInput.value = "";

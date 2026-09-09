@@ -21,7 +21,6 @@ async function modifyCurrentNote(
     return;
   }
   await plugin.app.vault.process(file, updater);
-  plugin.scheduleRefresh();
 }
 
 export async function renderAtomicTimer(
@@ -91,7 +90,6 @@ export async function renderAtomicTimer(
             note,
           });
           await plugin.app.vault.process(file, () => result.markdown);
-          plugin.scheduleRefresh();
           new Notice(
             t("notice.timerLogged", plugin.settings.language, {
               minutes: result.minutes,

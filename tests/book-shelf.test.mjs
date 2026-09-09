@@ -3,8 +3,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { sameBookShelfPaintState } from "../src/util/heatmap-model.ts";
 import {
   bookDetailFixedPosition,
+  bookShelfDomIsPainted,
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
@@ -331,6 +333,46 @@ test("book shelf ports hover details to document.body", () => {
     /if\s*\(\s*!button\.isConnected\s*\)\s*\{[^}]*hide\(\)/s,
   );
   assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
+});
+
+test("sameBookShelfPaintState skips on list identity and misses on language", () => {
+  const files = [{ path: "atomics/hobbies/Reading/Items/One.md" }];
+  const state = {
+    files,
+    activityId: "reading",
+    hasActivity: true,
+    scale: 1,
+    language: "en",
+    statuses: null,
+    invalidStatuses: [],
+  };
+  assert.equal(sameBookShelfPaintState(state, { ...state, files }), true);
+  assert.equal(
+    sameBookShelfPaintState(state, { ...state, files: [...files] }),
+    false,
+  );
+  assert.equal(
+    sameBookShelfPaintState(state, { ...state, language: "zh-Hant-en" }),
+    false,
+  );
+  assert.equal(sameBookShelfPaintState(state, { ...state, scale: 1.5 }), false);
+  assert.equal(
+    bookShelfDomIsPainted({
+      querySelector: (sel) => (sel.includes("atomic-bookshelf") ? {} : null),
+    }),
+    true,
+  );
+});
+
+test("book shelf skip uses cached files and throttles layout", () => {
+  const source = readFileSync(join(repoRoot, "src/views/book-shelf.ts"), "utf8");
+  assert.match(source, /listHobbyItems/);
+  assert.match(source, /sameBookShelfPaintState/);
+  assert.match(source, /buildBookShelfItems\(files/);
+  assert.doesNotMatch(source, /bookShelfItemKey/);
+  assert.doesNotMatch(source, /OPENING_CLASS/);
+  assert.match(source, /requestBookShelfLayout/);
+  assert.match(source, /ResizeObserver\(\(\) => \{\s*requestBookShelfLayout/s);
 });
 
 test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {

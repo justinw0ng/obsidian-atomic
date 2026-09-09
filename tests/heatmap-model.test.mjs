@@ -85,13 +85,45 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
   const today = created.find((el) => el.dataset.testid === "atomic-heatmap-today");
   const pad = created.find((el) => el.className === "fitness-weeks-end-pad");
   const todayWeek = created.find((el) => el.className.includes("is-today-week"));
+  const cellTestIds = created.filter((el) => el.dataset.testid === "atomic-heatmap-cell");
   assert.ok(today);
   assert.ok(pad);
   assert.ok(todayWeek);
+  assert.equal(cellTestIds.length, 0);
   assert.equal(today.dataset.path, 'atomics/exercise/Gym/2026/a"b.md');
   assert.equal(today.dataset.minutes, "30");
   assert.equal(today.dataset.ymd, "2026-01-01");
   assert.equal(parent.children.at(-1), pad);
+});
+
+test("appendHeatmapWeeks keeps year-grid DOM volume bounded", () => {
+  const weeks = buildHeatmapWeeks({
+    year: 2026,
+    todayStr: "2026-09-08",
+    language: "en",
+    activityMap: new Map(),
+  });
+  const { created } = createPaintHost();
+  const host = created[0];
+  appendHeatmapWeeks(
+    host,
+    weeks,
+    GREEN,
+    "{date}: {minutes} min",
+    "{date}: {minutes} min - click to open",
+  );
+  const cells = created.filter((el) =>
+    String(el.className).includes("fitness-cell"),
+  );
+  const today = created.filter((el) => el.dataset.testid === "atomic-heatmap-today");
+  assert.ok(weeks.length >= 52);
+  assert.ok(weeks.length <= 54);
+  assert.equal(weeks.flat().length, cells.length);
+  assert.ok(
+    created.length <= weeks.length * 8 + 5,
+    `week painter used ${created.length} nodes for ${weeks.length} weeks`,
+  );
+  assert.equal(today.length, 1);
 });
 
 test("September 6 2026 sits under 9月, not 10月", () => {

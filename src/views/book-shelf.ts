@@ -10,6 +10,8 @@ import { hobbyActivities } from "../util/activity-types.ts";
 import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale, scaledBookSize } from "../util/book-shelf-layout.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { measureElementWidth } from "../util/element-width.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { sameBookShelfPaintState, type BookShelfPaintState } from "../util/heatmap-model.ts";
 
 export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale };
 
@@ -30,6 +32,31 @@ export type CoverRef =
 
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 const windowListeners = new WeakMap<HTMLElement, () => void>();
+const bookShelfPaintState = new WeakMap<HTMLElement, BookShelfPaintState>();
+const layoutFrames = new WeakMap<HTMLElement, number>();
+const EMPTY_HOBBY_FILES: HobbyItemMeta[] = [];
+
+export function bookShelfDomIsPainted(el: {
+  querySelector: (sel: string) => unknown;
+}): boolean {
+  return !!el.querySelector('[data-testid="atomic-bookshelf"]');
+}
+
+function cancelBookShelfLayout(el: HTMLElement): void {
+  const frame = layoutFrames.get(el);
+  if (frame == null) return;
+  window.cancelAnimationFrame(frame);
+  layoutFrames.delete(el);
+}
+
+function requestBookShelfLayout(el: HTMLElement, layout: () => void): void {
+  if (layoutFrames.has(el)) return;
+  const frame = window.requestAnimationFrame(() => {
+    layoutFrames.delete(el);
+    layout();
+  });
+  layoutFrames.set(el, frame);
+}
 
 type OverflowElement = {
   className?: string;
@@ -472,6 +499,33 @@ export function renderBookShelf(
   options: Record<string, string>,
   language: Language,
 ): void {
+  const scale = resolveBookShelfScale(options);
+  const { maxWidth, minWidth } = scaledBookSize(scale);
+  const activityId = options.activity?.trim() || "reading";
+  const activity = hobbyActivities(activityTypes).find(
+    (candidate) => candidate.id === activityId,
+  );
+  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
+  const files = activity ? data.listHobbyItems(activity) : EMPTY_HOBBY_FILES;
+  const paintState: BookShelfPaintState = {
+    files,
+    activityId,
+    hasActivity: Boolean(activity),
+    scale,
+    language,
+    statuses,
+    invalidStatuses,
+  };
+  if (
+    bookShelfDomIsPainted(el) &&
+    sameBookShelfPaintState(bookShelfPaintState.get(el), paintState)
+  ) {
+    return;
+  }
+  const items = activity
+    ? buildBookShelfItems(files, activityId, statuses)
+    : [];
+
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);
   const previousWindowListener = windowListeners.get(el);
@@ -479,13 +533,13 @@ export function renderBookShelf(
     window.removeEventListener("resize", previousWindowListener);
     windowListeners.delete(el);
   }
+  cancelBookShelfLayout(el);
   hideAllPortedDetails();
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
+  bookShelfPaintState.set(el, paintState);
 
-  const scale = resolveBookShelfScale(options);
-  const { maxWidth, minWidth } = scaledBookSize(scale);
   const root = el.createDiv({
     cls: "fitness-plugin atomic-book-shelf",
     attr: {
@@ -493,10 +547,6 @@ export function renderBookShelf(
       "data-scale": String(scale),
     },
   });
-  const activityId = options.activity?.trim() || "reading";
-  const activity = hobbyActivities(activityTypes).find(
-    (candidate) => candidate.id === activityId,
-  );
   if (!activity) {
     root.createEl("p", {
       cls: "fitness-muted",
@@ -505,7 +555,6 @@ export function renderBookShelf(
     return;
   }
 
-  const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
   if (invalidStatuses.length > 0) {
     root.createEl("p", {
       cls: "fitness-muted",
@@ -515,11 +564,6 @@ export function renderBookShelf(
     });
   }
 
-  const items = buildBookShelfItems(
-    data.listHobbyItems(activity),
-    activityId,
-    statuses,
-  );
   const emptyText =
     statuses && statuses.length > 0
       ? t("view.bookShelf.emptyFiltered", language, {
@@ -556,7 +600,9 @@ export function renderBookShelf(
   });
 
   if (typeof ResizeObserver !== "undefined") {
-    const observer = new ResizeObserver(() => layout());
+    const observer = new ResizeObserver(() => {
+      requestBookShelfLayout(el, layout);
+    });
     observer.observe(frame);
     resizeObservers.set(el, observer);
     return;
@@ -571,7 +617,7 @@ export function renderBookShelf(
       windowListeners.delete(el);
       return;
     }
-    layout();
+    requestBookShelfLayout(el, layout);
   };
   window.addEventListener("resize", onWindowResize);
   windowListeners.set(el, onWindowResize);

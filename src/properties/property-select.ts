@@ -286,6 +286,29 @@ function injectPropertySelect(
   valueContainer.appendChild(selectEl);
 }
 
+const PROPERTY_UI_SELECTOR =
+  ".metadata-property, .metadata-container, .metadata-content, .bases-td, .bases-tr, .bases-table";
+
+function elementTouchesPropertyUi(el: Element): boolean {
+  return (
+    el.matches(PROPERTY_UI_SELECTOR) ||
+    !!el.closest(PROPERTY_UI_SELECTOR) ||
+    !!el.querySelector(PROPERTY_UI_SELECTOR)
+  );
+}
+
+function mutationTouchesPropertyUi(mutation: MutationRecord): boolean {
+  const target = mutation.target;
+  const el = target instanceof Element ? target : target.parentElement;
+  if (el && (el.matches(PROPERTY_UI_SELECTOR) || el.closest(PROPERTY_UI_SELECTOR))) {
+    return true;
+  }
+  for (const node of Array.from(mutation.addedNodes)) {
+    if (node instanceof Element && elementTouchesPropertyUi(node)) return true;
+  }
+  return false;
+}
+
 export function registerPropertySelects(
   plugin: Plugin,
   options: RegisterOptions,
@@ -363,10 +386,12 @@ export function registerPropertySelects(
 
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
-        scheduleInject();
-        return;
+      if (mutation.type !== "childList" || mutation.addedNodes.length === 0) {
+        continue;
       }
+      if (!mutationTouchesPropertyUi(mutation)) continue;
+      scheduleInject();
+      return;
     }
   });
 

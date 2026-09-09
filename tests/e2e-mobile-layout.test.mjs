@@ -256,6 +256,24 @@ test("cover-open animation is available without hover-fine pointers", () => {
   const flat = styles.slice(0, hoverAt);
   assert.match(flat, /is-cover-open/);
   assert.match(flat, /rotateY\(-155deg\)/);
+  assert.doesNotMatch(
+    flat,
+    /\.atomic-book:is\([^)]*:active/,
+  );
+  assert.doesNotMatch(
+    flat,
+    /\.atomic-book\.is-cover-open[^{]*:hover/,
+  );
+  const restingRow = flat.match(
+    /\.fitness-plugin \.atomic-book-row-books\s*\{[^}]+\}/,
+  );
+  assert.ok(restingRow);
+  assert.doesNotMatch(restingRow[0], /perspective/);
+  assert.doesNotMatch(flat, /\.is-opening/);
+  assert.match(
+    flat,
+    /\.atomic-book\.is-cover-open\s*\{[^}]*perspective:\s*1400px/s,
+  );
 });
 
 test("cover images apply coverObjectPosition after load", () => {
