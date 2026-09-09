@@ -41,6 +41,7 @@ const FILES = {
   bookShelf: "atomics/hobbies/Reading/Book Shelf.md",
   timerItem: `atomics/hobbies/Reading/Items/${TIMER_ITEM_TITLE}.md`,
   gymSession: "atomics/exercise/Gym/2026/2026-08-11.md",
+  dashboard: "atomics/Dashboard.md",
 };
 
 const OUTPUTS = {
@@ -48,6 +49,7 @@ const OUTPUTS = {
   bookShelfOpen: "atomic-book-shelf-open.png",
   timer: "atomic-reading-timer.png",
   gymLog: "atomic-gym-log.png",
+  dashboard: "atomic-dashboard.png",
   settings: "07-settings-atomic.png",
   enable: "06-enable-atomic-plugin.png",
 };
@@ -240,6 +242,10 @@ async function openNote(driver, path) {
 }
 
 async function captureTo(driver, name, destName) {
+  // Hover tooltips (sidebar toggle, book covers) linger after the mouse parks.
+  await driver.executeScript(
+    `document.querySelectorAll(".tooltip").forEach((el) => el.remove());`,
+  );
   const src = await saveScreenshot(driver, name);
   const dest = join(IMAGES, destName);
   copyFileSync(src, dest);
@@ -308,6 +314,12 @@ async function main() {
     await parkMouse(driver);
     await sleep(500);
     await captureTo(driver, "user-guide-gym-log", OUTPUTS.gymLog);
+
+    await openNote(driver, FILES.dashboard);
+    await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+    await parkMouse(driver);
+    await sleep(500);
+    await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);
 
     await openNote(driver, FILES.bookShelf);
     await waitCss(driver, '[data-testid="atomic-bookshelf"]');

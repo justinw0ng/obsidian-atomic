@@ -1,7 +1,7 @@
 # Design: Modern UI for the `atomic-dashboard` block
 
 Date: 2026-09-09  
-Status: proposed (design only; no plugin code changed)  
+Status: approved (implemented in `src/core/dashboard.ts`, `src/views/dashboard*.ts`, `styles.css`)  
 Mockup: `docs/mockups/atomic/09-atomic-dashboard-modern.html`  
 Related: `2026-08-09-atomic-tracker-redesign-design.md`, `2026-08-09-habits-basecolor-heatmap-filter-design.md`
 
@@ -52,15 +52,15 @@ New derived values needed (all pure, testable in `src/core`):
 - Per-session summary for the recent list (volume for set-table notes, `felt` for golf) — volume per session is already computed as `sessionVol` inside the loop; it just needs to be kept on the `recent` entry.
 - Optional "reading now" count via `matchesBookShelfStatus(status, ["reading"])` on hobby item frontmatter.
 
-## Implementation notes (for a follow-up PR)
+## Implementation notes
 
-- Split `renderDashboard` into a pure model builder (`src/core/dashboard.ts`: `buildDashboardModel(...)` returning KPIs, activity cards, monthly series, muscles, focus tags, recent rows) and a thin DOM renderer in `src/views/dashboard.ts`. The model builder is unit-testable without Obsidian, per `AGENTS.md`.
-- Add the mockup's `.atomic-dash-*` rules to `styles.css` under `.fitness-plugin.atomic-dashboard`. The mockup CSS intentionally uses Obsidian token names so it can move over nearly verbatim; replace the mockup-only tokens (`--radius-l`, `--shadow-s`, `--font-interface`) with literals or existing Obsidian vars.
-- Year switcher: re-render the block with `year ± 1` in memory only (does not edit the note or the `year:` option). Skip it if we want to stay strictly static; nothing else depends on it.
-- New i18n keys (add to `en` and `zh-Hant-en`): `view.dashboard.subtitleRange`, `view.dashboard.exerciseSessions`, `view.dashboard.exerciseTime`, `view.dashboard.volumeLifted`, `view.dashboard.habitTime`, `view.dashboard.avgPerSession`, `view.dashboard.lastSession`, `view.dashboard.readingNow`, `view.dashboard.showMonthlyTable`, `view.dashboard.activities`, `view.dashboard.byVolumeSets`, `view.dashboard.openCues`. Existing keys for headings, `felt`, `Muscle`/`Sets`/`Volume (kg)`, empty states, and links are reused.
-- Test hooks for `e2e/health-check.test.mjs`: `data-testid="atomic-dashboard"`, `atomic-dashboard-year`, `atomic-dashboard-kpi`, `atomic-dashboard-activity`, `atomic-dashboard-monthly`, `atomic-dashboard-muscles`, `atomic-dashboard-golf-focus`, `atomic-dashboard-recent`. The E2E should assert the KPI count, one activity card per enabled activity, that disabling an activity removes its card, and that a recent-row link opens the session note.
+- `renderDashboard` collects vault input, hands it to the pure model builder (`src/core/dashboard.ts`: `buildDashboardModel(...)` returning KPIs, activity cards, monthly columns, muscles, focus tags, recent rows), and lays the model out via thin DOM renderers in `src/views/dashboard.ts` (header, KPIs, activity cards), `src/views/dashboard-sections.ts` (monthly, muscles/focus, recent), and `src/views/dashboard-dom.ts` (shared helpers). The model builder is unit-tested in `tests/dashboard-model.test.mjs` without Obsidian, per `AGENTS.md`.
+- The mockup's `.atomic-dash-*` rules live in `styles.css` under `.fitness-plugin.atomic-dashboard`, using Obsidian theme tokens only. The recent-sessions card is an inline-size container so the date column collapses below 520px via `@container`.
+- Year switcher re-renders the block with `year ± 1` in memory only; it does not edit the note or the `year:` option, and a vault-triggered refresh returns to the configured year.
+- i18n: the `view.dashboard.*` block in `en` and `zh-Hant-en` was rewritten for the new layout (KPI labels, units, `avgPerSession`, `lastSession`, `readingNow`, `showMonthlyTable`, felt labels, section metas). Headings, empty states, and link labels keep their previous keys; list-style keys that only served the old bullet layout were removed.
+- Test hooks used by `e2e/health-check.test.mjs`: `data-testid="atomic-dashboard"` (+ `data-year`), `atomic-dashboard-year-prev/next`, `atomic-dashboard-kpi` (+ `data-kpi`), `atomic-dashboard-activity` (+ `data-activity`, `data-count`), `atomic-dashboard-monthly`, `atomic-dashboard-muscles`, `atomic-dashboard-golf-focus`, `atomic-dashboard-recent`, `atomic-dashboard-recent-row` (+ `data-path`). The Selenium scenario asserts the KPI set, one card per enabled activity with counts, year switching, that disabling Reading removes its card and KPI, and that a recent-row link opens the session note.
 - Accessibility: month bar charts are `aria-hidden` and always paired with the `<details>` table; rails and chips keep their numeric text; chips are `<a>`/`<button>` with visible focus.
-- Update `docs/USER_GUIDE.md` `### atomic-dashboard` and recapture `docs/images/atomic-dashboard.png` with `npm run docs:user-guide-screenshots` once implemented.
+- `docs/images/atomic-dashboard.png` is captured by `npm run docs:user-guide-screenshots` (dashboard step added to `scripts/capture-user-guide-screenshots.mjs`).
 
 ## Out of scope
 
