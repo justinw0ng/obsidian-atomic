@@ -70,4 +70,4 @@ Keep a short Cloud section that names:
 - Selenium as the GUI health check, computer-use as debug-only
 - Thermo-Nuclear Code Quality Review before marking a PR ready (in addition to Copilot / CodeRabbit / CI)
 - `data-testid` prefixes for that plugin
-- Optional bilingual in-app update notes on Release (`release_notes` / `release_notes_zh_hant`); omit both to leave the catalog unchanged
+- Optional bilingual in-app update notes on Release (`release_notes` / `release_notes_zh_hant`). Catalog `version` must equal the plugin version being shipped. If both inputs are omitted, update the catalog in git to the new version before Release, or pass both notes — never ship with catalog behind manifest.

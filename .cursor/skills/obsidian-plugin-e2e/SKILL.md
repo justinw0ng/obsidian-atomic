@@ -57,6 +57,7 @@ Confirm:
 - `name` does not contain `Plugin` or `Obsidian`.
 - `minAppVersion` matches the oldest API you call without a feature detect.
 - `package.json` `version` equals `manifest.json` `version`.
+- `src/core/update-notes.json` `version` equals `manifest.json` `version` (in-app What's new is for the version being shipped, never a lagged older semver).
 - Scripts exist: `test`, `typecheck`, `build`, `dev`. Add `test:e2e` before any UI ships.
 
 Atomic identity: `id` is `atomic-tracker`, repo is `obsidian-atomic`. Do not rename the id to match the repo.
@@ -151,12 +152,12 @@ Do not bump versions on every PR. Atomic's CI tests and builds; humans (or a `wo
 
 Release proof:
 
-- `package.json`, `manifest.json`, `versions.json`, and `package-lock.json` share the new semver
+- `package.json`, `manifest.json`, `versions.json`, `package-lock.json`, and `src/core/update-notes.json` share the new semver
 - Git tag equals that semver with **no** `v` prefix
 - GitHub Release attaches **exactly** `main.js`, `manifest.json`, `styles.css` (no zip or other extras)
 - Default-branch `manifest.json` `version` matches that tag
 
-Users are prompted with the latest update note after they update (English when Language is `en`; Cantonese Traditional Chinese when Language is `zh-Hant-en` or any `zh-Hant*`) when `src/core/update-notes.json` matches that version. One note may cover multiple PRs. Release workflow `release_notes` (English) and `release_notes_zh_hant` (Cantonese) are **optional**. If both are set, the workflow writes `src/core/update-notes.json`. If both are omitted, the catalog is left unchanged. Provide both languages or omit both. Use `\n` for line breaks (workflow_dispatch is a single-line string).
+Users are prompted with the latest update note after they update (English when Language is `en`; Cantonese Traditional Chinese when Language is `zh-Hant-en` or any `zh-Hant*`) when `src/core/update-notes.json` matches that version. Catalog `version` **must equal the plugin version being shipped** (latest GitHub Release / `manifest.json` after bump). Do **not** leave staged notes on an older semver while cutting a newer Release. One note may cover multiple PRs. Release workflow `release_notes` (English) and `release_notes_zh_hant` (Cantonese) are **optional**. If both are set, the workflow writes `src/core/update-notes.json` for the new version. If both are omitted, either update the catalog in git to the new version before Release, or pass both optional note inputs so the workflow writes the new version — never ship with catalog behind manifest. Provide both languages or omit both. Use `\n` for line breaks (workflow_dispatch is a single-line string).
 
 First listing: [community.obsidian.md](https://community.obsidian.md) after a real GitHub release exists. Later versions are pulled from GitHub automatically. See [release.md](references/release.md).
 

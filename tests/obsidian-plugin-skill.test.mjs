@@ -158,5 +158,12 @@ test("skill and AGENTS.md keep in-app update notes and optional Actions inputs",
   assert.match(cloud, /optional/i);
   for (const text of [skill, release, agents]) {
     assert.match(text, /zh-Hant/);
+    assert.match(text, /must equal the plugin version being shipped/);
+    assert.match(text, /older semver/);
+    assert.match(text, /never ship with catalog behind manifest/);
   }
+  assert.match(cloud, /must equal the plugin version being shipped/);
+  assert.match(cloud, /never ship with catalog behind manifest/);
+  assert.doesNotMatch(release, /staged 1\.1\.9 bodies/);
+  assert.doesNotMatch(release, /catalog `version` stays at the current manifest/);
 });
