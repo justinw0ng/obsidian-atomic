@@ -1,19 +1,26 @@
 /** Pure update-note catalog and last-seen helpers — no Obsidian imports. */
 
 import updateNoteJson from "./update-notes.json" with { type: "json" };
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isRecord } from "../util/record.ts";
+
+export type UpdateNoteBodies = {
+  en: string;
+  "zh-Hant": string;
+};
 
 export type UpdateNote = {
   version: string;
-  body: string;
+  body: UpdateNoteBodies;
 };
 
 /** Unseen sentinel written by mergeSettings for stored settings that predate this field. */
 export const UNSEEN_UPDATE_NOTE_VERSION = "0.0.0";
 
-export const UPDATE_NOTE: UpdateNote = {
-  version: updateNoteJson.version,
-  body: updateNoteJson.body,
-};
+function nonEmptyText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  return value.trim() ? value : null;
+}
 
 export function parsePluginSemver(
   version: string,
@@ -39,15 +46,48 @@ export function comparePluginSemver(a: string, b: string): number {
   return 0;
 }
 
+export function parseUpdateNote(raw: unknown): UpdateNote | null {
+  if (!isRecord(raw)) return null;
+  const version = typeof raw.version === "string" ? raw.version : "";
+  if (!parsePluginSemver(version)) return null;
+  if (!isRecord(raw.body)) return null;
+  const en = nonEmptyText(raw.body.en);
+  const zhHant = nonEmptyText(raw.body["zh-Hant"]);
+  if (!en || !zhHant) return null;
+  return { version, body: { en, "zh-Hant": zhHant } };
+}
+
+const parsedCatalog = parseUpdateNote(updateNoteJson);
+if (!parsedCatalog) {
+  throw new Error(
+    "Invalid src/core/update-notes.json. Need version plus body.en and body.zh-Hant.",
+  );
+}
+
+export const UPDATE_NOTE: UpdateNote = parsedCatalog;
+
+export function usesZhHantUpdateNote(language: string): boolean {
+  return language.startsWith("zh-Hant");
+}
+
+export function updateNoteBodyForLanguage(
+  note: UpdateNote,
+  language: string,
+): string {
+  if (usesZhHantUpdateNote(language)) return note.body["zh-Hant"];
+  return note.body.en;
+}
+
 export function currentUpdateNote(
   note: UpdateNote,
   currentVersion: string,
 ): UpdateNote | null {
-  const body = note.body.trim();
-  if (!body) return null;
+  const en = note.body.en.trim();
+  const zhHant = note.body["zh-Hant"].trim();
+  if (!en || !zhHant) return null;
   if (!parsePluginSemver(note.version)) return null;
   if (note.version !== currentVersion) return null;
-  return { version: note.version, body };
+  return note;
 }
 
 export function updateNoteToShow(options: {
@@ -63,14 +103,14 @@ export function updateNoteToShow(options: {
   return latest;
 }
 
-export function requiredUpdateNoteBody(
+export function requiredUpdateNoteBodies(
   note: UpdateNote,
   version: string,
-): string {
+): UpdateNoteBodies {
   const current = currentUpdateNote(note, version);
   if (!current) {
     throw new Error(
-      `Missing in-app update note for ${version}. Write src/core/update-notes.json before cutting Release.`,
+      `Missing bilingual in-app update note for ${version}. Write body.en and body.zh-Hant in src/core/update-notes.json before cutting Release.`,
     );
   }
   return current.body;

@@ -16,7 +16,11 @@ on:
         type: string
         default: main
       release_notes:
-        description: In-app and GitHub update note (required; one note may cover multiple PRs)
+        description: English in-app and GitHub update note (required; one note may cover multiple PRs). Use \n for line breaks.
+        type: string
+        required: true
+      release_notes_zh_hant:
+        description: Cantonese (zh-Hant) in-app update note (required). Use \n for line breaks.
         type: string
         required: true
 
@@ -82,11 +86,16 @@ jobs:
       - name: Record in-app update note
         env:
           ATOMIC_UPDATE_NOTE: ${{ inputs.release_notes }}
+          ATOMIC_UPDATE_NOTE_ZH_HANT: ${{ inputs.release_notes_zh_hant }}
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
           if [[ -z "${ATOMIC_UPDATE_NOTE//[[:space:]]/}" ]]; then
-            echo "release_notes is required. Every release needs an in-app update note (one note may cover multiple PRs)."
+            echo "release_notes is required. Every release needs an English in-app update note (one note may cover multiple PRs)."
+            exit 1
+          fi
+          if [[ -z "${ATOMIC_UPDATE_NOTE_ZH_HANT//[[:space:]]/}" ]]; then
+            echo "release_notes_zh_hant is required. Every release needs a Cantonese (zh-Hant) in-app update note."
             exit 1
           fi
           node scripts/set-update-note.mjs "${VERSION}"

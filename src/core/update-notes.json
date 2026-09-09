@@ -1,4 +1,7 @@
 {
   "version": "1.1.8",
-  "body": "After this update, Atomic Tracker shows a What's new note when the plugin version changes. Later releases summarize changes since the previous version. One note can cover several pull requests."
+  "body": {
+    "en": "• Gym, golf, and other exercise day notes now have Start / Stop — stop fills duration for you (you can still type it).\n• After you update, you'll see a short What's new note once (this one).\n• New installs default to English. Your existing language setting is unchanged.\n• Demo examples now match the built-in activities (gym, golf, reading).",
+    "zh-Hant": "• 健身、高爾夫同其他運動嘅當日筆記而家有開始／停止——撳停止會幫你填好時長（你仍然可以自己打）。\n• 更新之後會出一次簡短嘅更新說明（就係呢張）。\n• 新安裝預設用英文。你而家嘅語言設定唔會改。\n• 示範例子而家同內置活動一致（健身、高爾夫、睇書）。"
+  }
 }

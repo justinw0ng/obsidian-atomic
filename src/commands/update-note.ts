@@ -2,6 +2,7 @@ import { Modal, Setting } from "obsidian";
 import type FitnessPlugin from "../main";
 import {
   UPDATE_NOTE,
+  updateNoteBodyForLanguage,
   updateNoteToShow,
   type UpdateNote,
 } from "../core/update-notes";
@@ -51,7 +52,7 @@ class UpdateNoteModal extends Modal {
       }),
     });
     const body = contentEl.createEl("p", {
-      text: this.note.body,
+      text: updateNoteBodyForLanguage(this.note, language),
       cls: "atomic-update-note-body",
     });
     body.setAttr("data-testid", "atomic-update-note-body");
