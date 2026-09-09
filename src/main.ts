@@ -14,6 +14,7 @@ import {
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { registerPropertySelects } from "./properties/property-select.ts";
 import { promptGymLogSetup } from "./commands/gym-log-setup";
+import { promptPendingUpdateNote } from "./commands/update-note";
 import { FitnessSettingTab, mergeSettings } from "./settings";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "./i18n/index.ts";
@@ -45,6 +46,7 @@ export default class FitnessPlugin extends Plugin {
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(() => {
       this.promptGymLogSetupIfPending();
+      this.promptUpdateNoteIfNeeded();
     });
 
     this.addCommand({
@@ -182,6 +184,10 @@ export default class FitnessPlugin extends Plugin {
 
   promptGymLogSetupIfPending(): void {
     promptGymLogSetup(this);
+  }
+
+  promptUpdateNoteIfNeeded(): void {
+    promptPendingUpdateNote(this);
   }
 
   trackLiveBlock(block: LiveBlock) {

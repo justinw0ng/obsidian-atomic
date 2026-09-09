@@ -34,7 +34,19 @@ When you add a source path, add it to `.github/plugin-source-paths.txt`. `tests/
 
 Required local/CI commands for plugin changes: `npm run typecheck`, `npm test`, `npm run build`. Upload `main.js`, `manifest.json`, `styles.css` as CI artifacts so a reviewer can sideload the PR build.
 
-`.github/workflows/release.yml` is **manual** `workflow_dispatch` only. Inputs: `bump` (patch/minor/major), `branch` (default `main`), optional `release_notes`. It must not run on `push`.
+`.github/workflows/release.yml` is **manual** `workflow_dispatch` only. Inputs: `bump` (patch/minor/major), `branch` (default `main`), required `release_notes` (in-app update note; one note may cover multiple PRs). It must not run on `push`. Do not finalize Release without that note.
+
+## In-app update note
+
+Every shipped version has an associated update note. After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**). Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
+
+The catalog is `src/core/update-notes.json`. Tests refuse a blank note whose `version` is not the current `manifest.json` version. When a release is confirmed:
+
+1. Remind the owner to provide an update note **or draft one covering all PRs since the last release**.
+2. Put the same text in `src/core/update-notes.json` for the version being shipped (`node scripts/set-update-note.mjs <version> "…"` or the Release workflow `release_notes` input, which writes that catalog after the bump).
+3. Do not finalize Release without it.
+
+The GitHub Release body uses the same `release_notes` input (auto-generated notes are still appended).
 
 ## Cut a GitHub Release
 
@@ -42,11 +54,12 @@ Atomic's release job:
 
 1. Checkout the chosen branch
 2. `node scripts/bump-version.mjs <bump>`
-3. `npm run typecheck`, `npm test`, `npm run build`
-4. Refuse if tag `VERSION` already exists
-5. Commit version files, tag `VERSION` (no `v`), push branch and tag
-6. Attest the three plugin files with `actions/attest` (OIDC). Do not attest locally — invalid provenance is worse than none.
-7. `softprops/action-gh-release` with assets **exactly**: `main.js`, `manifest.json`, `styles.css`
+3. Write the required in-app update note for the new version (`node scripts/set-update-note.mjs <version>` / `release_notes` input)
+4. `npm run typecheck`, `npm test`, `npm run build`
+5. Refuse if tag `VERSION` already exists
+6. Commit version files **and** `src/core/update-notes.json`, tag `VERSION` (no `v`), push branch and tag
+7. Attest the three plugin files with `actions/attest` (OIDC). Do not attest locally — invalid provenance is worse than none.
+8. `softprops/action-gh-release` with assets **exactly**: `main.js`, `manifest.json`, `styles.css`
 
 Do not attach `atomic-tracker-*.zip` (or any other extra file) to the GitHub Release. Release assets are only `main.js`, `manifest.json`, and `styles.css`. Manual install copies those three files into `.obsidian/plugins/atomic-tracker/`. Obsidian’s Community plugins download the same three files and flag unsupported extras. Tag format: `1.1.3`, not `v1.1.3`. Plugin id stays in `manifest.json` (`atomic-tracker`).
 
@@ -57,7 +70,7 @@ You can run the same steps locally if Actions is unavailable. Skip attestation u
 Prefer `gh workflow run Release ...` when the agent token can write Actions (`workflow_dispatch` needs `actions: write`):
 
 ```bash
-gh workflow run Release --ref main -f bump=patch
+gh workflow run Release --ref main -f bump=patch -f release_notes="What's new…"
 ```
 
 If that returns `HTTP 403: Resource not accessible by integration`, it is expected with the default Cursor GitHub App installation token, which is scoped to `actions: read` only. Reconfiguring the Cursor GitHub App install does not raise that per-run token.

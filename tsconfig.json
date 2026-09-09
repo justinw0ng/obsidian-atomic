@@ -11,6 +11,8 @@
     "importHelpers": true,
     "isolatedModules": true,
     "strict": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "lib": ["DOM", "ES2020"],
     "skipLibCheck": true
   },

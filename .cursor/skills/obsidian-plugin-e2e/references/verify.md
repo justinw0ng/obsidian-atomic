@@ -46,7 +46,7 @@ Harness:
 - `e2e/lib/vault.mjs` seeds an isolated vault (default `/tmp/atomic-tracker-e2e-vault`), writes `.obsidian/community-plugins.json`, deploys `main.js` / `manifest.json` / `styles.css`, and refuses to delete the repo, `$HOME`, or `/tmp` itself
 - `e2e/lib/obsidian.mjs` finds `/usr/bin/obsidian` or `$OBSIDIAN`, launches with `--no-sandbox` and `--remote-debugging-port=9222`, waits for CDP, downloads a matching ChromeDriver, dismisses the trust-vault dialog, and waits until `app.plugins.plugins["atomic-tracker"]` exists
 
-Stable handles Atomic already uses: `atomic-heatmap`, `atomic-heatmap-today`, `atomic-timer-*`, `atomic-gym-log-*`, `atomic-cues`, `atomic-bookshelf`, `atomic-book`, `atomic-setting-*`, `atomic-property-select`.
+Stable handles Atomic already uses: `atomic-heatmap`, `atomic-heatmap-today`, `atomic-timer-*`, `atomic-gym-log-*`, `atomic-cues`, `atomic-bookshelf`, `atomic-book`, `atomic-setting-*`, `atomic-property-select`, `atomic-update-note-*`.
 
 Drive notes by vault path (`openVaultFile`), commands by palette query or `app.commands.executeCommandById`, settings by `openTabById("<plugin-id>")`. Read notices in one `executeScript` over `.notice` nodes. Do not `findElements(By.css(".notice"))` and then read them; Obsidian recycles those nodes.
 
@@ -71,6 +71,7 @@ If you change a user-visible path, add or update a test in `e2e/health-check.tes
 - Gym set add (catalog + new exercise → markdown table)
 - Bookshelf status filter
 - Open reading Bases, plus Notices when Bases or Reading is off
+- What's new update note after a version change (ack once; no nag)
 
 Leaving that list stale after a UI change is a bug.
 

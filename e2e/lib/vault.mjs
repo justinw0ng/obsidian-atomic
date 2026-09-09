@@ -15,6 +15,7 @@ import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
+const MANIFEST = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
 
 export const E2E_VAULT_ID = "atomicE2e000001";
 export const DEFAULT_E2E_VAULT = "/tmp/atomic-tracker-e2e-vault";
@@ -187,6 +188,7 @@ export function pluginSettings() {
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
     gymLogSetup: "complete",
+    lastSeenUpdateNoteVersion: MANIFEST.version,
     gymExercises: [
       { exercise: "Bench", muscle: "Chest" },
       { exercise: "Squat", muscle: "Quads" },

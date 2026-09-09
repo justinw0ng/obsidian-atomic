@@ -60,6 +60,7 @@ test("mergeSettings defaults include golf/gym paths and Reading", () => {
   assert.equal("series" in s, false);
   assert.deepEqual(s.gymExercises, []);
   assert.equal(s.gymLogSetup, "complete");
+  assert.equal(s.lastSeenUpdateNoteVersion, "");
   s.gymExercises.push({ exercise: "Squat", muscle: "Quads" });
   assert.deepEqual(mergeSettings(null).gymExercises, []);
   assert.deepEqual(DEFAULT_SETTINGS.gymExercises, []);
@@ -80,6 +81,35 @@ test("mergeSettings treats stored settings without gymLogSetup as an upgrade", (
   });
   assert.equal(completed.gymLogSetup, "skipped");
   assert.deepEqual(completed.gymExercises, [{ exercise: "Bench", muscle: "Chest" }]);
+});
+
+test("mergeSettings treats stored settings without lastSeenUpdateNoteVersion as unseen", () => {
+  const missing = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymLogSetup: "complete",
+  });
+  assert.equal(missing.lastSeenUpdateNoteVersion, "0.0.0");
+
+  const kept = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymLogSetup: "complete",
+    lastSeenUpdateNoteVersion: "1.1.8",
+  });
+  assert.equal(kept.lastSeenUpdateNoteVersion, "1.1.8");
+
+  const padded = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymLogSetup: "complete",
+    lastSeenUpdateNoteVersion: " 1.1.7 ",
+  });
+  assert.equal(padded.lastSeenUpdateNoteVersion, "1.1.7");
+
+  const blank = mergeSettings({
+    timezone: "Asia/Hong_Kong",
+    gymLogSetup: "complete",
+    lastSeenUpdateNoteVersion: "  ",
+  });
+  assert.equal(blank.lastSeenUpdateNoteVersion, "0.0.0");
 });
 
 test("mergeSettings does not resurrect Reading deleted from modern activityTypes", () => {

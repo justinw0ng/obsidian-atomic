@@ -43,6 +43,7 @@ jobs:
             scripts/ensure-pr-version.mjs \
             scripts/check-version-conflict.mjs \
             scripts/bump-version.mjs \
+            scripts/set-update-note.mjs \
             scripts/semver.mjs \
             .github/plugin-source-paths.txt \
             .github/workflows/ci.yml \

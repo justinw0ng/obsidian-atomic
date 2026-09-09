@@ -116,6 +116,8 @@ npm run build
 
 ![Enable Atomic plugin](./images/06-enable-atomic-plugin.png)
 
+After you **update** Atomic Tracker to a new version, a **What's new** note appears once. Click **Got it** to dismiss it. It does not show again until a later version ships another note.
+
 ---
 
 ## 6. Configure settings

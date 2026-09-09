@@ -116,6 +116,8 @@ export const zhHantEn = {
   "modal.gymSetupBody": "On a gym note, pick an exercise, enter weight and reps, then click Add set. The table still keeps every set. It writes the row for you. Set up once to remember exercises from your old notes and add this form to gym notes that don't have it yet / 喺健身筆記揀個動作、填重量同次數，再撳「加一組」。組數依然喺筆記個表度。呢個會幫你寫低嗰行。設定一次：記住舊筆記用過嘅動作，同埋喺未有呢個表單嘅健身筆記加落去。",
   "modal.gymSetupConfirm": "Set up now / 而家設定",
   "modal.gymSetupLater": "Later / 遲啲",
+  "modal.updateNoteTitle": "What's new in {version} / {version} 更新說明",
+  "modal.updateNoteAck": "Got it / 知道",
   "location.home": "Home / 家中",
   "location.commercial": "Commercial / 商業健身房",
   "location.hotelTravel": "Hotel/Travel / 酒店／旅途",
