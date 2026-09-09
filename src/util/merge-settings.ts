@@ -112,5 +112,6 @@ export function mergeSettings(raw: unknown): FitnessSettings {
     activityTypes,
     gymExercises: normalizeGymExercises(raw.gymExercises),
     gymLogSetup: isGymLogSetup(raw.gymLogSetup) ? raw.gymLogSetup : "pending",
+    lastSeenUpdateNoteVersion: stringField(raw.lastSeenUpdateNoteVersion).trim(),
   };
 }

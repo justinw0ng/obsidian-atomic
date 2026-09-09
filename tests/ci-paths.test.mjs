@@ -91,6 +91,7 @@ test("release.yml accepts bump, branch, and release notes inputs", () => {
   assert.match(inputs, /default: main/);
   assert.match(inputs, /release_notes:/);
   assert.match(yamlKeyBlock(release, "      ", "release_notes"), /type: string/);
+  assert.match(yamlKeyBlock(release, "      ", "release_notes"), /required: true/);
   assert.doesNotMatch(yamlKeyBlock(release, "      ", "release_notes"), /type: textarea/);
 });
 
@@ -110,6 +111,9 @@ test("release.yml bumps the version, tags, and creates a GitHub release", () => 
     "utf8",
   );
   assert.match(release, /bump-version\.mjs "\$\{\{ inputs\.bump \}\}"/);
+  assert.match(release, /set-update-note\.mjs/);
+  assert.match(release, /ATOMIC_UPDATE_NOTE/);
+  assert.match(release, /git add package.json package-lock.json manifest.json versions.json src\/core\/update-notes.ts/);
   assert.match(release, /git tag "\$\{VERSION\}"/);
   assert.match(release, /git push origin "refs\/tags\/\$\{VERSION\}"/);
   assert.match(release, /action-gh-release/);

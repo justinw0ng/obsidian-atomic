@@ -33,6 +33,7 @@ Session notes carry frontmatter (`type`, `date`, `activity`, `duration_min`, …
 - language, timezone, dashboard/cue paths
 - activity catalog (`id`, `domain`, `folder`, `enabled`, `baseColor` / four heatmap shades, capability flags)
 - gym exercise catalog and setup state
+- last-seen in-app update note version (`lastSeenUpdateNoteVersion`)
 
 If a value should survive a settings reset or be editable as text, it belongs in a note.
 

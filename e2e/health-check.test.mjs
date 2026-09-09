@@ -390,6 +390,44 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
+  it("prompts the latest update note after a version change and acks it once", async () => {
+    await check(driver, "update-note", async () => {
+      await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
+        plugin.promptUpdateNoteIfNeeded();
+      `);
+      await waitCss(driver, '[data-testid="atomic-update-note-modal"]');
+      const body = await driver.executeScript(
+        `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
+      );
+      assert.match(String(body), /What's new note|update note/i);
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-update-note-ack"]').click();
+      `);
+      await driver.wait(async () => {
+        const leftover = await driver.findElements(
+          By.css('[data-testid="atomic-update-note-modal"]'),
+        );
+        return leftover.length === 0;
+      }, 8000);
+      const seen = await driver.executeScript(
+        `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+      );
+      const current = await driver.executeScript(
+        `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
+      );
+      assert.equal(seen, current);
+      await driver.executeScript(`
+        app.plugins.getPlugin("atomic-tracker").promptUpdateNoteIfNeeded();
+      `);
+      const leftover = await driver.findElements(
+        By.css('[data-testid="atomic-update-note-modal"]'),
+      );
+      assert.equal(leftover.length, 0);
+    });
+  });
+
   it("filters the book shelf by reading status", async () => {
     await check(driver, "bookshelf-status", async () => {
       await openVaultFile(driver, E2E_FILES.bookshelfAll);

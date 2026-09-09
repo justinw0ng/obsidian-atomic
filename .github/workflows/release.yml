@@ -16,9 +16,9 @@ on:
         type: string
         default: main
       release_notes:
-        description: GitHub release notes (optional; auto-generated notes are appended)
+        description: In-app and GitHub update note (required; one note may cover multiple PRs)
         type: string
-        required: false
+        required: true
 
 permissions:
   contents: write
@@ -79,6 +79,18 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Bumped ${{ inputs.bump }} to ${VERSION} on ${{ inputs.branch }}"
 
+      - name: Record in-app update note
+        env:
+          ATOMIC_UPDATE_NOTE: ${{ inputs.release_notes }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          if [[ -z "${ATOMIC_UPDATE_NOTE//[[:space:]]/}" ]]; then
+            echo "release_notes is required. Every release needs an in-app update note (one note may cover multiple PRs)."
+            exit 1
+          fi
+          node scripts/set-update-note.mjs "${VERSION}"
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -104,7 +116,7 @@ jobs:
           BRANCH="${{ inputs.branch }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json manifest.json versions.json
+          git add package.json package-lock.json manifest.json versions.json src/core/update-notes.ts
           git commit -m "chore: bump version to ${VERSION}"
           git tag "${VERSION}"
           git push origin "HEAD:${BRANCH}"

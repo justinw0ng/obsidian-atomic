@@ -44,6 +44,7 @@ Stop and fix before the next phase if any of these fail.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
 8. Release tag is `v1.2.3` or assets omit `main.js` / `manifest.json`.
 9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear has not run on the diff vs the default branch, or REQUEST CHANGES / risk items are still open with no fix or written rationale.
+10. Cutting a GitHub Release without a non-empty in-app update note for that version.
 
 Computer-use is not the health check. `npm run test:e2e` is. Use computer-use only after Selenium fails and you have screenshots under the e2e artifact dir.
 
@@ -155,6 +156,9 @@ Release proof:
 - Git tag equals that semver with **no** `v` prefix
 - GitHub Release attaches **exactly** `main.js`, `manifest.json`, `styles.css` (no zip or other extras)
 - Default-branch `manifest.json` `version` matches that tag
+- Every new release has a non-empty in-app update note in `src/core/update-notes.ts` (`UPDATE_NOTES`). One note may cover multiple PRs since the previous release. Do not finalize Release without it. Users are prompted with the latest update note after they update.
+
+When a release is confirmed, remind the owner to provide that note **or draft one covering all PRs since the last release** before or while cutting Release. Same text goes in `UPDATE_NOTES` and the workflow `release_notes` input.
 
 First listing: [community.obsidian.md](https://community.obsidian.md) after a real GitHub release exists. Later versions are pulled from GitHub automatically. See [release.md](references/release.md).
 
@@ -168,13 +172,14 @@ A change is done when:
 4. Docs the user would hit are updated (`README.md`, `docs/USER_GUIDE.md`, examples). Mockups under `docs/mockups/` do not replace E2E.
 5. You did not commit an accidental `main.js` rebuild unless the release is supposed to include it.
 6. Thermo-Nuclear ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items are fixed at root, or dismissed with a written rationale on the PR.
+7. If this change is a GitHub Release (or you are cutting one), the new version has an in-app update note. One note may cover multiple PRs. Do not finalize Release without it.
 
 ## Atomic map
 
 | Need | Open |
 | --- | --- |
 | Plugin entry | `src/main.ts` |
-| Pure domain | `src/core.ts`, `src/core/hobby.ts`, `src/core/gym-log.ts` |
+| Pure domain | `src/core.ts`, `src/core/hobby.ts`, `src/core/gym-log.ts`, `src/core/update-notes.ts` |
 | Codeblocks | `src/codeblocks.ts`, `src/util/codeblock-languages.ts` |
 | Vault I/O | `src/data/vault-source.ts`, `src/util/vault-path.ts` |
 | Settings | `src/settings.ts` |
@@ -184,4 +189,5 @@ A change is done when:
 | Hook / CSS bans | `tests/e2e-selectors.test.mjs` |
 | CI / release | `.github/workflows/ci.yml`, `.github/workflows/release.yml` |
 | Version bump | `scripts/bump-version.mjs` |
+| In-app update notes | `src/core/update-notes.ts`, `scripts/set-update-note.mjs` |
 | Cloud rules | `AGENTS.md` |

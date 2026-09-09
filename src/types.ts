@@ -49,6 +49,7 @@ export interface FitnessSettings {
   gymCuesPath: string;
   gymExercises: GymExercisePair[];
   gymLogSetup: GymLogSetup;
+  lastSeenUpdateNoteVersion: string;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -125,4 +126,5 @@ export const DEFAULT_SETTINGS: FitnessSettings = {
   activityTypes: DEFAULT_ACTIVITY_TYPES,
   gymExercises: [],
   gymLogSetup: "complete",
+  lastSeenUpdateNoteVersion: "",
 };

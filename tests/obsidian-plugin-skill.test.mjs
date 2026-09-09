@@ -68,6 +68,7 @@ test("obsidian-plugin-e2e skill names files that still exist", () => {
     "src/core.ts",
     "src/core/hobby.ts",
     "src/core/gym-log.ts",
+    "src/core/update-notes.ts",
     "src/codeblocks.ts",
     "src/data/vault-source.ts",
     "src/util/vault-path.ts",
@@ -82,6 +83,7 @@ test("obsidian-plugin-e2e skill names files that still exist", () => {
     ".github/workflows/release.yml",
     ".github/plugin-source-paths.txt",
     "scripts/bump-version.mjs",
+    "scripts/set-update-note.mjs",
     "scripts/ensure-pr-version.mjs",
     "scripts/check-version-conflict.mjs",
   ];
@@ -126,4 +128,25 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
     assert.match(text, /CodeRabbit/);
   }
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
+});
+
+test("skill and AGENTS.md require an in-app update note on every release", () => {
+  const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
+  const release = read(".cursor/skills/obsidian-plugin-e2e/references/release.md");
+  const agents = read("AGENTS.md");
+  const cloud = read(".cursor/skills/obsidian-plugin-e2e/references/cloud.md");
+  for (const text of [skill, release, agents, cloud]) {
+    assert.match(text, /update note/);
+    assert.match(text, /PRs since the last release/);
+  }
+  for (const text of [skill, release, agents]) {
+    assert.match(text, /latest update note/);
+    assert.match(text, /Do not finalize/);
+  }
+  assert.match(skill, /one note may cover multiple PRs/i);
+  assert.match(release, /one note may cover multiple PRs/i);
+  assert.match(release, /src\/core\/update-notes\.ts/);
+  assert.match(release, /release_notes/);
+  assert.match(agents, /src\/core\/update-notes\.ts/);
+  assert.match(agents, /release_notes/);
 });

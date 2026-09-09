@@ -325,6 +325,10 @@
   min-width: 180px;
 }
 
+.atomic-update-note-body {
+  white-space: pre-wrap;
+}
+
 .atomic-gym-custom-muscle-hidden {
   display: none;
 }

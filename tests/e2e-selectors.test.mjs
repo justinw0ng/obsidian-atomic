@@ -59,6 +59,12 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(gymSetup, /atomic-gym-log-setup-later/);
   assert.match(gymSetup, /atomic-gym-log-setup-confirm/);
 
+  const updateNote = src("src/commands/update-note.ts");
+  assert.match(updateNote, /atomic-update-note-modal/);
+  assert.match(updateNote, /atomic-update-note-body/);
+  assert.match(updateNote, /atomic-update-note-ack/);
+  assert.doesNotMatch(updateNote, /innerHTML/);
+
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
 
@@ -100,6 +106,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-gym-log-setup-modal/);
   assert.match(health, /atomic-gym-log-setup-later/);
   assert.match(health, /promptGymLogSetupIfPending/);
+  assert.match(health, /atomic-update-note-modal/);
+  assert.match(health, /atomic-update-note-ack/);
+  assert.match(health, /promptUpdateNoteIfNeeded/);
 
   const styles = src("styles.css");
   assert.doesNotMatch(styles, /:has\(/);

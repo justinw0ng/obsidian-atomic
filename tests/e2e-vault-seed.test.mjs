@@ -80,6 +80,10 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     );
     assert.equal(settings.language, "en");
     assert.equal(settings.gymLogSetup, "complete");
+    assert.equal(
+      settings.lastSeenUpdateNoteVersion,
+      JSON.parse(readFileSync(join(repoRoot, "manifest.json"), "utf8")).version,
+    );
     assert.deepEqual(settings.gymExercises, [
       { exercise: "Bench", muscle: "Chest" },
       { exercise: "Squat", muscle: "Quads" },
