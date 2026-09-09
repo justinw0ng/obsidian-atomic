@@ -34,6 +34,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(timer, /data-testid": "atomic-timer-start"/);
   assert.match(timer, /data-testid": "atomic-timer-stop"/);
   assert.match(timer, /stopSessionTimer/);
+  assert.match(timer, /isStaleBlockRender/);
   assert.doesNotMatch(timer, /scheduleRefresh/);
 
   const gymLog = src("src/views/gym-log.ts");

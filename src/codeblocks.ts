@@ -71,6 +71,7 @@ export function renderTrackedBlock(
     }
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
+      generation,
     });
   });
 }
@@ -80,7 +81,9 @@ export async function renderBlock(
   kind: string,
   source: string,
   el: HTMLElement,
-  ctx: Pick<MarkdownPostProcessorContext, "sourcePath">,
+  ctx: Pick<MarkdownPostProcessorContext, "sourcePath"> & {
+    generation?: number;
+  },
 ): Promise<void> {
   if (!el.isConnected) return;
   const opts = parseBlockOptions(source);
@@ -161,7 +164,7 @@ export async function renderBlock(
         break;
       }
       case "atomic-timer": {
-        await renderAtomicTimer(plugin, el, sourcePath);
+        await renderAtomicTimer(plugin, el, sourcePath, ctx.generation);
         break;
       }
       case "atomic-gym-log": {

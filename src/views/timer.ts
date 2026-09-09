@@ -9,6 +9,7 @@ import {
   stopTimer,
   updateTimerFrontmatter,
 } from "../core/hobby";
+import { isStaleBlockRender } from "../util/block-render";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { promptText } from "../util/prompt-text.ts";
 
@@ -16,20 +17,38 @@ async function modifyCurrentNote(
   plugin: FitnessPlugin,
   sourcePath: string,
   updater: (markdown: string) => string,
-): Promise<void> {
+): Promise<boolean> {
   const file = plugin.data.getFileByPath(sourcePath);
   if (!file) {
     new Notice(t("notice.timerNeedsSavedNote", plugin.settings.language));
-    return;
+    return false;
   }
   await plugin.app.vault.process(file, updater);
+  return true;
+}
+
+function paintTimer(
+  plugin: FitnessPlugin,
+  el: HTMLElement,
+  sourcePath: string,
+): void {
+  void renderAtomicTimer(plugin, el, sourcePath);
 }
 
 export async function renderAtomicTimer(
   plugin: FitnessPlugin,
   el: HTMLElement,
   sourcePath: string,
+  generation?: number,
 ): Promise<void> {
+  const markdown = sourcePath ? await plugin.data.readBody(sourcePath) : "";
+  if (
+    !el.isConnected ||
+    (generation !== undefined && isStaleBlockRender(el, generation))
+  ) {
+    return;
+  }
+
   el.empty();
   const root = el.createDiv({
     cls: "fitness-plugin atomic-timer",
@@ -43,7 +62,6 @@ export async function renderAtomicTimer(
     return;
   }
 
-  const markdown = await plugin.data.readBody(sourcePath);
   const frontmatter = readTimerFrontmatter(markdown);
   const totalKey =
     frontmatter.persistMode === "session"
@@ -96,6 +114,7 @@ export async function renderAtomicTimer(
                 minutes: result.minutes,
               }),
             );
+            paintTimer(plugin, el, sourcePath);
             return;
           }
           const note = await promptText(
@@ -117,6 +136,7 @@ export async function renderAtomicTimer(
               minutes: result.minutes,
             }),
           );
+          paintTimer(plugin, el, sourcePath);
         })();
       });
     actions
@@ -133,9 +153,12 @@ export async function renderAtomicTimer(
         attr: { "data-testid": "atomic-timer-discard" },
       })
       .addEventListener("click", () => {
-        void modifyCurrentNote(plugin, sourcePath, (latest) =>
-          updateTimerFrontmatter(latest, { timerStartedAtIso: null }),
-        );
+        void (async () => {
+          const written = await modifyCurrentNote(plugin, sourcePath, (latest) =>
+            updateTimerFrontmatter(latest, { timerStartedAtIso: null }),
+          );
+          if (written) paintTimer(plugin, el, sourcePath);
+        })();
       });
     return;
   }
@@ -146,10 +169,13 @@ export async function renderAtomicTimer(
       attr: { "data-testid": "atomic-timer-start" },
     })
     .addEventListener("click", () => {
-      void modifyCurrentNote(plugin, sourcePath, (latest) =>
-        updateTimerFrontmatter(latest, {
-          timerStartedAtIso: new Date().toISOString(),
-        }),
-      );
+      void (async () => {
+        const written = await modifyCurrentNote(plugin, sourcePath, (latest) =>
+          updateTimerFrontmatter(latest, {
+            timerStartedAtIso: new Date().toISOString(),
+          }),
+        );
+        if (written) paintTimer(plugin, el, sourcePath);
+      })();
     });
 }
