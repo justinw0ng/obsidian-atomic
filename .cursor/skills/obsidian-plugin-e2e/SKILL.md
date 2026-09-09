@@ -44,7 +44,6 @@ Stop and fix before the next phase if any of these fail.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
 8. Release tag is `v1.2.3` or assets omit `main.js` / `manifest.json`.
 9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear has not run on the diff vs the default branch, or REQUEST CHANGES / risk items are still open with no fix or written rationale.
-10. Cutting a GitHub Release without bilingual (English + zh-Hant) in-app update notes for that version.
 
 Computer-use is not the health check. `npm run test:e2e` is. Use computer-use only after Selenium fails and you have screenshots under the e2e artifact dir.
 
@@ -156,9 +155,8 @@ Release proof:
 - Git tag equals that semver with **no** `v` prefix
 - GitHub Release attaches **exactly** `main.js`, `manifest.json`, `styles.css` (no zip or other extras)
 - Default-branch `manifest.json` `version` matches that tag
-- Every new release has bilingual in-app update notes in `src/core/update-notes.json` (`body.en` and `body.zh-Hant`). One note may cover multiple PRs since the previous release. Do not finalize Release without both languages. Users are prompted with the latest update note after they update (English when Language is `en`; Cantonese Traditional Chinese when Language is `zh-Hant-en` or any `zh-Hant*`).
 
-When a release is confirmed, remind the owner to provide **both** language bodies **or draft them covering all PRs since the last release** before or while cutting Release. English goes in `release_notes`; Cantonese (zh-Hant) goes in `release_notes_zh_hant`. The workflow writes both into `src/core/update-notes.json`. Use `\n` for line breaks (workflow_dispatch is a single-line string).
+Users are prompted with the latest update note after they update (English when Language is `en`; Cantonese Traditional Chinese when Language is `zh-Hant-en` or any `zh-Hant*`) when `src/core/update-notes.json` matches that version. One note may cover multiple PRs. Release workflow `release_notes` (English) and `release_notes_zh_hant` (Cantonese) are **optional**. If both are set, the workflow writes `src/core/update-notes.json`. If both are omitted, the catalog is left unchanged. Provide both languages or omit both. Use `\n` for line breaks (workflow_dispatch is a single-line string).
 
 First listing: [community.obsidian.md](https://community.obsidian.md) after a real GitHub release exists. Later versions are pulled from GitHub automatically. See [release.md](references/release.md).
 
@@ -172,7 +170,6 @@ A change is done when:
 4. Docs the user would hit are updated (`README.md`, `docs/USER_GUIDE.md`, examples). Mockups under `docs/mockups/` do not replace E2E.
 5. You did not commit an accidental `main.js` rebuild unless the release is supposed to include it.
 6. Thermo-Nuclear ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items are fixed at root, or dismissed with a written rationale on the PR.
-7. If this change is a GitHub Release (or you are cutting one), the new version has bilingual in-app update notes (English + zh-Hant). One note may cover multiple PRs. Do not finalize Release without both.
 
 ## Atomic map
 

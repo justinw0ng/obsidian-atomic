@@ -75,7 +75,7 @@ test("release.yml is manual workflow_dispatch only", () => {
   assert.doesNotMatch(onBlock, /paths:/);
 });
 
-test("release.yml accepts bump, branch, and release notes inputs", () => {
+test("release.yml accepts bump, branch, and optional release notes inputs", () => {
   const release = readFileSync(
     join(root, ".github/workflows/release.yml"),
     "utf8",
@@ -92,10 +92,15 @@ test("release.yml accepts bump, branch, and release notes inputs", () => {
   assert.match(inputs, /release_notes:/);
   assert.match(inputs, /release_notes_zh_hant:/);
   assert.match(yamlKeyBlock(release, "      ", "release_notes"), /type: string/);
-  assert.match(yamlKeyBlock(release, "      ", "release_notes"), /required: true/);
+  assert.match(yamlKeyBlock(release, "      ", "release_notes"), /required: false/);
+  assert.doesNotMatch(yamlKeyBlock(release, "      ", "release_notes"), /required: true/);
   assert.doesNotMatch(yamlKeyBlock(release, "      ", "release_notes"), /type: textarea/);
   assert.match(yamlKeyBlock(release, "      ", "release_notes_zh_hant"), /type: string/);
-  assert.match(yamlKeyBlock(release, "      ", "release_notes_zh_hant"), /required: true/);
+  assert.match(yamlKeyBlock(release, "      ", "release_notes_zh_hant"), /required: false/);
+  assert.doesNotMatch(
+    yamlKeyBlock(release, "      ", "release_notes_zh_hant"),
+    /required: true/,
+  );
   assert.doesNotMatch(
     yamlKeyBlock(release, "      ", "release_notes_zh_hant"),
     /type: textarea/,
@@ -121,6 +126,8 @@ test("release.yml bumps the version, tags, and creates a GitHub release", () => 
   assert.match(release, /set-update-note\.mjs/);
   assert.match(release, /ATOMIC_UPDATE_NOTE/);
   assert.match(release, /ATOMIC_UPDATE_NOTE_ZH_HANT/);
+  assert.match(release, /leaving src\/core\/update-notes\.json unchanged/);
+  assert.match(release, /Provide both release_notes and release_notes_zh_hant, or omit both/);
   assert.match(release, /git add package.json package-lock.json manifest.json versions.json src\/core\/update-notes.json/);
   assert.match(release, /git tag "\$\{VERSION\}"/);
   assert.match(release, /git push origin "refs\/tags\/\$\{VERSION\}"/);
