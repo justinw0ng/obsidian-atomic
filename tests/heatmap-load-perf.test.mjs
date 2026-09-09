@@ -56,7 +56,7 @@ test("four heatmaps over 1000+ notes load within 500ms without scanning unrelate
   const year = 2026;
   const gym = yearFolder("atomics/exercise/Gym", year, 365);
   const golf = yearFolder("atomics/exercise/Golf", year, 365);
-  const guitar = yearFolder("atomics/exercise/Guitar", year, 365);
+  const extra = yearFolder("atomics/exercise/Extra", year, 365);
   const reading = itemsFolder("atomics/hobbies/Reading", 80);
   const unrelated = {
     path: "Daily",
@@ -66,13 +66,13 @@ test("four heatmaps over 1000+ notes load within 500ms without scanning unrelate
   };
   const vault = {
     path: "",
-    children: [gym, golf, guitar, reading, unrelated],
+    children: [gym, golf, extra, reading, unrelated],
   };
 
   const t0 = performance.now();
   const gymFiles = markdownFilesInFolder(gym);
   const golfFiles = markdownFilesInFolder(golf);
-  const guitarFiles = markdownFilesInFolder(guitar);
+  const extraFiles = markdownFilesInFolder(extra);
   const readingFiles = markdownFilesInFolder(reading);
   const maps = [
     durationMapFromSessions(
@@ -94,7 +94,7 @@ test("four heatmaps over 1000+ notes load within 500ms without scanning unrelate
       ),
     ),
     durationMapFromSessions(
-      guitarFiles.map((file) =>
+      extraFiles.map((file) =>
         sessionMetaFromFile({
           path: file.path,
           basename: file.basename,
@@ -139,7 +139,7 @@ test("four heatmaps over 1000+ notes load within 500ms without scanning unrelate
 
   assert.equal(gymFiles.length, 365);
   assert.equal(golfFiles.length, 365);
-  assert.equal(guitarFiles.length, 365);
+  assert.equal(extraFiles.length, 365);
   assert.equal(readingFiles.length, 80);
   assert.equal(markdownFilesInFolder(unrelated).length, 1000);
   assert.equal(markdownFilesInFolder(vault).length, 1000 + 365 * 3 + 80);

@@ -49,16 +49,16 @@ test("default heatmap body documents every layout option as comments", () => {
 
 test("default block values become active lines and stay parseable", () => {
   const body = defaultAtomicBlockBody("atomic-heatmap", "en", {
-    activity: "gym, golf, guitar, reading",
+    activity: "gym, golf, reading",
     columns: "2",
     rows: "2",
   });
-  assert.match(body, /^activity: gym, golf, guitar, reading  # /m);
+  assert.match(body, /^activity: gym, golf, reading  # /m);
   assert.match(body, /^rows: 2  # /m);
   assert.match(body, /^columns: 2  # /m);
   assert.match(body, /^# year: 2026  # /m);
   assert.deepEqual(parseBlockOptions(body), {
-    activity: "gym, golf, guitar, reading",
+    activity: "gym, golf, reading",
     rows: "2",
     columns: "2",
   });

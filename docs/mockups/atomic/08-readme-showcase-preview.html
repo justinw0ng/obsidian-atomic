@@ -21,7 +21,6 @@
       --obsidian-border: #e3e3e3;
       --gym: #30a14e;
       --golf: #f76707;
-      --guitar: #ae3ec9;
       --reading: #228be6;
       --accent: #111827;
     }
@@ -280,7 +279,6 @@
     }
     .g1 { background: #9be9a8; } .g2 { background: #40c463; } .g3 { background: var(--gym); }
     .o1 { background: #ffd8a8; } .o2 { background: #ffa94d; } .o3 { background: var(--golf); }
-    .p1 { background: #eebefa; } .p2 { background: #da77f2; } .p3 { background: var(--guitar); }
     .b1 { background: #a5d8ff; } .b2 { background: #4dabf7; } .b3 { background: var(--reading); }
 
     /* Today */
@@ -475,7 +473,6 @@
             <div class="actions" aria-label="atomic-actions">
               <span class="action">Gym</span>
               <span class="action">Golf</span>
-              <span class="action">Guitar</span>
               <span class="action">Reading</span>
             </div>
 
@@ -492,11 +489,6 @@
                 <div class="legend">Less → More · by duration</div>
               </div>
               <div class="heat-card">
-                <h3>Guitar</h3>
-                <div class="heat" id="heat-guitar"></div>
-                <div class="legend">Less → More · by duration</div>
-              </div>
-              <div class="heat-card">
                 <h3>Reading</h3>
                 <div class="heat" id="heat-reading"></div>
                 <div class="legend">Less → More · by duration</div>
@@ -507,7 +499,6 @@
             <div class="today" aria-label="atomic-today">
               <ul>
                 <li>Gym · Commercial · 55 min</li>
-                <li>Guitar · 25 min</li>
                 <li>Reading · <em>Theo of Golden</em> · 40 min</li>
                 <li class="muted">Golf · no session yet</li>
               </ul>
@@ -585,7 +576,6 @@
     }
     paint("heat-gym", ["g1", "g2", "g3"]);
     paint("heat-golf", ["o1", "o2", "o3"]);
-    paint("heat-guitar", ["p1", "p2", "p3"]);
     paint("heat-reading", ["b1", "b2", "b3"]);
   </script>
 </body>
