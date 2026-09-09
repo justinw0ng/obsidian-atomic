@@ -109,17 +109,45 @@ def cover_top(src: Image.Image, size: tuple[int, int]) -> Image.Image:
     return resized.crop((left, 0, left + target_w, target_h))
 
 
+def trim_phone_safe_area(src: Image.Image) -> Image.Image:
+    """Drop a typical iOS status bar and home-indicator inset from a screenshot."""
+    image = src.convert("RGB")
+    width, height = image.size
+    if height < 400 or width / height > 0.72:
+        return image
+    top = max(10, round(height * 0.045))
+    bottom = max(10, round(height * 0.028))
+    if top + bottom >= height:
+        return image
+    return image.crop((0, top, width, height - bottom))
+
+
+def fit_frame(src: Image.Image, size: tuple[int, int], mode: str, background: str) -> Image.Image:
+    if mode == "cover-top":
+        return cover_top(src, size)
+    if mode == "contain":
+        return contain(src, size, background)
+    raise ValueError(f"unknown fit mode: {mode}")
+
+
 def compose(
     desktop: Image.Image,
     mobile: Image.Image,
     copy: HeroCopy | None = None,
     crop_chrome: bool = False,
     desktop_fit: str = "contain",
+    phone_fit: str = "contain",
+    crop_mobile_chrome: bool | None = None,
+    trim_phone_chrome: bool = False,
 ) -> Image.Image:
     text = copy or HeroCopy()
+    crop_mobile = crop_chrome if crop_mobile_chrome is None else crop_mobile_chrome
     if crop_chrome:
         desktop = crop_window_chrome(desktop)
+    if crop_mobile:
         mobile = crop_window_chrome(mobile)
+    if trim_phone_chrome:
+        mobile = trim_phone_safe_area(mobile)
 
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
@@ -161,10 +189,7 @@ def compose(
         DESKTOP_CARD[2] - DESKTOP_CARD[0] - DESKTOP_INSET * 2,
         DESKTOP_CARD[3] - DESKTOP_CARD[1] - DESKTOP_INSET * 2,
     )
-    if desktop_fit == "cover-top":
-        desktop_image = cover_top(desktop, desktop_box)
-    else:
-        desktop_image = contain(desktop, desktop_box, "#FFFFFF")
+    desktop_image = fit_frame(desktop, desktop_box, desktop_fit, "#FFFFFF")
     desktop_mask = rounded_mask(desktop_box, 10)
     canvas.paste(
         desktop_image,
@@ -188,7 +213,7 @@ def compose(
         PHONE_FRAME[2] - PHONE_FRAME[0] - PHONE_INSET * 2,
         PHONE_FRAME[3] - PHONE_FRAME[1] - PHONE_INSET * 2,
     )
-    phone_image = contain(mobile, phone_box, "#FFFFFF")
+    phone_image = fit_frame(mobile, phone_box, phone_fit, "#FFFFFF")
     phone_mask = rounded_mask(phone_box, 34)
     canvas.paste(
         phone_image,
@@ -217,6 +242,22 @@ def main() -> None:
         default="contain",
         help="How the desktop shot fills its card (daily hero uses contain)",
     )
+    parser.add_argument(
+        "--phone-fit",
+        choices=("contain", "cover-top"),
+        default="contain",
+        help="How the mobile shot fills the device frame (daily hero uses contain)",
+    )
+    parser.add_argument(
+        "--skip-mobile-chrome",
+        action="store_true",
+        help="Do not crop OS title bar / ribbon from the mobile shot",
+    )
+    parser.add_argument(
+        "--trim-phone-chrome",
+        action="store_true",
+        help="Trim iOS status bar / home indicator from a phone screenshot",
+    )
     args = parser.parse_args()
 
     for value in (args.desktop, args.mobile):
@@ -229,6 +270,9 @@ def main() -> None:
         HeroCopy(kicker=args.kicker, headline=args.headline, label=args.label),
         crop_chrome=args.crop_chrome,
         desktop_fit=args.desktop_fit,
+        phone_fit=args.phone_fit,
+        crop_mobile_chrome=False if args.skip_mobile_chrome else None,
+        trim_phone_chrome=args.trim_phone_chrome,
     )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     out.save(args.out, "PNG", optimize=True)

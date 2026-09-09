@@ -37,4 +37,14 @@ test("hero compositor keeps daily-note defaults and accepts dashboard copy", () 
   assert.match(src, /--headline/);
   assert.match(src, /--crop-chrome/);
   assert.match(src, /cover-top/);
+  assert.match(src, /--phone-fit/);
+  assert.match(src, /--trim-phone-chrome/);
+});
+
+test("dashboard hero capture uses a wider phone viewport so more UI is visible", () => {
+  const src = readFileSync(join(root, "scripts/capture-user-guide-screenshots.mjs"), "utf8");
+  assert.match(src, /DASHBOARD_MOBILE = \{ width: 480, height: 1040 \}/);
+  assert.match(src, /--phone-fit/);
+  assert.match(src, /ATOMIC_DASHBOARD_PHONE_SRC/);
+  assert.match(src, /prepareDashboardPhoneView/);
 });

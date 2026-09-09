@@ -4,6 +4,8 @@
  * Run: node scripts/capture-user-guide-screenshots.mjs
  * Optional: ATOMIC_DOCS_SHOTS=dashboard (comma-separated: bookShelf,timer,gymLog,dashboard,settings,enable)
  * Dashboard shots also compose docs/images/atomic-dashboard-hero.png via compose-device-hero.py.
+ * Optional: ATOMIC_DASHBOARD_PHONE_SRC=/path/to/phone.jpg to use a real phone screenshot
+ * in the hero device frame (trims status bar / home indicator).
  */
 import { spawn, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -59,8 +61,10 @@ const OUTPUTS = {
 };
 
 const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
-const DASHBOARD_MOBILE = { width: 390, height: 844 };
+/** Wide enough for 2-column KPIs (minmax 170px) so the phone frame shows more UI. */
+const DASHBOARD_MOBILE = { width: 480, height: 1040 };
 const DASHBOARD_HERO_HEADLINE = "Your year. One dashboard.";
+const DASHBOARD_PHONE_SRC = (process.env.ATOMIC_DASHBOARD_PHONE_SRC || "").trim();
 
 /** Comma-separated shot names, or `all`. Example: ATOMIC_DOCS_SHOTS=dashboard */
 const REQUESTED_SHOTS = new Set(
@@ -270,26 +274,28 @@ async function openNote(driver, path) {
   await sleep(600);
 }
 
-function composeDashboardHero(desktopPath, mobilePath) {
+function composeDashboardHero(desktopPath, mobilePath, phoneSource = false) {
   const out = join(IMAGES, OUTPUTS.dashboardHero);
-  const result = spawnSync(
-    "python3",
-    [
-      join(ROOT, "scripts/compose-device-hero.py"),
-      "--desktop",
-      desktopPath,
-      "--mobile",
-      mobilePath,
-      "--out",
-      out,
-      "--headline",
-      DASHBOARD_HERO_HEADLINE,
-      "--crop-chrome",
-      "--desktop-fit",
-      "cover-top",
-    ],
-    { encoding: "utf8" },
-  );
+  const args = [
+    join(ROOT, "scripts/compose-device-hero.py"),
+    "--desktop",
+    desktopPath,
+    "--mobile",
+    mobilePath,
+    "--out",
+    out,
+    "--headline",
+    DASHBOARD_HERO_HEADLINE,
+    "--crop-chrome",
+    "--desktop-fit",
+    "cover-top",
+    "--phone-fit",
+    "cover-top",
+  ];
+  if (phoneSource) {
+    args.push("--skip-mobile-chrome", "--trim-phone-chrome");
+  }
+  const result = spawnSync("python3", args, { encoding: "utf8" });
   if (result.status !== 0) {
     throw new Error(
       `compose dashboard hero failed: ${(result.stderr || result.stdout || "").trim()}`,
@@ -309,6 +315,32 @@ async function hideNoteProperties(driver) {
       ".metadata-container, .metadata-properties-heading, .metadata-add-button",
     )) {
       el.style.setProperty("display", "none");
+    }
+  `);
+}
+
+async function prepareDashboardPhoneView(driver) {
+  await hideNoteProperties(driver);
+  await driver.executeScript(`
+    const hide = [
+      ".workspace-ribbon",
+      ".view-header",
+      ".workspace-tab-header-container",
+      ".status-bar",
+      ".inline-title",
+      ".mod-header .inline-title",
+      ".metadata-container",
+    ];
+    for (const sel of hide) {
+      for (const el of document.querySelectorAll(sel)) {
+        el.style.setProperty("display", "none", "important");
+      }
+    }
+    const preview = document.querySelector(".markdown-preview-view, .markdown-reading-view");
+    if (preview) {
+      preview.style.setProperty("padding-top", "12px", "important");
+      preview.style.setProperty("padding-left", "16px", "important");
+      preview.style.setProperty("padding-right", "16px", "important");
     }
   `);
 }
@@ -446,17 +478,24 @@ async function main() {
         DASHBOARD_DESKTOP.width,
       );
 
-      await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
-      await openNote(driver, FILES.dashboard);
-      await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
-      await hideNoteProperties(driver);
-      await parkMouse(driver);
-      await sleep(600);
-      await driver.executeScript(
-        `document.querySelectorAll(".tooltip").forEach((el) => el.remove());`,
-      );
-      const mobileSrc = await saveScreenshot(driver, "readme-dashboard-mobile");
-      await composeDashboardHero(desktopSrc, mobileSrc);
+      if (DASHBOARD_PHONE_SRC) {
+        if (!existsSync(DASHBOARD_PHONE_SRC)) {
+          throw new Error(`ATOMIC_DASHBOARD_PHONE_SRC missing: ${DASHBOARD_PHONE_SRC}`);
+        }
+        await composeDashboardHero(desktopSrc, DASHBOARD_PHONE_SRC, true);
+      } else {
+        await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
+        await openNote(driver, FILES.dashboard);
+        await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+        await prepareDashboardPhoneView(driver);
+        await parkMouse(driver);
+        await sleep(600);
+        await driver.executeScript(
+          `document.querySelectorAll(".tooltip").forEach((el) => el.remove());`,
+        );
+        const mobileSrc = await saveScreenshot(driver, "readme-dashboard-mobile");
+        await composeDashboardHero(desktopSrc, mobileSrc);
+      }
       await captureFullPageProof(
         driver,
         '[data-testid="atomic-dashboard"]',
