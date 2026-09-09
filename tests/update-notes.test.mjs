@@ -134,6 +134,17 @@ test("updateNoteToShow does not nag after the current note is acknowledged", () 
   );
 });
 
+test("update-notes.json version matches manifest.json version", () => {
+  const disk = JSON.parse(
+    readFileSync(join(root, "src/core/update-notes.json"), "utf8"),
+  );
+  const manifest = JSON.parse(
+    readFileSync(join(root, "manifest.json"), "utf8"),
+  );
+  assert.equal(disk.version, manifest.version);
+  assert.equal(UPDATE_NOTE.version, manifest.version);
+});
+
 test("bundled update notes catalog is bilingual", () => {
   const disk = JSON.parse(
     readFileSync(join(root, "src/core/update-notes.json"), "utf8"),

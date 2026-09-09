@@ -126,7 +126,7 @@ test("release.yml bumps the version, tags, and creates a GitHub release", () => 
   assert.match(release, /set-update-note\.mjs/);
   assert.match(release, /ATOMIC_UPDATE_NOTE/);
   assert.match(release, /ATOMIC_UPDATE_NOTE_ZH_HANT/);
-  assert.match(release, /leaving src\/core\/update-notes\.json unchanged/);
+  assert.match(release, /catalog version already matches \$\{VERSION\} \(bodies unchanged\)/);
   assert.match(release, /Provide both release_notes and release_notes_zh_hant, or omit both/);
   assert.match(release, /git add package.json package-lock.json manifest.json versions.json src\/core\/update-notes.json/);
   assert.match(release, /git tag "\$\{VERSION\}"/);

@@ -57,6 +57,18 @@ function writeVersionTree(dir, version) {
     join(dir, "versions.json"),
     `${JSON.stringify({ [version]: "1.5.0" }, null, 2)}\n`,
   );
+  mkdirSync(join(dir, "src", "core"), { recursive: true });
+  writeFileSync(
+    join(dir, "src", "core", "update-notes.json"),
+    `${JSON.stringify(
+      {
+        version,
+        body: { en: "What's new.", "zh-Hant": "更新說明。" },
+      },
+      null,
+      2,
+    )}\n`,
+  );
   mkdirSync(join(dir, "scripts"), { recursive: true });
   for (const name of [
     "semver.mjs",
@@ -129,6 +141,76 @@ test("check-version-conflict fails for same or older", () => {
     const older = runScript(dir, "check-version-conflict.mjs", ["2.0.0"]);
     assert.equal(older.status, 1);
     assert.match(older.stderr, /older than main/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("bump-version keeps update-notes.json version in lockstep", () => {
+  const dir = mkdtempSync(join(tmpdir(), "bump-version-notes-"));
+  try {
+    writeVersionTree(dir, "1.1.9");
+    const result = runScript(dir, "bump-version.mjs", ["patch"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "1.1.10");
+    const notes = JSON.parse(
+      readFileSync(join(dir, "src", "core", "update-notes.json"), "utf8"),
+    );
+    assert.equal(notes.version, "1.1.10");
+    assert.equal(notes.body.en, "What's new.");
+    assert.equal(notes.body["zh-Hant"], "更新說明。");
+    assert.equal(
+      JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")).version,
+      "1.1.10",
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("bump-version none stamps a lagging catalog onto the current version", () => {
+  const dir = mkdtempSync(join(tmpdir(), "bump-version-notes-"));
+  try {
+    writeVersionTree(dir, "1.1.9");
+    writeFileSync(
+      join(dir, "src", "core", "update-notes.json"),
+      `${JSON.stringify(
+        {
+          version: "1.1.8",
+          body: { en: "Timer note.", "zh-Hant": "計時說明。" },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+    const result = runScript(dir, "bump-version.mjs", ["none"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "1.1.9");
+    const notes = JSON.parse(
+      readFileSync(join(dir, "src", "core", "update-notes.json"), "utf8"),
+    );
+    assert.equal(notes.version, "1.1.9");
+    assert.equal(notes.body.en, "Timer note.");
+    assert.equal(
+      JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")).version,
+      "1.1.9",
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("bump-version refuses a catalog without bilingual bodies", () => {
+  const dir = mkdtempSync(join(tmpdir(), "bump-version-notes-"));
+  try {
+    writeVersionTree(dir, "1.1.9");
+    writeFileSync(
+      join(dir, "src", "core", "update-notes.json"),
+      `${JSON.stringify({ version: "1.1.9", body: { en: "ok" } }, null, 2)}\n`,
+    );
+    const result = runScript(dir, "bump-version.mjs", ["patch"]);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Need body\.en and body\.zh-Hant/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

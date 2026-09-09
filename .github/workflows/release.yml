@@ -16,7 +16,7 @@ on:
         type: string
         default: main
       release_notes:
-        description: Optional English in-app and GitHub update note. Use \n for line breaks. Omit to leave the in-app catalog unchanged.
+        description: Optional English in-app and GitHub update note. Use \n for line breaks. Omit both notes to keep current in-app bodies under the new version.
         type: string
         required: false
       release_notes_zh_hant:
@@ -93,7 +93,7 @@ jobs:
           EN="${ATOMIC_UPDATE_NOTE//[[:space:]]/}"
           ZH="${ATOMIC_UPDATE_NOTE_ZH_HANT//[[:space:]]/}"
           if [[ -z "${EN}" && -z "${ZH}" ]]; then
-            echo "No release notes provided; leaving src/core/update-notes.json unchanged."
+            echo "No release notes provided; catalog version already matches ${VERSION} (bodies unchanged)."
             exit 0
           fi
           if [[ -z "${EN}" || -z "${ZH}" ]]; then

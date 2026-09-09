@@ -12,6 +12,7 @@ Keep these in lockstep on a release commit:
 | `package-lock.json` | root `version` and `packages[""].version` |
 | `manifest.json` | `version`, and `minAppVersion` if you raised the floor |
 | `versions.json` | `{ "<plugin version>": "<minAppVersion>" }` |
+| `src/core/update-notes.json` | `version` (in-app What's new; must equal the shipped plugin version) |
 
 Atomic's helper:
 
@@ -20,7 +21,7 @@ node scripts/bump-version.mjs          # print
 node scripts/bump-version.mjs patch    # also minor|major|none
 ```
 
-`none` keeps the current version (first release of whatever is already in the files). The script refuses to bump if `package.json` and `manifest.json` disagree.
+`none` keeps the current version (first release of whatever is already in the files). The script refuses to bump if `package.json` and `manifest.json` disagree. It also writes `src/core/update-notes.json` `version` to the same semver (bodies unchanged) so What's new cannot lag the plugin.
 
 Do not bump on every feature PR. Atomic's CI no longer auto-bumps. Humans pick the bump when cutting the release.
 
@@ -44,12 +45,14 @@ The catalog is `src/core/update-notes.json` (`body.en` and `body.zh-Hant`):
 
 ```json
 {
-  "version": "1.1.8",
+  "version": "1.1.9",
   "body": { "en": "…", "zh-Hant": "…" }
 }
 ```
 
-If you pass both Release inputs, the workflow overwrites this file after the bump (`version` = new semver, bodies from the inputs). If you omit both, it leaves the file unchanged. A new plugin version with a lagging catalog `version` does not show a What's new prompt. Until a 1.1.9 cut, the catalog `version` stays at the current manifest (1.1.8) with staged 1.1.9 bodies — pass those texts as optional inputs if you want that note to ship with 1.1.9.
+Catalog `version` **must equal the plugin version being shipped** (latest GitHub Release / `manifest.json` after bump). Do **not** leave staged notes on an older semver while cutting a newer Release. A lagging catalog `version` does not show a What's new prompt.
+
+`scripts/bump-version.mjs` keeps catalog `version` in lockstep (existing bodies). If you pass both Release inputs, the workflow then overwrites the bodies (`version` already matches the new semver). If you omit both, the bumped catalog keeps the previous bodies — never ship with catalog behind manifest.
 
 Optional notes when cutting Release:
 
@@ -77,8 +80,8 @@ Cantonese / zh-Hant (`release_notes_zh_hant`):
 Atomic's release job:
 
 1. Checkout the chosen branch
-2. `node scripts/bump-version.mjs <bump>`
-3. If both optional note inputs are set, write bilingual in-app update notes for the new version (`node scripts/set-update-note.mjs <version>`). If both are omitted, leave `src/core/update-notes.json` unchanged.
+2. `node scripts/bump-version.mjs <bump>` (also sets catalog `version` to the new semver, keeping bodies)
+3. If both optional note inputs are set, overwrite bilingual bodies for the new version (`node scripts/set-update-note.mjs <version>`). If both are omitted, keep the bodies already stamped under the new version.
 4. `npm run typecheck`, `npm test`, `npm run build`
 5. Refuse if tag `VERSION` already exists
 6. Commit version files and `src/core/update-notes.json` when it changed, tag `VERSION` (no `v`), push branch and tag
@@ -94,16 +97,12 @@ You can run the same steps locally if Actions is unavailable. Skip attestation u
 Prefer `gh workflow run Release ...` when the agent token can write Actions (`workflow_dispatch` needs `actions: write`):
 
 ```bash
-gh workflow run Release --ref main -f bump=patch
-```
-
-Notes are optional. To also write the in-app catalog and GitHub body:
-
-```bash
 gh workflow run Release --ref main -f bump=patch \
   -f release_notes="What's new…" \
   -f release_notes_zh_hant="更新說明…"
 ```
+
+Notes are optional. Omit both to keep current in-app bodies under the new version (`bump-version.mjs` still sets catalog `version`). Pass both `release_notes` and `release_notes_zh_hant` to replace bodies. Never ship with catalog behind manifest.
 
 If that returns `HTTP 403: Resource not accessible by integration`, it is expected with the default Cursor GitHub App installation token, which is scoped to `actions: read` only. Reconfiguring the Cursor GitHub App install does not raise that per-run token.
 
