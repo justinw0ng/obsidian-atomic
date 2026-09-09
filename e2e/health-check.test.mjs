@@ -403,7 +403,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
       );
       assert.match(String(englishBody), /Start \/ Stop/);
-      assert.match(String(englishBody), /What's new note once/);
+      assert.match(String(englishBody), /duration/);
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-update-note-ack"]').click();
       `);
@@ -425,7 +425,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
       );
       assert.match(String(cantoneseBody), /開始／停止/);
-      assert.match(String(cantoneseBody), /更新說明/);
+      assert.match(String(cantoneseBody), /時長/);
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-update-note-ack"]').click();
       `);

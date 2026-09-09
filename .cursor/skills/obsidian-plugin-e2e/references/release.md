@@ -64,13 +64,13 @@ The GitHub Release body uses the English `release_notes` input (auto-generated n
 English (`release_notes`):
 
 ```
-• Gym, golf, and other exercise day notes now have Start / Stop — stop fills duration for you (you can still type it).\n• After you update, you'll see a short What's new note once (this one).\n• New installs default to English. Your existing language setting is unchanged.\n• Demo examples now match the built-in activities (gym, golf, reading).
+Gym, golf, and other exercise day notes now have Start / Stop. Stop fills the duration for you — you can still type it if you prefer.
 ```
 
 Cantonese / zh-Hant (`release_notes_zh_hant`):
 
 ```
-• 健身、高爾夫同其他運動嘅當日筆記而家有開始／停止——撳停止會幫你填好時長（你仍然可以自己打）。\n• 更新之後會出一次簡短嘅更新說明（就係呢張）。\n• 新安裝預設用英文。你而家嘅語言設定唔會改。\n• 示範例子而家同內置活動一致（健身、高爾夫、睇書）。
+健身、高爾夫等運動當日筆記而家有「開始／停止」計時。停止之後會自動填寫時長；你都可以繼續手動輸入。
 ```
 
 ## Cut a GitHub Release
