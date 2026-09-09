@@ -25,7 +25,7 @@ test("daily note example includes bookshelf, actions, 2x2 heatmap, and today", (
     md.includes(
       defaultAtomicBlockFence("atomic-heatmap", "en", {
         year: "2026",
-        activity: "gym, golf, guitar, reading",
+        activity: "gym, golf, reading",
         rows: "2",
         columns: "2",
       }),
@@ -52,7 +52,7 @@ test("daily note template uses Obsidian date tokens and omits a hardcoded year",
   assert.ok(
     md.includes(
       defaultAtomicBlockFence("atomic-heatmap", "en", {
-        activity: "gym, golf, guitar, reading",
+        activity: "gym, golf, reading",
         rows: "2",
         columns: "2",
       }),

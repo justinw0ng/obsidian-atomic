@@ -229,7 +229,7 @@ year: 2026
 ```
 
 ```atomic-heatmap
-activity: gym, golf, reading, guitar
+activity: gym, golf, reading
 rows: 2              # default: 1
 columns: 2           # default: 1
 min-column-width: 300  # default: 300
@@ -510,7 +510,7 @@ Optional multi-activity grid layout (ignored for a single activity):
 Example with inline defaults:
 
 ```text
-activity: gym, golf, reading, guitar
+activity: gym, golf, reading
 rows: 2              # default: 1
 columns: 2           # default: 1
 min-column-width: 300  # default: 300

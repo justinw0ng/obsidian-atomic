@@ -35,7 +35,6 @@ const heroBooks = BOOKS.slice(0, bookLimit);
 const GREEN = ["#9be9a8", "#40c463", "#30a14e", "#216e39"];
 const ORANGE = ["#ffd8a8", "#ffa94d", "#f76707", "#d9480f"];
 const BLUE = ["#bfdbfe", "#60a5fa", "#2563eb", "#1e3a8a"];
-const PURPLE = ["#eebefa", "#da77f2", "#ae3ec9", "#862e9c"];
 
 function ensureDir(p) {
   mkdirSync(p, { recursive: true });
@@ -79,37 +78,6 @@ related_canvas:
 ## Time log
 
 ${lines.join("\n")}
-
-\`\`\`atomic-timer
-\`\`\`
-`;
-}
-
-function guitarItem(totalMin, timeLogLines) {
-  return `---
-type: atomic-item
-domain: hobby
-activity: guitar
-status: reading
-authors:
-  - ""
-description: ""
-pages:
-cover: ""
-tags:
-spine_color: "#ae3ec9"
-total_min: ${totalMin}
-timer_started_at:
-related_canvas:
----
-
-# Practice log
-
-## Remarks
-
-## Time log
-
-${timeLogLines.join("\n")}
 
 \`\`\`atomic-timer
 \`\`\`
@@ -211,25 +179,15 @@ function seedHeatmapSessions() {
 
 function seedHobbyTimeLogs() {
   const readingLogs = [];
-  const guitarLogs = [];
-  // Reading most evenings; guitar nearly daily
+  // Reading most evenings
   const readingDays = activityDays({ startMonth: 1, weekdays: [0, 1, 2, 3, 4, 5, 6], stride: 2 });
-  const guitarDays = activityDays({ startMonth: 1, weekdays: [1, 2, 3, 4, 5, 6] });
 
   for (const date of readingDays) {
     const min = durationFor(date, 25, 35);
     readingLogs.push(`- ${date} | ${min} min`);
   }
-  for (const date of guitarDays) {
-    const min = durationFor(date, 15, 25);
-    guitarLogs.push(`- ${date} | ${min} min`);
-  }
 
   const readingTotal = readingLogs.reduce((sum, line) => {
-    const m = line.match(/(\d+) min/);
-    return sum + (m ? Number(m[1]) : 0);
-  }, 0);
-  const guitarTotal = guitarLogs.reduce((sum, line) => {
     const m = line.match(/(\d+) min/);
     return sum + (m ? Number(m[1]) : 0);
   }, 0);
@@ -252,11 +210,6 @@ function seedHobbyTimeLogs() {
       readingItem(book.title, coverWikilink(book.slug), 0),
     );
   }
-
-  write(
-    join(VAULT, "atomics/hobbies/Guitar/Items/Practice log.md"),
-    guitarItem(guitarTotal, guitarLogs),
-  );
 }
 
 function seedDailyNote() {
@@ -394,19 +347,6 @@ function seedObsidianConfig() {
         supportsSetTable: false,
       },
       {
-        id: "guitar",
-        domain: "hobby",
-        label: "🎸 Guitar",
-        folder: "atomics/hobbies/Guitar",
-        enabled: true,
-        baseColor: PURPLE[2],
-        colors: PURPLE,
-        noteModel: "item",
-        supportsCues: false,
-        supportsTimer: true,
-        supportsSetTable: false,
-      },
-      {
         id: "reading",
         domain: "hobby",
         label: "📚 Reading",
@@ -447,11 +387,12 @@ seedObsidianConfig();
 deployPlugin();
 
 // Drop prior demo sessions/items so denser seeds replace sparse ones cleanly.
+// Guitar is no longer a demo habit; remove leftover notes from older seeds.
 for (const rel of [
   "atomics/exercise/Gym/2026",
   "atomics/exercise/Golf/2026",
   "atomics/hobbies/Reading/Items",
-  "atomics/hobbies/Guitar/Items",
+  "atomics/hobbies/Guitar",
 ]) {
   const p = join(VAULT, rel);
   if (existsSync(p)) rmSync(p, { recursive: true, force: true });
