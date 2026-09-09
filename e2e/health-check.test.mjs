@@ -96,6 +96,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await openVaultFile(driver, E2E_FILES.gymSession(today.slice(0, 4), today));
       await waitCss(driver, '[data-testid="atomic-gym-log"]');
       await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
+      await waitCss(driver, '[data-testid="atomic-timer"]');
+      await waitCss(driver, '[data-testid="atomic-timer-start"]');
 
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(driver, '[data-testid="atomic-bookshelf"]');
@@ -294,6 +296,71 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           return select ? select.value : "";
         `);
         return value === deadliftValue;
+      }, 8000);
+    });
+  });
+
+  it("start/stops a gym session timer and writes duration_min", async () => {
+    await check(driver, "gym-session-timer", async () => {
+      const gymPath = E2E_FILES.gymSession(today.slice(0, 4), today);
+      await openVaultFile(driver, gymPath);
+      await waitCss(driver, '[data-testid="atomic-timer-start"]');
+      await waitCss(driver, '[data-testid="atomic-gym-log"]');
+
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-timer-start"]').click()`,
+      );
+      await waitCss(driver, '[data-testid="atomic-timer-stop"]');
+
+      await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.workspace.getActiveFile();
+        const started = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+        app.fileManager.processFrontMatter(file, (fm) => {
+          fm.timer_started_at = started;
+        }).then(() => done(true), (err) => done(String(err)));
+      `);
+      await waitCss(driver, '[data-testid="atomic-timer-stop"]');
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-timer-stop"]').click()`,
+      );
+
+      await driver.wait(async () => {
+        const markdown = await driver.executeAsyncScript(`
+          const done = arguments[0];
+          const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymPath)});
+          app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+        `);
+        const match = String(markdown).match(/duration_min:\s*(\d+)/);
+        return !!(match && Number(match[1]) >= 49);
+      }, 8000);
+
+      const afterStop = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymPath)});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      const markdown = String(afterStop);
+      assert.match(markdown, /duration_min: \d+\n/);
+      const duration = Number(markdown.match(/duration_min:\s*(\d+)/)?.[1]);
+      assert.ok(duration >= 49, `expected duration_min >= 49, got ${duration}`);
+      assert.doesNotMatch(markdown, /## Time log/);
+      assert.doesNotMatch(markdown, /total_min:/);
+      assert.match(markdown, /\| Squat \| Quads \|/);
+      const promptModals = await driver.findElements(
+        By.css('[data-testid="atomic-prompt-modal"]'),
+      );
+      assert.equal(promptModals.length, 0);
+
+      await openVaultFile(driver, E2E_FILES.heatmapGymGolf);
+      await driver.wait(async () => {
+        const minutes = await driver.executeScript(`
+          const cell = document.querySelector(
+            '[data-testid="atomic-heatmap"][data-activity="gym"] [data-testid="atomic-heatmap-today"]',
+          );
+          return cell ? Number(cell.getAttribute("data-minutes")) : -1;
+        `);
+        return minutes >= 49;
       }, 8000);
     });
   });

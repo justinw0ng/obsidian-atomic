@@ -71,6 +71,7 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     assert.equal(core["command-palette"], true);
 
     const gym = readFileSync(join(vault, E2E_FILES.gymSession(year, today)), "utf8");
+    assert.match(gym, /```atomic-timer/);
     assert.match(gym, /```atomic-gym-log/);
     assert.match(gym, /\| Squat \| Quads \| 80 \| 5 \|/);
 

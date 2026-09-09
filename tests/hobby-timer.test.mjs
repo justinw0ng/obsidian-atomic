@@ -4,7 +4,10 @@ import {
   appendTimeLog,
   minutesByDate,
   parseTimeLog,
+  displayedTimerMinutes,
+  elapsedTimerMinutes,
   readTimerFrontmatter,
+  stopSessionTimer,
   stopTimer,
   updateTimerFrontmatter,
 } from "../src/core/hobby.ts";
@@ -122,7 +125,9 @@ total_min: 15
 `;
 
   assert.deepEqual(readTimerFrontmatter(markdown), {
+    persistMode: "item",
     totalMin: 15,
+    durationMin: 0,
     timerStartedAt: "2026-08-09T12:00:00.000Z",
   });
 
@@ -135,7 +140,9 @@ total_min: 15
   assert.match(updated, /timer_started_at:\n/);
   assert.match(updated, /total_min: 45\n/);
   assert.deepEqual(readTimerFrontmatter(updated), {
+    persistMode: "item",
     totalMin: 45,
+    durationMin: 0,
     timerStartedAt: null,
   });
 });
@@ -164,7 +171,9 @@ timer_started_at: "2026-08-09T12:00:00.000Z"
   assert.equal(result.minutes, 45);
   assert.equal(result.totalMin, 65);
   assert.deepEqual(readTimerFrontmatter(result.markdown), {
+    persistMode: "item",
     totalMin: 65,
+    durationMin: 0,
     timerStartedAt: null,
   });
   assert.deepEqual(parseTimeLog(result.markdown), [
@@ -206,4 +215,91 @@ timer_started_at:
   assert.equal(result.minutes, 45);
   assert.equal(result.totalMin, 45);
   assert.equal(parseTimeLog(result.markdown).length, 1);
+});
+
+test("session notes persist duration_min instead of a Time log", () => {
+  const markdown = `---
+type: session
+date: 2026-08-11
+activity: gym
+duration_min:
+timer_started_at: "2026-08-11T12:00:00.000Z"
+---
+
+# Gym — 2026-08-11
+
+\`\`\`atomic-timer
+\`\`\`
+
+\`\`\`atomic-gym-log
+\`\`\`
+
+| Exercise | Muscle | Weight | Reps | Notes |
+| --- | --- | --- | --- | --- |
+| Squat | Quads | 80 | 5 | |
+`;
+
+  assert.deepEqual(readTimerFrontmatter(markdown), {
+    persistMode: "session",
+    totalMin: 0,
+    durationMin: 0,
+    timerStartedAt: "2026-08-11T12:00:00.000Z",
+  });
+  assert.equal(displayedTimerMinutes(readTimerFrontmatter(markdown)), 0);
+  assert.equal(
+    elapsedTimerMinutes("2026-08-11T12:00:00.000Z", "2026-08-11T12:45:00.000Z"),
+    45,
+  );
+
+  const result = stopSessionTimer({
+    markdown,
+    startedAtIso: "2026-08-11T12:00:00.000Z",
+    stoppedAtIso: "2026-08-11T12:45:00.000Z",
+  });
+
+  assert.equal(result.minutes, 45);
+  assert.equal(result.durationMin, 45);
+  assert.deepEqual(readTimerFrontmatter(result.markdown), {
+    persistMode: "session",
+    totalMin: 0,
+    durationMin: 45,
+    timerStartedAt: null,
+  });
+  assert.match(result.markdown, /duration_min: 45\n/);
+  assert.doesNotMatch(result.markdown, /total_min:/);
+  assert.doesNotMatch(result.markdown, /## Time log/);
+  assert.match(result.markdown, /\| Squat \| Quads \| 80 \| 5 \|/);
+  assert.equal(parseTimeLog(result.markdown).length, 0);
+
+  const second = stopSessionTimer({
+    markdown: result.markdown.replace(
+      /timer_started_at:\n/,
+      'timer_started_at: "2026-08-11T13:00:00.000Z"\n',
+    ),
+    startedAtIso: "2026-08-11T13:00:00.000Z",
+    stoppedAtIso: "2026-08-11T13:20:00.000Z",
+  });
+  assert.equal(second.durationMin, 65);
+  assert.match(second.markdown, /duration_min: 65\n/);
+});
+
+test("timer persist mode follows type: session even when total_min is present", () => {
+  const markdown = `---
+type: session
+duration_min: 10
+total_min: 99
+---
+`;
+  assert.equal(readTimerFrontmatter(markdown).persistMode, "session");
+  assert.equal(displayedTimerMinutes(readTimerFrontmatter(markdown)), 10);
+});
+
+test("duration_min without type: session still uses session persist mode", () => {
+  const markdown = `---
+duration_min: 30
+timer_started_at:
+---
+`;
+  assert.equal(readTimerFrontmatter(markdown).persistMode, "session");
+  assert.equal(displayedTimerMinutes(readTimerFrontmatter(markdown)), 30);
 });

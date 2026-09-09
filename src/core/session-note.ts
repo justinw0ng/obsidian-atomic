@@ -24,6 +24,7 @@ type: session
 date: ${date}
 activity: ${yamlScalar(activity.id)}
 duration_min:
+timer_started_at:
 location: ${yamlScalar(location)}
 location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
@@ -33,6 +34,7 @@ weight_unit: ${weightUnit}
 
 <!-- 💪 ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
 
+${defaultAtomicBlockFence("atomic-timer", language)}
 ${defaultAtomicBlockFence("atomic-gym-log", language)}
 | ${t("template.gymTable.exercise", language)} | ${t("template.gymTable.muscle", language)} | ${t("template.gymTable.weight", language)} | ${t("template.gymTable.reps", language)} | ${t("template.gymTable.notes", language)} |
 | --- | --- | --- | --- | --- |
@@ -50,6 +52,7 @@ type: session
 date: ${date}
 activity: ${yamlScalar(activity.id)}
 duration_min:
+timer_started_at:
 location:
 focus: []
 club: []
@@ -62,7 +65,8 @@ felt:
 <!-- ${t("template.golfFocusHint", language)} -->
 <!-- ${t("template.golfClubHint", language)} -->
 <!-- ${t("template.golfFeltHint", language)} -->
-${activity.supportsCues ? `
+
+${defaultAtomicBlockFence("atomic-timer", language)}${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
 
 - 
@@ -80,11 +84,13 @@ type: session
 date: ${date}
 activity: ${yamlScalar(activity.id)}
 duration_min:
+timer_started_at:
 location:
 ---
 
 # ${activity.label} — ${date}
-${activity.supportsCues ? `
+
+${defaultAtomicBlockFence("atomic-timer", language)}${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
 
 - 
