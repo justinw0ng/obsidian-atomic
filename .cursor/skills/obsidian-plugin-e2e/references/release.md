@@ -34,19 +34,44 @@ When you add a source path, add it to `.github/plugin-source-paths.txt`. `tests/
 
 Required local/CI commands for plugin changes: `npm run typecheck`, `npm test`, `npm run build`. Upload `main.js`, `manifest.json`, `styles.css` as CI artifacts so a reviewer can sideload the PR build.
 
-`.github/workflows/release.yml` is **manual** `workflow_dispatch` only. Inputs: `bump` (patch/minor/major), `branch` (default `main`), required `release_notes` (in-app update note; one note may cover multiple PRs). It must not run on `push`. Do not finalize Release without that note.
+`.github/workflows/release.yml` is **manual** `workflow_dispatch` only. Inputs: `bump` (patch/minor/major), `branch` (default `main`), required `release_notes` (English in-app + GitHub note) and required `release_notes_zh_hant` (Cantonese zh-Hant in-app note). One note may cover multiple PRs. It must not run on `push`. Do not finalize Release without both languages.
 
 ## In-app update note
 
-Every shipped version has an associated update note. After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**). Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
+Every shipped version has bilingual update notes. After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**). The body follows **Settings → Language**: `en` → English; `zh-Hant-en` / `zh-Hant` / any `zh-Hant*` → Cantonese Traditional Chinese; unknown → English. Title and Got it already come from the i18n catalogs. Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
 
-The catalog is `src/core/update-notes.json`. Tests refuse a blank note whose `version` is not the current `manifest.json` version. When a release is confirmed:
+The catalog is `src/core/update-notes.json` (`body.en` and `body.zh-Hant`):
 
-1. Remind the owner to provide an update note **or draft one covering all PRs since the last release**.
-2. Put the same text in `src/core/update-notes.json` for the version being shipped (`node scripts/set-update-note.mjs <version> "…"` or the Release workflow `release_notes` input, which writes that catalog after the bump).
-3. Do not finalize Release without it.
+```json
+{
+  "version": "1.1.8",
+  "body": { "en": "…", "zh-Hant": "…" }
+}
+```
 
-The GitHub Release body uses the same `release_notes` input (auto-generated notes are still appended).
+`version` must match the current `manifest.json` version (tests refuse a mismatch or a blank language). The Release workflow **always overwrites** this file after the bump: it sets `version` to the new semver and writes both bodies from the workflow inputs. Until a 1.1.9 cut, keep `version` at the current manifest (1.1.8) and stage the 1.1.9 bodies so a release can paste the same text immediately.
+
+When a release is confirmed:
+
+1. Remind the owner to provide **English and Cantonese (zh-Hant)** notes **or draft both covering all PRs since the last release**.
+2. Put both in `src/core/update-notes.json` (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"`) or pass `release_notes` + `release_notes_zh_hant` to the Release workflow. Use `\n` for line breaks in workflow_dispatch strings.
+3. Do not finalize Release without both languages.
+
+The GitHub Release body uses the English `release_notes` input (auto-generated notes are still appended). In-app uses both.
+
+### 1.1.9 note (paste into Release)
+
+English (`release_notes`):
+
+```
+Gym, golf, and other exercise day notes now have Start / Stop. Stop fills the duration for you — you can still type it if you prefer.
+```
+
+Cantonese / zh-Hant (`release_notes_zh_hant`):
+
+```
+健身、高爾夫等運動當日筆記而家有「開始／停止」計時。停止之後會自動填寫時長；你都可以繼續手動輸入。
+```
 
 ## Cut a GitHub Release
 
@@ -54,7 +79,7 @@ Atomic's release job:
 
 1. Checkout the chosen branch
 2. `node scripts/bump-version.mjs <bump>`
-3. Write the required in-app update note for the new version (`node scripts/set-update-note.mjs <version>` / `release_notes` input)
+3. Write the required bilingual in-app update notes for the new version (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"` / `release_notes` + `release_notes_zh_hant` inputs)
 4. `npm run typecheck`, `npm test`, `npm run build`
 5. Refuse if tag `VERSION` already exists
 6. Commit version files **and** `src/core/update-notes.json`, tag `VERSION` (no `v`), push branch and tag
@@ -70,7 +95,9 @@ You can run the same steps locally if Actions is unavailable. Skip attestation u
 Prefer `gh workflow run Release ...` when the agent token can write Actions (`workflow_dispatch` needs `actions: write`):
 
 ```bash
-gh workflow run Release --ref main -f bump=patch -f release_notes="What's new…"
+gh workflow run Release --ref main -f bump=patch \
+  -f release_notes="What's new…" \
+  -f release_notes_zh_hant="更新說明…"
 ```
 
 If that returns `HTTP 403: Resource not accessible by integration`, it is expected with the default Cursor GitHub App installation token, which is scoped to `actions: read` only. Reconfiguring the Cursor GitHub App install does not raise that per-run token.

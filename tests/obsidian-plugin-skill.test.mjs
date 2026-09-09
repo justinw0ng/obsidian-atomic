@@ -148,6 +148,13 @@ test("skill and AGENTS.md require an in-app update note on every release", () =>
   assert.match(release, /one note may cover multiple PRs/i);
   assert.match(release, /src\/core\/update-notes\.json/);
   assert.match(release, /release_notes/);
+  assert.match(release, /release_notes_zh_hant/);
+  assert.match(release, /body\.en/);
+  assert.match(release, /body\.zh-Hant/);
   assert.match(agents, /src\/core\/update-notes\.json/);
   assert.match(agents, /release_notes/);
+  assert.match(agents, /release_notes_zh_hant/);
+  for (const text of [skill, release, agents]) {
+    assert.match(text, /zh-Hant/);
+  }
 });

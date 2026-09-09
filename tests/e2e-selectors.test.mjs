@@ -63,6 +63,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(updateNote, /atomic-update-note-modal/);
   assert.match(updateNote, /atomic-update-note-body/);
   assert.match(updateNote, /atomic-update-note-ack/);
+  assert.match(updateNote, /updateNoteBodyForLanguage/);
   assert.doesNotMatch(updateNote, /innerHTML/);
 
   const cues = src("src/views/cues.ts");
@@ -109,6 +110,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-update-note-modal/);
   assert.match(health, /atomic-update-note-ack/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
+  assert.match(health, /language = "zh-Hant-en"/);
+  assert.match(health, /開始／停止/);
 
   const styles = src("styles.css");
   assert.doesNotMatch(styles, /:has\(/);

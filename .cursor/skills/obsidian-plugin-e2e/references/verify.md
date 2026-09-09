@@ -71,7 +71,7 @@ If you change a user-visible path, add or update a test in `e2e/health-check.tes
 - Gym set add (catalog + new exercise → markdown table)
 - Bookshelf status filter
 - Open reading Bases, plus Notices when Bases or Reading is off
-- What's new update note after a version change (ack once; no nag)
+- What's new update note after a version change (English and zh-Hant-en bodies; ack once; no nag)
 
 Leaving that list stale after a UI change is a bug.
 

@@ -1,4 +1,7 @@
 {
   "version": "1.1.8",
-  "body": "After this update, Atomic Tracker shows a What's new note when the plugin version changes. Later releases summarize changes since the previous version. One note can cover several pull requests."
+  "body": {
+    "en": "Gym, golf, and other exercise day notes now have Start / Stop. Stop fills the duration for you — you can still type it if you prefer.",
+    "zh-Hant": "健身、高爾夫等運動當日筆記而家有「開始／停止」計時。停止之後會自動填寫時長；你都可以繼續手動輸入。"
+  }
 }
