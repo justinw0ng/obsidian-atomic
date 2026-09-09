@@ -18,6 +18,11 @@ const STATUS_ORDER = new Map<string, number>([
   ["finished", 3],
 ]);
 
+/** True for the `reading` status (case-insensitive), i.e. an item currently in progress. */
+export function isInProgressStatus(status: unknown): boolean {
+  return String(status ?? "").trim().toLowerCase() === "reading";
+}
+
 export function statusRank(status: string): number {
   return STATUS_ORDER.get(status) ?? 99;
 }

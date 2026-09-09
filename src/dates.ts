@@ -78,6 +78,14 @@ export function parseYmd(ymd: string): { y: number; m: number; d: number } | nul
   return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
 }
 
+/** 0-based month from a `YYYY-MM-…` string, or -1 when absent/invalid. */
+export function monthIndexFromDate(dateStr: string | null | undefined): number {
+  const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
+  if (!m) return -1;
+  const index = Number(m[1]) - 1;
+  return index >= 0 && index < 12 ? index : -1;
+}
+
 /** Sunday = 0 … Saturday = 6 (UTC calendar date). */
 export function weekdaySun0(y: number, m: number, d: number): number {
   return new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay();

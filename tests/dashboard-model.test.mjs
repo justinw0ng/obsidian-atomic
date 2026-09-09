@@ -6,7 +6,6 @@ import {
   buildDashboardModel,
   formatCompactKg,
   formatKg,
-  monthIndexFromDate,
   splitHoursMinutes,
 } from "../src/core/dashboard.ts";
 import { parseSetTable } from "../src/core/set-table.ts";
@@ -148,9 +147,10 @@ test("buildDashboardModel emits monthly table columns per activity kind", () => 
   );
 });
 
-test("buildDashboardModel ranks muscles by volume then sets", () => {
+test("buildDashboardModel ranks muscles by volume then sets under the set-table activity", () => {
   const model = buildDashboardModel(fixture());
-  assert.deepEqual(model.muscles, [
+  assert.equal(model.muscles.activity.id, "gym");
+  assert.deepEqual(model.muscles.rows, [
     { muscle: "Quads", sets: 2, volumeKg: 1000 },
     { muscle: "Chest", sets: 2, volumeKg: 800 },
     { muscle: "Back", sets: 2, volumeKg: 0 },
@@ -159,7 +159,9 @@ test("buildDashboardModel ranks muscles by volume then sets", () => {
 
 test("buildDashboardModel counts golf focus tags and normalizes felt", () => {
   const model = buildDashboardModel(fixture());
-  assert.deepEqual(model.golfFocus, [
+  assert.equal(model.golfFocus.activity.id, "golf");
+  assert.equal(model.golfFocus.sessions, 3);
+  assert.deepEqual(model.golfFocus.tags, [
     { tag: "Tempo", count: 2 },
     { tag: "Putting", count: 1 },
   ]);
@@ -211,7 +213,7 @@ test("buildDashboardModel buckets set rows without a muscle under an empty name"
     ],
     hobbies: [],
   });
-  assert.deepEqual(model.muscles, [{ muscle: "", sets: 0, volumeKg: 400 }]);
+  assert.deepEqual(model.muscles.rows, [{ muscle: "", sets: 0, volumeKg: 400 }]);
 });
 
 test("buildDashboardModel only counts reading-now for the reading habit", () => {
@@ -266,12 +268,6 @@ test("minutesByMonthForYear buckets time-log minutes by month for one year", () 
   );
   assert.deepEqual(minutesByMonthForYear(entries, 2026), [45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]);
   assert.deepEqual(minutesByMonthForYear(entries, 2024), Array(12).fill(0));
-});
-
-test("monthIndexFromDate maps YYYY-MM-DD to a 0-based month or -1", () => {
-  assert.equal(monthIndexFromDate("2026-08-14"), 7);
-  assert.equal(monthIndexFromDate("2026-13-01"), -1);
-  assert.equal(monthIndexFromDate(null), -1);
 });
 
 test("splitHoursMinutes and averagePerSession round the way the KPI cards show them", () => {

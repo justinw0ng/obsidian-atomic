@@ -158,11 +158,7 @@ function appendSparkline(target: HTMLElement, values: number[]): void {
   const heights = barHeights(values);
   appendBars(
     spark,
-    values.map((value, index) => ({
-      value,
-      height: Math.max(10, heights[index]),
-      color: "",
-    })),
+    values.map((value, index) => ({ value, height: Math.max(10, heights[index]) })),
     "spark",
   );
 }
@@ -256,7 +252,20 @@ function appendFeltBar(
   }
 }
 
-function appendExerciseStats(
+function appendActivityFoot(
+  card: HTMLElement,
+  data: DashboardActivityCard,
+  ctx: DashboardRenderContext,
+  meta: string | null,
+): void {
+  const links = activityLinks(data, ctx);
+  if (!links.length && !meta) return;
+  const foot = card.createDiv({ cls: "atomic-dash-activity-foot" });
+  for (const link of links) appendPathLink(foot, link.text, link.path, ctx);
+  if (meta) foot.createSpan({ cls: "atomic-dash-meta", text: meta });
+}
+
+function renderExerciseCard(
   card: HTMLElement,
   data: DashboardExerciseCard,
   ctx: DashboardRenderContext,
@@ -275,9 +284,17 @@ function appendExerciseStats(
     ctx,
   );
   if (data.felt) appendFeltBar(card, data.felt, data.activity.colors, ctx);
+  appendActivityFoot(
+    card,
+    data,
+    ctx,
+    data.lastDate
+      ? t("view.dashboard.lastSession", ctx.language, { date: localDate(data.lastDate, ctx) })
+      : null,
+  );
 }
 
-function appendHobbyStats(
+function renderHobbyCard(
   card: HTMLElement,
   data: DashboardHobbyCard,
   ctx: DashboardRenderContext,
@@ -295,6 +312,7 @@ function appendHobbyStats(
     t("view.dashboard.barsMinutes", ctx.language),
     ctx,
   );
+  appendActivityFoot(card, data, ctx, null);
 }
 
 function renderActivityCard(
@@ -315,32 +333,21 @@ function renderActivityCard(
 
   const head = el.createDiv({ cls: "atomic-dash-activity-head" });
   head.createEl("h4", { text: activity.label });
+  const kind = head.createSpan({ cls: "atomic-dash-kind" });
 
   switch (card.domain) {
     case "exercise":
-      head.createSpan({ cls: "atomic-dash-kind", text: t("view.dashboard.domainExercise", ctx.language) });
-      appendExerciseStats(el, card, ctx);
+      kind.setText(t("view.dashboard.domainExercise", ctx.language));
+      renderExerciseCard(el, card, ctx);
       break;
     case "hobby":
-      head.createSpan({ cls: "atomic-dash-kind", text: t("view.dashboard.domainHabit", ctx.language) });
-      appendHobbyStats(el, card, ctx);
+      kind.setText(t("view.dashboard.domainHabit", ctx.language));
+      renderHobbyCard(el, card, ctx);
       break;
     default: {
       const exhaustive: never = card;
       return exhaustive;
     }
-  }
-
-  const links = activityLinks(card, ctx);
-  const lastDate = card.domain === "exercise" ? card.lastDate : null;
-  if (!links.length && !lastDate) return;
-  const foot = el.createDiv({ cls: "atomic-dash-activity-foot" });
-  for (const link of links) appendPathLink(foot, link.text, link.path, ctx);
-  if (lastDate) {
-    foot.createSpan({
-      cls: "atomic-dash-meta",
-      text: t("view.dashboard.lastSession", ctx.language, { date: localDate(lastDate, ctx) }),
-    });
   }
 }
 

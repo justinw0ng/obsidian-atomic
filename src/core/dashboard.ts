@@ -1,12 +1,15 @@
 /** Pure dashboard model. No Obsidian imports; the view only lays this out. */
 
-import type { TimeLogEntry } from "./hobby";
 import type { SetRow } from "./set-table";
 import type { ActivityType, SessionMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { rowVolumeKg } from "../core.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { minutesByMonthForYear } from "./hobby.ts";
+import { monthIndexFromDate } from "../dates.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { minutesByMonthForYear, type TimeLogEntry } from "./hobby.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { isInProgressStatus } from "./reading-status.ts";
 
 export type DashboardSessionInput = {
   meta: SessionMeta;
@@ -81,6 +84,14 @@ export type DashboardMuscleRow = {
 
 export type DashboardFocusTag = { tag: string; count: number };
 
+export type DashboardMuscles = { activity: ActivityType; rows: DashboardMuscleRow[] };
+
+export type DashboardGolfFocus = {
+  activity: ActivityType;
+  sessions: number;
+  tags: DashboardFocusTag[];
+};
+
 export type DashboardRecentRow = {
   date: string;
   activity: ActivityType;
@@ -104,21 +115,16 @@ export type DashboardModel = {
   lastDate: string | null;
   activities: DashboardActivityCard[];
   monthlyColumns: DashboardMonthlyColumn[];
-  muscles: DashboardMuscleRow[] | null;
-  golfFocus: DashboardFocusTag[] | null;
+  /** Null when no enabled exercise activity supports a set table. */
+  muscles: DashboardMuscles | null;
+  /** Null when golf is not enabled. */
+  golfFocus: DashboardGolfFocus | null;
   recent: DashboardRecentRow[];
 };
 
 const RECENT_LIMIT = 10;
 const GOLF_ID = "golf";
 const READING_ID = "reading";
-
-export function monthIndexFromDate(dateStr: string | null | undefined): number {
-  const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
-  if (!m) return -1;
-  const index = Number(m[1]) - 1;
-  return index >= 0 && index < 12 ? index : -1;
-}
 
 function emptyMonths(): number[] {
   return Array(12).fill(0) as number[];
@@ -167,6 +173,8 @@ function normalizeFelt(felt: unknown): Felt | null {
 type ExerciseSummary = {
   card: DashboardExerciseCard;
   columns: DashboardMonthlyColumn[];
+  /** Null unless the activity supports a set table. */
+  monthlyVolume: number[] | null;
   recent: DashboardRecentRow[];
   muscleSets: Map<string, number>;
   muscleVolume: Map<string, number>;
@@ -238,15 +246,12 @@ function summarizeExercise({ activity, sessions }: DashboardExerciseInput): Exer
       felt: isGolf ? felt : null,
     },
     columns,
+    monthlyVolume: activity.supportsSetTable ? monthlyVolume : null,
     recent,
     muscleSets,
     muscleVolume,
     focusCounts,
   };
-}
-
-function isInProgress(frontmatter: Record<string, unknown>): boolean {
-  return String(frontmatter.status ?? "").trim().toLowerCase() === "reading";
 }
 
 function summarizeHobby(
@@ -257,7 +262,7 @@ function summarizeHobby(
   let inProgress = 0;
   for (const item of items) {
     addMonths(monthly, minutesByMonthForYear(item.entries, year));
-    if (isInProgress(item.frontmatter)) inProgress += 1;
+    if (isInProgressStatus(item.frontmatter.status)) inProgress += 1;
   }
   return {
     card: {
@@ -307,8 +312,8 @@ export function buildDashboardModel(input: DashboardInput): DashboardModel {
   let totalSessions = 0;
   let totalExerciseMinutes = 0;
   let totalVolumeKg = 0;
-  let anySetTable = false;
-  let anyGolf = false;
+  let setTableActivity: ActivityType | null = null;
+  let golf: DashboardExerciseCard | null = null;
 
   for (const exercise of input.exercise) {
     const summary = summarizeExercise(exercise);
@@ -316,14 +321,12 @@ export function buildDashboardModel(input: DashboardInput): DashboardModel {
     totalSessions += card.count;
     totalExerciseMinutes += card.minutes;
     addMonths(sessionsByMonth, card.monthly);
-    for (const column of summary.columns) {
-      if (column.kind === "volume") addMonths(volumeByMonth, column.values);
+    if (card.volumeKg != null && summary.monthlyVolume) {
+      if (!setTableActivity) setTableActivity = card.activity;
+      totalVolumeKg += card.volumeKg;
+      addMonths(volumeByMonth, summary.monthlyVolume);
     }
-    if (exercise.activity.supportsSetTable) {
-      anySetTable = true;
-      totalVolumeKg += card.volumeKg ?? 0;
-    }
-    if (exercise.activity.id === GOLF_ID) anyGolf = true;
+    if (card.activity.id === GOLF_ID) golf = card;
     for (const [k, v] of summary.muscleSets) bump(muscleSets, k, v);
     for (const [k, v] of summary.muscleVolume) bump(muscleVolume, k, v);
     for (const [k, v] of summary.focusCounts) bump(focusCounts, k, v);
@@ -347,7 +350,7 @@ export function buildDashboardModel(input: DashboardInput): DashboardModel {
     year: input.year,
     totalSessions,
     totalExerciseMinutes,
-    totalVolumeKg: anySetTable ? totalVolumeKg : null,
+    totalVolumeKg: setTableActivity ? totalVolumeKg : null,
     totalHabitMinutes: input.hobbies.length ? totalHabitMinutes : null,
     sessionsByMonth,
     volumeByMonth,
@@ -355,8 +358,12 @@ export function buildDashboardModel(input: DashboardInput): DashboardModel {
     lastDate: dates.length ? dates[0] : null,
     activities,
     monthlyColumns,
-    muscles: anySetTable ? rankMuscles(muscleSets, muscleVolume) : null,
-    golfFocus: anyGolf ? rankFocus(focusCounts) : null,
+    muscles: setTableActivity
+      ? { activity: setTableActivity, rows: rankMuscles(muscleSets, muscleVolume) }
+      : null,
+    golfFocus: golf
+      ? { activity: golf.activity, sessions: golf.count, tags: rankFocus(focusCounts) }
+      : null,
     recent: recent.slice(0, RECENT_LIMIT),
   };
 }

@@ -1,6 +1,8 @@
 /** Pure hobby timer logic. No Obsidian imports. */
 
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { monthIndexFromDate } from "../dates.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { ensureTrailingNewline } from "../util/markdown.ts";
 
 export type TimeLogEntry = {
@@ -196,8 +198,8 @@ export function minutesByMonthForYear(entries: TimeLogEntry[], year: number): nu
   const prefix = `${year}-`;
   for (const entry of entries) {
     if (!entry.date.startsWith(prefix)) continue;
-    const month = Number(entry.date.slice(5, 7)) - 1;
-    if (month >= 0 && month < 12) months[month] += entry.minutes;
+    const month = monthIndexFromDate(entry.date);
+    if (month >= 0) months[month] += entry.minutes;
   }
   return months;
 }

@@ -147,23 +147,21 @@ function renderMuscles(
   ctx: DashboardRenderContext,
 ): void {
   if (!model.muscles) return;
+  const { activity, rows } = model.muscles;
   const card = appendCard(parent, "atomic-dashboard-muscles");
-  const setTable = model.activities.find(
-    (item) => item.domain === "exercise" && item.volumeKg != null,
-  );
-  if (setTable) card.style.setProperty("--atomic-dash-accent", setTable.activity.colors[2]);
+  card.style.setProperty("--atomic-dash-accent", activity.colors[2]);
   appendCardTitle(
     card,
     t("view.dashboard.muscles", ctx.language),
     t("view.dashboard.byVolumeSets", ctx.language),
   );
-  if (!model.muscles.length) {
+  if (!rows.length) {
     appendEmpty(card, t("view.dashboard.noSetData", ctx.language));
     return;
   }
   const rank = card.createDiv({ cls: "atomic-dash-rank" });
-  const widths = barHeights(model.muscles.map((row) => row.volumeKg));
-  model.muscles.forEach((row, index) => {
+  const widths = barHeights(rows.map((row) => row.volumeKg));
+  rows.forEach((row, index) => {
     const name = row.muscle || t("view.dashboard.unknownMuscle", ctx.language);
     const line = rank.createDiv({ cls: "atomic-dash-rank-row" });
     line.createSpan({ cls: "atomic-dash-rank-name", text: name, attr: { title: name } });
@@ -181,21 +179,21 @@ function renderGolfFocus(
   ctx: DashboardRenderContext,
 ): void {
   if (!model.golfFocus) return;
-  const golf = model.activities.find((item) => item.activity.id === "golf");
+  const { activity, sessions, tags } = model.golfFocus;
   const card = appendCard(parent, "atomic-dashboard-golf-focus");
-  if (golf) card.style.setProperty("--atomic-dash-accent", golf.activity.colors[2]);
+  card.style.setProperty("--atomic-dash-accent", activity.colors[2]);
   appendCardTitle(
     card,
     t("view.dashboard.golfFocus", ctx.language),
-    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(golf?.count ?? 0) }),
+    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) }),
   );
-  if (!model.golfFocus.length) {
+  if (!tags.length) {
     appendEmpty(card, t("view.dashboard.noFocusTags", ctx.language));
     return;
   }
-  const tags = card.createDiv({ cls: "atomic-dash-tags" });
-  model.golfFocus.forEach(({ tag, count }, index) => {
-    const chip = tags.createSpan({
+  const list = card.createDiv({ cls: "atomic-dash-tags" });
+  tags.forEach(({ tag, count }, index) => {
+    const chip = list.createSpan({
       cls: index < 2 ? "atomic-dash-tag is-large" : "atomic-dash-tag",
     });
     chip.createSpan({ cls: "atomic-dash-dot" });

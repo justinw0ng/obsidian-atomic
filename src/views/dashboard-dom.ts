@@ -22,7 +22,8 @@ export type DashboardBar = {
   value: number;
   /** Percent of the container height; 0 renders the "empty" stub. */
   height: number;
-  color: string;
+  /** Omit to keep the stylesheet default (KPI sparklines). */
+  color?: string;
   title?: string;
 };
 
@@ -114,7 +115,7 @@ export function appendBars(
       attr: bar.title ? { title: bar.title } : undefined,
     });
     el.style.height = `${bar.height}%`;
-    if (bar.value > 0) el.style.background = bar.color;
+    if (bar.value > 0 && bar.color) el.style.background = bar.color;
   }
 }
 
