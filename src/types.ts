@@ -117,7 +117,7 @@ export const DEFAULT_ACTIVITY_TYPES: ActivityType[] = [
 ];
 
 export const DEFAULT_SETTINGS: FitnessSettings = {
-  language: "zh-Hant-en",
+  language: "en",
   timezone: "Asia/Hong_Kong",
   dashboardPath: "atomics/Dashboard.md",
   golfCuesPath: "atomics/exercise/Golf/Cues.md",

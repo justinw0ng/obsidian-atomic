@@ -20,7 +20,7 @@ Daily note template setup: [examples/README.md](examples/README.md#use-the-daily
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit` (`location` also allows Custom…)
 
-Settings → Atomic Tracker → Language: Traditional Chinese & English (`zh-Hant-en`, default) or English (`en`). Changing language never rewrites existing notes.
+Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese & English (`zh-Hant-en`). Changing language never rewrites existing notes. Saved language is kept on existing installs.
 
 ## Default vault layout
 

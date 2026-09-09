@@ -10,7 +10,7 @@ export { en } from "./locales/en.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 export { zhHantEn } from "./locales/zh-Hant-en.ts";
 
-export const DEFAULT_LANGUAGE: Language = "zh-Hant-en";
+export const DEFAULT_LANGUAGE: Language = "en";
 export const LANGUAGES: readonly Language[] = ["zh-Hant-en", "en"];
 
 const TABLES: Record<Language, LocaleTable> = {
