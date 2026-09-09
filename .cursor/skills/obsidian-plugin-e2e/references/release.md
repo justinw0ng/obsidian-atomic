@@ -21,7 +21,7 @@ node scripts/bump-version.mjs          # print
 node scripts/bump-version.mjs patch    # also minor|major|none
 ```
 
-`none` keeps the current version (first release of whatever is already in the files). The script refuses to bump if `package.json` and `manifest.json` disagree.
+`none` keeps the current version (first release of whatever is already in the files). The script refuses to bump if `package.json` and `manifest.json` disagree. It also writes `src/core/update-notes.json` `version` to the same semver (bodies unchanged) so What's new cannot lag the plugin.
 
 Do not bump on every feature PR. Atomic's CI no longer auto-bumps. Humans pick the bump when cutting the release.
 
@@ -52,12 +52,12 @@ The catalog is `src/core/update-notes.json` (`body.en` and `body.zh-Hant`):
 
 Catalog `version` **must equal the plugin version being shipped** (latest GitHub Release / `manifest.json` after bump). Do **not** leave staged notes on an older semver while cutting a newer Release. A lagging catalog `version` does not show a What's new prompt.
 
-If you pass both Release inputs, the workflow overwrites this file after the bump (`version` = new semver, bodies from the inputs). If you omit both, either update the catalog in git to the new version before Release, or pass both optional note inputs so the workflow writes the new version — never ship with catalog behind manifest. Omitting both inputs while using `bump=patch|minor|major` leaves the file unchanged, so `npm test` fails after the bump unless the catalog already matches the post-bump version (use `bump=none` after that git commit, or pass both notes).
+`scripts/bump-version.mjs` keeps catalog `version` in lockstep (existing bodies). If you pass both Release inputs, the workflow then overwrites the bodies (`version` already matches the new semver). If you omit both, the bumped catalog keeps the previous bodies — never ship with catalog behind manifest.
 
 Optional notes when cutting Release:
 
 1. Pass English and Cantonese (zh-Hant), or omit both. You may draft both covering all PRs since the last release if you want a What's new for this version.
-2. Or edit `src/core/update-notes.json` in git (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"`) so catalog `version` equals the version you will ship. Use `\n` for line breaks in workflow_dispatch strings.
+2. Or edit `src/core/update-notes.json` in git (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"`). Use `\n` for line breaks in workflow_dispatch strings.
 
 The GitHub Release body uses the English `release_notes` input when set (auto-generated notes are still appended). In-app uses both.
 
@@ -80,8 +80,8 @@ Cantonese / zh-Hant (`release_notes_zh_hant`):
 Atomic's release job:
 
 1. Checkout the chosen branch
-2. `node scripts/bump-version.mjs <bump>`
-3. If both optional note inputs are set, write bilingual in-app update notes for the new version (`node scripts/set-update-note.mjs <version>`). If both are omitted, the catalog must already equal the version being shipped (update it in git first); do not cut a Release with catalog behind `manifest.json`.
+2. `node scripts/bump-version.mjs <bump>` (also sets catalog `version` to the new semver, keeping bodies)
+3. If both optional note inputs are set, overwrite bilingual bodies for the new version (`node scripts/set-update-note.mjs <version>`). If both are omitted, keep the bodies already stamped under the new version.
 4. `npm run typecheck`, `npm test`, `npm run build`
 5. Refuse if tag `VERSION` already exists
 6. Commit version files and `src/core/update-notes.json` when it changed, tag `VERSION` (no `v`), push branch and tag
@@ -102,7 +102,7 @@ gh workflow run Release --ref main -f bump=patch \
   -f release_notes_zh_hant="更新說明…"
 ```
 
-Notes are optional only when `src/core/update-notes.json` already equals the version being shipped (update it in git first, then `bump=none` or a bump that does not leave catalog behind). To write the in-app catalog and GitHub body in the same job, pass both `release_notes` and `release_notes_zh_hant` as above. Never omit both while catalog `version` is still the previous semver.
+Notes are optional. Omit both to keep current in-app bodies under the new version (`bump-version.mjs` still sets catalog `version`). Pass both `release_notes` and `release_notes_zh_hant` to replace bodies. Never ship with catalog behind manifest.
 
 If that returns `HTTP 403: Resource not accessible by integration`, it is expected with the default Cursor GitHub App installation token, which is scoped to `actions: read` only. Reconfiguring the Cursor GitHub App install does not raise that per-run token.
 
