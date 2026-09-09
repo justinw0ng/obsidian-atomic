@@ -500,7 +500,20 @@ Open your dashboard or heatmap note. Codeblocks render in Reading view.
 
 ### `atomic-dashboard`
 
+Open `atomics/Dashboard.md` with **Atomic Tracker: Open dashboard**, or paste an `atomic-dashboard` fence into any note. Use Reading view. `year:` in the fence wins, then the note’s `year` property, then this calendar year.
+
 ![Dashboard](./images/atomic-dashboard.png)
+
+The block is a stack of cards for that year:
+
+- **Header** — `{year} overview`, the date range and session count, a `‹ ›` year switcher, and chips that open Gym/Golf cues or the Reading bookshelf. The switcher only changes the on-screen year; it does not edit the note. A vault refresh returns to the configured year.
+- **KPI cards** — exercise sessions and exercise time when any exercise habit is enabled (sessions include a monthly sparkline). **Volume lifted** appears when a set-table habit such as Gym has logged sets. **Habit time** appears when a timer habit such as Reading has minutes.
+- **Activity cards** — one card per enabled habit. Exercise cards show sessions, minutes, optional volume, monthly session bars, last session date, and a cues link. Golf also shows how sessions felt. Habit cards show item count, timer minutes, monthly minute bars, and Reading’s in-progress count plus bookshelf links.
+- **Monthly** — grouped bars of sessions per month by activity. Open **Show monthly table** for the exact grid, including volume (kg) and habit minutes when those apply.
+- **Muscles / Golf focus** — shown only when the data exists: Gym set-table volume by muscle, and Golf focus tags across sessions.
+- **Recent sessions** — latest ten notes. Click a row to open that session.
+
+Disable a habit in Settings to drop its card, chips, and KPI contribution without deleting notes. On a narrow pane the same cards stack to one column.
 
 ### `atomic-heatmap`
 

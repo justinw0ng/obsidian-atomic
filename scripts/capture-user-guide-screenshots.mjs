@@ -4,12 +4,13 @@
  * Run: node scripts/capture-user-guide-screenshots.mjs
  */
 import { spawn, spawnSync } from "node:child_process";
-import { copyFileSync, existsSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Key } from "selenium-webdriver";
+import { By, Key } from "selenium-webdriver";
 import { E2E_VAULT_ID, registerVaultInObsidianConfig } from "../e2e/lib/vault.mjs";
 import {
+  ARTIFACT_DIR,
   attachSelenium,
   closeSettings,
   DEBUG_PORT,
@@ -50,9 +51,14 @@ const OUTPUTS = {
   timer: "atomic-reading-timer.png",
   gymLog: "atomic-gym-log.png",
   dashboard: "atomic-dashboard.png",
+  dashboardDesktop: "atomic-dashboard-desktop.png",
+  dashboardMobile: "atomic-dashboard-mobile.png",
   settings: "07-settings-atomic.png",
   enable: "06-enable-atomic-plugin.png",
 };
+
+const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
+const DASHBOARD_MOBILE = { width: 390, height: 844 };
 
 async function collapseSidebars(driver) {
   await driver.executeScript(`
@@ -241,6 +247,13 @@ async function openNote(driver, path) {
   await sleep(600);
 }
 
+async function hideNoteProperties(driver) {
+  await driver.executeScript(`
+    const meta = document.querySelector(".metadata-container");
+    if (meta) meta.style.setProperty("display", "none");
+  `);
+}
+
 async function captureTo(driver, name, destName) {
   // Hover tooltips (sidebar toggle, book covers) linger after the mouse parks.
   await driver.executeScript(
@@ -250,6 +263,21 @@ async function captureTo(driver, name, destName) {
   const dest = join(IMAGES, destName);
   copyFileSync(src, dest);
   if (!existsSync(dest)) throw new Error(`Failed to write ${dest}`);
+  console.log(`Wrote ${dest}`);
+  return dest;
+}
+
+async function captureElementTo(driver, css, name) {
+  mkdirSync(ARTIFACT_DIR, { recursive: true });
+  const el = await driver.findElement(By.css(css));
+  await driver.executeScript(
+    `arguments[0].scrollIntoView({ block: "start", inline: "nearest" });`,
+    el,
+  );
+  await sleep(200);
+  const png = await el.takeScreenshot();
+  const dest = join(ARTIFACT_DIR, `${name}.png`);
+  writeFileSync(dest, png, "base64");
   console.log(`Wrote ${dest}`);
   return dest;
 }
@@ -315,11 +343,26 @@ async function main() {
     await sleep(500);
     await captureTo(driver, "user-guide-gym-log", OUTPUTS.gymLog);
 
+    await resizeWindow(driver, DASHBOARD_DESKTOP.width, DASHBOARD_DESKTOP.height);
     await openNote(driver, FILES.dashboard);
     await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+    await hideNoteProperties(driver);
     await parkMouse(driver);
     await sleep(500);
     await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);
+    copyFileSync(join(IMAGES, OUTPUTS.dashboard), join(IMAGES, OUTPUTS.dashboardDesktop));
+    console.log(`Wrote ${join(IMAGES, OUTPUTS.dashboardDesktop)}`);
+    await captureElementTo(driver, '[data-testid="atomic-dashboard"]', "dashboard-desktop-fullpage");
+
+    await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
+    await openNote(driver, FILES.dashboard);
+    await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+    await hideNoteProperties(driver);
+    await parkMouse(driver);
+    await sleep(600);
+    await captureTo(driver, "readme-dashboard-mobile", OUTPUTS.dashboardMobile);
+    await captureElementTo(driver, '[data-testid="atomic-dashboard"]', "dashboard-mobile-fullpage");
+    await resizeWindow(driver, 1920, 1200);
 
     await openNote(driver, FILES.bookShelf);
     await waitCss(driver, '[data-testid="atomic-bookshelf"]');

@@ -60,7 +60,7 @@ New derived values needed (all pure, testable in `src/core`):
 - i18n: the `view.dashboard.*` block in `en` and `zh-Hant-en` was rewritten for the new layout (KPI labels, units, `avgPerSession`, `lastSession`, `readingNow`, `showMonthlyTable`, felt labels, section metas). Headings, empty states, and link labels keep their previous keys; list-style keys that only served the old bullet layout were removed.
 - Test hooks used by `e2e/health-check.test.mjs`: `data-testid="atomic-dashboard"` (+ `data-year`), `atomic-dashboard-year-prev/next`, `atomic-dashboard-kpi` (+ `data-kpi`), `atomic-dashboard-activity` (+ `data-activity`, `data-count`), `atomic-dashboard-monthly`, `atomic-dashboard-muscles`, `atomic-dashboard-golf-focus`, `atomic-dashboard-recent`, `atomic-dashboard-recent-row` (+ `data-path`). The Selenium scenario asserts the KPI set, one card per enabled activity with counts, year switching, that disabling Reading removes its card and KPI, and that a recent-row link opens the session note.
 - Accessibility: month bar charts are `aria-hidden` and always paired with the `<details>` table; rails and chips keep their numeric text; chips are `<a>`/`<button>` with visible focus.
-- `docs/images/atomic-dashboard.png` is captured by `npm run docs:user-guide-screenshots` (dashboard step added to `scripts/capture-user-guide-screenshots.mjs`).
+- `docs/images/atomic-dashboard.png` is captured by `npm run docs:user-guide-screenshots` (dashboard step in `scripts/capture-user-guide-screenshots.mjs`). The same run writes README showcase shots `atomic-dashboard-desktop.png` (wide pane) and `atomic-dashboard-mobile.png` (390×844 phone-width pane).
 
 ## Out of scope
 
