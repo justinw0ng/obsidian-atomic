@@ -134,18 +134,28 @@ test("updateNoteToShow does not nag after the current note is acknowledged", () 
   );
 });
 
-test("current manifest version has required bilingual update notes", () => {
-  const manifest = JSON.parse(readFileSync(join(root, "manifest.json"), "utf8"));
+test("update-notes.json version matches manifest.json version", () => {
   const disk = JSON.parse(
     readFileSync(join(root, "src/core/update-notes.json"), "utf8"),
   );
-  const bodies = requiredUpdateNoteBodies(UPDATE_NOTE, manifest.version);
+  const manifest = JSON.parse(
+    readFileSync(join(root, "manifest.json"), "utf8"),
+  );
+  assert.equal(disk.version, manifest.version);
+  assert.equal(UPDATE_NOTE.version, manifest.version);
+});
+
+test("bundled update notes catalog is bilingual", () => {
+  const disk = JSON.parse(
+    readFileSync(join(root, "src/core/update-notes.json"), "utf8"),
+  );
+  const bodies = UPDATE_NOTE.body;
+  assert.ok(parsePluginSemver(UPDATE_NOTE.version));
   assert.ok(bodies.en.length > 0);
   assert.ok(bodies["zh-Hant"].length > 0);
-  assert.equal(disk.version, manifest.version);
+  assert.equal(disk.version, UPDATE_NOTE.version);
   assert.equal(disk.body.en, bodies.en);
   assert.equal(disk.body["zh-Hant"], bodies["zh-Hant"]);
-  assert.equal(UPDATE_NOTE.version, manifest.version);
   assert.equal(UPDATE_NOTE.body.en, bodies.en);
   assert.equal(UPDATE_NOTE.body["zh-Hant"], bodies["zh-Hant"]);
   assert.match(bodies.en, /Start \/ Stop/);

@@ -70,4 +70,4 @@ Keep a short Cloud section that names:
 - Selenium as the GUI health check, computer-use as debug-only
 - Thermo-Nuclear Code Quality Review before marking a PR ready (in addition to Copilot / CodeRabbit / CI)
 - `data-testid` prefixes for that plugin
-- When a release is confirmed: remind the owner to provide English and Cantonese (zh-Hant) update notes or draft both covering all PRs since the last release; users are prompted with the latest update note in-app; do not finalize Release without both languages
+- Optional bilingual in-app update notes on Release (`release_notes` / `release_notes_zh_hant`). Catalog `version` must equal the plugin version being shipped. `scripts/bump-version.mjs` keeps catalog `version` in lockstep; omit both notes to keep current bodies under the new version — never ship with catalog behind manifest.

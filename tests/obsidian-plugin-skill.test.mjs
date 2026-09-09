@@ -131,30 +131,41 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
 });
 
-test("skill and AGENTS.md require an in-app update note on every release", () => {
+test("skill and AGENTS.md keep in-app update notes and optional Actions inputs", () => {
   const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
   const release = read(".cursor/skills/obsidian-plugin-e2e/references/release.md");
   const agents = read("AGENTS.md");
   const cloud = read(".cursor/skills/obsidian-plugin-e2e/references/cloud.md");
   for (const text of [skill, release, agents, cloud]) {
     assert.match(text, /update note/);
-    assert.match(text, /PRs since the last release/);
   }
   for (const text of [skill, release, agents]) {
     assert.match(text, /latest update note/);
-    assert.match(text, /Do not finalize/);
+    assert.doesNotMatch(text, /Do not finalize/);
   }
   assert.match(skill, /one note may cover multiple PRs/i);
   assert.match(release, /one note may cover multiple PRs/i);
   assert.match(release, /src\/core\/update-notes\.json/);
   assert.match(release, /release_notes/);
   assert.match(release, /release_notes_zh_hant/);
+  assert.match(release, /optional/i);
   assert.match(release, /body\.en/);
   assert.match(release, /body\.zh-Hant/);
   assert.match(agents, /src\/core\/update-notes\.json/);
   assert.match(agents, /release_notes/);
   assert.match(agents, /release_notes_zh_hant/);
+  assert.match(agents, /optional/i);
+  assert.match(cloud, /optional/i);
   for (const text of [skill, release, agents]) {
     assert.match(text, /zh-Hant/);
+    assert.match(text, /must equal the plugin version being shipped/);
+    assert.match(text, /older semver/);
+    assert.match(text, /never ship with catalog behind manifest/);
   }
+  assert.match(read("scripts/bump-version.mjs"), /src\/core\/update-notes\.json/);
+  assert.match(release, /bump-version\.mjs[\s`]+keeps catalog/);
+  assert.match(cloud, /must equal the plugin version being shipped/);
+  assert.match(cloud, /never ship with catalog behind manifest/);
+  assert.doesNotMatch(release, /staged 1\.1\.9 bodies/);
+  assert.doesNotMatch(release, /catalog `version` stays at the current manifest/);
 });

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * Bump or read the plugin semver across package.json, manifest.json, and versions.json.
+ * Bump or read the plugin semver across package.json, manifest.json,
+ * versions.json, and src/core/update-notes.json (version only; bodies stay).
  *
  * Usage:
  *   node scripts/bump-version.mjs              # print current version
  *   node scripts/bump-version.mjs patch|minor|major|none
  *
  * "none" leaves the version unchanged (useful for cutting the first release of
- * whatever is already declared in the repo).
+ * whatever is already declared in the repo). Catalog version is still written
+ * to that semver so What's new cannot lag the plugin.
  */
 import { readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
@@ -49,6 +51,20 @@ if (!allowed.has(level)) {
 const next = level === "none" ? current : bumpSemver(current, level);
 const minAppVersion = manifest.minAppVersion;
 
+const notes = readJson("src/core/update-notes.json");
+const noteBody = notes.body;
+const noteEn =
+  noteBody && typeof noteBody.en === "string" ? noteBody.en.trim() : "";
+const noteZhHant =
+  noteBody && typeof noteBody["zh-Hant"] === "string"
+    ? noteBody["zh-Hant"].trim()
+    : "";
+if (!noteEn || !noteZhHant) {
+  throw new Error(
+    "Invalid src/core/update-notes.json. Need body.en and body.zh-Hant.",
+  );
+}
+
 pkg.version = next;
 manifest.version = next;
 versions[next] = minAppVersion;
@@ -56,6 +72,10 @@ versions[next] = minAppVersion;
 writeJson("package.json", pkg);
 writeJson("manifest.json", manifest);
 writeJson("versions.json", versions);
+writeJson("src/core/update-notes.json", {
+  version: next,
+  body: { en: noteEn, "zh-Hant": noteZhHant },
+});
 
 // Keep package-lock.json root version in sync when present.
 try {

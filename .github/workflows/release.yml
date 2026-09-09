@@ -16,13 +16,13 @@ on:
         type: string
         default: main
       release_notes:
-        description: English in-app and GitHub update note (required; one note may cover multiple PRs). Use \n for line breaks.
+        description: Optional English in-app and GitHub update note. Use \n for line breaks. Omit both notes to keep current in-app bodies under the new version.
         type: string
-        required: true
+        required: false
       release_notes_zh_hant:
-        description: Cantonese (zh-Hant) in-app update note (required). Use \n for line breaks.
+        description: Optional Cantonese (zh-Hant) in-app update note. Use \n for line breaks. Provide together with release_notes, or omit both.
         type: string
-        required: true
+        required: false
 
 permissions:
   contents: write
@@ -90,12 +90,14 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          if [[ -z "${ATOMIC_UPDATE_NOTE//[[:space:]]/}" ]]; then
-            echo "release_notes is required. Every release needs an English in-app update note (one note may cover multiple PRs)."
-            exit 1
+          EN="${ATOMIC_UPDATE_NOTE//[[:space:]]/}"
+          ZH="${ATOMIC_UPDATE_NOTE_ZH_HANT//[[:space:]]/}"
+          if [[ -z "${EN}" && -z "${ZH}" ]]; then
+            echo "No release notes provided; catalog version already matches ${VERSION} (bodies unchanged)."
+            exit 0
           fi
-          if [[ -z "${ATOMIC_UPDATE_NOTE_ZH_HANT//[[:space:]]/}" ]]; then
-            echo "release_notes_zh_hant is required. Every release needs a Cantonese (zh-Hant) in-app update note."
+          if [[ -z "${EN}" || -z "${ZH}" ]]; then
+            echo "Provide both release_notes and release_notes_zh_hant, or omit both."
             exit 1
           fi
           node scripts/set-update-note.mjs "${VERSION}"
