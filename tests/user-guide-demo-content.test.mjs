@@ -103,11 +103,12 @@ test("capture script continues without xdotool when setRect works", () => {
   assert.match(src, /error\?\.code === "ENOENT"/);
   assert.match(src, /xdotool is not installed/);
   assert.match(src, /setRectOk/);
-  assert.match(src, /atomic-dashboard-desktop\.png/);
-  assert.match(src, /atomic-dashboard-mobile\.png/);
+  assert.match(src, /atomic-dashboard-hero\.png/);
+  assert.match(src, /compose-device-hero\.py/);
   assert.match(src, /DASHBOARD_MOBILE/);
   assert.match(src, /ATOMIC_DOCS_SHOTS/);
   assert.match(src, /wantShot\("dashboard"\)/);
   assert.match(src, /assertDashboardBundle/);
   assert.match(src, /captureFullPageProof/);
+  assert.match(src, /composeDashboardHero/);
 });

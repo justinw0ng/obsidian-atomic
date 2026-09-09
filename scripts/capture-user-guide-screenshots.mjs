@@ -3,6 +3,7 @@
  *
  * Run: node scripts/capture-user-guide-screenshots.mjs
  * Optional: ATOMIC_DOCS_SHOTS=dashboard (comma-separated: bookShelf,timer,gymLog,dashboard,settings,enable)
+ * Dashboard shots also compose docs/images/atomic-dashboard-hero.png via compose-device-hero.py.
  */
 import { spawn, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -52,14 +53,14 @@ const OUTPUTS = {
   timer: "atomic-reading-timer.png",
   gymLog: "atomic-gym-log.png",
   dashboard: "atomic-dashboard.png",
-  dashboardDesktop: "atomic-dashboard-desktop.png",
-  dashboardMobile: "atomic-dashboard-mobile.png",
+  dashboardHero: "atomic-dashboard-hero.png",
   settings: "07-settings-atomic.png",
   enable: "06-enable-atomic-plugin.png",
 };
 
 const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
 const DASHBOARD_MOBILE = { width: 390, height: 844 };
+const DASHBOARD_HERO_HEADLINE = "Your year. One dashboard.";
 
 /** Comma-separated shot names, or `all`. Example: ATOMIC_DOCS_SHOTS=dashboard */
 const REQUESTED_SHOTS = new Set(
@@ -269,6 +270,36 @@ async function openNote(driver, path) {
   await sleep(600);
 }
 
+function composeDashboardHero(desktopPath, mobilePath) {
+  const out = join(IMAGES, OUTPUTS.dashboardHero);
+  const result = spawnSync(
+    "python3",
+    [
+      join(ROOT, "scripts/compose-device-hero.py"),
+      "--desktop",
+      desktopPath,
+      "--mobile",
+      mobilePath,
+      "--out",
+      out,
+      "--headline",
+      DASHBOARD_HERO_HEADLINE,
+      "--crop-chrome",
+      "--desktop-fit",
+      "cover-top",
+    ],
+    { encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `compose dashboard hero failed: ${(result.stderr || result.stdout || "").trim()}`,
+    );
+  }
+  if (!existsSync(out)) throw new Error(`Failed to write ${out}`);
+  console.log((result.stdout || "").trim() || `Wrote ${out}`);
+  return out;
+}
+
 async function hideNoteProperties(driver) {
   await driver.executeScript(`
     if (app.vault?.setConfig) {
@@ -407,9 +438,7 @@ async function main() {
       await hideNoteProperties(driver);
       await parkMouse(driver);
       await sleep(500);
-      await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);
-      copyFileSync(join(IMAGES, OUTPUTS.dashboard), join(IMAGES, OUTPUTS.dashboardDesktop));
-      console.log(`Wrote ${join(IMAGES, OUTPUTS.dashboardDesktop)}`);
+      const desktopSrc = await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);
       await captureFullPageProof(
         driver,
         '[data-testid="atomic-dashboard"]',
@@ -423,7 +452,11 @@ async function main() {
       await hideNoteProperties(driver);
       await parkMouse(driver);
       await sleep(600);
-      await captureTo(driver, "readme-dashboard-mobile", OUTPUTS.dashboardMobile);
+      await driver.executeScript(
+        `document.querySelectorAll(".tooltip").forEach((el) => el.remove());`,
+      );
+      const mobileSrc = await saveScreenshot(driver, "readme-dashboard-mobile");
+      await composeDashboardHero(desktopSrc, mobileSrc);
       await captureFullPageProof(
         driver,
         '[data-testid="atomic-dashboard"]',

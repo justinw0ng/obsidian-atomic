@@ -12,13 +12,7 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 KPI cards, per-habit activity, a monthly chart, and recent sessions. Open `atomics/Dashboard.md` or **Open dashboard**.
 
-**Desktop**
-
-![Dashboard on desktop](docs/images/atomic-dashboard-desktop.png)
-
-**Phone**
-
-![Dashboard on a phone-width pane](docs/images/atomic-dashboard-mobile.png)
+![Dashboard on desktop and phone](docs/images/atomic-dashboard-hero.png)
 
 Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
 
