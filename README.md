@@ -8,6 +8,12 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 ![Atomic Tracker on desktop and mobile](docs/images/atomic-daily-hero.gif)
 
+## Dashboard
+
+KPI cards, per-habit activity, a monthly chart, and recent sessions. Open `atomics/Dashboard.md` or **Open dashboard**.
+
+![Dashboard on desktop and phone](docs/images/atomic-dashboard-hero.png)
+
 Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
 
 Daily note template setup: [examples/README.md](examples/README.md#use-the-daily-note-template).
@@ -19,6 +25,7 @@ Daily note template setup: [examples/README.md](examples/README.md#use-the-daily
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
 - Reading items with timers, book shelf, and Bases bookshelf
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
+- Yearly dashboard: KPI cards, per-habit activity cards, monthly chart, and recent sessions
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit` (`location` also allows Custom…)
 
 Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese & English (`zh-Hant-en`). Changing language never rewrites existing notes. Saved language is kept on existing installs.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 try:
@@ -29,6 +30,13 @@ JERSEY_FONT = REPO / "docs/fonts/Jersey20-Regular.ttf"
 DEJAVU_DIR = Path("/usr/share/fonts/truetype/dejavu")
 
 
+@dataclass(frozen=True)
+class HeroCopy:
+    kicker: str = "ATOMIC TRACKER"
+    headline: str = "Your habits. One daily note."
+    label: str = "Atomic Tracker"
+
+
 def font(size: int, bold: bool = False, jersey: bool = False) -> ImageFont.FreeTypeFont:
     if jersey:
         if not JERSEY_FONT.is_file():
@@ -46,6 +54,39 @@ def rounded_mask(size: tuple[int, int], radius: int) -> Image.Image:
     return mask
 
 
+def crop_window_chrome(src: Image.Image) -> Image.Image:
+    """Drop the dimmer OS title bar and the left ribbon gutter."""
+    image = src.convert("RGB")
+    width, height = image.size
+    pixels = image.load()
+
+    def luma(x: int, y: int) -> float:
+        red, green, blue = pixels[x, y]
+        return 0.299 * red + 0.587 * green + 0.114 * blue
+
+    top = 0
+    for y in range(height):
+        if luma(width // 2, y) >= 254:
+            top = y
+            break
+
+    left = 0
+    mid_y = min(height - 1, max(top + 80, height // 2))
+    saw_gutter = False
+    for x in range(width):
+        value = luma(x, mid_y)
+        if not saw_gutter and value < 250:
+            saw_gutter = True
+            continue
+        if saw_gutter and value >= 254:
+            left = x
+            break
+
+    if top == 0 and left == 0:
+        return image
+    return image.crop((left, top, width, height))
+
+
 def contain(src: Image.Image, size: tuple[int, int], background: str) -> Image.Image:
     image = src.convert("RGB")
     image.thumbnail(size, Image.Resampling.LANCZOS)
@@ -56,18 +97,41 @@ def contain(src: Image.Image, size: tuple[int, int], background: str) -> Image.I
     return result
 
 
-def compose(desktop: Image.Image, mobile: Image.Image) -> Image.Image:
+def cover_top(src: Image.Image, size: tuple[int, int]) -> Image.Image:
+    image = src.convert("RGB")
+    target_w, target_h = size
+    scale = max(target_w / image.width, target_h / image.height)
+    resized = image.resize(
+        (max(1, round(image.width * scale)), max(1, round(image.height * scale))),
+        Image.Resampling.LANCZOS,
+    )
+    left = max(0, (resized.width - target_w) // 2)
+    return resized.crop((left, 0, left + target_w, target_h))
+
+
+def compose(
+    desktop: Image.Image,
+    mobile: Image.Image,
+    copy: HeroCopy | None = None,
+    crop_chrome: bool = False,
+    desktop_fit: str = "contain",
+) -> Image.Image:
+    text = copy or HeroCopy()
+    if crop_chrome:
+        desktop = crop_window_chrome(desktop)
+        mobile = crop_window_chrome(mobile)
+
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
 
-    draw.text((80, 36), "ATOMIC TRACKER", fill=TEXT, font=font(24, jersey=True))
+    draw.text((80, 36), text.kicker, fill=TEXT, font=font(24, jersey=True))
     draw.text(
         (80, 68),
-        "Your habits. One daily note.",
+        text.headline,
         fill=TEXT,
         font=font(56, jersey=True),
     )
-    right_label = "Atomic Tracker"
+    right_label = text.label
     right_box = draw.textbbox((0, 0), right_label, font=font(15))
     right_width = right_box[2] - right_box[0]
     draw.text(
@@ -97,7 +161,10 @@ def compose(desktop: Image.Image, mobile: Image.Image) -> Image.Image:
         DESKTOP_CARD[2] - DESKTOP_CARD[0] - DESKTOP_INSET * 2,
         DESKTOP_CARD[3] - DESKTOP_CARD[1] - DESKTOP_INSET * 2,
     )
-    desktop_image = contain(desktop, desktop_box, "#FFFFFF")
+    if desktop_fit == "cover-top":
+        desktop_image = cover_top(desktop, desktop_box)
+    else:
+        desktop_image = contain(desktop, desktop_box, "#FFFFFF")
     desktop_mask = rounded_mask(desktop_box, 10)
     canvas.paste(
         desktop_image,
@@ -136,13 +203,33 @@ def main() -> None:
     parser.add_argument("--desktop", required=True)
     parser.add_argument("--mobile", required=True)
     parser.add_argument("--out", required=True)
+    parser.add_argument("--kicker", default=HeroCopy.kicker)
+    parser.add_argument("--headline", default=HeroCopy.headline)
+    parser.add_argument("--label", default=HeroCopy.label)
+    parser.add_argument(
+        "--crop-chrome",
+        action="store_true",
+        help="Crop OS title bar and left ribbon before composing",
+    )
+    parser.add_argument(
+        "--desktop-fit",
+        choices=("contain", "cover-top"),
+        default="contain",
+        help="How the desktop shot fills its card (daily hero uses contain)",
+    )
     args = parser.parse_args()
 
     for value in (args.desktop, args.mobile):
         if not Path(value).is_file():
             parser.error(f"missing screenshot: {value}")
 
-    out = compose(Image.open(args.desktop), Image.open(args.mobile))
+    out = compose(
+        Image.open(args.desktop),
+        Image.open(args.mobile),
+        HeroCopy(kicker=args.kicker, headline=args.headline, label=args.label),
+        crop_chrome=args.crop_chrome,
+        desktop_fit=args.desktop_fit,
+    )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     out.save(args.out, "PNG", optimize=True)
     print(f"wrote {args.out} {out.size} {out.mode}")
