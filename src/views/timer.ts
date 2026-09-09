@@ -95,48 +95,64 @@ export async function renderAtomicTimer(
             return;
           }
           const latest = await plugin.app.vault.read(file);
-          const latestFrontmatter = readTimerFrontmatter(latest);
-          if (!latestFrontmatter.timerStartedAt) {
-            new Notice(t("notice.timerNotRunning", plugin.settings.language));
-            return;
+          const persistMode = readTimerFrontmatter(latest).persistMode;
+          switch (persistMode) {
+            case "session": {
+              let minutes: number | null = null;
+              await plugin.app.vault.process(file, (current) => {
+                const startedAtIso = readTimerFrontmatter(current).timerStartedAt;
+                if (!startedAtIso) return current;
+                const result = stopSessionTimer({
+                  markdown: current,
+                  startedAtIso,
+                  stoppedAtIso: new Date().toISOString(),
+                });
+                minutes = result.minutes;
+                return result.markdown;
+              });
+              if (minutes === null) {
+                new Notice(t("notice.timerNotRunning", plugin.settings.language));
+                return;
+              }
+              new Notice(
+                t("notice.timerLogged", plugin.settings.language, { minutes }),
+              );
+              paintTimer(plugin, el, sourcePath);
+              return;
+            }
+            case "item": {
+              const itemFrontmatter = readTimerFrontmatter(latest);
+              if (!itemFrontmatter.timerStartedAt) {
+                new Notice(t("notice.timerNotRunning", plugin.settings.language));
+                return;
+              }
+              const note = await promptText(
+                plugin.app,
+                t("modal.timeLogNote", plugin.settings.language),
+                "",
+                plugin.settings.language,
+              );
+              if (note === null) return;
+              const result = stopTimer({
+                markdown: latest,
+                startedAtIso: itemFrontmatter.timerStartedAt,
+                stoppedAtIso: new Date().toISOString(),
+                note,
+              });
+              await plugin.app.vault.process(file, () => result.markdown);
+              new Notice(
+                t("notice.timerLogged", plugin.settings.language, {
+                  minutes: result.minutes,
+                }),
+              );
+              paintTimer(plugin, el, sourcePath);
+              return;
+            }
+            default: {
+              const unseen: never = persistMode;
+              throw new Error(`Unknown timer persist mode: ${unseen}`);
+            }
           }
-          const startedAtIso = latestFrontmatter.timerStartedAt;
-          const stoppedAtIso = new Date().toISOString();
-          if (latestFrontmatter.persistMode === "session") {
-            const result = stopSessionTimer({
-              markdown: latest,
-              startedAtIso,
-              stoppedAtIso,
-            });
-            await plugin.app.vault.process(file, () => result.markdown);
-            new Notice(
-              t("notice.timerLogged", plugin.settings.language, {
-                minutes: result.minutes,
-              }),
-            );
-            paintTimer(plugin, el, sourcePath);
-            return;
-          }
-          const note = await promptText(
-            plugin.app,
-            t("modal.timeLogNote", plugin.settings.language),
-            "",
-            plugin.settings.language,
-          );
-          if (note === null) return;
-          const result = stopTimer({
-            markdown: latest,
-            startedAtIso,
-            stoppedAtIso,
-            note,
-          });
-          await plugin.app.vault.process(file, () => result.markdown);
-          new Notice(
-            t("notice.timerLogged", plugin.settings.language, {
-              minutes: result.minutes,
-            }),
-          );
-          paintTimer(plugin, el, sourcePath);
         })();
       });
     actions
