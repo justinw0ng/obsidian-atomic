@@ -13,6 +13,8 @@ Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic Tracker 
 - Always validate with `npm test`, `npm run typecheck`, and `npm run build`. When Obsidian is installed (or successfully installed), also run `npm run test:e2e` (Selenium health check). Do **not** use the computer-use agent for that standard health check.
 - Standard dev commands live in `package.json` scripts: `npm test` (node test runner over `tests/*.mjs`), `npm run typecheck` (`tsc --noEmit`), `npm run build` (production esbuild bundle), `npm run dev` (esbuild watch), `npm run test:e2e` (Selenium UI health check against Obsidian).
 - Domain logic is intentionally Obsidian-free in `src/core.ts` and `src/core/hobby.ts`, which the test suite exercises. Put pure parsing, timer, and model-building logic there or in similarly pure modules so it stays unit-testable without Obsidian.
+- DOM type checks: `node.instanceOf(Element)` (Obsidian cross-window helper), not `instanceof Element`.
+- Do not add type assertions that do not change the type (`@typescript-eslint/no-unnecessary-type-assertion`).
 - `main.js` is a committed build artifact. Both `npm run build` and `npm run dev` overwrite it in the repo root. After building/watching, `git checkout -- main.js` if you don't intend to commit the regenerated bundle.
 - The test runner relies on Node's `--experimental-strip-types` to import `src/core.ts` directly, so Node 22+ is required (the VM ships Node 22).
 - `npm run build`/`dev` also try to deploy the bundle into `../obsidian-lab/.obsidian/plugins/atomic-tracker/` or `$OBSIDIAN_PLUGIN_OUT` if that path exists. In Cloud VMs you can also deploy into a local demo vault (e.g. `/workspace/obsidian-demo/.obsidian/plugins/atomic-tracker/`).

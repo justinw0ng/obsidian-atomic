@@ -104,3 +104,14 @@ test("AGENTS.md points at the obsidian-plugin-e2e skill", () => {
   const agents = read("AGENTS.md");
   assert.match(agents, /\.cursor\/skills\/obsidian-plugin-e2e\/SKILL\.md/);
 });
+
+test("skill and AGENTS.md ban instanceof Element and redundant type assertions", () => {
+  const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
+  const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
+  const agents = read("AGENTS.md");
+  for (const text of [skill, review, agents]) {
+    assert.match(text, /instanceOf\(Element\)/);
+    assert.match(text, /instanceof Element/);
+    assert.match(text, /no-unnecessary-type-assertion/);
+  }
+});

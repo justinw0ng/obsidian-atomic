@@ -99,6 +99,8 @@ Rules:
 - Register vault/metadata listeners with `this.registerEvent`. Debounce refresh. Do not scan the whole vault to find one path; use `getAbstractFileByPath`.
 - Sanitize text that becomes a markdown bullet or table cell. Atomic's time-log append is the pattern (`tests/security.test.mjs`).
 - Feature-detect APIs newer than `minAppVersion`. Atomic keeps `minAppVersion` at `1.5.0`, implements `display()` and `getSettingDefinitions()`, and does not call `setWarning` / `setDestructive`.
+- DOM type checks: use Obsidian's `node.instanceOf(Element)` (or `HTMLElement`, `HTMLInputElement`, …). Do not use `instanceof Element` — it fails across windows/iframes.
+- Do not add TypeScript assertions that do not change the type (`@typescript-eslint/no-unnecessary-type-assertion`). If `includes` already accepts `string`, drop `as readonly string[]`.
 
 UI copy is sentence case. No default command hotkeys. No `console.log` in shipped code.
 
