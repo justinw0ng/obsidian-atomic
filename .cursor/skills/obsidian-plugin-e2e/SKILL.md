@@ -20,6 +20,7 @@ Read this file first, then the reference for the phase you are in. Do not skip p
 | Directory review lint that actually failed here | [references/plugin-review.md](references/plugin-review.md) |
 | Version, GitHub Release, community directory | [references/release.md](references/release.md) |
 | Cloud VM, Obsidian install, `AGENTS.md` | [references/cloud.md](references/cloud.md) |
+| Thermo-Nuclear PR gate | This file, section 5 |
 
 Official docs stay canonical for API and directory rules:
 
@@ -42,6 +43,7 @@ Stop and fix before the next phase if any of these fail.
 6. `npm test`, `npm run typecheck`, or `npm run build` fails.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
 8. Release tag is `v1.2.3` or assets omit `main.js` / `manifest.json`.
+9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear has not run on the diff vs the default branch, or REQUEST CHANGES / risk items are still open with no fix or written rationale.
 
 Computer-use is not the health check. `npm run test:e2e` is. Use computer-use only after Selenium fails and you have screenshots under the e2e artifact dir.
 
@@ -134,7 +136,16 @@ Directory review is an automated gate, not a later cleanup. Encode the rules as 
 
 Re-read [Plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines) when a review comment appears. Fix the root cause, bump a patch, cut a new GitHub release. Editing the listing description does not re-run asset checks.
 
-## 5. Ship
+## 5. Thermo-Nuclear gate before ready
+
+After planned code changes are done and `npm test` / `typecheck` are green, before you mark the PR ready for human review/merge:
+
+1. Run a **Thermo-Nuclear Code Quality Review** in Cursor (`thermo-nuclear-code-quality-review`) on the PR diff vs the default branch (`main`). This is structural/maintainability risk, not a second functional QA pass.
+2. Treat REQUEST CHANGES / risk items as blocking. Fix at root on the same branch, rethink if findings cluster, or dismiss with a written rationale on the PR.
+3. Re-run Thermo-Nuclear only when the code diff materially changed after those fixes. Skip for pure comment/docs-only unless asked.
+4. This gate is in addition to Copilot / CodeRabbit / CI. It does not replace them.
+
+## 6. Ship
 
 Do not bump versions on every PR. Atomic's CI tests and builds; humans (or a `workflow_dispatch` job) cut the release.
 
@@ -156,6 +167,7 @@ A change is done when:
 3. New UI has `data-testid` hooks and Selenium coverage (or a source-level hook test if the flow is not yet in the health check).
 4. Docs the user would hit are updated (`README.md`, `docs/USER_GUIDE.md`, examples). Mockups under `docs/mockups/` do not replace E2E.
 5. You did not commit an accidental `main.js` rebuild unless the release is supposed to include it.
+6. Thermo-Nuclear ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items are fixed at root, or dismissed with a written rationale on the PR.
 
 ## Atomic map
 

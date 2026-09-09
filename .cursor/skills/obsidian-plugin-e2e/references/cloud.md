@@ -68,4 +68,5 @@ Keep a short Cloud section that names:
 - `OBSIDIAN_PLUGIN_OUT`
 - `git checkout -- main.js` policy
 - Selenium as the GUI health check, computer-use as debug-only
+- Thermo-Nuclear Code Quality Review before marking a PR ready (in addition to Copilot / CodeRabbit / CI)
 - `data-testid` prefixes for that plugin
