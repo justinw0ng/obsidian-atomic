@@ -19,7 +19,8 @@ export const UNSEEN_UPDATE_NOTE_VERSION = "0.0.0";
 
 function nonEmptyText(value: unknown): string | null {
   if (typeof value !== "string") return null;
-  return value.trim() ? value : null;
+  const text = value.trim();
+  return text ? text : null;
 }
 
 export function parsePluginSemver(
@@ -66,15 +67,11 @@ if (!parsedCatalog) {
 
 export const UPDATE_NOTE: UpdateNote = parsedCatalog;
 
-export function usesZhHantUpdateNote(language: string): boolean {
-  return language.startsWith("zh-Hant");
-}
-
 export function updateNoteBodyForLanguage(
   note: UpdateNote,
   language: string,
 ): string {
-  if (usesZhHantUpdateNote(language)) return note.body["zh-Hant"];
+  if (language.startsWith("zh-Hant")) return note.body["zh-Hant"];
   return note.body.en;
 }
 
@@ -82,12 +79,9 @@ export function currentUpdateNote(
   note: UpdateNote,
   currentVersion: string,
 ): UpdateNote | null {
-  const en = note.body.en.trim();
-  const zhHant = note.body["zh-Hant"].trim();
-  if (!en || !zhHant) return null;
-  if (!parsePluginSemver(note.version)) return null;
-  if (note.version !== currentVersion) return null;
-  return note;
+  const parsed = parseUpdateNote(note);
+  if (!parsed || parsed.version !== currentVersion) return null;
+  return parsed;
 }
 
 export function updateNoteToShow(options: {

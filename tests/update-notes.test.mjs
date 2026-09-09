@@ -15,7 +15,6 @@ import {
   requiredUpdateNoteBodies,
   updateNoteBodyForLanguage,
   updateNoteToShow,
-  usesZhHantUpdateNote,
 } from "../src/core/update-notes.ts";
 import { updateNoteDocument } from "../scripts/set-update-note.mjs";
 
@@ -59,11 +58,6 @@ test("parseUpdateNote requires bilingual bodies", () => {
 });
 
 test("updateNoteBodyForLanguage follows the plugin language", () => {
-  assert.equal(usesZhHantUpdateNote("en"), false);
-  assert.equal(usesZhHantUpdateNote("zh-Hant"), true);
-  assert.equal(usesZhHantUpdateNote("zh-Hant-en"), true);
-  assert.equal(usesZhHantUpdateNote("zh-Hant-HK"), true);
-  assert.equal(usesZhHantUpdateNote("zh-Hans"), false);
   assert.equal(updateNoteBodyForLanguage(SAMPLE_NOTE, "en"), SAMPLE_NOTE.body.en);
   assert.equal(
     updateNoteBodyForLanguage(SAMPLE_NOTE, "zh-Hant"),
@@ -72,6 +66,14 @@ test("updateNoteBodyForLanguage follows the plugin language", () => {
   assert.equal(
     updateNoteBodyForLanguage(SAMPLE_NOTE, "zh-Hant-en"),
     SAMPLE_NOTE.body["zh-Hant"],
+  );
+  assert.equal(
+    updateNoteBodyForLanguage(SAMPLE_NOTE, "zh-Hant-HK"),
+    SAMPLE_NOTE.body["zh-Hant"],
+  );
+  assert.equal(
+    updateNoteBodyForLanguage(SAMPLE_NOTE, "zh-Hans"),
+    SAMPLE_NOTE.body.en,
   );
   assert.equal(
     updateNoteBodyForLanguage(SAMPLE_NOTE, "fr"),
