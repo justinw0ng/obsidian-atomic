@@ -158,15 +158,15 @@ test("bundled update notes catalog is bilingual", () => {
   assert.equal(disk.body["zh-Hant"], bodies["zh-Hant"]);
   assert.equal(UPDATE_NOTE.body.en, bodies.en);
   assert.equal(UPDATE_NOTE.body["zh-Hant"], bodies["zh-Hant"]);
-  assert.match(bodies.en, /Start \/ Stop/);
-  assert.match(bodies.en, /duration/);
+  assert.match(bodies.en, /dashboard/);
+  assert.match(bodies.en, /card layout/);
   assert.doesNotMatch(
     bodies.en,
-    /What's new note once|New installs|Demo examples/,
+    /What's new note once|New installs|Demo examples|Start \/ Stop/,
   );
-  assert.match(bodies["zh-Hant"], /開始／停止/);
-  assert.match(bodies["zh-Hant"], /時長/);
-  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子/);
+  assert.match(bodies["zh-Hant"], /而家用卡片嚟排/);
+  assert.match(bodies["zh-Hant"], /一目了然/);
+  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版/);
 });
 
 test("requiredUpdateNoteBodies rejects a blank or mismatched note", () => {

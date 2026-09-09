@@ -521,8 +521,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const englishBody = await driver.executeScript(
         `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
       );
-      assert.match(String(englishBody), /Start \/ Stop/);
-      assert.match(String(englishBody), /duration/);
+      assert.match(String(englishBody), /dashboard/);
+      assert.match(String(englishBody), /card layout/);
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-update-note-ack"]').click();
       `);
@@ -543,8 +543,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const cantoneseBody = await driver.executeScript(
         `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
       );
-      assert.match(String(cantoneseBody), /開始／停止/);
-      assert.match(String(cantoneseBody), /時長/);
+      assert.match(String(cantoneseBody), /而家用卡片嚟排/);
+      assert.match(String(cantoneseBody), /一目了然/);
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-update-note-ack"]').click();
       `);
