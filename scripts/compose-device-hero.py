@@ -82,9 +82,26 @@ def crop_window_chrome(src: Image.Image) -> Image.Image:
             left = x
             break
 
+    top = max(top, electron_titlebar_height(image))
     if top == 0 and left == 0:
         return image
     return image.crop((left, top, width, height))
+
+
+def electron_titlebar_height(image: Image.Image) -> int:
+    """Find the first row of body text below a Linux Electron title bar."""
+    width, height = image.size
+    pixels = image.load()
+    limit = min(height, 96)
+    for y in range(limit):
+        dark = 0
+        for x in range(width // 10, (width * 3) // 4, 3):
+            red, green, blue = pixels[x, y]
+            if 0.299 * red + 0.587 * green + 0.114 * blue < 90:
+                dark += 1
+                if dark >= 4:
+                    return max(0, y - 10)
+    return 0
 
 
 def contain(src: Image.Image, size: tuple[int, int], background: str) -> Image.Image:
