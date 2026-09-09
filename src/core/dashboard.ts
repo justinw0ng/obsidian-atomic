@@ -158,11 +158,17 @@ export function averagePerSession(totalMinutes: number, sessions: number): numbe
   return sessions > 0 ? Math.round(totalMinutes / sessions) : 0;
 }
 
-/** Scale a series to percentages of its max so bars can be drawn without a chart lib. */
-export function barHeights(values: number[]): number[] {
+/**
+ * Scale a series to percentages of its max so bars can be drawn without a
+ * chart lib. Zero values always map to 0; non-zero values are floored at
+ * `minPercent` so tiny bars stay visible (raise it for short containers).
+ */
+export function barHeights(values: number[], minPercent = 4): number[] {
   const max = Math.max(0, ...values);
   if (max <= 0) return values.map(() => 0);
-  return values.map((v) => (v <= 0 ? 0 : Math.max(4, Math.round((v / max) * 100))));
+  return values.map((v) =>
+    v <= 0 ? 0 : Math.max(minPercent, Math.round((v / max) * 100)),
+  );
 }
 
 function normalizeFelt(felt: unknown): Felt | null {

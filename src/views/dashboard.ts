@@ -155,10 +155,11 @@ function appendHoursMinutes(
 
 function appendSparkline(target: HTMLElement, values: number[]): void {
   const spark = target.createSpan({ cls: "atomic-dash-spark" });
-  const heights = barHeights(values);
+  // 18px tall: the default 4% floor would be sub-pixel for small months.
+  const heights = barHeights(values, 10);
   appendBars(
     spark,
-    values.map((value, index) => ({ value, height: Math.max(10, heights[index]) })),
+    values.map((value, index) => ({ value, height: heights[index] })),
     "spark",
   );
 }

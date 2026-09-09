@@ -284,7 +284,11 @@ test("formatKg and formatCompactKg", () => {
   assert.equal(formatCompactKg(900), "900");
 });
 
-test("barHeights scales to the max with a visible floor for non-zero values", () => {
+test("barHeights scales to the max with a visible floor for non-zero values only", () => {
   assert.deepEqual(barHeights([0, 0]), [0, 0]);
   assert.deepEqual(barHeights([13, 0, 7, 1]), [100, 0, 54, 8]);
+  assert.deepEqual(barHeights([100, 1, 0]), [100, 4, 0]);
+  // Sparklines raise the floor for short containers; zero months stay flat.
+  assert.deepEqual(barHeights([100, 1, 0], 10), [100, 10, 0]);
+  assert.deepEqual(barHeights([0, 0, 0], 10), [0, 0, 0]);
 });

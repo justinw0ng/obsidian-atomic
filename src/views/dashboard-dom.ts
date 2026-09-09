@@ -103,19 +103,23 @@ export function appendSectionTitle(
   row.createSpan({ cls: "atomic-dash-meta", text: meta });
 }
 
-/** Draw one row of bars; `variant` picks the size family in styles.css. */
+/**
+ * Draw one row of bars; `variant` picks the size family in styles.css.
+ * A zero value always renders flat (the `.is-zero` stub), whatever `height` says.
+ */
 export function appendBars(
   parent: HTMLElement,
   bars: DashboardBar[],
   variant: "spark" | "month" | "column",
 ): void {
   for (const bar of bars) {
+    const active = bar.value > 0;
     const el = parent.createSpan({
-      cls: `atomic-dash-bar is-${variant}${bar.value > 0 ? "" : " is-zero"}`,
+      cls: `atomic-dash-bar is-${variant}${active ? "" : " is-zero"}`,
       attr: bar.title ? { title: bar.title } : undefined,
     });
-    el.style.height = `${bar.height}%`;
-    if (bar.value > 0 && bar.color) el.style.background = bar.color;
+    el.style.height = active ? `${bar.height}%` : "0";
+    if (active && bar.color) el.style.background = bar.color;
   }
 }
 
