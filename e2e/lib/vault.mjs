@@ -24,6 +24,10 @@ export const E2E_GYM_LOG_FENCE = `\`\`\`atomic-gym-log
 # No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself.
 \`\`\``;
 
+export const E2E_TIMER_FENCE = `\`\`\`atomic-timer
+# No options. Start, Stop, Resume, or Discard the timer on this note.
+\`\`\``;
+
 export const E2E_FILES = {
   golfCues: "E2E/Golf cues.md",
   gymCues: "E2E/Gym cues.md",
@@ -130,12 +134,15 @@ type: session
 date: ${date}
 activity: gym
 duration_min: 45
+timer_started_at:
 location: Commercial
 location_detail: ""
 weight_unit: kg
 ---
 
 # Gym — ${date}
+
+${E2E_TIMER_FENCE}
 
 ${E2E_GYM_LOG_FENCE}
 
@@ -155,6 +162,7 @@ type: session
 date: ${date}
 activity: golf
 duration_min: 60
+timer_started_at:
 location: Course
 focus: []
 club: []
@@ -162,6 +170,8 @@ felt: good
 ---
 
 # Golf — ${date}
+
+${E2E_TIMER_FENCE}
 
 ## Reminders
 

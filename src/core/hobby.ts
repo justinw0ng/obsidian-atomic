@@ -11,8 +11,12 @@ export type TimeLogEntry = {
   endIso?: string;
 };
 
+export type TimerPersistMode = "item" | "session";
+
 export type TimerFrontmatter = {
+  persistMode: TimerPersistMode;
   totalMin: number;
+  durationMin: number;
   timerStartedAt: string | null;
 };
 
@@ -89,14 +93,12 @@ export function appendTimeLog(markdown: string, entry: TimeLogEntry): string {
   return ensureTrailingNewline([...before, ...after].join("\n"));
 }
 
-export function stopTimer(input: {
-  markdown: string;
-  startedAtIso: string;
-  stoppedAtIso: string;
-  note?: string;
-}): { markdown: string; minutes: number; totalMin: number } {
-  const startedAtMs = Date.parse(input.startedAtIso);
-  const stoppedAtMs = Date.parse(input.stoppedAtIso);
+export function elapsedTimerMinutes(
+  startedAtIso: string,
+  stoppedAtIso: string,
+): number {
+  const startedAtMs = Date.parse(startedAtIso);
+  const stoppedAtMs = Date.parse(stoppedAtIso);
   if (!Number.isFinite(startedAtMs)) {
     throw new Error("Invalid timer start time");
   }
@@ -106,8 +108,29 @@ export function stopTimer(input: {
   if (stoppedAtMs < startedAtMs) {
     throw new Error("Timer stop time cannot be before start time");
   }
+  return Math.round((stoppedAtMs - startedAtMs) / 60000);
+}
 
-  const minutes = Math.round((stoppedAtMs - startedAtMs) / 60000);
+export function displayedTimerMinutes(frontmatter: TimerFrontmatter): number {
+  switch (frontmatter.persistMode) {
+    case "session":
+      return frontmatter.durationMin;
+    case "item":
+      return frontmatter.totalMin;
+    default: {
+      const unseen: never = frontmatter.persistMode;
+      throw new Error(`Unknown timer persist mode: ${unseen}`);
+    }
+  }
+}
+
+export function stopTimer(input: {
+  markdown: string;
+  startedAtIso: string;
+  stoppedAtIso: string;
+  note?: string;
+}): { markdown: string; minutes: number; totalMin: number } {
+  const minutes = elapsedTimerMinutes(input.startedAtIso, input.stoppedAtIso);
   const entry: TimeLogEntry = {
     date: dateFromIso(input.startedAtIso),
     minutes,
@@ -132,6 +155,22 @@ export function stopTimer(input: {
   });
 
   return { markdown, minutes, totalMin };
+}
+
+/** Stop a session-note timer: add elapsed minutes to `duration_min`, no Time log. */
+export function stopSessionTimer(input: {
+  markdown: string;
+  startedAtIso: string;
+  stoppedAtIso: string;
+}): { markdown: string; minutes: number; durationMin: number } {
+  const minutes = elapsedTimerMinutes(input.startedAtIso, input.stoppedAtIso);
+  const frontmatter = readTimerFrontmatter(input.markdown);
+  const durationMin = frontmatter.durationMin + minutes;
+  const markdown = updateTimerFrontmatter(input.markdown, {
+    durationMin,
+    timerStartedAtIso: null,
+  });
+  return { markdown, minutes, durationMin };
 }
 
 export function minutesByDate(entries: TimeLogEntry[]): Map<string, number> {
@@ -162,16 +201,41 @@ export function sumMinutesForYear(entries: TimeLogEntry[], year: number): number
 
 export function readTimerFrontmatter(markdown: string): TimerFrontmatter {
   const parts = splitFrontmatter(markdown);
-  if (!parts) return { totalMin: 0, timerStartedAt: null };
+  if (!parts) {
+    return {
+      persistMode: "item",
+      totalMin: 0,
+      durationMin: 0,
+      timerStartedAt: null,
+    };
+  }
 
+  let noteType: string | null = null;
   let totalMin = 0;
+  let durationMin = 0;
+  let hasTotalMinKey = false;
+  let hasDurationKey = false;
   let timerStartedAt: string | null = null;
   for (let index = 1; index < parts.endIndex; index += 1) {
     const line = parts.lines[index];
+    const typeMatch = line.match(/^type\s*:\s*(.*)$/);
+    if (typeMatch) {
+      noteType = emptyToNull(unquoteYamlScalar(typeMatch[1]));
+      continue;
+    }
     const totalMatch = line.match(/^total_min\s*:\s*(.*)$/);
     if (totalMatch) {
+      hasTotalMinKey = true;
       const total = Number(unquoteYamlScalar(totalMatch[1]));
       totalMin = Number.isFinite(total) && total > 0 ? Math.trunc(total) : 0;
+      continue;
+    }
+    const durationMatch = line.match(/^duration_min\s*:\s*(.*)$/);
+    if (durationMatch) {
+      hasDurationKey = true;
+      const duration = Number(unquoteYamlScalar(durationMatch[1]));
+      durationMin =
+        Number.isFinite(duration) && duration > 0 ? Math.trunc(duration) : 0;
       continue;
     }
     const startedMatch = line.match(/^timer_started_at\s*:\s*(.*)$/);
@@ -180,12 +244,21 @@ export function readTimerFrontmatter(markdown: string): TimerFrontmatter {
     }
   }
 
-  return { totalMin, timerStartedAt };
+  return {
+    persistMode: resolveTimerPersistMode(noteType, hasDurationKey, hasTotalMinKey),
+    totalMin,
+    durationMin,
+    timerStartedAt,
+  };
 }
 
 export function updateTimerFrontmatter(
   markdown: string,
-  fields: { totalMin?: number; timerStartedAtIso?: string | null },
+  fields: {
+    totalMin?: number;
+    durationMin?: number;
+    timerStartedAtIso?: string | null;
+  },
 ): string {
   const text = String(markdown || "");
   const parts = splitFrontmatter(text);
@@ -195,6 +268,9 @@ export function updateTimerFrontmatter(
       ...(fields.totalMin === undefined
         ? []
         : [`total_min: ${normalizeMinutes(fields.totalMin)}`]),
+      ...(fields.durationMin === undefined
+        ? []
+        : [`duration_min: ${normalizeMinutes(fields.durationMin)}`]),
       ...(fields.timerStartedAtIso === undefined
         ? []
         : [formatTimerStartedAt(fields.timerStartedAtIso)]),
@@ -212,6 +288,13 @@ export function updateTimerFrontmatter(
       `total_min: ${normalizeMinutes(fields.totalMin)}`,
     );
   }
+  if (fields.durationMin !== undefined) {
+    lines = setFrontmatterField(
+      lines,
+      "duration_min",
+      `duration_min: ${normalizeMinutes(fields.durationMin)}`,
+    );
+  }
   if (fields.timerStartedAtIso !== undefined) {
     lines = setFrontmatterField(
       lines,
@@ -221,6 +304,17 @@ export function updateTimerFrontmatter(
   }
 
   return ensureTrailingNewline(lines.join("\n"));
+}
+
+function resolveTimerPersistMode(
+  noteType: string | null,
+  hasDurationKey: boolean,
+  hasTotalMinKey: boolean,
+): TimerPersistMode {
+  if (noteType === "session") return "session";
+  if (noteType === "atomic-item") return "item";
+  if (hasDurationKey && !hasTotalMinKey) return "session";
+  return "item";
 }
 
 function parseTimeLogLine(line: string): TimeLogEntry | null {
@@ -293,7 +387,7 @@ function splitFrontmatter(
 
 function setFrontmatterField(
   lines: string[],
-  key: "total_min" | "timer_started_at",
+  key: "total_min" | "duration_min" | "timer_started_at",
   line: string,
 ): string[] {
   const next = lines.slice();

@@ -18,6 +18,7 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | Generic cue rollup | `atomic-cues` with `activity: golf` or `activity: gym` |
 | Quick actions | `atomic-actions`, or the command palette |
 | New gym / golf notes | **Atomic Tracker: New gym session** / **New golf session** |
+| Exercise session timer | `atomic-timer` on a gym/golf/exercise date note — writes `duration_min` |
 | Gym set log | On a gym note, pick an exercise, enter weight/reps, click Add set. The table row is written for you |
 | Reading items | **Atomic Tracker: New reading item** |
 | Reading timer | `atomic-timer` in a Reading item note |
@@ -320,6 +321,22 @@ After you update from an older Atomic version, an **Easier gym sets** modal expl
 
 You can still edit the table by hand.
 
+### Time an exercise session
+
+New gym, golf, and other exercise date notes include the same `atomic-timer` block used on Reading items:
+
+````markdown
+```atomic-timer
+# No options. Start, Stop, Resume, or Discard the timer on this note.
+```
+````
+
+On a session note (`type: session`), **Start** / **Stop** write elapsed minutes into `duration_min` (added to whatever is already there) and clear `timer_started_at`. You can still type `duration_min` by hand. Stop does not prompt for a Time log note and does not add a Time log section — gym set rows stay independent.
+
+Heatmaps and the dashboard still read `duration_min` from the date file. The timer lives on that file (`atomics/exercise/<Activity>/YYYY/YYYY-MM-DD.md`), not on the daily note.
+
+Older session notes: paste the fence onto the date file (above the set table on gym notes).
+
 ### Session frontmatter and property dropdowns
 
 Gym and golf daily notes use `type: session` frontmatter. Atomic turns several fields into **dropdowns** in Properties (and in Bases table cells).
@@ -398,7 +415,7 @@ Reading item notes include:
 
 ![Reading timer](./images/atomic-reading-timer.png)
 
-In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Timer-log minutes feed `atomic-heatmap` and the dashboard hobby section.
+In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Timer-log minutes feed `atomic-heatmap` and the dashboard hobby section. Exercise date notes use the same block but write `duration_min` instead (see [Time an exercise session](#time-an-exercise-session)).
 
 ### Open the Reading bookshelf (Bases)
 
@@ -536,6 +553,13 @@ scale: 1              # default: 1; alias: ratio
 
 Books are sorted by status (reading first), then title. Click a book to open its item note.
 
+### `atomic-timer`
+
+Renders Start / Stop / Resume / Discard on the host note. No options.
+
+- **Reading / hobby item notes:** Stop appends a Time log bullet and increments `total_min`. Those minutes feed the heatmap.
+- **Exercise session notes** (`type: session`): Stop writes elapsed minutes into `duration_min` (adds to the existing value) and does not create a Time log. Heatmaps still read `duration_min`.
+
 ### `atomic-gym-log`
 
 Renders the gym set form on a gym session note. No options. Pick an exercise, enter weight and reps, then **Add set**. You don't type the table row yourself.
@@ -571,13 +595,14 @@ date: 2026-08-08
 |---------|-----|
 | Plugin not listed | Confirm `main.js`, `manifest.json`, and `styles.css` are under `.obsidian/plugins/atomic-tracker/` and reload plugins. Do not use a source zip. |
 | Restricted mode | Turn on community plugins in Settings |
-| Empty heatmap / dashboard | Enable the habit in settings; add exercise sessions with `date` / duration, or stop a hobby timer so the item has Time log entries |
+| Empty heatmap / dashboard | Enable the habit in settings; add exercise sessions with `date` / `duration_min` (timer Stop writes that field), or stop a hobby timer so the item has Time log entries |
 | Heatmap says unknown/disabled activities | Fix `activity:` ids, or re-enable the habit in Settings → Atomic Tracker |
 | Reading notes in Bases do not open | Enable Reading in settings, enable Bases, then rerun **Atomic Tracker: Open reading Bases** |
 | Wrong “today” | Set **Timezone** in Atomic Tracker settings to your IANA zone |
 | Codeblock shows raw text | Enable the plugin and use Reading view (or Live Preview after reload) |
 | Property dropdown missing | Reload the Atomic Tracker plugin; confirm the note type matches (Reading item vs golf/gym session) |
 | Set log missing on old gym notes | Run **Import from gym notes** in Settings, or paste an `atomic-gym-log` fence above the set table |
+| Session timer missing on old gym/golf notes | Paste an `atomic-timer` fence on the date note (above the set table on gym notes) |
 | Book shelf empty after `status:` filter | Check item frontmatter `status` values; use `status: all` to show every book |
 | Book shelf empty on phone / iOS | Wait for vault metadata to finish indexing, or reopen the note; covers stay flat on touch (open-on-hover is desktop) |
 | Heatmap cells clipped on a narrow pane | Scroll the grid horizontally; day labels stay pinned |

@@ -33,6 +33,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const timer = src("src/views/timer.ts");
   assert.match(timer, /data-testid": "atomic-timer-start"/);
   assert.match(timer, /data-testid": "atomic-timer-stop"/);
+  assert.match(timer, /stopSessionTimer/);
   assert.doesNotMatch(timer, /scheduleRefresh/);
 
   const gymLog = src("src/views/gym-log.ts");
@@ -49,6 +50,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(createSession, /gymBody/);
   const sessionNote = src("src/core/session-note.ts");
   assert.match(sessionNote, /atomic-gym-log/);
+  assert.match(sessionNote, /atomic-timer/);
 
   const gymSetup = src("src/commands/gym-log-setup.ts");
   assert.match(gymSetup, /atomic-gym-log-setup-modal/);
@@ -90,6 +92,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const health = src("e2e/health-check.test.mjs");
   assert.match(health, /atomic-heatmap-month/);
   assert.match(health, /heatmap-month-align/);
+  assert.match(health, /gym-session-timer/);
   assert.match(health, /atomic-setting-gym-import/);
   assert.match(health, /atomic-setting-gym-exercises/);
   assert.match(health, /atomic-gym-log-setup-modal/);

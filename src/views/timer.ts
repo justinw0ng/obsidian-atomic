@@ -3,7 +3,9 @@ import type FitnessPlugin from "../main";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
 import {
+  displayedTimerMinutes,
   readTimerFrontmatter,
+  stopSessionTimer,
   stopTimer,
   updateTimerFrontmatter,
 } from "../core/hobby";
@@ -36,16 +38,20 @@ export async function renderAtomicTimer(
   if (!sourcePath) {
     root.createEl("p", {
       cls: "fitness-muted",
-      text: t("view.timer.needsReadingItem", plugin.settings.language),
+      text: t("view.timer.needsSavedNote", plugin.settings.language),
     });
     return;
   }
 
   const markdown = await plugin.data.readBody(sourcePath);
   const frontmatter = readTimerFrontmatter(markdown);
+  const totalKey =
+    frontmatter.persistMode === "session"
+      ? "view.timer.duration"
+      : "view.timer.total";
   root.createEl("p", {
-    text: t("view.timer.total", plugin.settings.language, {
-      minutes: frontmatter.totalMin,
+    text: t(totalKey, plugin.settings.language, {
+      minutes: displayedTimerMinutes(frontmatter),
     }),
     cls: "atomic-timer-total",
   });
@@ -76,6 +82,22 @@ export async function renderAtomicTimer(
             new Notice(t("notice.timerNotRunning", plugin.settings.language));
             return;
           }
+          const startedAtIso = latestFrontmatter.timerStartedAt;
+          const stoppedAtIso = new Date().toISOString();
+          if (latestFrontmatter.persistMode === "session") {
+            const result = stopSessionTimer({
+              markdown: latest,
+              startedAtIso,
+              stoppedAtIso,
+            });
+            await plugin.app.vault.process(file, () => result.markdown);
+            new Notice(
+              t("notice.timerLogged", plugin.settings.language, {
+                minutes: result.minutes,
+              }),
+            );
+            return;
+          }
           const note = await promptText(
             plugin.app,
             t("modal.timeLogNote", plugin.settings.language),
@@ -85,8 +107,8 @@ export async function renderAtomicTimer(
           if (note === null) return;
           const result = stopTimer({
             markdown: latest,
-            startedAtIso: latestFrontmatter.timerStartedAt,
-            stoppedAtIso: new Date().toISOString(),
+            startedAtIso,
+            stoppedAtIso,
             note,
           });
           await plugin.app.vault.process(file, () => result.markdown);

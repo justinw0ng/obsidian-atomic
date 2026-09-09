@@ -41,6 +41,9 @@ test("gymBody writes frontmatter, muscle hints, gym-log fence, and reminders", (
     markdown,
     /<!-- 💪 Muscles: Chest, Back, Shoulders, Biceps, Triceps, Quads, Hamstrings, Glutes, Calves, Core -->/,
   );
+  assert.match(markdown, /duration_min:\n/);
+  assert.match(markdown, /timer_started_at:\n/);
+  assert.ok(markdown.includes(defaultAtomicBlockFence("atomic-timer", "en")));
   assert.ok(markdown.includes(defaultAtomicBlockFence("atomic-gym-log", "en")));
   assert.match(
     markdown,
@@ -69,6 +72,8 @@ test("golfBody writes golf hints and reminders", () => {
     "en",
   );
   assert.match(markdown, /activity: "golf"\n/);
+  assert.match(markdown, /timer_started_at:\n/);
+  assert.ok(markdown.includes(defaultAtomicBlockFence("atomic-timer", "en")));
   assert.match(markdown, /focus: \[\]\n/);
   assert.match(markdown, /club: \[\]\n/);
   assert.match(markdown, /<!-- 📍 location:/);
@@ -87,6 +92,8 @@ test("genericExerciseBody writes a daily session without a set table", () => {
     "en",
   );
   assert.match(markdown, /activity: "run"\n/);
+  assert.match(markdown, /timer_started_at:\n/);
+  assert.ok(markdown.includes(defaultAtomicBlockFence("atomic-timer", "en")));
   assert.match(markdown, /# Run — 2026-08-11\n/);
   assert.doesNotMatch(markdown, /atomic-gym-log/);
   assert.doesNotMatch(markdown, /Reminders/);
