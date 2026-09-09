@@ -34,11 +34,11 @@ When you add a source path, add it to `.github/plugin-source-paths.txt`. `tests/
 
 Required local/CI commands for plugin changes: `npm run typecheck`, `npm test`, `npm run build`. Upload `main.js`, `manifest.json`, `styles.css` as CI artifacts so a reviewer can sideload the PR build.
 
-`.github/workflows/release.yml` is **manual** `workflow_dispatch` only. Inputs: `bump` (patch/minor/major), `branch` (default `main`), required `release_notes` (English in-app + GitHub note) and required `release_notes_zh_hant` (Cantonese zh-Hant in-app note). One note may cover multiple PRs. It must not run on `push`. Do not finalize Release without both languages.
+`.github/workflows/release.yml` is **manual** `workflow_dispatch` only. Inputs: `bump` (patch/minor/major), `branch` (default `main`), optional `release_notes` (English in-app + GitHub note) and optional `release_notes_zh_hant` (Cantonese zh-Hant in-app note). One note may cover multiple PRs. Provide both languages or omit both. It must not run on `push`.
 
 ## In-app update note
 
-Every shipped version has bilingual update notes. After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**). The body follows **Settings → Language**: `en` → English; `zh-Hant-en` / `zh-Hant` / any `zh-Hant*` → Cantonese Traditional Chinese; unknown → English. Title and Got it already come from the i18n catalogs. Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
+After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**) when the catalog `version` equals the installed plugin version. The body follows **Settings → Language**: `en` → English; `zh-Hant-en` / `zh-Hant` / any `zh-Hant*` → Cantonese Traditional Chinese; unknown → English. Title and Got it already come from the i18n catalogs. Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
 
 The catalog is `src/core/update-notes.json` (`body.en` and `body.zh-Hant`):
 
@@ -49,17 +49,16 @@ The catalog is `src/core/update-notes.json` (`body.en` and `body.zh-Hant`):
 }
 ```
 
-`version` must match the current `manifest.json` version (tests refuse a mismatch or a blank language). The Release workflow **always overwrites** this file after the bump: it sets `version` to the new semver and writes both bodies from the workflow inputs. Until a 1.1.9 cut, keep `version` at the current manifest (1.1.8) and stage the 1.1.9 bodies so a release can paste the same text immediately.
+If you pass both Release inputs, the workflow overwrites this file after the bump (`version` = new semver, bodies from the inputs). If you omit both, it leaves the file unchanged. A new plugin version with a lagging catalog `version` does not show a What's new prompt. Until a 1.1.9 cut, the catalog `version` stays at the current manifest (1.1.8) with staged 1.1.9 bodies — pass those texts as optional inputs if you want that note to ship with 1.1.9.
 
-When a release is confirmed:
+Optional notes when cutting Release:
 
-1. Remind the owner to provide **English and Cantonese (zh-Hant)** notes **or draft both covering all PRs since the last release**.
-2. Put both in `src/core/update-notes.json` (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"`) or pass `release_notes` + `release_notes_zh_hant` to the Release workflow. Use `\n` for line breaks in workflow_dispatch strings.
-3. Do not finalize Release without both languages.
+1. Pass English and Cantonese (zh-Hant), or omit both. You may draft both covering all PRs since the last release if you want a What's new for this version.
+2. Or edit `src/core/update-notes.json` in git (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"`). Use `\n` for line breaks in workflow_dispatch strings.
 
-The GitHub Release body uses the English `release_notes` input (auto-generated notes are still appended). In-app uses both.
+The GitHub Release body uses the English `release_notes` input when set (auto-generated notes are still appended). In-app uses both.
 
-### 1.1.9 note (paste into Release)
+### 1.1.9 note (optional paste into Release)
 
 English (`release_notes`):
 
@@ -79,10 +78,10 @@ Atomic's release job:
 
 1. Checkout the chosen branch
 2. `node scripts/bump-version.mjs <bump>`
-3. Write the required bilingual in-app update notes for the new version (`node scripts/set-update-note.mjs <version> --en "…" --zh-Hant "…"` / `release_notes` + `release_notes_zh_hant` inputs)
+3. If both optional note inputs are set, write bilingual in-app update notes for the new version (`node scripts/set-update-note.mjs <version>`). If both are omitted, leave `src/core/update-notes.json` unchanged.
 4. `npm run typecheck`, `npm test`, `npm run build`
 5. Refuse if tag `VERSION` already exists
-6. Commit version files **and** `src/core/update-notes.json`, tag `VERSION` (no `v`), push branch and tag
+6. Commit version files and `src/core/update-notes.json` when it changed, tag `VERSION` (no `v`), push branch and tag
 7. Attest the three plugin files with `actions/attest` (OIDC). Do not attest locally — invalid provenance is worse than none.
 8. `softprops/action-gh-release` with assets **exactly**: `main.js`, `manifest.json`, `styles.css`
 
@@ -93,6 +92,12 @@ You can run the same steps locally if Actions is unavailable. Skip attestation u
 ### Cursor Cloud Agents
 
 Prefer `gh workflow run Release ...` when the agent token can write Actions (`workflow_dispatch` needs `actions: write`):
+
+```bash
+gh workflow run Release --ref main -f bump=patch
+```
+
+Notes are optional. To also write the in-app catalog and GitHub body:
 
 ```bash
 gh workflow run Release --ref main -f bump=patch \
