@@ -130,6 +130,108 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
+  it("renders the dashboard cards, switches year, and opens a recent session", async () => {
+    await check(driver, "dashboard", async () => {
+      const year = today.slice(0, 4);
+      const gymPath = E2E_FILES.gymSession(year, today);
+      const golfPath = E2E_FILES.golfSession(year, today);
+
+      await openVaultFile(driver, E2E_FILES.dashboard);
+      await waitCss(driver, `[data-testid="atomic-dashboard"][data-year="${year}"]`);
+
+      const kpis = await driver.findElements(By.css('[data-testid="atomic-dashboard-kpi"]'));
+      assert.deepEqual(
+        await Promise.all(kpis.map((kpi) => kpi.getAttribute("data-kpi"))),
+        ["sessions", "exercise-time", "volume", "habit-time"],
+      );
+      const sessionsKpi = await driver.executeScript(
+        `return document.querySelector('[data-testid="atomic-dashboard-kpi"][data-kpi="sessions"] .atomic-dash-kpi-value')?.textContent || ""`,
+      );
+      assert.equal(String(sessionsKpi).trim(), "2");
+
+      const cards = await driver.findElements(
+        By.css('[data-testid="atomic-dashboard-activity"]'),
+      );
+      const cardCounts = await Promise.all(
+        cards.map(async (card) => [
+          await card.getAttribute("data-activity"),
+          await card.getAttribute("data-count"),
+        ]),
+      );
+      assert.deepEqual(cardCounts, [
+        ["gym", "1"],
+        ["golf", "1"],
+        ["reading", "2"],
+      ]);
+
+      await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
+      const musclesText = await driver.executeScript(
+        `return document.querySelector('[data-testid="atomic-dashboard-muscles"]')?.textContent || ""`,
+      );
+      assert.match(String(musclesText), /Quads/);
+      assert.match(String(musclesText), /400 kg · 1/);
+      await waitCss(driver, '[data-testid="atomic-dashboard-golf-focus"]');
+
+      const recentPaths = await driver.executeScript(`
+        return [...document.querySelectorAll('[data-testid="atomic-dashboard-recent-row"]')]
+          .map((row) => row.getAttribute("data-path"));
+      `);
+      assert.deepEqual(recentPaths, [golfPath, gymPath]);
+
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-dashboard-year-prev"]').click()`,
+      );
+      await waitCss(
+        driver,
+        `[data-testid="atomic-dashboard"][data-year="${Number(year) - 1}"]`,
+      );
+      await waitCss(
+        driver,
+        '[data-testid="atomic-dashboard-activity"][data-activity="gym"][data-count="0"]',
+      );
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-dashboard-year-next"]').click()`,
+      );
+      await waitCss(
+        driver,
+        `[data-testid="atomic-dashboard"][data-year="${year}"] [data-testid="atomic-dashboard-activity"][data-activity="gym"][data-count="1"]`,
+      );
+
+      await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        plugin.settings.activityTypes.find((a) => a.id === "reading").enabled = false;
+      `);
+      await openVaultFile(driver, E2E_FILES.heatmapGymGolf);
+      await waitCss(driver, '[data-testid="atomic-heatmap"][data-activity="gym"]');
+      await openVaultFile(driver, E2E_FILES.dashboard);
+      await waitCss(driver, '[data-testid="atomic-dashboard-activity"][data-activity="golf"]');
+      const readingCards = await driver.findElements(
+        By.css('[data-testid="atomic-dashboard-activity"][data-activity="reading"]'),
+      );
+      assert.equal(readingCards.length, 0);
+      const kpisWithoutHabits = await driver.findElements(
+        By.css('[data-testid="atomic-dashboard-kpi"][data-kpi="habit-time"]'),
+      );
+      assert.equal(kpisWithoutHabits.length, 0);
+      await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        plugin.settings.activityTypes.find((a) => a.id === "reading").enabled = true;
+      `);
+
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-dashboard-recent-row"][data-path=${JSON.stringify(gymPath)}] a'
+        ).click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === gymPath;
+      }, 8000);
+    });
+  });
+
   it("aligns heatmap month labels with the today column", async () => {
     await check(driver, "heatmap-month-align", async () => {
       await openVaultFile(driver, E2E_FILES.heatmapReading);

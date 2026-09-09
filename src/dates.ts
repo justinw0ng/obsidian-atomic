@@ -19,6 +19,18 @@ const utcFullDateEn = new Intl.DateTimeFormat("en", {
   day: "numeric",
   timeZone: "UTC",
 });
+const utcWeekdayDateZh = new Intl.DateTimeFormat("zh-HK", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const utcWeekdayDateEn = new Intl.DateTimeFormat("en", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
 const utcMonthLongEn = new Intl.DateTimeFormat("en", {
   month: "long",
   year: "numeric",
@@ -121,6 +133,17 @@ export function fullDateForLanguage(
   language: Language,
 ): string {
   return language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
+}
+
+/** `Thu, Aug 14` (en) or the zh-HK equivalent for a calendar date. */
+export function weekdayDateForLanguage(
+  y: number,
+  m: number,
+  d: number,
+  language: Language,
+): string {
+  const formatter = language === "en" ? utcWeekdayDateEn : utcWeekdayDateZh;
+  return formatter.format(utcNoon(y, m, d));
 }
 
 export function monthLongEn(y: number, m: number): string {

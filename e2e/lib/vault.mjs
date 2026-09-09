@@ -39,6 +39,7 @@ export const E2E_FILES = {
   bookshelfAll: "E2E/Bookshelf all.md",
   bookshelfReading: "E2E/Bookshelf reading.md",
   bookshelfScaled: "E2E/Bookshelf scaled.md",
+  dashboard: "atomics/Dashboard.md",
   readingCurrent: "atomics/hobbies/Reading/Items/Currently Reading.md",
   readingFinished: "atomics/hobbies/Reading/Items/Finished Book.md",
   golfSession: (year, today) => `atomics/exercise/Golf/${year}/${today}.md`,
@@ -404,7 +405,7 @@ export function seedE2eVault(options = {}) {
   );
 
   write(
-    join(vault, "atomics/Dashboard.md"),
+    join(vault, E2E_FILES.dashboard),
     `---\nyear: ${year}\n---\n\n# Dashboard\n\n\`\`\`atomic-dashboard\nyear: ${year}\n\`\`\`\n`,
   );
 
