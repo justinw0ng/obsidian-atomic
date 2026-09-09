@@ -38,7 +38,7 @@ test("hero compositor keeps daily-note defaults and accepts dashboard copy", () 
   assert.match(src, /--crop-chrome/);
   assert.match(src, /cover-top/);
   assert.match(src, /--phone-fit/);
-  assert.match(src, /--trim-phone-chrome/);
+  assert.match(src, /--mobile-kind/);
   assert.match(src, /electron_titlebar_height/);
 });
 

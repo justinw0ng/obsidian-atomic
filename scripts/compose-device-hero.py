@@ -154,17 +154,18 @@ def compose(
     crop_chrome: bool = False,
     desktop_fit: str = "contain",
     phone_fit: str = "contain",
-    crop_mobile_chrome: bool | None = None,
-    trim_phone_chrome: bool = False,
+    mobile_kind: str = "window",
 ) -> Image.Image:
     text = copy or HeroCopy()
-    crop_mobile = crop_chrome if crop_mobile_chrome is None else crop_mobile_chrome
     if crop_chrome:
         desktop = crop_window_chrome(desktop)
-    if crop_mobile:
-        mobile = crop_window_chrome(mobile)
-    if trim_phone_chrome:
+    if mobile_kind == "phone":
         mobile = trim_phone_safe_area(mobile)
+    elif mobile_kind == "window":
+        if crop_chrome:
+            mobile = crop_window_chrome(mobile)
+    else:
+        raise ValueError(f"unknown mobile kind: {mobile_kind}")
 
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
@@ -266,14 +267,10 @@ def main() -> None:
         help="How the mobile shot fills the device frame (daily hero uses contain)",
     )
     parser.add_argument(
-        "--skip-mobile-chrome",
-        action="store_true",
-        help="Do not crop OS title bar / ribbon from the mobile shot",
-    )
-    parser.add_argument(
-        "--trim-phone-chrome",
-        action="store_true",
-        help="Trim iOS status bar / home indicator from a phone screenshot",
+        "--mobile-kind",
+        choices=("window", "phone"),
+        default="window",
+        help="window: crop OS chrome when --crop-chrome is set. phone: trim iOS insets",
     )
     args = parser.parse_args()
 
@@ -288,8 +285,7 @@ def main() -> None:
         crop_chrome=args.crop_chrome,
         desktop_fit=args.desktop_fit,
         phone_fit=args.phone_fit,
-        crop_mobile_chrome=False if args.skip_mobile_chrome else None,
-        trim_phone_chrome=args.trim_phone_chrome,
+        mobile_kind=args.mobile_kind,
     )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     out.save(args.out, "PNG", optimize=True)

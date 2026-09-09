@@ -274,7 +274,7 @@ async function openNote(driver, path) {
   await sleep(600);
 }
 
-function composeDashboardHero(desktopPath, mobilePath, phoneSource = false) {
+function composeDashboardHero(desktopPath, mobilePath, mobileKind = "window") {
   const out = join(IMAGES, OUTPUTS.dashboardHero);
   const args = [
     join(ROOT, "scripts/compose-device-hero.py"),
@@ -291,10 +291,9 @@ function composeDashboardHero(desktopPath, mobilePath, phoneSource = false) {
     "cover-top",
     "--phone-fit",
     "cover-top",
+    "--mobile-kind",
+    mobileKind,
   ];
-  if (phoneSource) {
-    args.push("--skip-mobile-chrome", "--trim-phone-chrome");
-  }
   const result = spawnSync("python3", args, { encoding: "utf8" });
   if (result.status !== 0) {
     throw new Error(
@@ -482,7 +481,7 @@ async function main() {
         if (!existsSync(DASHBOARD_PHONE_SRC)) {
           throw new Error(`ATOMIC_DASHBOARD_PHONE_SRC missing: ${DASHBOARD_PHONE_SRC}`);
         }
-        await composeDashboardHero(desktopSrc, DASHBOARD_PHONE_SRC, true);
+        await composeDashboardHero(desktopSrc, DASHBOARD_PHONE_SRC, "phone");
       } else {
         await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
         await openNote(driver, FILES.dashboard);
