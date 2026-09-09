@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   DEFAULT_READING_STATUS,
   READING_STATUSES,
+  isInProgressStatus,
   isReadingItemFrontmatter,
   matchesBookShelfStatus,
   readingStatusLabelKey,
@@ -78,4 +79,11 @@ test("matchesBookShelfStatus filters only when statuses are set", () => {
   assert.equal(matchesBookShelfStatus("reading", null), true);
   assert.equal(matchesBookShelfStatus("finished", ["reading"]), false);
   assert.equal(matchesBookShelfStatus("reading", ["reading", "to-read"]), true);
+});
+
+test("isInProgressStatus only matches the reading status", () => {
+  assert.equal(isInProgressStatus("reading"), true);
+  assert.equal(isInProgressStatus(" Reading "), true);
+  assert.equal(isInProgressStatus("to-read-again"), false);
+  assert.equal(isInProgressStatus(undefined), false);
 });

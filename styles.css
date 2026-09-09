@@ -231,28 +231,612 @@
   background: var(--interactive-hover);
 }
 
-.fitness-plugin .fitness-sparkline {
+/* ---- atomic-dashboard ---- */
+
+.fitness-plugin.atomic-dashboard {
+  --atomic-dash-gap: 14px;
+  --atomic-dash-radius: 12px;
+  --atomic-dash-accent: var(--interactive-accent);
+  display: grid;
+  gap: var(--atomic-dash-gap);
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.fitness-plugin.atomic-dashboard h2,
+.fitness-plugin.atomic-dashboard h3,
+.fitness-plugin.atomic-dashboard h4 {
+  margin: 0;
+}
+
+.fitness-plugin .atomic-dash-card {
+  position: relative;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--atomic-dash-radius);
+  background: var(--background-primary);
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.fitness-plugin .atomic-dash-meta {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller, 12px);
+}
+
+.fitness-plugin .atomic-dash-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin a.atomic-dash-link {
+  color: var(--link-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.fitness-plugin a.atomic-dash-link:hover {
+  text-decoration: underline;
+}
+
+.fitness-plugin .atomic-dash-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--atomic-dash-accent);
+  flex: 0 0 auto;
+}
+
+.fitness-plugin .atomic-dash-swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+
+/* Header */
+
+.fitness-plugin .atomic-dash-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.fitness-plugin .atomic-dash-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  flex: 1 1 auto;
+}
+
+.fitness-plugin .atomic-dash-title h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.fitness-plugin .atomic-dash-subtitle {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-year {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.fitness-plugin .atomic-dash-year button {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  font: inherit;
+}
+
+.fitness-plugin .atomic-dash-year button:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.fitness-plugin .atomic-dash-year span {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px;
+}
+
+.fitness-plugin .atomic-dash-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fitness-plugin a.atomic-dash-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: var(--font-ui-small, 13px);
+  color: var(--text-normal);
+  background: var(--background-primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.fitness-plugin a.atomic-dash-chip:hover {
+  background: var(--background-modifier-hover);
+  text-decoration: none;
+}
+
+/* KPI cards */
+
+.fitness-plugin .atomic-dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--atomic-dash-gap);
+}
+
+.fitness-plugin .atomic-dash-kpi-label {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-kpi-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  margin-top: 6px;
+}
+
+.fitness-plugin .atomic-dash-kpi-value small {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 4px;
+  letter-spacing: 0;
+}
+
+.fitness-plugin .atomic-dash-kpi-hint {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller, 12px);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fitness-plugin .atomic-dash-spark {
   display: inline-flex;
   align-items: flex-end;
-  gap: 1px;
-  height: 14px;
-  margin: 0 4px;
-  vertical-align: middle;
+  gap: 2px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
-.fitness-plugin .fitness-spark-bar {
-  display: inline-block;
-  width: 3px;
+/* Bars: one element, three size families (KPI spark, card month, monthly column). */
+
+.fitness-plugin .atomic-dash-bar {
+  display: block;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+}
+
+.fitness-plugin .atomic-dash-bar.is-spark {
+  width: 4px;
   border-radius: 1px;
-  background: var(--text-muted);
+  background: var(--text-faint);
+  opacity: 0.7;
 }
 
-.fitness-plugin .fitness-monthly-sparks {
+.fitness-plugin .atomic-dash-bar.is-month {
+  opacity: 0.85;
+}
+
+.fitness-plugin .atomic-dash-bar.is-column {
+  width: 100%;
+  max-width: 14px;
+  border-radius: 3px 3px 0 0;
+}
+
+/* Zero months stay flat: a 2px baseline stub, never a bar. */
+.fitness-plugin .atomic-dash-bar.is-zero {
+  background: var(--background-modifier-border);
+  opacity: 1;
+  height: 2px;
+}
+
+/* Section titles */
+
+.fitness-plugin .atomic-dash-section-title {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0 -4px;
+}
+
+.fitness-plugin .atomic-dash-section-title h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Activity cards */
+
+.fitness-plugin .atomic-dash-activities {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--atomic-dash-gap);
+}
+
+.fitness-plugin .atomic-dash-activity {
+  display: grid;
+  gap: 12px;
+}
+
+.fitness-plugin .atomic-dash-activity::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 0;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--atomic-dash-accent);
+}
+
+.fitness-plugin .atomic-dash-activity-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fitness-plugin .atomic-dash-activity-head h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+
+.fitness-plugin .atomic-dash-kind {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller, 12px);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-dash-nums {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.fitness-plugin .atomic-dash-num b {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.fitness-plugin .atomic-dash-num span {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller, 12px);
+}
+
+.fitness-plugin .atomic-dash-bars {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+  align-items: end;
+  height: 46px;
+}
+
+.fitness-plugin .atomic-dash-months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+  color: var(--text-faint);
+  font-size: 10px;
+  text-align: center;
+  margin-top: -8px;
+}
+
+.fitness-plugin .atomic-dash-months-wide {
+  margin-top: 0;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.fitness-plugin .atomic-dash-activity-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-activity-foot a.atomic-dash-link::after {
+  content: " →";
+}
+
+.fitness-plugin .atomic-dash-felt {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--background-modifier-border);
+}
+
+.fitness-plugin .atomic-dash-felt-seg {
+  display: block;
+  height: 100%;
+}
+
+.fitness-plugin .atomic-dash-felt-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller, 12px);
+  margin-top: 6px;
+}
+
+.fitness-plugin .atomic-dash-felt-legend b {
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+/* Monthly chart */
+
+.fitness-plugin .atomic-dash-chart {
+  display: grid;
+  gap: 10px;
+}
+
+.fitness-plugin .atomic-dash-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller, 12px);
+}
+
+.fitness-plugin .atomic-dash-legend-hint {
+  margin-left: auto;
+}
+
+.fitness-plugin .atomic-dash-cols {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 8px;
+  align-items: end;
+  height: 120px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 6px;
+}
+
+.fitness-plugin .atomic-dash-col {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+}
+
+.fitness-plugin .atomic-dash-chart details summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 0;
+  font-size: var(--font-ui-small, 13px);
+  font-variant-numeric: tabular-nums;
+}
+
+.fitness-plugin .atomic-dash-table th,
+.fitness-plugin .atomic-dash-table td {
+  border: 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 6px 8px;
+  text-align: right;
+}
+
+.fitness-plugin .atomic-dash-table th:first-child,
+.fitness-plugin .atomic-dash-table td:first-child {
+  text-align: left;
+}
+
+.fitness-plugin .atomic-dash-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Muscles / golf focus */
+
+.fitness-plugin .atomic-dash-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--atomic-dash-gap);
+}
+
+.fitness-plugin .atomic-dash-card-title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fitness-plugin .atomic-dash-card-title span {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller, 12px);
+  font-weight: 400;
+}
+
+.fitness-plugin .atomic-dash-rank {
+  display: grid;
+  gap: 9px;
+}
+
+.fitness-plugin .atomic-dash-rank-row {
+  display: grid;
+  grid-template-columns: minmax(64px, 92px) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-dash-rank-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--background-modifier-border);
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-dash-rank-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--atomic-dash-accent);
+}
+
+.fitness-plugin .atomic-dash-rank-value {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-dash-rank-value b {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.fitness-plugin .atomic-dash-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fitness-plugin .atomic-dash-tag {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  font-size: 13px;
-  margin-bottom: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-tag b {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.fitness-plugin .atomic-dash-tag.is-large {
+  font-size: 0.95rem;
+  padding: 7px 14px;
+  border-color: var(--atomic-dash-accent);
+}
+
+.fitness-plugin .atomic-dash-tag .atomic-dash-dot {
+  width: 6px;
+  height: 6px;
+}
+
+/* Recent sessions */
+
+.fitness-plugin .atomic-dash-recent {
+  container-type: inline-size;
+}
+
+.fitness-plugin .atomic-dash-recent-row {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) 10px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-recent-row:last-child {
+  border-bottom: 0;
+}
+
+.fitness-plugin .atomic-dash-recent-date {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-dash-recent-row .atomic-dash-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.fitness-plugin .atomic-dash-recent-what {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-dash-recent-path {
+  color: var(--text-faint);
+  margin-left: 8px;
+}
+
+.fitness-plugin .atomic-dash-recent-summary {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@container (max-width: 520px) {
+  .fitness-plugin .atomic-dash-recent-row {
+    grid-template-columns: 10px 1fr auto;
+  }
+
+  .fitness-plugin .atomic-dash-recent-date {
+    display: none;
+  }
 }
 
 .fitness-plugin table {

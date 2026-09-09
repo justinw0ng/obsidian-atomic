@@ -69,6 +69,23 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
 
+  const dashboard = src("src/views/dashboard.ts");
+  assert.match(dashboard, /"data-testid": "atomic-dashboard"/);
+  assert.match(dashboard, /"atomic-dashboard-year-prev"/);
+  assert.match(dashboard, /"atomic-dashboard-year-next"/);
+  assert.match(dashboard, /"data-testid": "atomic-dashboard-kpi"/);
+  assert.match(dashboard, /"data-testid": "atomic-dashboard-activity"/);
+  assert.match(dashboard, /buildDashboardModel\(/);
+  assert.doesNotMatch(dashboard, /Math\.max\(\d+, heights/);
+  assert.doesNotMatch(dashboard, /innerHTML/);
+  const dashboardSections = src("src/views/dashboard-sections.ts");
+  assert.match(dashboardSections, /"atomic-dashboard-monthly"/);
+  assert.match(dashboardSections, /"atomic-dashboard-muscles"/);
+  assert.match(dashboardSections, /"atomic-dashboard-golf-focus"/);
+  assert.match(dashboardSections, /"atomic-dashboard-recent"/);
+  assert.match(dashboardSections, /"data-testid": "atomic-dashboard-recent-row"/);
+  assert.doesNotMatch(dashboardSections, /innerHTML/);
+
   const shelf = src("src/views/book-shelf.ts");
   assert.match(shelf, /data-testid": "atomic-bookshelf"/);
   assert.match(shelf, /data-testid": "atomic-book"/);
@@ -112,6 +129,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
   assert.match(health, /開始／停止/);
+  assert.match(health, /atomic-dashboard-kpi/);
+  assert.match(health, /atomic-dashboard-activity/);
+  assert.match(health, /atomic-dashboard-year-prev/);
+  assert.match(health, /atomic-dashboard-recent-row/);
 
   const styles = src("styles.css");
   assert.doesNotMatch(styles, /:has\(/);

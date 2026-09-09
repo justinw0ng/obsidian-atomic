@@ -19,6 +19,18 @@ const utcFullDateEn = new Intl.DateTimeFormat("en", {
   day: "numeric",
   timeZone: "UTC",
 });
+const utcWeekdayDateZh = new Intl.DateTimeFormat("zh-HK", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
+const utcWeekdayDateEn = new Intl.DateTimeFormat("en", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  timeZone: "UTC",
+});
 const utcMonthLongEn = new Intl.DateTimeFormat("en", {
   month: "long",
   year: "numeric",
@@ -64,6 +76,14 @@ export function parseYmd(ymd: string): { y: number; m: number; d: number } | nul
   const m = String(ymd || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!m) return null;
   return { y: Number(m[1]), m: Number(m[2]), d: Number(m[3]) };
+}
+
+/** 0-based month from a `YYYY-MM-…` string, or -1 when absent/invalid. */
+export function monthIndexFromDate(dateStr: string | null | undefined): number {
+  const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
+  if (!m) return -1;
+  const index = Number(m[1]) - 1;
+  return index >= 0 && index < 12 ? index : -1;
 }
 
 /** Sunday = 0 … Saturday = 6 (UTC calendar date). */
@@ -121,6 +141,17 @@ export function fullDateForLanguage(
   language: Language,
 ): string {
   return language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
+}
+
+/** `Thu, Aug 14` (en) or the zh-HK equivalent for a calendar date. */
+export function weekdayDateForLanguage(
+  y: number,
+  m: number,
+  d: number,
+  language: Language,
+): string {
+  const formatter = language === "en" ? utcWeekdayDateEn : utcWeekdayDateZh;
+  return formatter.format(utcNoon(y, m, d));
 }
 
 export function monthLongEn(y: number, m: number): string {

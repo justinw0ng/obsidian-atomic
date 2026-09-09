@@ -11,9 +11,11 @@ Open these HTML files in a browser (design references for the proposed Atomic tr
 | [05-reading-bookshelf-base.html](./05-reading-bookshelf-base.html) | Reading Bases bookshelf (command-triggered Cards + Table) |
 | [06-atomic-book-shelf.html](./06-atomic-book-shelf.html) | Atomic book shelf: books on shelf planks; 3D cover-open hover; click → note |
 | [07-habits-user-journey.html](./07-habits-user-journey.html) | Click-through review journey: base color → add habit → heatmap `activity:` filter → disable |
+| [09-atomic-dashboard-modern.html](./09-atomic-dashboard-modern.html) | Modern `atomic-dashboard` (implemented): KPI cards, per-activity cards with monthly bars, grouped monthly chart + table disclosure, muscle rails, golf focus chips, recent-session timeline. Toggles: light/dark, wide/narrow pane, annotations |
 
 Specs:
 
 - `docs/superpowers/specs/2026-08-09-atomic-tracker-redesign-design.md`
 - `docs/superpowers/specs/2026-08-09-atomic-tracker-task-breakdown.md`
 - `docs/superpowers/specs/2026-08-09-habits-basecolor-heatmap-filter-design.md`
+- `docs/superpowers/specs/2026-09-09-atomic-dashboard-modern-ui-design.md`
