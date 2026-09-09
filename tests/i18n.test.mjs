@@ -5,10 +5,13 @@ import { en } from "../src/i18n/locales/en.ts";
 import { zhHantEn } from "../src/i18n/locales/zh-Hant-en.ts";
 import { formatMonthLabel, fullDateEn, fullDateZh } from "../src/dates.ts";
 import { mergeSettings } from "../src/util/merge-settings.ts";
+import { DEFAULT_SETTINGS } from "../src/types.ts";
 
-test("default language is zh-Hant-en", () => {
-  assert.equal(DEFAULT_LANGUAGE, "zh-Hant-en");
-  assert.equal(mergeSettings(null).language, "zh-Hant-en");
+test("default language is en", () => {
+  assert.equal(DEFAULT_LANGUAGE, "en");
+  assert.equal(DEFAULT_SETTINGS.language, "en");
+  assert.equal(mergeSettings(null).language, "en");
+  assert.equal(mergeSettings({}).language, "en");
 });
 
 test("isLanguage accepts only en and zh-Hant-en", () => {
@@ -19,8 +22,12 @@ test("isLanguage accepts only en and zh-Hant-en", () => {
 });
 
 test("mergeSettings rejects unknown language", () => {
-  assert.equal(mergeSettings({ language: "zh-Hans" }).language, "zh-Hant-en");
+  assert.equal(mergeSettings({ language: "zh-Hans" }).language, "en");
   assert.equal(mergeSettings({ language: "en" }).language, "en");
+});
+
+test("mergeSettings keeps saved zh-Hant-en", () => {
+  assert.equal(mergeSettings({ language: "zh-Hant-en" }).language, "zh-Hant-en");
 });
 
 test("locale key parity", () => {

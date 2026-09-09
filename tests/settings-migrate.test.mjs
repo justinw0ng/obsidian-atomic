@@ -213,6 +213,10 @@ test("mergeSettings keeps language en when set", () => {
   assert.equal(mergeSettings({ language: "en" }).language, "en");
 });
 
+test("mergeSettings keeps language zh-Hant-en when set", () => {
+  assert.equal(mergeSettings({ language: "zh-Hant-en" }).language, "zh-Hant-en");
+});
+
 test("mergeSettings prefers stored activityTypes over legacy series", () => {
   const s = mergeSettings({
     series: [{ id: "gym", label: "Gym", folder: "Gym", colors: ["#1", "#2", "#3", "#4"], kind: "gym" }],

@@ -123,7 +123,7 @@ npm run build
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
-| Language | Traditional Chinese & English (`zh-Hant-en`) | Plugin UI language. Options are Traditional Chinese & English or English; existing notes are not rewritten |
+| Language | English (`en`) | Plugin UI language. Options are English or Traditional Chinese & English (`zh-Hant-en`); existing notes are not rewritten. Saved language is kept on existing installs |
 | Timezone | `Asia/Hong_Kong` | “Today” and new session dates |
 | Dashboard path | `atomics/Dashboard.md` | Target of **Open dashboard** |
 | Exercise types | Gym, Golf | Enable/disable, label, folder, cues, **one color**, delete; add custom exercises |
