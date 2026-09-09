@@ -2,12 +2,13 @@
  * Recapture USER_GUIDE screenshots with original demo covers (no publisher art).
  *
  * Run: node scripts/capture-user-guide-screenshots.mjs
+ * Optional: ATOMIC_DOCS_SHOTS=dashboard (comma-separated: bookShelf,timer,gymLog,dashboard,settings,enable)
  */
 import { spawn, spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { By, Key } from "selenium-webdriver";
+import { Key } from "selenium-webdriver";
 import { E2E_VAULT_ID, registerVaultInObsidianConfig } from "../e2e/lib/vault.mjs";
 import {
   ARTIFACT_DIR,
@@ -59,6 +60,27 @@ const OUTPUTS = {
 
 const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
 const DASHBOARD_MOBILE = { width: 390, height: 844 };
+
+/** Comma-separated shot names, or `all`. Example: ATOMIC_DOCS_SHOTS=dashboard */
+const REQUESTED_SHOTS = new Set(
+  (process.env.ATOMIC_DOCS_SHOTS || "all")
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean),
+);
+
+function wantShot(name) {
+  return REQUESTED_SHOTS.has("all") || REQUESTED_SHOTS.has(name);
+}
+
+function assertDashboardBundle() {
+  const bundle = readFileSync(join(ROOT, "main.js"), "utf8");
+  if (!bundle.includes("atomic-dashboard-recent")) {
+    throw new Error(
+      "main.js is missing the card dashboard. Run `npm run build`, recapture, then `git checkout -- main.js` if you are not shipping a release.",
+    );
+  }
+}
 
 async function collapseSidebars(driver) {
   await driver.executeScript(`
@@ -249,8 +271,14 @@ async function openNote(driver, path) {
 
 async function hideNoteProperties(driver) {
   await driver.executeScript(`
-    const meta = document.querySelector(".metadata-container");
-    if (meta) meta.style.setProperty("display", "none");
+    if (app.vault?.setConfig) {
+      app.vault.setConfig("propertiesInDocument", "hidden");
+    }
+    for (const el of document.querySelectorAll(
+      ".metadata-container, .metadata-properties-heading, .metadata-add-button",
+    )) {
+      el.style.setProperty("display", "none");
+    }
   `);
 }
 
@@ -267,19 +295,40 @@ async function captureTo(driver, name, destName) {
   return dest;
 }
 
-async function captureElementTo(driver, css, name) {
+async function captureFullPageProof(driver, css, name, width) {
   mkdirSync(ARTIFACT_DIR, { recursive: true });
-  const el = await driver.findElement(By.css(css));
-  await driver.executeScript(
-    `arguments[0].scrollIntoView({ block: "start", inline: "nearest" });`,
-    el,
-  );
-  await sleep(200);
-  const png = await el.takeScreenshot();
-  const dest = join(ARTIFACT_DIR, `${name}.png`);
-  writeFileSync(dest, png, "base64");
-  console.log(`Wrote ${dest}`);
-  return dest;
+  try {
+    const size = await driver.executeScript(
+      `
+      const el = [...document.querySelectorAll(arguments[0])].find((node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.width > 20 && rect.height > 20;
+      });
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      return {
+        width: Math.ceil(rect.width),
+        height: Math.ceil(Math.max(el.scrollHeight || 0, rect.height)),
+      };
+      `,
+      css,
+    );
+    if (!size || size.width < 10 || size.height < 10) {
+      console.warn(`Skip full-page ${name}: element not measurable (${JSON.stringify(size)})`);
+      return null;
+    }
+    const chrome = 160;
+    await resizeWindow(driver, width, Math.min(size.height + chrome, 4000));
+    await parkMouse(driver);
+    await sleep(400);
+    const src = await saveScreenshot(driver, name);
+    console.log(`Wrote proof ${src}`);
+    return src;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Skip full-page ${name}: ${message}`);
+    return null;
+  }
 }
 
 async function openCommunityPlugins(driver) {
@@ -310,80 +359,104 @@ async function main() {
     throw new Error(`Cannot capture screenshots: ${skip}`);
   }
 
+  if (wantShot("dashboard")) assertDashboardBundle();
   prepareUserGuideVault();
-  const launched = await launchForCapture(USER_GUIDE_VAULT, FILES.bookShelf);
+  const launchFile = wantShot("bookShelf") ? FILES.bookShelf : FILES.dashboard;
+  const launched = await launchForCapture(USER_GUIDE_VAULT, launchFile);
   const driver = await attachSelenium(undefined, launched.version);
   try {
     await switchToObsidianWindow(driver);
     await waitForPlugin(driver);
     await resizeWindow(driver, 1920, 1200);
 
-    await openNote(driver, FILES.bookShelf);
-    await waitCss(driver, '[data-testid="atomic-bookshelf"]');
-    await waitForCoverImages(driver, 12);
-    await parkMouse(driver);
-    await sleep(900);
-    await captureTo(driver, "user-guide-book-shelf", OUTPUTS.bookShelf);
+    if (wantShot("bookShelf")) {
+      await openNote(driver, FILES.bookShelf);
+      await waitCss(driver, '[data-testid="atomic-bookshelf"]');
+      await waitForCoverImages(driver, 12);
+      await parkMouse(driver);
+      await sleep(900);
+      await captureTo(driver, "user-guide-book-shelf", OUTPUTS.bookShelf);
 
-    await openCover(driver, OPEN_COVER_TITLE);
-    await captureTo(driver, "user-guide-book-shelf-open", OUTPUTS.bookShelfOpen);
-    await parkMouse(driver);
+      await openCover(driver, OPEN_COVER_TITLE);
+      await captureTo(driver, "user-guide-book-shelf-open", OUTPUTS.bookShelfOpen);
+      await parkMouse(driver);
+    }
 
-    await openNote(driver, FILES.timerItem);
-    await waitCss(driver, '[data-testid="atomic-timer"]');
-    await waitCss(driver, '[data-testid="atomic-timer-stop"]');
-    await parkMouse(driver);
-    await sleep(500);
-    await captureTo(driver, "user-guide-reading-timer", OUTPUTS.timer);
+    if (wantShot("timer")) {
+      await openNote(driver, FILES.timerItem);
+      await waitCss(driver, '[data-testid="atomic-timer"]');
+      await waitCss(driver, '[data-testid="atomic-timer-stop"]');
+      await parkMouse(driver);
+      await sleep(500);
+      await captureTo(driver, "user-guide-reading-timer", OUTPUTS.timer);
+    }
 
-    await openNote(driver, FILES.gymSession);
-    await waitCss(driver, '[data-testid="atomic-gym-log"]');
-    await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
-    await parkMouse(driver);
-    await sleep(500);
-    await captureTo(driver, "user-guide-gym-log", OUTPUTS.gymLog);
+    if (wantShot("gymLog")) {
+      await openNote(driver, FILES.gymSession);
+      await waitCss(driver, '[data-testid="atomic-gym-log"]');
+      await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
+      await parkMouse(driver);
+      await sleep(500);
+      await captureTo(driver, "user-guide-gym-log", OUTPUTS.gymLog);
+    }
 
-    await resizeWindow(driver, DASHBOARD_DESKTOP.width, DASHBOARD_DESKTOP.height);
-    await openNote(driver, FILES.dashboard);
-    await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
-    await hideNoteProperties(driver);
-    await parkMouse(driver);
-    await sleep(500);
-    await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);
-    copyFileSync(join(IMAGES, OUTPUTS.dashboard), join(IMAGES, OUTPUTS.dashboardDesktop));
-    console.log(`Wrote ${join(IMAGES, OUTPUTS.dashboardDesktop)}`);
-    await captureElementTo(driver, '[data-testid="atomic-dashboard"]', "dashboard-desktop-fullpage");
+    if (wantShot("dashboard")) {
+      await resizeWindow(driver, DASHBOARD_DESKTOP.width, DASHBOARD_DESKTOP.height);
+      await openNote(driver, FILES.dashboard);
+      await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+      await hideNoteProperties(driver);
+      await parkMouse(driver);
+      await sleep(500);
+      await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);
+      copyFileSync(join(IMAGES, OUTPUTS.dashboard), join(IMAGES, OUTPUTS.dashboardDesktop));
+      console.log(`Wrote ${join(IMAGES, OUTPUTS.dashboardDesktop)}`);
+      await captureFullPageProof(
+        driver,
+        '[data-testid="atomic-dashboard"]',
+        "dashboard-desktop-fullpage",
+        DASHBOARD_DESKTOP.width,
+      );
 
-    await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
-    await openNote(driver, FILES.dashboard);
-    await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
-    await hideNoteProperties(driver);
-    await parkMouse(driver);
-    await sleep(600);
-    await captureTo(driver, "readme-dashboard-mobile", OUTPUTS.dashboardMobile);
-    await captureElementTo(driver, '[data-testid="atomic-dashboard"]', "dashboard-mobile-fullpage");
-    await resizeWindow(driver, 1920, 1200);
+      await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
+      await openNote(driver, FILES.dashboard);
+      await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+      await hideNoteProperties(driver);
+      await parkMouse(driver);
+      await sleep(600);
+      await captureTo(driver, "readme-dashboard-mobile", OUTPUTS.dashboardMobile);
+      await captureFullPageProof(
+        driver,
+        '[data-testid="atomic-dashboard"]',
+        "dashboard-mobile-fullpage",
+        DASHBOARD_MOBILE.width,
+      );
+      await resizeWindow(driver, 1920, 1200);
+    }
 
-    await openNote(driver, FILES.bookShelf);
-    await waitCss(driver, '[data-testid="atomic-bookshelf"]');
-    await waitForCoverImages(driver, 12);
-    await openAtomicSettings(driver);
-    await waitCss(driver, '[data-testid="atomic-setting-activity"]');
-    await driver.executeScript(`
+    if (wantShot("settings")) {
+      await openNote(driver, FILES.bookShelf);
+      await waitCss(driver, '[data-testid="atomic-bookshelf"]');
+      await waitForCoverImages(driver, 12);
+      await openAtomicSettings(driver);
+      await waitCss(driver, '[data-testid="atomic-setting-activity"]');
+      await driver.executeScript(`
       const heading = Array.from(document.querySelectorAll(".setting-item-heading, .setting-item-name"))
         .find((el) => /exercise types/i.test(el.textContent || ""));
       heading?.scrollIntoView({ block: "start" });
     `);
-    await sleep(400);
-    await captureTo(driver, "user-guide-settings", OUTPUTS.settings);
-    await closeSettings(driver);
+      await sleep(400);
+      await captureTo(driver, "user-guide-settings", OUTPUTS.settings);
+      await closeSettings(driver);
+    }
 
-    await resizeWindow(driver, 1280, 800);
-    await openNote(driver, FILES.timerItem);
-    await waitCss(driver, '[data-testid="atomic-timer"]');
-    await openCommunityPlugins(driver);
-    await sleep(600);
-    await captureTo(driver, "user-guide-enable-plugin", OUTPUTS.enable);
+    if (wantShot("enable")) {
+      await resizeWindow(driver, 1280, 800);
+      await openNote(driver, FILES.timerItem);
+      await waitCss(driver, '[data-testid="atomic-timer"]');
+      await openCommunityPlugins(driver);
+      await sleep(600);
+      await captureTo(driver, "user-guide-enable-plugin", OUTPUTS.enable);
+    }
   } finally {
     await stopSession({ driver });
   }
