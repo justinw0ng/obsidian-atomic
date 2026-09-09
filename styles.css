@@ -430,16 +430,40 @@
   flex: 0 0 auto;
 }
 
-.fitness-plugin .atomic-dash-spark-bar {
+/* Bars: one element, three size families (KPI spark, card month, monthly column). */
+
+.fitness-plugin .atomic-dash-bar {
   display: block;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+}
+
+.fitness-plugin .atomic-dash-bar.is-spark {
   width: 4px;
   border-radius: 1px;
   background: var(--text-faint);
   opacity: 0.7;
 }
 
-.fitness-plugin .atomic-dash-spark-bar.is-zero {
+.fitness-plugin .atomic-dash-bar.is-spark.is-zero {
   opacity: 0.3;
+}
+
+.fitness-plugin .atomic-dash-bar.is-month {
+  opacity: 0.85;
+}
+
+.fitness-plugin .atomic-dash-bar.is-column {
+  width: 100%;
+  max-width: 14px;
+  border-radius: 3px 3px 0 0;
+}
+
+.fitness-plugin .atomic-dash-bar.is-month.is-zero,
+.fitness-plugin .atomic-dash-bar.is-column.is-zero {
+  background: var(--background-modifier-border);
+  opacity: 1;
+  height: 2px;
 }
 
 /* Section titles */
@@ -533,20 +557,6 @@
   height: 46px;
 }
 
-.fitness-plugin .atomic-dash-bar {
-  display: block;
-  border-radius: 2px 2px 0 0;
-  opacity: 0.85;
-  min-height: 2px;
-}
-
-.fitness-plugin .atomic-dash-bar.is-zero,
-.fitness-plugin .atomic-dash-col-bar.is-zero {
-  background: var(--background-modifier-border);
-  opacity: 1;
-  height: 2px;
-}
-
 .fitness-plugin .atomic-dash-months {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -570,6 +580,10 @@
   justify-content: space-between;
   gap: 8px;
   font-size: var(--font-ui-small, 13px);
+}
+
+.fitness-plugin .atomic-dash-activity-foot a.atomic-dash-link::after {
+  content: " →";
 }
 
 .fitness-plugin .atomic-dash-felt {
@@ -634,14 +648,6 @@
   align-items: flex-end;
   justify-content: center;
   height: 100%;
-}
-
-.fitness-plugin .atomic-dash-col-bar {
-  display: block;
-  width: 100%;
-  max-width: 14px;
-  border-radius: 3px 3px 0 0;
-  min-height: 2px;
 }
 
 .fitness-plugin .atomic-dash-chart details summary {

@@ -10,9 +10,8 @@ import {
   splitHoursMinutes,
 } from "../src/core/dashboard.ts";
 import { parseSetTable } from "../src/core/set-table.ts";
-import { parseTimeLog } from "../src/core/hobby.ts";
+import { minutesByMonthForYear, parseTimeLog } from "../src/core/hobby.ts";
 import { DEFAULT_ACTIVITY_TYPES } from "../src/types.ts";
-import { weekdayDateForLanguage } from "../src/dates.ts";
 
 const [GYM, GOLF, READING] = DEFAULT_ACTIVITY_TYPES;
 
@@ -126,7 +125,7 @@ test("buildDashboardModel builds one card per activity with domain-specific fiel
   assert.deepEqual(gym.monthly, [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   assert.equal(gym.lastDate, "2026-03-15");
   assert.equal(gym.felt, null);
-  assert.equal(gym.inProgress, null);
+  assert.equal("inProgress" in gym, false);
 
   assert.equal(golf.volumeKg, null);
   assert.deepEqual(golf.felt, { good: 1, ok: 0, bad: 1 });
@@ -137,7 +136,8 @@ test("buildDashboardModel builds one card per activity with domain-specific fiel
   assert.equal(reading.minutes, 70);
   assert.equal(reading.inProgress, 1);
   assert.deepEqual(reading.monthly, [45, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0]);
-  assert.equal(reading.lastDate, null);
+  assert.equal("lastDate" in reading, false);
+  assert.equal("felt" in reading, false);
 });
 
 test("buildDashboardModel emits monthly table columns per activity kind", () => {
@@ -160,8 +160,8 @@ test("buildDashboardModel ranks muscles by volume then sets", () => {
 test("buildDashboardModel counts golf focus tags and normalizes felt", () => {
   const model = buildDashboardModel(fixture());
   assert.deepEqual(model.golfFocus, [
-    ["Tempo", 2],
-    ["Putting", 1],
+    { tag: "Tempo", count: 2 },
+    { tag: "Putting", count: 1 },
   ]);
   const golfRows = model.recent.filter((row) => row.activity.id === "golf");
   assert.deepEqual(
@@ -200,6 +200,36 @@ test("buildDashboardModel caps recent sessions at ten", () => {
   assert.equal(model.totalHabitMinutes, null);
 });
 
+test("buildDashboardModel buckets set rows without a muscle under an empty name", () => {
+  const rows = parseSetTable(
+    "| Exercise | Muscle | Weight | Reps | Notes |\n| --- | --- | --- | --- | --- |\n| Carry | | 40 | 10 | |\n",
+  );
+  const model = buildDashboardModel({
+    year: 2026,
+    exercise: [
+      { activity: GYM, sessions: [{ meta: session("Gym", "2026-02-02"), setRows: rows }] },
+    ],
+    hobbies: [],
+  });
+  assert.deepEqual(model.muscles, [{ muscle: "", sets: 0, volumeKg: 400 }]);
+});
+
+test("buildDashboardModel only counts reading-now for the reading habit", () => {
+  const chess = { ...READING, id: "chess", label: "Chess" };
+  const model = buildDashboardModel({
+    year: 2026,
+    exercise: [],
+    hobbies: [
+      { activity: chess, items: [{ path: "c.md", frontmatter: { status: "reading" }, entries: [] }] },
+    ],
+  });
+  assert.equal(model.activities[0].domain, "hobby");
+  assert.equal(model.activities[0].inProgress, null);
+  assert.equal(model.totalHabitMinutes, 0);
+  assert.equal(model.totalVolumeKg, null);
+  assert.equal(model.muscles, null);
+});
+
 test("buildDashboardModel hides volume, muscles, and golf sections when not applicable", () => {
   const model = buildDashboardModel({
     year: 2026,
@@ -230,20 +260,35 @@ test("buildDashboardModel ignores sessions without a date for month buckets", ()
   assert.equal(model.recent.length, 0);
 });
 
-test("formatting helpers", () => {
+test("minutesByMonthForYear buckets time-log minutes by month for one year", () => {
+  const entries = parseTimeLog(
+    "## Time log\n\n- 2026-01-03 | 30 min | a\n- 2026-01-20 | 15 min | b\n- 2026-12-31 | 5 min | c\n- 2025-12-31 | 99 min | old\n",
+  );
+  assert.deepEqual(minutesByMonthForYear(entries, 2026), [45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5]);
+  assert.deepEqual(minutesByMonthForYear(entries, 2024), Array(12).fill(0));
+});
+
+test("monthIndexFromDate maps YYYY-MM-DD to a 0-based month or -1", () => {
   assert.equal(monthIndexFromDate("2026-08-14"), 7);
   assert.equal(monthIndexFromDate("2026-13-01"), -1);
   assert.equal(monthIndexFromDate(null), -1);
+});
+
+test("splitHoursMinutes and averagePerSession round the way the KPI cards show them", () => {
   assert.deepEqual(splitHoursMinutes(12898), { hours: 214, minutes: 58 });
   assert.deepEqual(splitHoursMinutes(0), { hours: 0, minutes: 0 });
   assert.equal(averagePerSession(12898, 192), 67);
   assert.equal(averagePerSession(10, 0), 0);
+});
+
+test("formatKg and formatCompactKg", () => {
   assert.equal(formatKg(84480), "84,480");
   assert.equal(formatKg(12.345), "12.3");
   assert.equal(formatCompactKg(84480), "84.5k");
   assert.equal(formatCompactKg(900), "900");
+});
+
+test("barHeights scales to the max with a visible floor for non-zero values", () => {
   assert.deepEqual(barHeights([0, 0]), [0, 0]);
   assert.deepEqual(barHeights([13, 0, 7, 1]), [100, 0, 54, 8]);
-  assert.equal(weekdayDateForLanguage(2026, 8, 14, "en"), "Fri, Aug 14");
-  assert.match(weekdayDateForLanguage(2026, 8, 14, "zh-Hant-en"), /8月14日/);
 });

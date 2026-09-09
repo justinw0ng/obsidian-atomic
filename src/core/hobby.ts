@@ -190,6 +190,18 @@ export function minutesByDateForYear(
   return minutesByDate(entries.filter((entry) => entry.date.startsWith(prefix)));
 }
 
+/** Twelve buckets (Jan → Dec) of logged minutes for one calendar year. */
+export function minutesByMonthForYear(entries: TimeLogEntry[], year: number): number[] {
+  const months = Array(12).fill(0) as number[];
+  const prefix = `${year}-`;
+  for (const entry of entries) {
+    if (!entry.date.startsWith(prefix)) continue;
+    const month = Number(entry.date.slice(5, 7)) - 1;
+    if (month >= 0 && month < 12) months[month] += entry.minutes;
+  }
+  return months;
+}
+
 export function sumMinutesForYear(entries: TimeLogEntry[], year: number): number {
   const prefix = `${year}-`;
   let total = 0;

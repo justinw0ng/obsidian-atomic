@@ -130,12 +130,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
-  it("renders the dashboard cards, switches year, and opens a recent session", async () => {
-    await check(driver, "dashboard", async () => {
+  it("renders the dashboard KPIs, activity cards, and detail sections", async () => {
+    await check(driver, "dashboard-cards", async () => {
       const year = today.slice(0, 4);
-      const gymPath = E2E_FILES.gymSession(year, today);
-      const golfPath = E2E_FILES.golfSession(year, today);
-
       await openVaultFile(driver, E2E_FILES.dashboard);
       await waitCss(driver, `[data-testid="atomic-dashboard"][data-year="${year}"]`);
 
@@ -176,18 +173,25 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         return [...document.querySelectorAll('[data-testid="atomic-dashboard-recent-row"]')]
           .map((row) => row.getAttribute("data-path"));
       `);
-      assert.deepEqual(recentPaths, [golfPath, gymPath]);
+      assert.deepEqual(recentPaths, [
+        E2E_FILES.golfSession(year, today),
+        E2E_FILES.gymSession(year, today),
+      ]);
+    });
+  });
+
+  it("switches the dashboard year in place", async () => {
+    await check(driver, "dashboard-year", async () => {
+      const year = today.slice(0, 4);
+      await openVaultFile(driver, E2E_FILES.dashboard);
+      await waitCss(driver, `[data-testid="atomic-dashboard"][data-year="${year}"]`);
 
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-dashboard-year-prev"]').click()`,
       );
       await waitCss(
         driver,
-        `[data-testid="atomic-dashboard"][data-year="${Number(year) - 1}"]`,
-      );
-      await waitCss(
-        driver,
-        '[data-testid="atomic-dashboard-activity"][data-activity="gym"][data-count="0"]',
+        `[data-testid="atomic-dashboard"][data-year="${Number(year) - 1}"] [data-testid="atomic-dashboard-activity"][data-activity="gym"][data-count="0"]`,
       );
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-dashboard-year-next"]').click()`,
@@ -196,28 +200,41 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         driver,
         `[data-testid="atomic-dashboard"][data-year="${year}"] [data-testid="atomic-dashboard-activity"][data-activity="gym"][data-count="1"]`,
       );
+    });
+  });
 
-      await driver.executeScript(`
-        const plugin = app.plugins.getPlugin("atomic-tracker");
-        plugin.settings.activityTypes.find((a) => a.id === "reading").enabled = false;
-      `);
-      await openVaultFile(driver, E2E_FILES.heatmapGymGolf);
-      await waitCss(driver, '[data-testid="atomic-heatmap"][data-activity="gym"]');
+  it("drops a disabled habit from the dashboard", async () => {
+    await check(driver, "dashboard-disabled-habit", async () => {
+      const setReadingEnabled = (enabled) =>
+        driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.activityTypes.find((a) => a.id === "reading").enabled = ${enabled};
+        `);
+      await setReadingEnabled(false);
+      try {
+        await openVaultFile(driver, E2E_FILES.heatmapGymGolf);
+        await waitCss(driver, '[data-testid="atomic-heatmap"][data-activity="gym"]');
+        await openVaultFile(driver, E2E_FILES.dashboard);
+        await waitCss(driver, '[data-testid="atomic-dashboard-activity"][data-activity="golf"]');
+        const readingCards = await driver.findElements(
+          By.css('[data-testid="atomic-dashboard-activity"][data-activity="reading"]'),
+        );
+        assert.equal(readingCards.length, 0);
+        const habitKpis = await driver.findElements(
+          By.css('[data-testid="atomic-dashboard-kpi"][data-kpi="habit-time"]'),
+        );
+        assert.equal(habitKpis.length, 0);
+      } finally {
+        await setReadingEnabled(true);
+      }
+    });
+  });
+
+  it("opens a session note from the dashboard recent list", async () => {
+    await check(driver, "dashboard-open-recent", async () => {
+      const gymPath = E2E_FILES.gymSession(today.slice(0, 4), today);
       await openVaultFile(driver, E2E_FILES.dashboard);
-      await waitCss(driver, '[data-testid="atomic-dashboard-activity"][data-activity="golf"]');
-      const readingCards = await driver.findElements(
-        By.css('[data-testid="atomic-dashboard-activity"][data-activity="reading"]'),
-      );
-      assert.equal(readingCards.length, 0);
-      const kpisWithoutHabits = await driver.findElements(
-        By.css('[data-testid="atomic-dashboard-kpi"][data-kpi="habit-time"]'),
-      );
-      assert.equal(kpisWithoutHabits.length, 0);
-      await driver.executeScript(`
-        const plugin = app.plugins.getPlugin("atomic-tracker");
-        plugin.settings.activityTypes.find((a) => a.id === "reading").enabled = true;
-      `);
-
+      await waitCss(driver, '[data-testid="atomic-dashboard-recent-row"]');
       await driver.executeScript(`
         document.querySelector(
           '[data-testid="atomic-dashboard-recent-row"][data-path=${JSON.stringify(gymPath)}] a'

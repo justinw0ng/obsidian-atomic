@@ -4,28 +4,29 @@ import {
   averagePerSession,
   barHeights,
   buildDashboardModel,
+  FELT_ORDER,
   formatCompactKg,
   formatKg,
   splitHoursMinutes,
   type DashboardActivityCard,
+  type DashboardExerciseCard,
+  type DashboardHobbyCard,
   type DashboardInput,
   type DashboardModel,
+  type Felt,
 } from "../core/dashboard";
 import { nowYear, resolveBlockYear } from "../dates";
-import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
-import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
+import { exerciseActivities, hobbyActivities } from "../util/activity-types";
 import {
-  cuePathForActivity,
-  exerciseActivities,
-  hobbyActivities,
-} from "../util/activity-types";
-import {
+  activityLinks,
+  appendBars,
   appendMonthBars,
   appendPathLink,
   appendSectionTitle,
+  FELT_LABEL_KEY,
   formatCount,
   localDate,
   type DashboardRenderContext,
@@ -35,6 +36,9 @@ import {
   renderDashboardMonthly,
   renderDashboardRecent,
 } from "./dashboard-sections";
+
+/** Bumped per host element so an older year switch cannot paint over a newer one. */
+const renderGeneration = new WeakMap<HTMLElement, number>();
 
 export function resolveDashboardYear(
   opts: Record<string, string>,
@@ -86,63 +90,39 @@ function renderHeader(
   const header = root.createDiv({ cls: "atomic-dash-header" });
   const title = header.createDiv({ cls: "atomic-dash-title" });
   title.createEl("h2", { text: t("view.dashboard.overview", ctx.language, { year: model.year }) });
-  const subtitleParts: string[] = [];
+  const subtitle: string[] = [];
   if (model.firstDate && model.lastDate) {
-    subtitleParts.push(
+    subtitle.push(
       t("view.dashboard.range", ctx.language, {
-        from: localDate(model.firstDate, ctx.language),
-        to: localDate(model.lastDate, ctx.language),
+        from: localDate(model.firstDate, ctx),
+        to: localDate(model.lastDate, ctx),
       }),
     );
   }
-  subtitleParts.push(
+  subtitle.push(
     t("view.dashboard.sessionsCount", ctx.language, { count: formatCount(model.totalSessions) }),
   );
-  title.createSpan({ cls: "atomic-dash-subtitle", text: subtitleParts.join(" · ") });
+  title.createSpan({ cls: "atomic-dash-subtitle", text: subtitle.join(" · ") });
 
-  const switcher = header.createDiv({
-    cls: "atomic-dash-year",
-    attr: { "data-testid": "atomic-dashboard-year" },
-  });
-  const prev = switcher.createEl("button", {
-    text: "‹",
-    attr: {
-      "aria-label": t("view.dashboard.prevYear", ctx.language),
-      "data-testid": "atomic-dashboard-year-prev",
-    },
-  });
-  prev.addEventListener("click", () => onYear(model.year - 1));
+  const switcher = header.createDiv({ cls: "atomic-dash-year" });
+  const yearButton = (label: string, key: string, testId: string, target: number) => {
+    const button = switcher.createEl("button", {
+      text: label,
+      attr: { "aria-label": t(key, ctx.language), "data-testid": testId },
+    });
+    button.addEventListener("click", () => onYear(target));
+  };
+  yearButton("‹", "view.dashboard.prevYear", "atomic-dashboard-year-prev", model.year - 1);
   switcher.createSpan({ text: String(model.year) });
-  const next = switcher.createEl("button", {
-    text: "›",
-    attr: {
-      "aria-label": t("view.dashboard.nextYear", ctx.language),
-      "data-testid": "atomic-dashboard-year-next",
-    },
-  });
-  next.addEventListener("click", () => onYear(model.year + 1));
+  yearButton("›", "view.dashboard.nextYear", "atomic-dashboard-year-next", model.year + 1);
 
   const links = header.createDiv({ cls: "atomic-dash-links" });
-  const appendChip = (label: string, path: string, color: string) => {
-    const chip = appendPathLink(links, "", path, ctx, "atomic-dash-chip");
-    const dot = chip.createSpan({ cls: "atomic-dash-dot" });
-    dot.style.background = color;
-    chip.appendText(label);
-  };
   for (const card of model.activities) {
-    if (card.domain === "exercise" && card.activity.supportsCues) {
-      appendChip(
-        t("view.dashboard.cues", ctx.language, { activity: card.activity.label }),
-        cuePathForActivity(card.activity),
-        card.activity.colors[2],
-      );
+    for (const link of activityLinks(card, ctx)) {
+      const chip = appendPathLink(links, "", link.path, ctx, "atomic-dash-chip");
+      chip.createSpan({ cls: "atomic-dash-dot" }).style.background = link.color;
+      chip.appendText(link.text);
     }
-  }
-  const reading = model.activities.find((card) => card.activity.id === "reading");
-  if (reading) {
-    const color = reading.activity.colors[2];
-    appendChip(t("view.dashboard.readingBookshelf", ctx.language), READING_BOOKSHELF_REL, color);
-    appendChip(t("view.dashboard.bookShelf", ctx.language), BOOK_SHELF_HOST_REL, color);
   }
 }
 
@@ -161,29 +141,47 @@ function appendKpiCard(
   return { value, hint };
 }
 
-function appendHoursMinutes(target: HTMLElement, totalMinutes: number, language: Language): void {
+function appendHoursMinutes(
+  target: HTMLElement,
+  totalMinutes: number,
+  ctx: DashboardRenderContext,
+): void {
   const { hours, minutes } = splitHoursMinutes(totalMinutes);
   target.appendText(formatCount(hours));
-  target.createEl("small", { text: t("view.dashboard.hourUnit", language) });
+  target.createEl("small", { text: t("view.dashboard.hourUnitShort", ctx.language) });
   target.appendText(` ${minutes}`);
-  target.createEl("small", { text: t("view.dashboard.minuteUnit", language) });
+  target.createEl("small", { text: t("view.dashboard.minuteUnitShort", ctx.language) });
 }
 
 function appendSparkline(target: HTMLElement, values: number[]): void {
   const spark = target.createSpan({ cls: "atomic-dash-spark" });
   const heights = barHeights(values);
-  values.forEach((value, index) => {
-    const bar = spark.createSpan({ cls: value > 0 ? "atomic-dash-spark-bar" : "atomic-dash-spark-bar is-zero" });
-    bar.style.height = `${Math.max(10, heights[index])}%`;
-  });
+  appendBars(
+    spark,
+    values.map((value, index) => ({
+      value,
+      height: Math.max(10, heights[index]),
+      color: "",
+    })),
+    "spark",
+  );
+}
+
+function splitText(
+  cards: DashboardActivityCard[],
+  pick: (card: DashboardActivityCard) => number,
+): string {
+  return cards.map((card) => `${card.activity.label} ${formatCount(pick(card))}`).join(" · ");
 }
 
 function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRenderContext): void {
   const grid = root.createDiv({ cls: "atomic-dash-kpis" });
-  const exercise = model.activities.filter((card) => card.domain === "exercise");
-  const hobbies = model.activities.filter((card) => card.domain === "hobby");
-  const splitText = (cards: DashboardActivityCard[], pick: (card: DashboardActivityCard) => number) =>
-    cards.map((card) => `${card.activity.label} ${formatCount(pick(card))}`).join(" · ");
+  const exercise = model.activities.filter(
+    (card): card is DashboardExerciseCard => card.domain === "exercise",
+  );
+  const hobbies = model.activities.filter(
+    (card): card is DashboardHobbyCard => card.domain === "hobby",
+  );
 
   if (exercise.length) {
     const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
@@ -192,7 +190,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
     appendSparkline(sessions.hint, model.sessionsByMonth);
 
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
-    appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx.language);
+    appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx);
     time.hint.createSpan({
       text: t("view.dashboard.avgPerSession", ctx.language, {
         minutes: formatCount(model.totalExerciseMinutes),
@@ -204,9 +202,9 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
   if (model.totalVolumeKg != null) {
     const volume = appendKpiCard(grid, "volume", t("view.dashboard.kpiVolume", ctx.language));
     volume.value.appendText(formatKg(model.totalVolumeKg));
-    volume.value.createEl("small", { text: "kg" });
+    volume.value.createEl("small", { text: t("view.dashboard.kgUnit", ctx.language) });
     const setTableLabels = exercise
-      .filter((card) => card.activity.supportsSetTable)
+      .filter((card) => card.volumeKg != null)
       .map((card) => card.activity.label)
       .join(" · ");
     volume.hint.createSpan({
@@ -217,7 +215,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
 
   if (model.totalHabitMinutes != null) {
     const habit = appendKpiCard(grid, "habit-time", t("view.dashboard.kpiHabitTime", ctx.language));
-    appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx.language);
+    appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx);
     habit.hint.createSpan({
       text: `${splitText(hobbies, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`,
     });
@@ -230,34 +228,80 @@ function appendStat(nums: HTMLElement, value: string, unit: string): void {
   num.createSpan({ text: unit });
 }
 
-function appendFeltBar(card: HTMLElement, felt: NonNullable<DashboardActivityCard["felt"]>, colors: ActivityType["colors"], language: Language): void {
-  const total = felt.good + felt.ok + felt.bad;
+function appendFeltBar(
+  card: HTMLElement,
+  felt: NonNullable<DashboardExerciseCard["felt"]>,
+  colors: ActivityType["colors"],
+  ctx: DashboardRenderContext,
+): void {
+  const total = FELT_ORDER.reduce((sum, key) => sum + felt[key], 0);
   const wrap = card.createDiv({ cls: "atomic-dash-felt-wrap" });
   const bar = wrap.createDiv({
     cls: "atomic-dash-felt",
-    attr: { title: t("view.dashboard.feltTitle", language) },
+    attr: { title: t("view.dashboard.feltTitle", ctx.language) },
   });
   const legend = wrap.createDiv({ cls: "atomic-dash-felt-legend" });
-  const segments: Array<[keyof typeof felt, string, string]> = [
-    ["good", colors[2], t("view.dashboard.feltGood", language)],
-    ["ok", colors[1], t("view.dashboard.feltOk", language)],
-    ["bad", colors[0], t("view.dashboard.feltBad", language)],
-  ];
-  for (const [key, color, label] of segments) {
+  // Darkest shade for good, lightest for bad: same ramp as the heatmap.
+  const shade: Record<Felt, string> = { good: colors[2], ok: colors[1], bad: colors[0] };
+  for (const key of FELT_ORDER) {
     if (total > 0) {
       const seg = bar.createSpan({ cls: "atomic-dash-felt-seg" });
       seg.style.width = `${(felt[key] / total) * 100}%`;
-      seg.style.background = color;
+      seg.style.background = shade[key];
     }
     const item = legend.createSpan();
-    const swatch = item.createSpan({ cls: "atomic-dash-swatch" });
-    swatch.style.background = color;
-    item.appendText(`${label} `);
+    item.createSpan({ cls: "atomic-dash-swatch" }).style.background = shade[key];
+    item.appendText(`${t(FELT_LABEL_KEY[key], ctx.language)} `);
     item.createEl("b", { text: String(felt[key]) });
   }
 }
 
-function renderActivityCard(grid: HTMLElement, card: DashboardActivityCard, ctx: DashboardRenderContext): void {
+function appendExerciseStats(
+  card: HTMLElement,
+  data: DashboardExerciseCard,
+  ctx: DashboardRenderContext,
+): void {
+  const nums = card.createDiv({ cls: "atomic-dash-nums" });
+  appendStat(nums, formatCount(data.count), t("view.dashboard.unitSessions", ctx.language));
+  appendStat(nums, formatCount(data.minutes), t("view.dashboard.unitMinutes", ctx.language));
+  if (data.volumeKg != null) {
+    appendStat(nums, formatCompactKg(data.volumeKg), t("view.dashboard.unitVolume", ctx.language));
+  }
+  appendMonthBars(
+    card,
+    data.monthly,
+    data.activity.colors[2],
+    t("view.dashboard.barsSessions", ctx.language),
+    ctx,
+  );
+  if (data.felt) appendFeltBar(card, data.felt, data.activity.colors, ctx);
+}
+
+function appendHobbyStats(
+  card: HTMLElement,
+  data: DashboardHobbyCard,
+  ctx: DashboardRenderContext,
+): void {
+  const nums = card.createDiv({ cls: "atomic-dash-nums" });
+  appendStat(nums, formatCount(data.count), t("view.dashboard.unitItems", ctx.language));
+  appendStat(nums, formatCount(data.minutes), t("view.dashboard.unitMinutes", ctx.language));
+  if (data.inProgress != null) {
+    appendStat(nums, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
+  }
+  appendMonthBars(
+    card,
+    data.monthly,
+    data.activity.colors[2],
+    t("view.dashboard.barsMinutes", ctx.language),
+    ctx,
+  );
+}
+
+function renderActivityCard(
+  grid: HTMLElement,
+  card: DashboardActivityCard,
+  ctx: DashboardRenderContext,
+): void {
   const { activity } = card;
   const el = grid.createDiv({
     cls: "atomic-dash-card atomic-dash-activity",
@@ -271,56 +315,32 @@ function renderActivityCard(grid: HTMLElement, card: DashboardActivityCard, ctx:
 
   const head = el.createDiv({ cls: "atomic-dash-activity-head" });
   head.createEl("h4", { text: activity.label });
-  head.createSpan({
-    cls: "atomic-dash-kind",
-    text: t(
-      card.domain === "exercise" ? "view.dashboard.domainExercise" : "view.dashboard.domainHabit",
-      ctx.language,
-    ),
-  });
 
-  const nums = el.createDiv({ cls: "atomic-dash-nums" });
-  appendStat(
-    nums,
-    formatCount(card.count),
-    t(card.domain === "exercise" ? "view.dashboard.unitSessions" : "view.dashboard.unitItems", ctx.language),
-  );
-  appendStat(nums, formatCount(card.minutes), t("view.dashboard.unitMinutes", ctx.language));
-  if (card.volumeKg != null) {
-    appendStat(nums, formatCompactKg(card.volumeKg), t("view.dashboard.unitVolume", ctx.language));
-  }
-  if (card.inProgress != null && activity.id === "reading") {
-    appendStat(nums, formatCount(card.inProgress), t("view.dashboard.readingNow", ctx.language));
+  switch (card.domain) {
+    case "exercise":
+      head.createSpan({ cls: "atomic-dash-kind", text: t("view.dashboard.domainExercise", ctx.language) });
+      appendExerciseStats(el, card, ctx);
+      break;
+    case "hobby":
+      head.createSpan({ cls: "atomic-dash-kind", text: t("view.dashboard.domainHabit", ctx.language) });
+      appendHobbyStats(el, card, ctx);
+      break;
+    default: {
+      const exhaustive: never = card;
+      return exhaustive;
+    }
   }
 
-  appendMonthBars(
-    el,
-    card.monthly,
-    activity.colors[2],
-    t(card.domain === "exercise" ? "view.dashboard.barsSessions" : "view.dashboard.barsMinutes", ctx.language),
-    ctx.language,
-  );
-
-  if (card.felt) appendFeltBar(el, card.felt, activity.colors, ctx.language);
-
+  const links = activityLinks(card, ctx);
+  const lastDate = card.domain === "exercise" ? card.lastDate : null;
+  if (!links.length && !lastDate) return;
   const foot = el.createDiv({ cls: "atomic-dash-activity-foot" });
-  if (card.domain === "exercise" && activity.supportsCues) {
-    appendPathLink(
-      foot,
-      t("view.dashboard.openCues", ctx.language, { activity: activity.label }),
-      cuePathForActivity(activity),
-      ctx,
-    );
-  }
-  if (card.lastDate) {
+  for (const link of links) appendPathLink(foot, link.text, link.path, ctx);
+  if (lastDate) {
     foot.createSpan({
       cls: "atomic-dash-meta",
-      text: t("view.dashboard.lastSession", ctx.language, { date: localDate(card.lastDate, ctx.language) }),
+      text: t("view.dashboard.lastSession", ctx.language, { date: localDate(lastDate, ctx) }),
     });
-  }
-  if (activity.id === "reading") {
-    appendPathLink(foot, `${t("view.dashboard.readingBookshelf", ctx.language)} →`, READING_BOOKSHELF_REL, ctx);
-    appendPathLink(foot, `${t("view.dashboard.bookShelf", ctx.language)} →`, BOOK_SHELF_HOST_REL, ctx);
   }
 }
 
@@ -342,8 +362,10 @@ export async function renderDashboard(
   year: number,
   language: Language,
 ): Promise<void> {
+  const generation = (renderGeneration.get(el) ?? 0) + 1;
+  renderGeneration.set(el, generation);
   const model = buildDashboardModel(await collectDashboardInput(data, activityTypes, year));
-  if (!el.isConnected) return;
+  if (!el.isConnected || renderGeneration.get(el) !== generation) return;
 
   el.empty();
   const root = el.createDiv({

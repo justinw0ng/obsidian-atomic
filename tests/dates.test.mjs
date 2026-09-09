@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { nowYear, resolveBlockYear } from "../src/dates.ts";
+import { nowYear, resolveBlockYear, weekdayDateForLanguage } from "../src/dates.ts";
 
 test("resolveBlockYear prefers opts.year then frontmatter then fallback", () => {
   assert.equal(
@@ -41,4 +41,9 @@ test("resolveBlockYear uses source path only when frontmatter is absent", () => 
 
 test("nowYear matches timezone calendar year", () => {
   assert.equal(typeof nowYear("UTC"), "number");
+});
+
+test("weekdayDateForLanguage adds the short weekday per language", () => {
+  assert.equal(weekdayDateForLanguage(2026, 8, 14, "en"), "Fri, Aug 14");
+  assert.match(weekdayDateForLanguage(2026, 8, 14, "zh-Hant-en"), /8月14日/);
 });

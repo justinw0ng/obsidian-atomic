@@ -2,9 +2,11 @@
 
 import type { TimeLogEntry } from "./hobby";
 import type { SetRow } from "./set-table";
-import type { ActivityType, Domain, SessionMeta } from "../types";
+import type { ActivityType, SessionMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { rowVolumeKg } from "../core.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { minutesByMonthForYear } from "./hobby.ts";
 
 export type DashboardSessionInput = {
   meta: SessionMeta;
@@ -34,22 +36,35 @@ export type DashboardInput = {
   hobbies: DashboardHobbyInput[];
 };
 
-export type FeltCounts = { good: number; ok: number; bad: number };
+export type Felt = "good" | "ok" | "bad";
+export type FeltCounts = Record<Felt, number>;
+export const FELT_ORDER: readonly Felt[] = ["good", "ok", "bad"];
 
-export type DashboardActivityCard = {
+type DashboardCardBase = {
   activity: ActivityType;
-  domain: Domain;
   /** Sessions for exercise, items for hobbies. */
   count: number;
   minutes: number;
-  volumeKg: number | null;
   /** Sessions per month (exercise) or timer minutes per month (hobby). */
   monthly: number[];
+};
+
+export type DashboardExerciseCard = DashboardCardBase & {
+  domain: "exercise";
+  /** Null unless the activity supports a set table. */
+  volumeKg: number | null;
   lastDate: string | null;
+  /** Golf only. */
   felt: FeltCounts | null;
-  /** Hobby items whose `status` is `reading`; null for exercise cards. */
+};
+
+export type DashboardHobbyCard = DashboardCardBase & {
+  domain: "hobby";
+  /** Reading only: items whose `status` is `reading`. */
   inProgress: number | null;
 };
+
+export type DashboardActivityCard = DashboardExerciseCard | DashboardHobbyCard;
 
 export type DashboardMonthlyColumn = {
   activity: ActivityType;
@@ -57,7 +72,14 @@ export type DashboardMonthlyColumn = {
   values: number[];
 };
 
-export type DashboardMuscleRow = { muscle: string; sets: number; volumeKg: number };
+export type DashboardMuscleRow = {
+  /** Empty when set rows carried volume without a muscle. */
+  muscle: string;
+  sets: number;
+  volumeKg: number;
+};
+
+export type DashboardFocusTag = { tag: string; count: number };
 
 export type DashboardRecentRow = {
   date: string;
@@ -65,7 +87,7 @@ export type DashboardRecentRow = {
   path: string;
   minutes: number;
   volumeKg: number | null;
-  felt: string | null;
+  felt: Felt | null;
 };
 
 export type DashboardModel = {
@@ -83,11 +105,13 @@ export type DashboardModel = {
   activities: DashboardActivityCard[];
   monthlyColumns: DashboardMonthlyColumn[];
   muscles: DashboardMuscleRow[] | null;
-  golfFocus: Array<[string, number]> | null;
+  golfFocus: DashboardFocusTag[] | null;
   recent: DashboardRecentRow[];
 };
 
-export const DASHBOARD_RECENT_LIMIT = 10;
+const RECENT_LIMIT = 10;
+const GOLF_ID = "golf";
+const READING_ID = "reading";
 
 export function monthIndexFromDate(dateStr: string | null | undefined): number {
   const m = String(dateStr || "").match(/^\d{4}-(\d{2})-/);
@@ -96,14 +120,16 @@ export function monthIndexFromDate(dateStr: string | null | undefined): number {
   return index >= 0 && index < 12 ? index : -1;
 }
 
-export function emptyMonths(): number[] {
+function emptyMonths(): number[] {
   return Array(12).fill(0) as number[];
 }
 
-export function sortCountsDesc(map: Map<string, number>): Array<[string, number]> {
-  return [...map.entries()].sort(
-    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
-  );
+function addMonths(target: number[], source: number[]): void {
+  for (let i = 0; i < 12; i++) target[i] += source[i];
+}
+
+function bump(map: Map<string, number>, key: string, by: number): void {
+  map.set(key, (map.get(key) || 0) + by);
 }
 
 export function formatKg(n: number): string {
@@ -133,174 +159,189 @@ export function barHeights(values: number[]): number[] {
   return values.map((v) => (v <= 0 ? 0 : Math.max(4, Math.round((v / max) * 100))));
 }
 
-export function feltShare(felt: FeltCounts): { good: number; ok: number; bad: number } {
-  const total = felt.good + felt.ok + felt.bad;
-  if (total <= 0) return { good: 0, ok: 0, bad: 0 };
-  return {
-    good: (felt.good / total) * 100,
-    ok: (felt.ok / total) * 100,
-    bad: (felt.bad / total) * 100,
-  };
-}
-
-function isInProgressStatus(frontmatter: Record<string, unknown>): boolean {
-  return String(frontmatter.status ?? "").trim().toLowerCase() === "reading";
-}
-
-function minutesByMonthForYear(entries: TimeLogEntry[], year: number): number[] {
-  const months = emptyMonths();
-  const prefix = `${year}-`;
-  for (const entry of entries) {
-    if (!entry.date.startsWith(prefix)) continue;
-    const mi = monthIndexFromDate(entry.date);
-    if (mi >= 0) months[mi] += entry.minutes;
-  }
-  return months;
-}
-
-function normalizeFelt(felt: unknown): keyof FeltCounts | null {
+function normalizeFelt(felt: unknown): Felt | null {
   const value = String(felt || "").toLowerCase();
   return value === "good" || value === "ok" || value === "bad" ? value : null;
 }
 
-export function buildDashboardModel(input: DashboardInput): DashboardModel {
-  const sessionsByMonth = emptyMonths();
-  const volumeByMonth = emptyMonths();
-  const muscleVolume = new Map<string, number>();
+type ExerciseSummary = {
+  card: DashboardExerciseCard;
+  columns: DashboardMonthlyColumn[];
+  recent: DashboardRecentRow[];
+  muscleSets: Map<string, number>;
+  muscleVolume: Map<string, number>;
+  focusCounts: Map<string, number>;
+};
+
+function summarizeExercise({ activity, sessions }: DashboardExerciseInput): ExerciseSummary {
+  const monthly = emptyMonths();
+  const monthlyVolume = emptyMonths();
+  const felt: FeltCounts = { good: 0, ok: 0, bad: 0 };
   const muscleSets = new Map<string, number>();
+  const muscleVolume = new Map<string, number>();
   const focusCounts = new Map<string, number>();
   const recent: DashboardRecentRow[] = [];
-  const activities: DashboardActivityCard[] = [];
-  const monthlyColumns: DashboardMonthlyColumn[] = [];
-
-  let totalSessions = 0;
-  let totalExerciseMinutes = 0;
-  let totalVolumeKg = 0;
-  let anySetTable = false;
-  let anyGolf = false;
-  let firstDate: string | null = null;
+  const isGolf = activity.id === GOLF_ID;
+  let minutes = 0;
+  let volumeKg = 0;
   let lastDate: string | null = null;
 
-  for (const { activity, sessions } of input.exercise) {
-    const monthly = emptyMonths();
-    const monthlyVolume = emptyMonths();
-    const felt: FeltCounts = { good: 0, ok: 0, bad: 0 };
-    let minutes = 0;
-    let volumeKg = 0;
-    let activityLast: string | null = null;
-    const isGolf = activity.id === "golf";
-    if (activity.supportsSetTable) anySetTable = true;
-    if (isGolf) anyGolf = true;
+  for (const { meta, setRows } of sessions) {
+    const mi = monthIndexFromDate(meta.date);
+    minutes += meta.duration_min;
+    if (mi >= 0) monthly[mi] += 1;
 
-    for (const { meta, setRows } of sessions) {
-      const mi = monthIndexFromDate(meta.date);
-      minutes += meta.duration_min;
-      if (mi >= 0) {
-        monthly[mi] += 1;
-        sessionsByMonth[mi] += 1;
+    let sessionVolume = 0;
+    if (activity.supportsSetTable) {
+      for (const row of setRows) {
+        const vol = rowVolumeKg(row, meta.weight_unit);
+        sessionVolume += vol;
+        if (row.muscle) bump(muscleSets, row.muscle, 1);
+        if (vol > 0) bump(muscleVolume, row.muscle, vol);
       }
-
-      let sessionVolume = 0;
-      if (activity.supportsSetTable) {
-        for (const row of setRows) {
-          const vol = rowVolumeKg(row, meta.weight_unit);
-          sessionVolume += vol;
-          if (row.muscle) {
-            muscleSets.set(row.muscle, (muscleSets.get(row.muscle) || 0) + 1);
-          }
-          if (vol > 0) {
-            const muscle = row.muscle || "Unknown";
-            muscleVolume.set(muscle, (muscleVolume.get(muscle) || 0) + vol);
-          }
-        }
-        volumeKg += sessionVolume;
-        if (mi >= 0) {
-          monthlyVolume[mi] += sessionVolume;
-          volumeByMonth[mi] += sessionVolume;
-        }
-      }
-
-      const feltKey = isGolf ? normalizeFelt(meta.felt) : null;
-      if (isGolf) {
-        if (feltKey) felt[feltKey] += 1;
-        for (const focus of meta.focus) {
-          focusCounts.set(focus, (focusCounts.get(focus) || 0) + 1);
-        }
-      }
-
-      if (meta.date) {
-        if (!firstDate || meta.date < firstDate) firstDate = meta.date;
-        if (!lastDate || meta.date > lastDate) lastDate = meta.date;
-        if (!activityLast || meta.date > activityLast) activityLast = meta.date;
-        recent.push({
-          date: meta.date,
-          activity,
-          path: meta.path,
-          minutes: meta.duration_min,
-          volumeKg: activity.supportsSetTable ? sessionVolume : null,
-          felt: feltKey,
-        });
-      }
+      volumeKg += sessionVolume;
+      if (mi >= 0) monthlyVolume[mi] += sessionVolume;
     }
 
-    totalSessions += sessions.length;
-    totalExerciseMinutes += minutes;
-    totalVolumeKg += volumeKg;
-    activities.push({
-      activity,
+    const sessionFelt = isGolf ? normalizeFelt(meta.felt) : null;
+    if (isGolf) {
+      if (sessionFelt) felt[sessionFelt] += 1;
+      for (const focus of meta.focus) bump(focusCounts, focus, 1);
+    }
+
+    if (meta.date) {
+      if (!lastDate || meta.date > lastDate) lastDate = meta.date;
+      recent.push({
+        date: meta.date,
+        activity,
+        path: meta.path,
+        minutes: meta.duration_min,
+        volumeKg: activity.supportsSetTable ? sessionVolume : null,
+        felt: sessionFelt,
+      });
+    }
+  }
+
+  const columns: DashboardMonthlyColumn[] = [{ activity, kind: "sessions", values: monthly }];
+  if (activity.supportsSetTable) {
+    columns.push({ activity, kind: "volume", values: monthlyVolume });
+  }
+  return {
+    card: {
       domain: "exercise",
+      activity,
       count: sessions.length,
       minutes,
+      monthly,
       volumeKg: activity.supportsSetTable ? volumeKg : null,
-      monthly,
-      lastDate: activityLast,
+      lastDate,
       felt: isGolf ? felt : null,
-      inProgress: null,
-    });
-    monthlyColumns.push({ activity, kind: "sessions", values: monthly });
-    if (activity.supportsSetTable) {
-      monthlyColumns.push({ activity, kind: "volume", values: monthlyVolume });
-    }
-  }
+    },
+    columns,
+    recent,
+    muscleSets,
+    muscleVolume,
+    focusCounts,
+  };
+}
 
-  let totalHabitMinutes = 0;
-  for (const { activity, items } of input.hobbies) {
-    const monthly = emptyMonths();
-    let inProgress = 0;
-    for (const item of items) {
-      const perMonth = minutesByMonthForYear(item.entries, input.year);
-      for (let i = 0; i < 12; i++) monthly[i] += perMonth[i];
-      if (isInProgressStatus(item.frontmatter)) inProgress += 1;
-    }
-    const minutes = monthly.reduce((sum, v) => sum + v, 0);
-    totalHabitMinutes += minutes;
-    activities.push({
-      activity,
+function isInProgress(frontmatter: Record<string, unknown>): boolean {
+  return String(frontmatter.status ?? "").trim().toLowerCase() === "reading";
+}
+
+function summarizeHobby(
+  { activity, items }: DashboardHobbyInput,
+  year: number,
+): { card: DashboardHobbyCard; column: DashboardMonthlyColumn } {
+  const monthly = emptyMonths();
+  let inProgress = 0;
+  for (const item of items) {
+    addMonths(monthly, minutesByMonthForYear(item.entries, year));
+    if (isInProgress(item.frontmatter)) inProgress += 1;
+  }
+  return {
+    card: {
       domain: "hobby",
+      activity,
       count: items.length,
-      minutes,
-      volumeKg: null,
+      minutes: monthly.reduce((sum, v) => sum + v, 0),
       monthly,
-      lastDate: null,
-      felt: null,
-      inProgress,
-    });
-    monthlyColumns.push({ activity, kind: "minutes", values: monthly });
-  }
+      inProgress: activity.id === READING_ID ? inProgress : null,
+    },
+    column: { activity, kind: "minutes", values: monthly },
+  };
+}
 
-  recent.sort((a, b) => b.date.localeCompare(a.date) || a.path.localeCompare(b.path));
-
-  const muscleNames = new Set([...muscleSets.keys(), ...muscleVolume.keys()]);
-  const muscles = [...muscleNames]
+function rankMuscles(
+  sets: Map<string, number>,
+  volume: Map<string, number>,
+): DashboardMuscleRow[] {
+  const names = new Set([...sets.keys(), ...volume.keys()]);
+  return [...names]
     .map((muscle) => ({
       muscle,
-      sets: muscleSets.get(muscle) || 0,
-      volumeKg: muscleVolume.get(muscle) || 0,
+      sets: sets.get(muscle) || 0,
+      volumeKg: volume.get(muscle) || 0,
     }))
     .sort(
       (a, b) =>
         b.volumeKg - a.volumeKg || b.sets - a.sets || a.muscle.localeCompare(b.muscle),
     );
+}
+
+function rankFocus(counts: Map<string, number>): DashboardFocusTag[] {
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+}
+
+export function buildDashboardModel(input: DashboardInput): DashboardModel {
+  const sessionsByMonth = emptyMonths();
+  const volumeByMonth = emptyMonths();
+  const muscleSets = new Map<string, number>();
+  const muscleVolume = new Map<string, number>();
+  const focusCounts = new Map<string, number>();
+  const recent: DashboardRecentRow[] = [];
+  const activities: DashboardActivityCard[] = [];
+  const monthlyColumns: DashboardMonthlyColumn[] = [];
+  let totalSessions = 0;
+  let totalExerciseMinutes = 0;
+  let totalVolumeKg = 0;
+  let anySetTable = false;
+  let anyGolf = false;
+
+  for (const exercise of input.exercise) {
+    const summary = summarizeExercise(exercise);
+    const { card } = summary;
+    totalSessions += card.count;
+    totalExerciseMinutes += card.minutes;
+    addMonths(sessionsByMonth, card.monthly);
+    for (const column of summary.columns) {
+      if (column.kind === "volume") addMonths(volumeByMonth, column.values);
+    }
+    if (exercise.activity.supportsSetTable) {
+      anySetTable = true;
+      totalVolumeKg += card.volumeKg ?? 0;
+    }
+    if (exercise.activity.id === GOLF_ID) anyGolf = true;
+    for (const [k, v] of summary.muscleSets) bump(muscleSets, k, v);
+    for (const [k, v] of summary.muscleVolume) bump(muscleVolume, k, v);
+    for (const [k, v] of summary.focusCounts) bump(focusCounts, k, v);
+    recent.push(...summary.recent);
+    activities.push(card);
+    monthlyColumns.push(...summary.columns);
+  }
+
+  let totalHabitMinutes = 0;
+  for (const hobby of input.hobbies) {
+    const { card, column } = summarizeHobby(hobby, input.year);
+    totalHabitMinutes += card.minutes;
+    activities.push(card);
+    monthlyColumns.push(column);
+  }
+
+  recent.sort((a, b) => b.date.localeCompare(a.date) || a.path.localeCompare(b.path));
+  const dates = recent.map((row) => row.date);
 
   return {
     year: input.year,
@@ -310,12 +351,12 @@ export function buildDashboardModel(input: DashboardInput): DashboardModel {
     totalHabitMinutes: input.hobbies.length ? totalHabitMinutes : null,
     sessionsByMonth,
     volumeByMonth,
-    firstDate,
-    lastDate,
+    firstDate: dates.length ? dates[dates.length - 1] : null,
+    lastDate: dates.length ? dates[0] : null,
     activities,
     monthlyColumns,
-    muscles: anySetTable ? muscles : null,
-    golfFocus: anyGolf ? sortCountsDesc(focusCounts) : null,
-    recent: recent.slice(0, DASHBOARD_RECENT_LIMIT),
+    muscles: anySetTable ? rankMuscles(muscleSets, muscleVolume) : null,
+    golfFocus: anyGolf ? rankFocus(focusCounts) : null,
+    recent: recent.slice(0, RECENT_LIMIT),
   };
 }
