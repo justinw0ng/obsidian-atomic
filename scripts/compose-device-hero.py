@@ -82,9 +82,26 @@ def crop_window_chrome(src: Image.Image) -> Image.Image:
             left = x
             break
 
+    top = max(top, electron_titlebar_height(image))
     if top == 0 and left == 0:
         return image
     return image.crop((left, top, width, height))
+
+
+def electron_titlebar_height(image: Image.Image) -> int:
+    """Find the first row of body text below a Linux Electron title bar."""
+    width, height = image.size
+    pixels = image.load()
+    limit = min(height, 96)
+    for y in range(limit):
+        dark = 0
+        for x in range(width // 10, (width * 3) // 4, 3):
+            red, green, blue = pixels[x, y]
+            if 0.299 * red + 0.587 * green + 0.114 * blue < 90:
+                dark += 1
+                if dark >= 4:
+                    return max(0, y - 10)
+    return 0
 
 
 def contain(src: Image.Image, size: tuple[int, int], background: str) -> Image.Image:
@@ -109,17 +126,46 @@ def cover_top(src: Image.Image, size: tuple[int, int]) -> Image.Image:
     return resized.crop((left, 0, left + target_w, target_h))
 
 
+def trim_phone_safe_area(src: Image.Image) -> Image.Image:
+    """Drop a typical iOS status bar and home-indicator inset from a screenshot."""
+    image = src.convert("RGB")
+    width, height = image.size
+    if height < 400 or width / height > 0.72:
+        return image
+    top = max(10, round(height * 0.045))
+    bottom = max(10, round(height * 0.028))
+    if top + bottom >= height:
+        return image
+    return image.crop((0, top, width, height - bottom))
+
+
+def fit_frame(src: Image.Image, size: tuple[int, int], mode: str, background: str) -> Image.Image:
+    if mode == "cover-top":
+        return cover_top(src, size)
+    if mode == "contain":
+        return contain(src, size, background)
+    raise ValueError(f"unknown fit mode: {mode}")
+
+
 def compose(
     desktop: Image.Image,
     mobile: Image.Image,
     copy: HeroCopy | None = None,
     crop_chrome: bool = False,
     desktop_fit: str = "contain",
+    phone_fit: str = "contain",
+    mobile_kind: str = "window",
 ) -> Image.Image:
     text = copy or HeroCopy()
     if crop_chrome:
         desktop = crop_window_chrome(desktop)
-        mobile = crop_window_chrome(mobile)
+    if mobile_kind == "phone":
+        mobile = trim_phone_safe_area(mobile)
+    elif mobile_kind == "window":
+        if crop_chrome:
+            mobile = crop_window_chrome(mobile)
+    else:
+        raise ValueError(f"unknown mobile kind: {mobile_kind}")
 
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
@@ -161,10 +207,7 @@ def compose(
         DESKTOP_CARD[2] - DESKTOP_CARD[0] - DESKTOP_INSET * 2,
         DESKTOP_CARD[3] - DESKTOP_CARD[1] - DESKTOP_INSET * 2,
     )
-    if desktop_fit == "cover-top":
-        desktop_image = cover_top(desktop, desktop_box)
-    else:
-        desktop_image = contain(desktop, desktop_box, "#FFFFFF")
+    desktop_image = fit_frame(desktop, desktop_box, desktop_fit, "#FFFFFF")
     desktop_mask = rounded_mask(desktop_box, 10)
     canvas.paste(
         desktop_image,
@@ -188,7 +231,7 @@ def compose(
         PHONE_FRAME[2] - PHONE_FRAME[0] - PHONE_INSET * 2,
         PHONE_FRAME[3] - PHONE_FRAME[1] - PHONE_INSET * 2,
     )
-    phone_image = contain(mobile, phone_box, "#FFFFFF")
+    phone_image = fit_frame(mobile, phone_box, phone_fit, "#FFFFFF")
     phone_mask = rounded_mask(phone_box, 34)
     canvas.paste(
         phone_image,
@@ -217,6 +260,18 @@ def main() -> None:
         default="contain",
         help="How the desktop shot fills its card (daily hero uses contain)",
     )
+    parser.add_argument(
+        "--phone-fit",
+        choices=("contain", "cover-top"),
+        default="contain",
+        help="How the mobile shot fills the device frame (daily hero uses contain)",
+    )
+    parser.add_argument(
+        "--mobile-kind",
+        choices=("window", "phone"),
+        default="window",
+        help="window: crop OS chrome when --crop-chrome is set. phone: trim iOS insets",
+    )
     args = parser.parse_args()
 
     for value in (args.desktop, args.mobile):
@@ -229,6 +284,8 @@ def main() -> None:
         HeroCopy(kicker=args.kicker, headline=args.headline, label=args.label),
         crop_chrome=args.crop_chrome,
         desktop_fit=args.desktop_fit,
+        phone_fit=args.phone_fit,
+        mobile_kind=args.mobile_kind,
     )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     out.save(args.out, "PNG", optimize=True)
