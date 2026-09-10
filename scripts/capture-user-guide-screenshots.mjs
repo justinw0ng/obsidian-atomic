@@ -302,6 +302,9 @@ function composeDashboardHero(desktopPath, mobilePath, mobileKind = "window") {
     "contain",
     "--mobile-kind",
     mobileKind,
+    "--phone-pad",
+    "22",
+    "--scrub-scrollbars",
   ];
   const result = spawnSync("python3", args, { encoding: "utf8" });
   if (result.status !== 0) {
@@ -327,6 +330,28 @@ async function hideNoteProperties(driver) {
   `);
 }
 
+async function hideCaptureScrollbars(driver) {
+  await driver.executeScript(`
+    const root = document.documentElement;
+    root.style.setProperty("--scrollbar-thumb-bg", "transparent", "important");
+    root.style.setProperty("--scrollbar-active-thumb-bg", "transparent", "important");
+    root.style.setProperty("--scrollbar-bg", "transparent", "important");
+    const style = document.getElementById("atomic-hero-hide-scrollbars")
+      || document.createElement("style");
+    style.id = "atomic-hero-hide-scrollbars";
+    style.textContent = \`
+      * { scrollbar-width: none !important; }
+      *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    \`;
+    document.head.appendChild(style);
+    for (const el of document.querySelectorAll(
+      ".markdown-preview-view, .markdown-reading-view, .cm-scroller, .view-content, .workspace-leaf-content",
+    )) {
+      el.style.setProperty("overflow", "hidden", "important");
+    }
+  `);
+}
+
 async function prepareDashboardPhoneView(driver) {
   await hideNoteProperties(driver);
   await driver.executeScript(`
@@ -346,11 +371,13 @@ async function prepareDashboardPhoneView(driver) {
     }
     const preview = document.querySelector(".markdown-preview-view, .markdown-reading-view");
     if (preview) {
-      preview.style.setProperty("padding-top", "12px", "important");
-      preview.style.setProperty("padding-left", "16px", "important");
-      preview.style.setProperty("padding-right", "16px", "important");
+      preview.style.setProperty("padding-top", "20px", "important");
+      preview.style.setProperty("padding-left", "20px", "important");
+      preview.style.setProperty("padding-right", "20px", "important");
+      preview.style.setProperty("overflow", "hidden", "important");
     }
   `);
+  await hideCaptureScrollbars(driver);
 }
 
 async function captureTo(driver, name, destName) {
@@ -476,6 +503,7 @@ async function main() {
       await openNote(driver, FILES.dashboard);
       await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
       await hideNoteProperties(driver);
+      await hideCaptureScrollbars(driver);
       await parkMouse(driver);
       await sleep(500);
       const desktopSrc = await captureTo(driver, "user-guide-dashboard", OUTPUTS.dashboard);

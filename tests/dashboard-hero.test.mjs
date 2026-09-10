@@ -39,6 +39,9 @@ test("hero compositor keeps daily-note defaults and accepts dashboard copy", () 
   assert.match(src, /cover-top/);
   assert.match(src, /--phone-fit/);
   assert.match(src, /--mobile-kind/);
+  assert.match(src, /--phone-pad/);
+  assert.match(src, /--scrub-scrollbars/);
+  assert.match(src, /contain_padded/);
   assert.match(src, /electron_titlebar_height/);
 });
 
@@ -51,4 +54,7 @@ test("dashboard hero capture uses a wider phone viewport so more UI is visible",
   assert.doesNotMatch(src, /"--phone-fit",\s*"cover-top"/);
   assert.match(src, /ATOMIC_DASHBOARD_PHONE_SRC/);
   assert.match(src, /prepareDashboardPhoneView/);
+  assert.match(src, /hideCaptureScrollbars/);
+  assert.match(src, /"--phone-pad",\s*"22"/);
+  assert.match(src, /--scrub-scrollbars/);
 });
