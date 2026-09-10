@@ -114,6 +114,43 @@ def contain(src: Image.Image, size: tuple[int, int], background: str) -> Image.I
     return result
 
 
+def contain_padded(
+    src: Image.Image, size: tuple[int, int], background: str, pad: int
+) -> Image.Image:
+    """Contain into a smaller box so the shot stays centered with bezel clearance."""
+    if pad <= 0:
+        return contain(src, size, background)
+    inner = (max(1, size[0] - pad * 2), max(1, size[1] - pad * 2))
+    fitted = contain(src, inner, background)
+    result = Image.new("RGB", size, background)
+    result.paste(fitted, (pad, pad))
+    return result
+
+
+def crop_vertical_scrollbar(src: Image.Image) -> Image.Image:
+    """Trim a thin right-edge scrollbar track from an Obsidian window shot."""
+    image = src.convert("RGB")
+    width, height = image.size
+    pixels = image.load()
+    max_gutter = min(28, width // 10)
+    cut = 0
+    for x in range(width - 1, width - 1 - max_gutter, -1):
+        samples = [pixels[x, y] for y in range(height // 6, (5 * height) // 6, 4)]
+        lumas = [(red + green + blue) / 3 for red, green, blue in samples]
+        mean = sum(lumas) / len(lumas)
+        spread = max(lumas) - min(lumas)
+        if mean >= 250 and spread < 14:
+            cut = width - x
+            continue
+        if 215 <= mean <= 249 and spread < 45:
+            cut = width - x
+            continue
+        break
+    if cut < 6:
+        return image
+    return image.crop((0, 0, width - cut, height))
+
+
 def cover_top(src: Image.Image, size: tuple[int, int]) -> Image.Image:
     image = src.convert("RGB")
     target_w, target_h = size
@@ -139,11 +176,17 @@ def trim_phone_safe_area(src: Image.Image) -> Image.Image:
     return image.crop((0, top, width, height - bottom))
 
 
-def fit_frame(src: Image.Image, size: tuple[int, int], mode: str, background: str) -> Image.Image:
+def fit_frame(
+    src: Image.Image,
+    size: tuple[int, int],
+    mode: str,
+    background: str,
+    pad: int = 0,
+) -> Image.Image:
     if mode == "cover-top":
         return cover_top(src, size)
     if mode == "contain":
-        return contain(src, size, background)
+        return contain_padded(src, size, background, pad)
     raise ValueError(f"unknown fit mode: {mode}")
 
 
@@ -155,6 +198,8 @@ def compose(
     desktop_fit: str = "contain",
     phone_fit: str = "contain",
     mobile_kind: str = "window",
+    phone_pad: int = 0,
+    scrub_scrollbars: bool = False,
 ) -> Image.Image:
     text = copy or HeroCopy()
     if crop_chrome:
@@ -166,6 +211,9 @@ def compose(
             mobile = crop_window_chrome(mobile)
     else:
         raise ValueError(f"unknown mobile kind: {mobile_kind}")
+    if scrub_scrollbars:
+        desktop = crop_vertical_scrollbar(desktop)
+        mobile = crop_vertical_scrollbar(mobile)
 
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
@@ -231,7 +279,7 @@ def compose(
         PHONE_FRAME[2] - PHONE_FRAME[0] - PHONE_INSET * 2,
         PHONE_FRAME[3] - PHONE_FRAME[1] - PHONE_INSET * 2,
     )
-    phone_image = fit_frame(mobile, phone_box, phone_fit, "#FFFFFF")
+    phone_image = fit_frame(mobile, phone_box, phone_fit, "#FFFFFF", phone_pad)
     phone_mask = rounded_mask(phone_box, 34)
     canvas.paste(
         phone_image,
@@ -272,6 +320,17 @@ def main() -> None:
         default="window",
         help="window: crop OS chrome when --crop-chrome is set. phone: trim iOS insets",
     )
+    parser.add_argument(
+        "--phone-pad",
+        type=int,
+        default=0,
+        help="White inset inside the phone screen so contain stays centered off the bezel",
+    )
+    parser.add_argument(
+        "--scrub-scrollbars",
+        action="store_true",
+        help="Trim a thin right-edge scrollbar gutter from window shots",
+    )
     args = parser.parse_args()
 
     for value in (args.desktop, args.mobile):
@@ -286,6 +345,8 @@ def main() -> None:
         desktop_fit=args.desktop_fit,
         phone_fit=args.phone_fit,
         mobile_kind=args.mobile_kind,
+        phone_pad=max(0, args.phone_pad),
+        scrub_scrollbars=args.scrub_scrollbars,
     )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     out.save(args.out, "PNG", optimize=True)
