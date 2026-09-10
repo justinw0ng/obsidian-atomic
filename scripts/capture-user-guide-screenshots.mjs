@@ -5,7 +5,8 @@
  * Optional: ATOMIC_DOCS_SHOTS=dashboard (comma-separated: bookShelf,timer,gymLog,dashboard,settings,enable)
  * Dashboard shots also compose docs/images/atomic-dashboard-hero.png via compose-device-hero.py.
  * Optional: ATOMIC_DASHBOARD_PHONE_SRC=/path/to/phone.jpg to use a real phone screenshot
- * in the hero device frame (trims status bar / home indicator).
+ * in the hero device frame (trims status bar / home indicator; never cover-crops).
+ * Dashboard hero uses contain/letterbox on both desktop and phone so no panel is chopped.
  */
 import { spawn, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -64,7 +65,15 @@ const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
 /** Wide enough for 2-column KPIs (minmax 170px) so the phone frame shows more UI. */
 const DASHBOARD_MOBILE = { width: 480, height: 1040 };
 const DASHBOARD_HERO_HEADLINE = "Your year. One dashboard.";
-const DASHBOARD_PHONE_SRC = (process.env.ATOMIC_DASHBOARD_PHONE_SRC || "").trim();
+const DASHBOARD_PHONE_CANDIDATES = [
+  process.env.ATOMIC_DASHBOARD_PHONE_SRC,
+  join(ROOT, "hero-mobile/owner-dashboard-phone.jpg"),
+  join(ROOT, "hero-mobile/owner-dashboard-phone.jpeg"),
+  join(ROOT, "hero-mobile/owner-dashboard-phone.png"),
+];
+const DASHBOARD_PHONE_SRC = DASHBOARD_PHONE_CANDIDATES.map((p) => (p || "").trim())
+  .filter(Boolean)
+  .find((p) => existsSync(p)) || "";
 
 /** Comma-separated shot names, or `all`. Example: ATOMIC_DOCS_SHOTS=dashboard */
 const REQUESTED_SHOTS = new Set(
@@ -288,9 +297,9 @@ function composeDashboardHero(desktopPath, mobilePath, mobileKind = "window") {
     DASHBOARD_HERO_HEADLINE,
     "--crop-chrome",
     "--desktop-fit",
-    "cover-top",
+    "contain",
     "--phone-fit",
-    "cover-top",
+    "contain",
     "--mobile-kind",
     mobileKind,
   ];
@@ -478,9 +487,6 @@ async function main() {
       );
 
       if (DASHBOARD_PHONE_SRC) {
-        if (!existsSync(DASHBOARD_PHONE_SRC)) {
-          throw new Error(`ATOMIC_DASHBOARD_PHONE_SRC missing: ${DASHBOARD_PHONE_SRC}`);
-        }
         await composeDashboardHero(desktopSrc, DASHBOARD_PHONE_SRC, "phone");
       } else {
         await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
