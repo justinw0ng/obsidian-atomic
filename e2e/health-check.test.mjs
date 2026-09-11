@@ -543,8 +543,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const cantoneseBody = await driver.executeScript(
         `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
       );
-      assert.match(String(cantoneseBody), /效能提升/);
-      assert.match(String(cantoneseBody), /少咗讀 vault/);
+      assert.match(String(cantoneseBody), /用起嚟更順咗/);
+      assert.match(String(cantoneseBody), /大筆記庫/);
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-update-note-ack"]').click();
       `);
