@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseTimeLog } from "../src/core/hobby.ts";
+import { fullDateForLanguage } from "../src/dates.ts";
 import { BLUE, GREEN, ORANGE } from "../src/types.ts";
 import { durationMapFromHobbyLogs, durationMapFromSessions } from "../src/util/duration-map.ts";
 import { markdownFilesInFolder } from "../src/util/folder-files.ts";
@@ -189,4 +190,50 @@ test("heatmap date labels reuse Intl.DateTimeFormat instances", () => {
     dates,
     /export function fullDateEn\([^)]*\)[^{]*\{[^}]*new Intl\.DateTimeFormat/s,
   );
+});
+
+test("heatmap full-date labels are memoized per language and date", () => {
+  const first = fullDateForLanguage(2026, 8, 14, "en");
+  assert.equal(first, "Aug 14");
+  assert.equal(fullDateForLanguage(2026, 8, 14, "en"), first);
+  assert.notEqual(fullDateForLanguage(2026, 8, 14, "zh-Hant-en"), first);
+  assert.equal(fullDateForLanguage(2026, 8, 15, "en"), "Aug 15");
+
+  const dates = readFileSync(join(root, "src/dates.ts"), "utf8");
+  assert.match(dates, /const fullDateLabels = new Map<string, string>\(\)/);
+  assert.match(dates, /FULL_DATE_LABEL_LIMIT/);
+});
+
+test("session bodies are parsed once per mtime through the shared note parse cache", () => {
+  const source = readFileSync(join(root, "src/data/vault-source.ts"), "utf8");
+  assert.match(source, /new NoteParseCache<TimeLogEntry\[\]>\(\)/);
+  assert.match(source, /new NoteParseCache<SetRow\[\]>\(\)/);
+  assert.match(source, /new NoteParseCache<string\[\]>\(\)/);
+  assert.match(source, /getSessionSetRows\(path: string\)/);
+  assert.match(source, /getSessionReminders\(path: string\)/);
+  assert.match(source, /cache\.resolve\(file\.path, file\.stat\.mtime/);
+  assert.match(source, /readCachedBody\(path: string\)/);
+  assert.doesNotMatch(source, /HobbyTimeLogCache/);
+
+  const cues = readFileSync(join(root, "src/views/cues.ts"), "utf8");
+  assert.match(cues, /Promise\.all\(/);
+  assert.match(cues, /data\.getSessionReminders\(session\.path\)/);
+  assert.doesNotMatch(cues, /readBody/);
+  assert.doesNotMatch(cues, /parseReminders/);
+
+  const timer = readFileSync(join(root, "src/views/timer.ts"), "utf8");
+  assert.match(timer, /plugin\.data\.readCachedBody\(sourcePath\)/);
+  assert.doesNotMatch(timer, /data\.readBody\(/);
+});
+
+test("plugin skips startup create events and memoizes refresh roots per settings save", () => {
+  const main = readFileSync(join(root, "src/main.ts"), "utf8");
+  const layoutReady = main.match(/onLayoutReady\(\(\) => \{([\s\S]*?)\n    \}\);/);
+  assert.ok(layoutReady, "onLayoutReady block not found");
+  assert.match(layoutReady[1], /this\.registerVaultEvents\(\)/);
+  const onload = main.slice(main.indexOf("async onload()"), main.indexOf("onunload()"));
+  assert.doesNotMatch(onload, /vault\.on\("create"/);
+  assert.match(main, /this\.dataRoots \?\?= collectAtomicDataRoots\(this\.settings\)/);
+  assert.match(main, /async saveSettings\(\) \{\s*this\.dataRoots = null;/);
+  assert.match(main, /this\.dataRoots = null;\s*\}\s*async saveSettings/);
 });
