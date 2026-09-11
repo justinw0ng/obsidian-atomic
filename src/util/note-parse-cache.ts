@@ -17,9 +17,9 @@ export class NoteParseCache<T> {
   private readonly cache = new Map<string, CacheEntry<T>>();
   private readonly pending = new Map<string, PendingEntry<T>>();
 
-  get(path: string, mtime: number): T | null {
+  get(path: string, mtime: number): T | undefined {
     const hit = this.cache.get(path);
-    if (!hit || hit.mtime !== mtime) return null;
+    if (!hit || hit.mtime !== mtime) return undefined;
     return hit.value;
   }
 
@@ -33,7 +33,7 @@ export class NoteParseCache<T> {
    */
   resolve(path: string, mtime: number, load: () => Promise<T>): Promise<T> {
     const hit = this.get(path, mtime);
-    if (hit !== null) return Promise.resolve(hit);
+    if (hit !== undefined) return Promise.resolve(hit);
     const inFlight = this.pending.get(path);
     if (inFlight && inFlight.mtime === mtime) return inFlight.promise;
 

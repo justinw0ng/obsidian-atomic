@@ -34,20 +34,20 @@ test("NoteParseCache reuses parses for the same mtime and refreshes on change", 
   const path = "atomics/hobbies/Reading/Items/Book.md";
   const entries = parseTimeLog(SAMPLE);
 
-  assert.equal(cache.get(path, 100), null);
+  assert.equal(cache.get(path, 100), undefined);
   cache.set(path, 100, entries);
   assert.equal(cache.get(path, 100), entries);
-  assert.equal(cache.get(path, 101), null);
+  assert.equal(cache.get(path, 101), undefined);
 
   cache.set(path, 101, []);
   assert.deepEqual(cache.get(path, 101), []);
 
   cache.rename(path, "atomics/hobbies/Reading/Items/Renamed.md");
-  assert.equal(cache.get(path, 101), null);
+  assert.equal(cache.get(path, 101), undefined);
   assert.deepEqual(cache.get("atomics/hobbies/Reading/Items/Renamed.md", 101), []);
 
   cache.invalidate("atomics/hobbies/Reading/Items/Renamed.md");
-  assert.equal(cache.get("atomics/hobbies/Reading/Items/Renamed.md", 101), null);
+  assert.equal(cache.get("atomics/hobbies/Reading/Items/Renamed.md", 101), undefined);
   assert.equal(cache.size, 0);
 });
 
@@ -85,7 +85,7 @@ test("NoteParseCache.resolve shares one in-flight load per path and mtime", asyn
   });
   assert.deepEqual(fresh, []);
   assert.equal(loads, 2, "a newer mtime loads again");
-  assert.equal(cache.get(path, 7), null, "one entry per path: the newer mtime wins");
+  assert.equal(cache.get(path, 7), undefined, "one entry per path: the newer mtime wins");
 });
 
 test("NoteParseCache.resolve drops a failed load so the next call retries", async () => {
@@ -97,10 +97,52 @@ test("NoteParseCache.resolve drops a failed load so the next call retries", asyn
     }),
     /disk/,
   );
-  assert.equal(cache.get(path, 1), null);
+  assert.equal(cache.get(path, 1), undefined);
   const value = await cache.resolve(path, 1, async () => "ok");
   assert.equal(value, "ok");
   assert.equal(cache.get(path, 1), "ok");
+});
+
+test("NoteParseCache.resolve for a newer mtime supersedes a pending older load", async () => {
+  const cache = new NoteParseCache();
+  const path = "atomics/exercise/Gym/2026/2026-01-04.md";
+  let releaseOld;
+  const oldGate = new Promise((resolve) => {
+    releaseOld = resolve;
+  });
+  const oldLoad = cache.resolve(path, 1, async () => {
+    await oldGate;
+    return "old";
+  });
+  const newLoad = cache.resolve(path, 2, async () => "new");
+  assert.notEqual(oldLoad, newLoad, "different mtimes do not share a promise");
+
+  assert.equal(await newLoad, "new");
+  assert.equal(cache.get(path, 2), "new");
+  releaseOld();
+  assert.equal(await oldLoad, "old", "the older caller still resolves");
+  assert.equal(cache.get(path, 2), "new", "the stale result did not overwrite the newer one");
+  assert.equal(cache.get(path, 1), undefined);
+});
+
+test("NoteParseCache.rename while a load is pending drops the old path's load", async () => {
+  const cache = new NoteParseCache();
+  const path = "atomics/exercise/Gym/2026/2026-01-05.md";
+  const renamed = "atomics/exercise/Gym/2026/2026-01-06.md";
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const pending = cache.resolve(path, 5, async () => {
+    await gate;
+    return "moved";
+  });
+  cache.rename(path, renamed);
+  release();
+  assert.equal(await pending, "moved");
+  assert.equal(cache.get(path, 5), undefined, "old path is not repopulated");
+  assert.equal(cache.get(renamed, 5), undefined, "pending loads are not carried across a rename");
+  assert.equal(cache.size, 0);
 });
 
 test("NoteParseCache.invalidate during a load discards that load's result", async () => {
@@ -117,5 +159,5 @@ test("NoteParseCache.invalidate during a load discards that load's result", asyn
   cache.invalidate(path);
   release();
   assert.equal(await pending, "stale", "the caller still gets its value");
-  assert.equal(cache.get(path, 3), null, "but it is not stored after invalidation");
+  assert.equal(cache.get(path, 3), undefined, "but it is not stored after invalidation");
 });

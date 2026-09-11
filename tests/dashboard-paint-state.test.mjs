@@ -184,12 +184,19 @@ test("activityPaintKey covers every rendered ActivityType field", () => {
   }
 });
 
-test("dashboard view collects cached set rows and skips identical repaints", () => {
+test("dashboard view skips identical repaints before touching the DOM", () => {
   const view = readFileSync(join(root, "src/views/dashboard.ts"), "utf8");
-  assert.match(view, /data\.getSessionSetRows\(meta\.path\)/);
-  assert.doesNotMatch(view, /readBody/);
-  assert.doesNotMatch(view, /parseSetTable/);
-  assert.match(view, /dashboardDomIsPainted\(el\)/);
-  assert.match(view, /sameDashboardPaintState\(paintStates\.get\(el\), paintState\)/);
-  assert.match(view, /paintStates\.set\(el, paintState\)/);
+  const skip = view.indexOf("dashboardPaint.shouldSkip(el, dashboardPaintState(input, language))");
+  const empty = view.indexOf("el.empty();", view.indexOf("export async function renderDashboard"));
+  assert.ok(skip > -1 && empty > skip, "shouldSkip must run before el.empty()");
+  assert.match(view, /EMPTY_SET_ROWS/);
+  assert.doesNotMatch(view, /NO_SET_ROWS/);
+});
+
+test("dashboard paint-state fields stay covered by the compile-time guards", () => {
+  const model = readFileSync(join(root, "src/core/dashboard.ts"), "utf8");
+  assert.match(model, /FieldsCovered<DashboardSessionInput, "meta" \| "setRows">/);
+  assert.match(model, /FieldsCovered<DashboardHobbyItemInput, "path" \| "frontmatter" \| "entries">/);
+  assert.match(model, /FieldsCovered<DashboardInput, "year" \| "exercise" \| "hobbies">/);
+  assert.match(model, /language: Language;/);
 });

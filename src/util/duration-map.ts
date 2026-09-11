@@ -30,7 +30,7 @@ export function addHobbyItemMinutes(
 }
 
 export function durationMapFromHobbyLogs(
-  items: Array<{ path: string; entries: TimeLogEntry[] }>,
+  items: Array<{ path: string; entries: readonly TimeLogEntry[] }>,
   year: number,
 ): Map<string, DayActivity> {
   const map = new Map<string, DayActivity>();

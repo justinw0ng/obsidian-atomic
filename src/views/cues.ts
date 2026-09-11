@@ -46,20 +46,23 @@ export async function renderCues(
   const month = year === currentYear ? nowMonth(timezone) : 12;
   const monthLabel = formatMonthLabel(year, month, language);
 
-  const dated = data
-    .listSessions(activityType.folder, year)
-    .filter((session): session is SessionMeta & { date: string } => !!session.date);
-  const reminders = await Promise.all(
-    dated.map((session) => data.getSessionReminders(session.path)),
+  const sessions = await Promise.all(
+    data
+      .listSessions(activityType.folder, year)
+      .filter((session): session is SessionMeta & { date: string } => !!session.date)
+      .map(async (session) => ({
+        session,
+        reminders: await data.getSessionReminders(session.path),
+      })),
   );
   const cues: Cue[] = [];
-  dated.forEach((session, i) => {
+  for (const { session, reminders } of sessions) {
     const focus = session.focus.join(", ");
-    for (const text of reminders[i]) {
+    for (const text of reminders) {
       if (!text) continue;
       cues.push({ text, date: session.date, focus });
     }
-  });
+  }
 
   const thisMonth = cuesInCalendarMonth(cues, year, month);
   const keepers = buildKeepers(cues, year);

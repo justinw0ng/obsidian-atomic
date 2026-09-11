@@ -1,6 +1,7 @@
 /** Pure dashboard model. No Obsidian imports; the view only lays this out. */
 
 import type { SetRow } from "./set-table";
+import type { Language } from "../i18n/types";
 import type { ActivityType, SessionMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { rowVolumeKg } from "../core.ts";
@@ -12,11 +13,13 @@ import { minutesByMonthForYear, type TimeLogEntry } from "./hobby.ts";
 import { isInProgressStatus } from "./reading-status.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { activityPaintKey } from "../util/activity-types.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { sameList } from "../util/paint-memo.ts";
 
 export type DashboardSessionInput = {
   meta: SessionMeta;
   /** Parsed set table for `supportsSetTable` activities; empty otherwise. */
-  setRows: SetRow[];
+  setRows: readonly SetRow[];
 };
 
 export type DashboardExerciseInput = {
@@ -27,7 +30,7 @@ export type DashboardExerciseInput = {
 export type DashboardHobbyItemInput = {
   path: string;
   frontmatter: Record<string, unknown>;
-  entries: TimeLogEntry[];
+  entries: readonly TimeLogEntry[];
 };
 
 export type DashboardHobbyInput = {
@@ -49,14 +52,26 @@ export type DashboardInput = {
  */
 export type DashboardPaintState = {
   year: number;
-  language: string;
+  language: Language;
   exercise: Array<{ activityKey: string; sessions: readonly DashboardSessionInput[] }>;
   hobbies: Array<{ activityKey: string; items: readonly DashboardHobbyItemInput[] }>;
 };
 
+// Compile-time guard: adding a field to an input type fails typecheck here
+// (TS2344) until the paint state / comparators below account for it.
+type Assert<T extends true> = T;
+type FieldsCovered<T, Listed extends keyof T> = [Exclude<keyof T, Listed>] extends [never]
+  ? true
+  : false;
+type SessionInputCovered = Assert<FieldsCovered<DashboardSessionInput, "meta" | "setRows">>;
+type HobbyItemInputCovered = Assert<
+  FieldsCovered<DashboardHobbyItemInput, "path" | "frontmatter" | "entries">
+>;
+type DashboardInputCovered = Assert<FieldsCovered<DashboardInput, "year" | "exercise" | "hobbies">>;
+
 export function dashboardPaintState(
   input: DashboardInput,
-  language: string,
+  language: Language,
 ): DashboardPaintState {
   return {
     year: input.year,
@@ -72,12 +87,12 @@ export function dashboardPaintState(
   };
 }
 
-function sameList<T>(
-  left: readonly T[],
-  right: readonly T[],
-  same: (a: T, b: T) => boolean,
-): boolean {
-  return left.length === right.length && left.every((item, i) => same(item, right[i]));
+function sameSessionInput(a: DashboardSessionInput, b: DashboardSessionInput): boolean {
+  return a.meta === b.meta && a.setRows === b.setRows;
+}
+
+function sameHobbyItemInput(a: DashboardHobbyItemInput, b: DashboardHobbyItemInput): boolean {
+  return a.path === b.path && a.frontmatter === b.frontmatter && a.entries === b.entries;
 }
 
 /** True when a repaint would produce the same dashboard as the previous one. */
@@ -92,27 +107,12 @@ export function sameDashboardPaintState(
     sameList(
       previous.exercise,
       next.exercise,
-      (a, b) =>
-        a.activityKey === b.activityKey &&
-        sameList(
-          a.sessions,
-          b.sessions,
-          (x, y) => x.meta === y.meta && x.setRows === y.setRows,
-        ),
+      (a, b) => a.activityKey === b.activityKey && sameList(a.sessions, b.sessions, sameSessionInput),
     ) &&
     sameList(
       previous.hobbies,
       next.hobbies,
-      (a, b) =>
-        a.activityKey === b.activityKey &&
-        sameList(
-          a.items,
-          b.items,
-          (x, y) =>
-            x.path === y.path &&
-            x.frontmatter === y.frontmatter &&
-            x.entries === y.entries,
-        ),
+      (a, b) => a.activityKey === b.activityKey && sameList(a.items, b.items, sameHobbyItemInput),
     )
   );
 }

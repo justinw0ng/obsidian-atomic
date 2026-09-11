@@ -4,7 +4,11 @@ import { durationToLevel } from "../core.ts";
 import { addDays, formatYmd, fullDateForLanguage, monthShortForLanguage, weekdaySun0 } from "../dates.ts";
 import type { Language } from "../i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { EMPTY_CELL, type DayActivity } from "../types.ts";
+import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { activityPaintKey } from "./activity-types.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { sameList } from "./paint-memo.ts";
 
 export type HeatmapDayCell = {
   date: string;
@@ -54,12 +58,8 @@ export function heatmapLayoutKey(layout: {
   return `${layout.rows}:${layout.columns}:${layout.minColumnWidth}:${layout.defaultSpan}`;
 }
 
-export function heatmapActivityKey(
-  activities: Array<{ id: string; label: string; colors: readonly string[] }>,
-): string {
-  return activities
-    .map((activity) => `${activity.id}\0${activity.label}\0${activity.colors.join(",")}`)
-    .join("|");
+export function heatmapActivityKey(activities: readonly ActivityType[]): string {
+  return activities.map(activityPaintKey).join("|");
 }
 
 export function sameHeatmapPaintState(
@@ -73,9 +73,8 @@ export function sameHeatmapPaintState(
     previous.language === next.language &&
     previous.layoutKey === next.layoutKey &&
     previous.activityKey === next.activityKey &&
-    sameStringList(previous.invalidIds, next.invalidIds) &&
-    previous.maps.length === next.maps.length &&
-    previous.maps.every((map, i) => map === next.maps[i])
+    sameList(previous.invalidIds, next.invalidIds) &&
+    sameList(previous.maps, next.maps)
   );
 }
 
@@ -100,23 +99,8 @@ export function sameBookShelfPaintState(
     previous.hasActivity === next.hasActivity &&
     previous.scale === next.scale &&
     previous.language === next.language &&
-    sameStringList(previous.statuses, next.statuses) &&
-    sameStringList(previous.invalidStatuses, next.invalidStatuses)
-  );
-}
-
-function sameStringList(
-  left: readonly string[] | null,
-  right: readonly string[] | null,
-): boolean {
-  if (left === right) return true;
-  if (left == null || right == null) return false;
-  return left.length === right.length && left.every((value, i) => value === right[i]);
-}
-
-export function heatmapDomIsPainted(el: { querySelector: (sel: string) => unknown }): boolean {
-  return !!el.querySelector(
-    '[data-testid="atomic-heatmap"], [data-testid="atomic-heatmap-empty"], [data-testid="atomic-heatmap-invalid"]',
+    sameList(previous.statuses, next.statuses) &&
+    sameList(previous.invalidStatuses, next.invalidStatuses)
   );
 }
 

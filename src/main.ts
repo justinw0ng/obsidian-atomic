@@ -24,7 +24,6 @@ import { exerciseActivities, hobbyActivities } from "./util/activity-types";
 import {
   collectAtomicDataRoots,
   pathAffectsAtomicRefresh,
-  type AtomicDataRoots,
 } from "./util/refresh-path";
 import { suggestItem } from "./util/suggest-item";
 
@@ -35,15 +34,13 @@ export default class FitnessPlugin extends Plugin {
   data!: VaultDataSource;
   private liveBlocks: LiveBlock[] = [];
   private refreshTimer: number | null = null;
-  /** Memoized per settings save; every vault event consults it. */
-  private dataRoots: AtomicDataRoots | null = null;
   private unloaded = false;
 
   async onload() {
+    this.unloaded = false;
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
-    this.scheduleRefresh();
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language,
     });
@@ -51,8 +48,11 @@ export default class FitnessPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => {
       if (this.unloaded) return;
       // Vault `create` fires once per existing file during startup indexing;
-      // registering after layout ready skips that burst entirely.
+      // registering after layout ready skips that burst entirely. Blocks that
+      // painted during layout restore were not cached (see
+      // VaultDataSource.cacheList), so one refresh converges them.
       this.registerVaultEvents();
+      this.scheduleRefresh();
       this.promptGymLogSetupIfPending();
       this.promptUpdateNoteIfNeeded();
     });
@@ -188,11 +188,9 @@ export default class FitnessPlugin extends Plugin {
 
   async loadSettings() {
     this.settings = mergeSettings(await this.loadData());
-    this.dataRoots = null;
   }
 
   async saveSettings() {
-    this.dataRoots = null;
     await this.saveData(this.settings);
   }
 
@@ -232,10 +230,9 @@ export default class FitnessPlugin extends Plugin {
   }
 
   private pathAffectsRefresh(path: string): boolean {
-    this.dataRoots ??= collectAtomicDataRoots(this.settings);
     return pathAffectsAtomicRefresh(
       path,
-      this.dataRoots,
+      collectAtomicDataRoots(this.settings),
       this.liveBlockSourcePaths(),
     );
   }

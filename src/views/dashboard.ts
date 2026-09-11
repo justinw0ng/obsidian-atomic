@@ -1,5 +1,5 @@
 import type { VaultDataSource } from "../data/vault-source";
-import type { SetRow } from "../core";
+import { EMPTY_SET_ROWS } from "../core/set-table";
 import {
   averagePerSession,
   barHeights,
@@ -39,16 +39,14 @@ import {
   renderDashboardMonthly,
   renderDashboardRecent,
 } from "./dashboard-sections";
+import { PaintMemo } from "../util/paint-memo";
 
 /** Bumped per host element so an older year switch cannot paint over a newer one. */
 const renderGeneration = new WeakMap<HTMLElement, number>();
-const paintStates = new WeakMap<HTMLElement, DashboardPaintState>();
-
-export function dashboardDomIsPainted(el: {
-  querySelector: (sel: string) => unknown;
-}): boolean {
-  return !!el.querySelector('[data-testid="atomic-dashboard"]');
-}
+const dashboardPaint = new PaintMemo<DashboardPaintState>(
+  '[data-testid="atomic-dashboard"]',
+  sameDashboardPaintState,
+);
 
 export function resolveDashboardYear(
   opts: Record<string, string>,
@@ -57,9 +55,6 @@ export function resolveDashboardYear(
 ): number {
   return resolveBlockYear(opts, nowYear(timezone), { frontmatterYear });
 }
-
-/** Shared empty array so the paint-skip sees "no set table" as unchanged. */
-const NO_SET_ROWS: SetRow[] = [];
 
 async function collectDashboardInput(
   data: VaultDataSource,
@@ -73,7 +68,7 @@ async function collectDashboardInput(
           meta,
           setRows: activity.supportsSetTable
             ? await data.getSessionSetRows(meta.path)
-            : NO_SET_ROWS,
+            : EMPTY_SET_ROWS,
         })),
       );
       return { activity, sessions };
@@ -388,14 +383,7 @@ export async function renderDashboard(
   const input = await collectDashboardInput(data, activityTypes, year);
   if (!el.isConnected || renderGeneration.get(el) !== generation) return;
 
-  const paintState = dashboardPaintState(input, language);
-  if (
-    dashboardDomIsPainted(el) &&
-    sameDashboardPaintState(paintStates.get(el), paintState)
-  ) {
-    return;
-  }
-  paintStates.set(el, paintState);
+  if (dashboardPaint.shouldSkip(el, dashboardPaintState(input, language))) return;
   const model = buildDashboardModel(input);
 
   el.empty();

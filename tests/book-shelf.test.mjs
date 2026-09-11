@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import { sameBookShelfPaintState } from "../src/util/heatmap-model.ts";
 import {
   bookDetailFixedPosition,
-  bookShelfDomIsPainted,
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
@@ -356,18 +355,13 @@ test("sameBookShelfPaintState skips on list identity and misses on language", ()
     false,
   );
   assert.equal(sameBookShelfPaintState(state, { ...state, scale: 1.5 }), false);
-  assert.equal(
-    bookShelfDomIsPainted({
-      querySelector: (sel) => (sel.includes("atomic-bookshelf") ? {} : null),
-    }),
-    true,
-  );
 });
 
 test("book shelf skip uses cached files and throttles layout", () => {
   const source = readFileSync(join(repoRoot, "src/views/book-shelf.ts"), "utf8");
   assert.match(source, /listHobbyItems/);
   assert.match(source, /sameBookShelfPaintState/);
+  assert.match(source, /bookShelfPaint\.shouldSkip\(el, paintState\)/);
   assert.match(source, /buildBookShelfItems\(files/);
   assert.doesNotMatch(source, /bookShelfItemKey/);
   assert.doesNotMatch(source, /OPENING_CLASS/);

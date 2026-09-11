@@ -164,7 +164,7 @@ test("vault scans no longer iterate getMarkdownFiles", () => {
 test("list caches key by normalized scan prefix not the raw folder argument", () => {
   const source = readFileSync(join(root, "src/data/vault-source.ts"), "utf8");
   assert.match(source, /this\.sessionListCache\.get\(prefix\)/);
-  assert.match(source, /this\.sessionListCache\.set\(prefix, out, prefix\)/);
+  assert.match(source, /this\.cacheList\(this\.sessionListCache, prefix, out, prefix\)/);
   assert.match(source, /const cacheKey = `\$\{activity\.id\}\\0\$\{prefix\}`/);
   assert.doesNotMatch(source, /\$\{folder\}\\0\$\{year\}/);
   assert.doesNotMatch(source, /activity\.folder\}\\0\$\{year\}/);
@@ -202,38 +202,4 @@ test("heatmap full-date labels are memoized per language and date", () => {
   const dates = readFileSync(join(root, "src/dates.ts"), "utf8");
   assert.match(dates, /const fullDateLabels = new Map<string, string>\(\)/);
   assert.match(dates, /FULL_DATE_LABEL_LIMIT/);
-});
-
-test("session bodies are parsed once per mtime through the shared note parse cache", () => {
-  const source = readFileSync(join(root, "src/data/vault-source.ts"), "utf8");
-  assert.match(source, /new NoteParseCache<TimeLogEntry\[\]>\(\)/);
-  assert.match(source, /new NoteParseCache<SetRow\[\]>\(\)/);
-  assert.match(source, /new NoteParseCache<string\[\]>\(\)/);
-  assert.match(source, /getSessionSetRows\(path: string\)/);
-  assert.match(source, /getSessionReminders\(path: string\)/);
-  assert.match(source, /cache\.resolve\(file\.path, file\.stat\.mtime/);
-  assert.match(source, /readCachedBody\(path: string\)/);
-  assert.doesNotMatch(source, /HobbyTimeLogCache/);
-
-  const cues = readFileSync(join(root, "src/views/cues.ts"), "utf8");
-  assert.match(cues, /Promise\.all\(/);
-  assert.match(cues, /data\.getSessionReminders\(session\.path\)/);
-  assert.doesNotMatch(cues, /readBody/);
-  assert.doesNotMatch(cues, /parseReminders/);
-
-  const timer = readFileSync(join(root, "src/views/timer.ts"), "utf8");
-  assert.match(timer, /plugin\.data\.readCachedBody\(sourcePath\)/);
-  assert.doesNotMatch(timer, /data\.readBody\(/);
-});
-
-test("plugin skips startup create events and memoizes refresh roots per settings save", () => {
-  const main = readFileSync(join(root, "src/main.ts"), "utf8");
-  const layoutReady = main.match(/onLayoutReady\(\(\) => \{([\s\S]*?)\n    \}\);/);
-  assert.ok(layoutReady, "onLayoutReady block not found");
-  assert.match(layoutReady[1], /this\.registerVaultEvents\(\)/);
-  const onload = main.slice(main.indexOf("async onload()"), main.indexOf("onunload()"));
-  assert.doesNotMatch(onload, /vault\.on\("create"/);
-  assert.match(main, /this\.dataRoots \?\?= collectAtomicDataRoots\(this\.settings\)/);
-  assert.match(main, /async saveSettings\(\) \{\s*this\.dataRoots = null;/);
-  assert.match(main, /this\.dataRoots = null;\s*\}\s*async saveSettings/);
 });
