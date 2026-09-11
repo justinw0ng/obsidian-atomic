@@ -1,7 +1,7 @@
 {
   "version": "1.2.0",
   "body": {
-    "en": "The Atomic dashboard has a new card layout — year overview, KPIs, activity cards, monthly charts, and recent sessions — easier to scan on phone and desktop.",
-    "zh-Hant": "Atomic 總覽而家用卡片嚟排，年度概覽、重點數字、活動卡、每月圖表同最近訓練一目了然，手機同電腦都好易睇。"
+    "en": "Performance improvements — the dashboard and notes refresh with fewer vault reads, so Atomic stays snappier on large vaults and on mobile.",
+    "zh-Hant": "效能提升 — 總覽同筆記刷新少咗讀 vault，大 vault 同手機都會更順。"
   }
 }

@@ -128,7 +128,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-update-note-ack/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
-  assert.match(health, /而家用卡片嚟排/);
+  assert.match(health, /效能提升/);
   assert.match(health, /atomic-dashboard-kpi/);
   assert.match(health, /atomic-dashboard-activity/);
   assert.match(health, /atomic-dashboard-year-prev/);
