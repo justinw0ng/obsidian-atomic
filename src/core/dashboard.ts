@@ -1,6 +1,7 @@
 /** Pure dashboard model. No Obsidian imports; the view only lays this out. */
 
 import type { SetRow } from "./set-table";
+import type { Language } from "../i18n/types";
 import type { ActivityType, SessionMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { rowVolumeKg } from "../core.ts";
@@ -10,11 +11,15 @@ import { monthIndexFromDate } from "../dates.ts";
 import { minutesByMonthForYear, type TimeLogEntry } from "./hobby.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isInProgressStatus } from "./reading-status.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { activityPaintKey } from "../util/activity-types.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { sameList } from "../util/paint-memo.ts";
 
 export type DashboardSessionInput = {
   meta: SessionMeta;
   /** Parsed set table for `supportsSetTable` activities; empty otherwise. */
-  setRows: SetRow[];
+  setRows: readonly SetRow[];
 };
 
 export type DashboardExerciseInput = {
@@ -25,7 +30,7 @@ export type DashboardExerciseInput = {
 export type DashboardHobbyItemInput = {
   path: string;
   frontmatter: Record<string, unknown>;
-  entries: TimeLogEntry[];
+  entries: readonly TimeLogEntry[];
 };
 
 export type DashboardHobbyInput = {
@@ -38,6 +43,79 @@ export type DashboardInput = {
   exercise: DashboardExerciseInput[];
   hobbies: DashboardHobbyInput[];
 };
+
+/**
+ * What the last paint was built from. Session metas, set rows, item
+ * frontmatter, and Time log entries come from mtime / folder-scoped caches, so
+ * reference identity means "unchanged". Activities are snapshotted as keys
+ * because settings mutate them in place.
+ */
+export type DashboardPaintState = {
+  year: number;
+  language: Language;
+  exercise: Array<{ activityKey: string; sessions: readonly DashboardSessionInput[] }>;
+  hobbies: Array<{ activityKey: string; items: readonly DashboardHobbyItemInput[] }>;
+};
+
+// Compile-time guard: adding a field to an input type fails typecheck here
+// (TS2344) until the paint state / comparators below account for it.
+type Assert<T extends true> = T;
+type FieldsCovered<T, Listed extends keyof T> = [Exclude<keyof T, Listed>] extends [never]
+  ? true
+  : false;
+type SessionInputCovered = Assert<FieldsCovered<DashboardSessionInput, "meta" | "setRows">>;
+type HobbyItemInputCovered = Assert<
+  FieldsCovered<DashboardHobbyItemInput, "path" | "frontmatter" | "entries">
+>;
+type DashboardInputCovered = Assert<FieldsCovered<DashboardInput, "year" | "exercise" | "hobbies">>;
+
+export function dashboardPaintState(
+  input: DashboardInput,
+  language: Language,
+): DashboardPaintState {
+  return {
+    year: input.year,
+    language,
+    exercise: input.exercise.map(({ activity, sessions }) => ({
+      activityKey: activityPaintKey(activity),
+      sessions,
+    })),
+    hobbies: input.hobbies.map(({ activity, items }) => ({
+      activityKey: activityPaintKey(activity),
+      items,
+    })),
+  };
+}
+
+function sameSessionInput(a: DashboardSessionInput, b: DashboardSessionInput): boolean {
+  return a.meta === b.meta && a.setRows === b.setRows;
+}
+
+function sameHobbyItemInput(a: DashboardHobbyItemInput, b: DashboardHobbyItemInput): boolean {
+  return a.path === b.path && a.frontmatter === b.frontmatter && a.entries === b.entries;
+}
+
+/** True when a repaint would produce the same dashboard as the previous one. */
+export function sameDashboardPaintState(
+  previous: DashboardPaintState | undefined,
+  next: DashboardPaintState,
+): boolean {
+  if (!previous) return false;
+  return (
+    previous.year === next.year &&
+    previous.language === next.language &&
+    sameList(
+      previous.exercise,
+      next.exercise,
+      (a, b) => a.activityKey === b.activityKey && sameList(a.sessions, b.sessions, sameSessionInput),
+    ) &&
+    sameList(
+      previous.hobbies,
+      next.hobbies,
+      (a, b) => a.activityKey === b.activityKey && sameList(a.items, b.items, sameHobbyItemInput),
+    )
+  );
+}
 
 export type Felt = "good" | "ok" | "bad";
 export type FeltCounts = Record<Felt, number>;

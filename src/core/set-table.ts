@@ -8,6 +8,9 @@ export type SetRow = {
   notes: string;
 };
 
+/** Shared "no set table" result so identity-based paint-skips see it as unchanged. */
+export const EMPTY_SET_ROWS: readonly SetRow[] = [];
+
 const SET_TABLE_ALIGN_RE = /^:?-{1,}:?$/;
 
 export type SetTableRange = {

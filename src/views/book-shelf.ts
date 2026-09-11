@@ -12,6 +12,8 @@ import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth,
 import { measureElementWidth } from "../util/element-width.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { sameBookShelfPaintState, type BookShelfPaintState } from "../util/heatmap-model.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { PaintMemo } from "../util/paint-memo.ts";
 
 export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale };
 
@@ -32,15 +34,12 @@ export type CoverRef =
 
 const resizeObservers = new WeakMap<HTMLElement, ResizeObserver>();
 const windowListeners = new WeakMap<HTMLElement, () => void>();
-const bookShelfPaintState = new WeakMap<HTMLElement, BookShelfPaintState>();
+const bookShelfPaint = new PaintMemo<BookShelfPaintState>(
+  '[data-testid="atomic-bookshelf"]',
+  sameBookShelfPaintState,
+);
 const layoutFrames = new WeakMap<HTMLElement, number>();
 const EMPTY_HOBBY_FILES: HobbyItemMeta[] = [];
-
-export function bookShelfDomIsPainted(el: {
-  querySelector: (sel: string) => unknown;
-}): boolean {
-  return !!el.querySelector('[data-testid="atomic-bookshelf"]');
-}
 
 function cancelBookShelfLayout(el: HTMLElement): void {
   const frame = layoutFrames.get(el);
@@ -516,12 +515,7 @@ export function renderBookShelf(
     statuses,
     invalidStatuses,
   };
-  if (
-    bookShelfDomIsPainted(el) &&
-    sameBookShelfPaintState(bookShelfPaintState.get(el), paintState)
-  ) {
-    return;
-  }
+  if (bookShelfPaint.shouldSkip(el, paintState)) return;
   const items = activity
     ? buildBookShelfItems(files, activityId, statuses)
     : [];
@@ -538,7 +532,6 @@ export function renderBookShelf(
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
-  bookShelfPaintState.set(el, paintState);
 
   const root = el.createDiv({
     cls: "fitness-plugin atomic-book-shelf",

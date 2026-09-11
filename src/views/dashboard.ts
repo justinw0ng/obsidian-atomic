@@ -1,18 +1,21 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { parseSetTable } from "../core";
+import { EMPTY_SET_ROWS } from "../core/set-table";
 import {
   averagePerSession,
   barHeights,
   buildDashboardModel,
+  dashboardPaintState,
   FELT_ORDER,
   formatCompactKg,
   formatKg,
+  sameDashboardPaintState,
   splitHoursMinutes,
   type DashboardActivityCard,
   type DashboardExerciseCard,
   type DashboardHobbyCard,
   type DashboardInput,
   type DashboardModel,
+  type DashboardPaintState,
   type Felt,
 } from "../core/dashboard";
 import { nowYear, resolveBlockYear } from "../dates";
@@ -36,9 +39,14 @@ import {
   renderDashboardMonthly,
   renderDashboardRecent,
 } from "./dashboard-sections";
+import { PaintMemo } from "../util/paint-memo";
 
 /** Bumped per host element so an older year switch cannot paint over a newer one. */
 const renderGeneration = new WeakMap<HTMLElement, number>();
+const dashboardPaint = new PaintMemo<DashboardPaintState>(
+  '[data-testid="atomic-dashboard"]',
+  sameDashboardPaintState,
+);
 
 export function resolveDashboardYear(
   opts: Record<string, string>,
@@ -59,8 +67,8 @@ async function collectDashboardInput(
         data.listSessions(activity.folder, year).map(async (meta) => ({
           meta,
           setRows: activity.supportsSetTable
-            ? parseSetTable(await data.readBody(meta.path))
-            : [],
+            ? await data.getSessionSetRows(meta.path)
+            : EMPTY_SET_ROWS,
         })),
       );
       return { activity, sessions };
@@ -372,8 +380,11 @@ export async function renderDashboard(
 ): Promise<void> {
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
-  const model = buildDashboardModel(await collectDashboardInput(data, activityTypes, year));
+  const input = await collectDashboardInput(data, activityTypes, year);
   if (!el.isConnected || renderGeneration.get(el) !== generation) return;
+
+  if (dashboardPaint.shouldSkip(el, dashboardPaintState(input, language))) return;
+  const model = buildDashboardModel(input);
 
   el.empty();
   const root = el.createDiv({

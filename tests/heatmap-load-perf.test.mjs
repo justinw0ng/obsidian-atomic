@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseTimeLog } from "../src/core/hobby.ts";
+import { fullDateForLanguage } from "../src/dates.ts";
 import { BLUE, GREEN, ORANGE } from "../src/types.ts";
 import { durationMapFromHobbyLogs, durationMapFromSessions } from "../src/util/duration-map.ts";
 import { markdownFilesInFolder } from "../src/util/folder-files.ts";
@@ -163,7 +164,7 @@ test("vault scans no longer iterate getMarkdownFiles", () => {
 test("list caches key by normalized scan prefix not the raw folder argument", () => {
   const source = readFileSync(join(root, "src/data/vault-source.ts"), "utf8");
   assert.match(source, /this\.sessionListCache\.get\(prefix\)/);
-  assert.match(source, /this\.sessionListCache\.set\(prefix, out, prefix\)/);
+  assert.match(source, /this\.cacheList\(this\.sessionListCache, prefix, out, prefix\)/);
   assert.match(source, /const cacheKey = `\$\{activity\.id\}\\0\$\{prefix\}`/);
   assert.doesNotMatch(source, /\$\{folder\}\\0\$\{year\}/);
   assert.doesNotMatch(source, /activity\.folder\}\\0\$\{year\}/);
@@ -189,4 +190,16 @@ test("heatmap date labels reuse Intl.DateTimeFormat instances", () => {
     dates,
     /export function fullDateEn\([^)]*\)[^{]*\{[^}]*new Intl\.DateTimeFormat/s,
   );
+});
+
+test("heatmap full-date labels are memoized per language and date", () => {
+  const first = fullDateForLanguage(2026, 8, 14, "en");
+  assert.equal(first, "Aug 14");
+  assert.equal(fullDateForLanguage(2026, 8, 14, "en"), first);
+  assert.notEqual(fullDateForLanguage(2026, 8, 14, "zh-Hant-en"), first);
+  assert.equal(fullDateForLanguage(2026, 8, 15, "en"), "Aug 15");
+
+  const dates = readFileSync(join(root, "src/dates.ts"), "utf8");
+  assert.match(dates, /const fullDateLabels = new Map<string, string>\(\)/);
+  assert.match(dates, /FULL_DATE_LABEL_LIMIT/);
 });

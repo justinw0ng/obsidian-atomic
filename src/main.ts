@@ -34,17 +34,25 @@ export default class FitnessPlugin extends Plugin {
   data!: VaultDataSource;
   private liveBlocks: LiveBlock[] = [];
   private refreshTimer: number | null = null;
+  private unloaded = false;
 
   async onload() {
+    this.unloaded = false;
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
-    this.scheduleRefresh();
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language,
     });
     this.addSettingTab(new FitnessSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(() => {
+      if (this.unloaded) return;
+      // Vault `create` fires once per existing file during startup indexing;
+      // registering after layout ready skips that burst entirely. Blocks that
+      // painted during layout restore were not cached (see
+      // VaultDataSource.cacheList), so one refresh converges them.
+      this.registerVaultEvents();
+      this.scheduleRefresh();
       this.promptGymLogSetupIfPending();
       this.promptUpdateNoteIfNeeded();
     });
@@ -138,6 +146,25 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.registerEvent(
+      this.app.metadataCache.on("resolved", () => {
+        if (!this.liveBlocks.some((block) => block.el.isConnected)) return;
+        if (!this.data.invalidateUnreadyPrefixes()) return;
+        this.scheduleRefresh();
+      }),
+    );
+  }
+
+  onunload() {
+    this.unloaded = true;
+    this.liveBlocks = [];
+    if (this.refreshTimer != null) {
+      window.clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
+  private registerVaultEvents(): void {
+    this.registerEvent(
       this.app.vault.on("modify", (file) => {
         this.handleVaultPathChange(file.path);
       }),
@@ -157,21 +184,6 @@ export default class FitnessPlugin extends Plugin {
         this.handleVaultPathChange(file.path);
       }),
     );
-    this.registerEvent(
-      this.app.metadataCache.on("resolved", () => {
-        if (!this.liveBlocks.some((block) => block.el.isConnected)) return;
-        if (!this.data.invalidateUnreadyPrefixes()) return;
-        this.scheduleRefresh();
-      }),
-    );
-  }
-
-  onunload() {
-    this.liveBlocks = [];
-    if (this.refreshTimer != null) {
-      window.clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
-    }
   }
 
   async loadSettings() {
@@ -191,10 +203,10 @@ export default class FitnessPlugin extends Plugin {
   }
 
   trackLiveBlock(block: LiveBlock) {
-    // Drop detached elements
-    this.liveBlocks = this.liveBlocks.filter((b) => b.el.isConnected);
-    // Replace if same el re-processed
-    this.liveBlocks = this.liveBlocks.filter((b) => b.el !== block.el);
+    // Drop detached elements and any earlier entry for this same host.
+    this.liveBlocks = this.liveBlocks.filter(
+      (b) => b.el.isConnected && b.el !== block.el,
+    );
     this.liveBlocks.push(block);
   }
 
@@ -232,11 +244,11 @@ export default class FitnessPlugin extends Plugin {
     if (!affectsCurrent) return;
 
     if (oldPath != null) {
-      // Preserve parsed Time log across renames when mtime-aligned cache moves.
-      this.data.renameHobbyTimeLogCache(oldPath, path);
+      // Preserve parsed note views across renames when the mtime-aligned cache moves.
+      this.data.renameNoteParseCaches(oldPath, path);
       this.data.invalidateListCache(oldPath);
     } else {
-      this.data.invalidateHobbyTimeLogCache(path);
+      this.data.invalidateNoteParseCaches(path);
     }
     this.data.invalidateListCache(path);
     this.scheduleRefresh();

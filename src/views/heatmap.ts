@@ -13,7 +13,6 @@ import {
   appendHeatmapWeeks,
   buildHeatmapWeeks,
   heatmapActivityKey,
-  heatmapDomIsPainted,
   heatmapLayoutKey,
   heatmapMonthSlots,
   sameHeatmapPaintState,
@@ -22,6 +21,7 @@ import {
 } from "../util/heatmap-model";
 import { measureElementWidth } from "../util/element-width";
 import { scrollLeftToAlignRight } from "../util/heatmap-scroll";
+import { PaintMemo } from "../util/paint-memo";
 
 type HeatmapObserverRegistry = {
   scrolls: ResizeObserver[];
@@ -29,7 +29,10 @@ type HeatmapObserverRegistry = {
 };
 
 const heatmapObserverRegistry = new WeakMap<HTMLElement, HeatmapObserverRegistry>();
-const heatmapPaintState = new WeakMap<HTMLElement, HeatmapPaintState>();
+const heatmapPaint = new PaintMemo<HeatmapPaintState>(
+  '[data-testid="atomic-heatmap"], [data-testid="atomic-heatmap-empty"], [data-testid="atomic-heatmap-invalid"]',
+  sameHeatmapPaintState,
+);
 
 function cleanupHeatmapObservers(container: HTMLElement): void {
   const registry = heatmapObserverRegistry.get(container);
@@ -272,16 +275,10 @@ export async function renderHeatmaps(
     invalidIds,
     maps,
   };
-  if (
-    heatmapDomIsPainted(el) &&
-    sameHeatmapPaintState(heatmapPaintState.get(el), paintState)
-  ) {
-    return;
-  }
+  if (heatmapPaint.shouldSkip(el, paintState)) return;
 
   cleanupHeatmapObservers(el);
   el.empty();
-  heatmapPaintState.set(el, paintState);
   const registry: HeatmapObserverRegistry = { scrolls: [] };
   heatmapObserverRegistry.set(el, registry);
 

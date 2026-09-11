@@ -1,4 +1,6 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
+import { parseReminders } from "../core";
+import { EMPTY_SET_ROWS, parseSetTable, type SetRow } from "../core/set-table";
 import {
   parseTimeLog,
   type TimeLogEntry,
@@ -6,8 +8,8 @@ import {
 import type { ActivityType, DayActivity, HobbyItemMeta, SessionMeta } from "../types";
 import { durationMapFromHobbyLogs, durationMapFromSessions } from "../util/duration-map";
 import { markdownFilesInFolder, type VaultFolderLike } from "../util/folder-files";
-import { HobbyTimeLogCache } from "../util/hobby-time-log-cache";
 import { hobbyItemFromFileCache } from "../util/hobby-item-scan";
+import { NoteParseCache } from "../util/note-parse-cache";
 import { sessionMetaFromFile } from "../util/session-meta";
 import { VaultListCache } from "../util/vault-list-cache";
 import {
@@ -16,8 +18,18 @@ import {
   sessionScanPrefix,
 } from "../util/vault-path";
 
+const EMPTY_TIME_LOG: readonly TimeLogEntry[] = [];
+const EMPTY_REMINDERS: readonly string[] = [];
+
 export class VaultDataSource {
-  private readonly hobbyTimeLogCache = new HobbyTimeLogCache();
+  private readonly timeLogCache = new NoteParseCache<readonly TimeLogEntry[]>();
+  private readonly setTableCache = new NoteParseCache<readonly SetRow[]>();
+  private readonly reminderCache = new NoteParseCache<readonly string[]>();
+  private readonly noteParseCaches: readonly NoteParseCache<unknown>[] = [
+    this.timeLogCache,
+    this.setTableCache,
+    this.reminderCache,
+  ];
   private readonly sessionListCache = new VaultListCache<SessionMeta[]>();
   private readonly hobbyItemListCache = new VaultListCache<HobbyItemMeta[]>();
   private readonly durationMapCache = new VaultListCache<Map<string, DayActivity>>();
@@ -25,17 +37,18 @@ export class VaultDataSource {
 
   constructor(private app: App) {}
 
-  /** Drop cached Time log parses (all paths, or one path after edit/delete). */
-  invalidateHobbyTimeLogCache(path?: string): void {
-    this.hobbyTimeLogCache.invalidate(
-      path ? normalizePath(path) : undefined,
-    );
-    this.durationMapCache.invalidate(path ? normalizePath(path) : undefined);
+  /** Drop cached note parses (all paths, or one path after edit/delete). */
+  invalidateNoteParseCaches(path?: string): void {
+    const scoped = path ? normalizePath(path) : undefined;
+    for (const cache of this.noteParseCaches) cache.invalidate(scoped);
+    this.durationMapCache.invalidate(scoped);
   }
 
-  /** Keep cache entries aligned when a note is renamed. */
-  renameHobbyTimeLogCache(oldPath: string, newPath: string): void {
-    this.hobbyTimeLogCache.rename(normalizePath(oldPath), normalizePath(newPath));
+  /** Keep parse cache entries aligned when a note is renamed. */
+  renameNoteParseCaches(oldPath: string, newPath: string): void {
+    const from = normalizePath(oldPath);
+    const to = normalizePath(newPath);
+    for (const cache of this.noteParseCaches) cache.rename(from, to);
   }
 
   /** Drop cached vault list scans (sessions / hobby items / duration maps). */
@@ -63,17 +76,35 @@ export class VaultDataSource {
    * Parsed Time log entries for a hobby item note.
    * Reuses an in-memory parse while the file mtime is unchanged.
    */
-  async getHobbyTimeLogEntries(path: string): Promise<TimeLogEntry[]> {
-    const file = this.getFileByPath(path);
-    if (!file) return [];
-    const mtime = file.stat.mtime;
-    const cached = this.hobbyTimeLogCache.get(file.path, mtime);
-    if (cached) return cached;
+  getHobbyTimeLogEntries(path: string): Promise<readonly TimeLogEntry[]> {
+    return this.parsedNote(this.timeLogCache, path, parseTimeLog, EMPTY_TIME_LOG);
+  }
 
-    const markdown = await this.app.vault.cachedRead(file);
-    const entries = parseTimeLog(markdown);
-    this.hobbyTimeLogCache.set(file.path, mtime, entries);
-    return entries;
+  /** Parsed set-table rows of a session note; same mtime reuse as Time logs. */
+  getSessionSetRows(path: string): Promise<readonly SetRow[]> {
+    return this.parsedNote(this.setTableCache, path, parseSetTable, EMPTY_SET_ROWS);
+  }
+
+  /** Reminder bullets of a session note; same mtime reuse as Time logs. */
+  getSessionReminders(path: string): Promise<readonly string[]> {
+    return this.parsedNote(this.reminderCache, path, parseReminders, EMPTY_REMINDERS);
+  }
+
+  /**
+   * One parsed view of a note, reused while its mtime is unchanged. Reads go
+   * through `cachedRead`; results are shared, so callers must not mutate them.
+   */
+  private parsedNote<T>(
+    cache: NoteParseCache<T>,
+    path: string,
+    parse: (markdown: string) => T,
+    empty: T,
+  ): Promise<T> {
+    const file = this.getFileByPath(path);
+    if (!file) return Promise.resolve(empty);
+    return cache.resolve(file.path, file.stat.mtime, async () =>
+      parse(await this.app.vault.cachedRead(file)),
+    );
   }
 
   listSessions(folder: string, year: number): SessionMeta[] {
@@ -93,7 +124,7 @@ export class VaultDataSource {
         }),
       );
     }
-    this.sessionListCache.set(prefix, out, prefix);
+    this.cacheList(this.sessionListCache, prefix, out, prefix);
     return out;
   }
 
@@ -122,7 +153,7 @@ export class VaultDataSource {
       });
       if (item) out.push(item);
     }
-    this.hobbyItemListCache.set(cacheKey, out, prefix);
+    this.cacheList(this.hobbyItemListCache, cacheKey, out, prefix);
     return out;
   }
 
@@ -152,19 +183,42 @@ export class VaultDataSource {
         })),
       );
       const map = durationMapFromHobbyLogs(perItem, year);
-      this.durationMapCache.set(cacheKey, map, prefix);
+      this.cacheList(this.durationMapCache, cacheKey, map, prefix);
       return map;
     }
 
     const map = durationMapFromSessions(this.listSessions(activity.folder, year));
-    this.durationMapCache.set(cacheKey, map, prefix);
+    this.cacheList(this.durationMapCache, cacheKey, map, prefix);
     return map;
   }
 
+  /**
+   * Folder scans that run while Obsidian is still restoring the layout may
+   * see a partial file tree, so they are served but not remembered. The
+   * plugin refreshes once at layout ready; from then on scans are cached.
+   */
+  private cacheList<T>(
+    cache: VaultListCache<T>,
+    key: string,
+    value: T,
+    scope: string,
+  ): void {
+    if (!this.app.workspace.layoutReady) return;
+    cache.set(key, value, scope);
+  }
+
+  /** Fresh disk read. Use before deciding on or composing a write. */
   async readBody(path: string): Promise<string> {
     const af = this.app.vault.getAbstractFileByPath(normalizePath(path));
     if (!(af instanceof TFile)) return "";
     return this.app.vault.read(af);
+  }
+
+  /** Display-only read served from Obsidian's content cache when unchanged. */
+  async readCachedBody(path: string): Promise<string> {
+    const file = this.getFileByPath(path);
+    if (!file) return "";
+    return this.app.vault.cachedRead(file);
   }
 
   exists(path: string): boolean {

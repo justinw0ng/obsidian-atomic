@@ -175,7 +175,7 @@ export function stopSessionTimer(input: {
   return { markdown, minutes, durationMin };
 }
 
-export function minutesByDate(entries: TimeLogEntry[]): Map<string, number> {
+export function minutesByDate(entries: readonly TimeLogEntry[]): Map<string, number> {
   const totals = new Map<string, number>();
   for (const entry of entries) {
     totals.set(entry.date, (totals.get(entry.date) ?? 0) + entry.minutes);
@@ -185,7 +185,7 @@ export function minutesByDate(entries: TimeLogEntry[]): Map<string, number> {
 
 /** Totals for dates in a calendar year (`YYYY-…`). */
 export function minutesByDateForYear(
-  entries: TimeLogEntry[],
+  entries: readonly TimeLogEntry[],
   year: number,
 ): Map<string, number> {
   const prefix = `${year}-`;
@@ -193,7 +193,7 @@ export function minutesByDateForYear(
 }
 
 /** Twelve buckets (Jan → Dec) of logged minutes for one calendar year. */
-export function minutesByMonthForYear(entries: TimeLogEntry[], year: number): number[] {
+export function minutesByMonthForYear(entries: readonly TimeLogEntry[], year: number): number[] {
   const months = Array(12).fill(0) as number[];
   const prefix = `${year}-`;
   for (const entry of entries) {
@@ -204,7 +204,7 @@ export function minutesByMonthForYear(entries: TimeLogEntry[], year: number): nu
   return months;
 }
 
-export function sumMinutesForYear(entries: TimeLogEntry[], year: number): number {
+export function sumMinutesForYear(entries: readonly TimeLogEntry[], year: number): number {
   const prefix = `${year}-`;
   let total = 0;
   for (const entry of entries) {
@@ -376,7 +376,7 @@ function formatTimeLogEntry(entry: TimeLogEntry): string {
 }
 
 function hasMatchingIsoEntry(
-  entries: TimeLogEntry[],
+  entries: readonly TimeLogEntry[],
   entry: TimeLogEntry,
 ): boolean {
   if (!entry.startIso || !entry.endIso) return false;
@@ -436,7 +436,7 @@ function timeFromIso(iso: string): string {
   return new Date(iso).toISOString().slice(11, 16);
 }
 
-function sumMinutes(entries: TimeLogEntry[]): number {
+function sumMinutes(entries: readonly TimeLogEntry[]): number {
   return entries.reduce((total, entry) => total + entry.minutes, 0);
 }
 

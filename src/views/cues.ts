@@ -2,13 +2,12 @@ import type { VaultDataSource } from "../data/vault-source";
 import {
   buildKeepers,
   cuesInCalendarMonth,
-  parseReminders,
   type Cue,
 } from "../core";
 import { formatMonthLabel, nowMonth, nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
-import type { ActivityType } from "../types";
+import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
 
 export function resolveCuesYear(
@@ -47,14 +46,21 @@ export async function renderCues(
   const month = year === currentYear ? nowMonth(timezone) : 12;
   const monthLabel = formatMonthLabel(year, month, language);
 
+  const sessions = await Promise.all(
+    data
+      .listSessions(activityType.folder, year)
+      .filter((session): session is SessionMeta & { date: string } => !!session.date)
+      .map(async (session) => ({
+        session,
+        reminders: await data.getSessionReminders(session.path),
+      })),
+  );
   const cues: Cue[] = [];
-  for (const p of data.listSessions(activityType.folder, year)) {
-    if (!p.date) continue;
-    const md = await data.readBody(p.path);
-    const focus = p.focus.join(", ");
-    for (const text of parseReminders(md)) {
+  for (const { session, reminders } of sessions) {
+    const focus = session.focus.join(", ");
+    for (const text of reminders) {
       if (!text) continue;
-      cues.push({ text, date: p.date, focus });
+      cues.push({ text, date: session.date, focus });
     }
   }
 

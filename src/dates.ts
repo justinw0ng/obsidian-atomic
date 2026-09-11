@@ -134,13 +134,26 @@ export function fullDateEn(y: number, m: number, d: number): string {
   return utcFullDateEn.format(utcNoon(y, m, d));
 }
 
+/**
+ * Heatmaps ask for ~371 labels per grid per paint; `Intl.DateTimeFormat.format`
+ * dominated that model build, so labels are memoized per language and date.
+ */
+const fullDateLabels = new Map<string, string>();
+const FULL_DATE_LABEL_LIMIT = 8192;
+
 export function fullDateForLanguage(
   y: number,
   m: number,
   d: number,
   language: Language,
 ): string {
-  return language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
+  const key = `${language}|${y}-${m}-${d}`;
+  const cached = fullDateLabels.get(key);
+  if (cached !== undefined) return cached;
+  const label = language === "en" ? fullDateEn(y, m, d) : fullDateZh(y, m, d);
+  if (fullDateLabels.size >= FULL_DATE_LABEL_LIMIT) fullDateLabels.clear();
+  fullDateLabels.set(key, label);
+  return label;
 }
 
 /** `Thu, Aug 14` (en) or the zh-HK equivalent for a calendar date. */

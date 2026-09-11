@@ -41,7 +41,7 @@ export async function renderAtomicTimer(
   sourcePath: string,
   generation?: number,
 ): Promise<void> {
-  const markdown = sourcePath ? await plugin.data.readBody(sourcePath) : "";
+  const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
   if (
     !el.isConnected ||
     (generation !== undefined && isStaleBlockRender(el, generation))

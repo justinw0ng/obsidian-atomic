@@ -6,7 +6,6 @@ import {
   appendHeatmapWeeks,
   buildHeatmapWeeks,
   formatHeatmapTooltip,
-  heatmapDomIsPainted,
   heatmapMonthSlots,
   sameHeatmapPaintState,
 } from "../src/util/heatmap-model.ts";
@@ -185,10 +184,4 @@ test("sameHeatmapPaintState reuses identical duration maps", () => {
   };
   assert.equal(sameHeatmapPaintState(state, { ...state, maps: [map] }), true);
   assert.equal(sameHeatmapPaintState(state, { ...state, maps: [new Map()] }), false);
-  assert.equal(
-    heatmapDomIsPainted({
-      querySelector: (sel) => (sel.includes("atomic-heatmap") ? {} : null),
-    }),
-    true,
-  );
 });
