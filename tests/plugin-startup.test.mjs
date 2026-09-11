@@ -46,13 +46,13 @@ test("refresh gating compares pre-normalized roots per event", () => {
   assert.match(main, /collectAtomicDataRoots\(this\.settings\)/);
   assert.doesNotMatch(main, /dataRoots/);
   const refreshPath = readFileSync(join(root, "src/util/refresh-path.ts"), "utf8");
-  const affects = methodBody(refreshPath, "export function pathAffectsAtomicRefresh(");
+  const affects = bracedBlock(refreshPath, "export function pathAffectsAtomicRefresh(");
   assert.match(affects, /liveBlockSourcePaths\.includes\(norm\)/);
   assert.match(affects, /roots\.filePaths\.includes\(norm\)/);
   assert.equal((affects.match(/normalizeVaultPath\(/g) || []).length, 1, "normalize the event path once");
 });
 
 test("live block tracking is a single pass", () => {
-  const body = methodBody(main, "trackLiveBlock(block: LiveBlock)");
+  const body = bracedBlock(main, "trackLiveBlock(block: LiveBlock)");
   assert.equal((body.match(/\.filter\(/g) || []).length, 1);
 });

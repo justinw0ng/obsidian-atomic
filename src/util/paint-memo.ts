@@ -12,6 +12,8 @@ export class PaintMemo<S> {
   private readonly paintedSelector: string;
   private readonly same: (previous: S | undefined, next: S) => boolean;
 
+  // Explicit fields on purpose: Node's --experimental-strip-types (the unit
+  // test runner) rejects TypeScript parameter properties.
   constructor(
     paintedSelector: string,
     same: (previous: S | undefined, next: S) => boolean,

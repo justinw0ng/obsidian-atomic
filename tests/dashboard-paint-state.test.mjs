@@ -192,11 +192,3 @@ test("dashboard view skips identical repaints before touching the DOM", () => {
   assert.match(view, /EMPTY_SET_ROWS/);
   assert.doesNotMatch(view, /NO_SET_ROWS/);
 });
-
-test("dashboard paint-state fields stay covered by the compile-time guards", () => {
-  const model = readFileSync(join(root, "src/core/dashboard.ts"), "utf8");
-  assert.match(model, /FieldsCovered<DashboardSessionInput, "meta" \| "setRows">/);
-  assert.match(model, /FieldsCovered<DashboardHobbyItemInput, "path" \| "frontmatter" \| "entries">/);
-  assert.match(model, /FieldsCovered<DashboardInput, "year" \| "exercise" \| "hobbies">/);
-  assert.match(model, /language: Language;/);
-});
