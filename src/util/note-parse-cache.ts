@@ -33,7 +33,7 @@ export class NoteParseCache<T> {
    */
   resolve(path: string, mtime: number, load: () => Promise<T>): Promise<T> {
     const hit = this.get(path, mtime);
-    if (hit) return Promise.resolve(hit);
+    if (hit !== null) return Promise.resolve(hit);
     const inFlight = this.pending.get(path);
     if (inFlight && inFlight.mtime === mtime) return inFlight.promise;
 

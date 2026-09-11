@@ -40,7 +40,6 @@ export default class FitnessPlugin extends Plugin {
   private unloaded = false;
 
   async onload() {
-    this.unloaded = false;
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
