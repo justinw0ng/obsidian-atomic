@@ -16,13 +16,18 @@ function parentFolder(filePath: string): string | null {
   return isSafeVaultFolder(parent) ? parent : null;
 }
 
+export type AtomicDataRoots = {
+  /** Normalized, no trailing slash. */
+  folderRoots: string[];
+  /** Normalized vault file paths. */
+  filePaths: string[];
+};
+
 /**
  * Folder roots and exact file paths that can affect Atomic plugin data or views.
+ * Output is normalized once so {@link pathAffectsAtomicRefresh} can compare directly.
  */
-export function collectAtomicDataRoots(settings: FitnessSettings): {
-  folderRoots: string[];
-  filePaths: string[];
-} {
+export function collectAtomicDataRoots(settings: FitnessSettings): AtomicDataRoots {
   const folderRoots = new Set<string>(["atomics"]);
   const filePaths = new Set<string>();
 
@@ -50,30 +55,24 @@ export function collectAtomicDataRoots(settings: FitnessSettings): {
   };
 }
 
-function isUnderFolderRoot(path: string, root: string): boolean {
-  const normPath = normalizeVaultPath(path);
-  const normRoot = normalizeVaultPath(root).replace(/\/$/, "");
+function isUnderFolderRoot(normPath: string, normRoot: string): boolean {
   return normPath === normRoot || normPath.startsWith(`${normRoot}/`);
 }
 
 /**
  * True when a vault path change could affect Atomic data or a live block host note.
+ * `roots` must come from {@link collectAtomicDataRoots}; `liveBlockSourcePaths`
+ * are Obsidian source paths, which are already normalized.
  */
 export function pathAffectsAtomicRefresh(
   path: string,
-  roots: { folderRoots: string[]; filePaths: string[] },
+  roots: AtomicDataRoots,
   liveBlockSourcePaths: string[],
 ): boolean {
   const norm = normalizeVaultPath(path);
   if (!norm) return false;
 
-  if (liveBlockSourcePaths.some((sourcePath) => normalizeVaultPath(sourcePath) === norm)) {
-    return true;
-  }
-
-  if (roots.filePaths.some((filePath) => normalizeVaultPath(filePath) === norm)) {
-    return true;
-  }
-
+  if (liveBlockSourcePaths.includes(norm)) return true;
+  if (roots.filePaths.includes(norm)) return true;
   return roots.folderRoots.some((root) => isUnderFolderRoot(norm, root));
 }

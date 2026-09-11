@@ -241,6 +241,27 @@ export function allExerciseActivities(activityTypes: ActivityType[]): ActivityTy
   );
 }
 
+/**
+ * Snapshot of every field that affects how an activity renders. Settings
+ * mutate activities in place before refreshing, so a paint-skip must compare
+ * this key, not the object reference.
+ */
+export function activityPaintKey(activity: ActivityType): string {
+  return [
+    activity.id,
+    activity.domain,
+    activity.label,
+    activity.folder,
+    String(activity.enabled),
+    activity.baseColor,
+    activity.noteModel,
+    String(activity.supportsCues),
+    String(activity.supportsTimer),
+    String(activity.supportsSetTable),
+    activity.colors.join(","),
+  ].join("\0");
+}
+
 export function resolveCueActivityType(
   activityTypes: ActivityType[],
   activityId: string,

@@ -1,18 +1,21 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { parseSetTable } from "../core";
+import type { SetRow } from "../core";
 import {
   averagePerSession,
   barHeights,
   buildDashboardModel,
+  dashboardPaintState,
   FELT_ORDER,
   formatCompactKg,
   formatKg,
+  sameDashboardPaintState,
   splitHoursMinutes,
   type DashboardActivityCard,
   type DashboardExerciseCard,
   type DashboardHobbyCard,
   type DashboardInput,
   type DashboardModel,
+  type DashboardPaintState,
   type Felt,
 } from "../core/dashboard";
 import { nowYear, resolveBlockYear } from "../dates";
@@ -39,6 +42,13 @@ import {
 
 /** Bumped per host element so an older year switch cannot paint over a newer one. */
 const renderGeneration = new WeakMap<HTMLElement, number>();
+const paintStates = new WeakMap<HTMLElement, DashboardPaintState>();
+
+export function dashboardDomIsPainted(el: {
+  querySelector: (sel: string) => unknown;
+}): boolean {
+  return !!el.querySelector('[data-testid="atomic-dashboard"]');
+}
 
 export function resolveDashboardYear(
   opts: Record<string, string>,
@@ -47,6 +57,9 @@ export function resolveDashboardYear(
 ): number {
   return resolveBlockYear(opts, nowYear(timezone), { frontmatterYear });
 }
+
+/** Shared empty array so the paint-skip sees "no set table" as unchanged. */
+const NO_SET_ROWS: SetRow[] = [];
 
 async function collectDashboardInput(
   data: VaultDataSource,
@@ -59,8 +72,8 @@ async function collectDashboardInput(
         data.listSessions(activity.folder, year).map(async (meta) => ({
           meta,
           setRows: activity.supportsSetTable
-            ? parseSetTable(await data.readBody(meta.path))
-            : [],
+            ? await data.getSessionSetRows(meta.path)
+            : NO_SET_ROWS,
         })),
       );
       return { activity, sessions };
@@ -372,8 +385,18 @@ export async function renderDashboard(
 ): Promise<void> {
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
-  const model = buildDashboardModel(await collectDashboardInput(data, activityTypes, year));
+  const input = await collectDashboardInput(data, activityTypes, year);
   if (!el.isConnected || renderGeneration.get(el) !== generation) return;
+
+  const paintState = dashboardPaintState(input, language);
+  if (
+    dashboardDomIsPainted(el) &&
+    sameDashboardPaintState(paintStates.get(el), paintState)
+  ) {
+    return;
+  }
+  paintStates.set(el, paintState);
+  const model = buildDashboardModel(input);
 
   el.empty();
   const root = el.createDiv({

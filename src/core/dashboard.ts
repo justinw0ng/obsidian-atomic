@@ -10,6 +10,8 @@ import { monthIndexFromDate } from "../dates.ts";
 import { minutesByMonthForYear, type TimeLogEntry } from "./hobby.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isInProgressStatus } from "./reading-status.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { activityPaintKey } from "../util/activity-types.ts";
 
 export type DashboardSessionInput = {
   meta: SessionMeta;
@@ -38,6 +40,82 @@ export type DashboardInput = {
   exercise: DashboardExerciseInput[];
   hobbies: DashboardHobbyInput[];
 };
+
+/**
+ * What the last paint was built from. Session metas, set rows, item
+ * frontmatter, and Time log entries come from mtime / folder-scoped caches, so
+ * reference identity means "unchanged". Activities are snapshotted as keys
+ * because settings mutate them in place.
+ */
+export type DashboardPaintState = {
+  year: number;
+  language: string;
+  exercise: Array<{ activityKey: string; sessions: readonly DashboardSessionInput[] }>;
+  hobbies: Array<{ activityKey: string; items: readonly DashboardHobbyItemInput[] }>;
+};
+
+export function dashboardPaintState(
+  input: DashboardInput,
+  language: string,
+): DashboardPaintState {
+  return {
+    year: input.year,
+    language,
+    exercise: input.exercise.map(({ activity, sessions }) => ({
+      activityKey: activityPaintKey(activity),
+      sessions,
+    })),
+    hobbies: input.hobbies.map(({ activity, items }) => ({
+      activityKey: activityPaintKey(activity),
+      items,
+    })),
+  };
+}
+
+function sameList<T>(
+  left: readonly T[],
+  right: readonly T[],
+  same: (a: T, b: T) => boolean,
+): boolean {
+  return left.length === right.length && left.every((item, i) => same(item, right[i]));
+}
+
+/** True when a repaint would produce the same dashboard as the previous one. */
+export function sameDashboardPaintState(
+  previous: DashboardPaintState | undefined,
+  next: DashboardPaintState,
+): boolean {
+  if (!previous) return false;
+  return (
+    previous.year === next.year &&
+    previous.language === next.language &&
+    sameList(
+      previous.exercise,
+      next.exercise,
+      (a, b) =>
+        a.activityKey === b.activityKey &&
+        sameList(
+          a.sessions,
+          b.sessions,
+          (x, y) => x.meta === y.meta && x.setRows === y.setRows,
+        ),
+    ) &&
+    sameList(
+      previous.hobbies,
+      next.hobbies,
+      (a, b) =>
+        a.activityKey === b.activityKey &&
+        sameList(
+          a.items,
+          b.items,
+          (x, y) =>
+            x.path === y.path &&
+            x.frontmatter === y.frontmatter &&
+            x.entries === y.entries,
+        ),
+    )
+  );
+}
 
 export type Felt = "good" | "ok" | "bad";
 export type FeltCounts = Record<Felt, number>;
