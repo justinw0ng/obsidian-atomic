@@ -95,12 +95,21 @@ test("obsidian-plugin-e2e skill names files that still exist", () => {
 
 test("package.json still has the verify commands the skill requires", () => {
   const pkg = JSON.parse(read("package.json"));
-  for (const script of ["test", "typecheck", "build", "dev", "test:e2e"]) {
+  for (const script of [
+    "test",
+    "typecheck",
+    "build",
+    "dev",
+    "test:e2e",
+    "docs:user-guide-screenshots",
+    "docs:hero-gif",
+  ]) {
     assert.equal(typeof pkg.scripts[script], "string", `missing script ${script}`);
   }
   assert.match(pkg.scripts.test, /experimental-strip-types/);
   assert.match(pkg.scripts.typecheck, /tsc --noEmit/);
   assert.match(pkg.scripts["test:e2e"], /e2e\/\*\.test\.mjs/);
+  assert.match(pkg.scripts["docs:hero-gif"], /animate-hero-gif\.py/);
 });
 
 test("AGENTS.md points at the obsidian-plugin-e2e skill", () => {
@@ -129,6 +138,19 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
     assert.match(text, /CodeRabbit/);
   }
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
+});
+
+test("skill and AGENTS.md keep hero banner capture rules", () => {
+  const verify = read(".cursor/skills/obsidian-plugin-e2e/references/verify.md");
+  const agents = read("AGENTS.md");
+  for (const text of [verify, agents]) {
+    assert.match(text, /capture-readme-hero\.sh/);
+    assert.match(text, /heatmap, bookshelf, and cue overlay/);
+    assert.match(text, /no scrollbar/);
+    assert.match(text, /Center the mobile \/ narrow view/);
+    assert.match(text, /docs:user-guide-screenshots/);
+    assert.match(text, /docs:hero-gif/);
+  }
 });
 
 test("skill and AGENTS.md keep in-app update notes and optional Actions inputs", () => {
