@@ -285,6 +285,98 @@ test("cover images apply coverObjectPosition after load", () => {
   );
 });
 
+/** The rule whose selector list includes `selector` exactly, or null. */
+function cssRule(source, selector) {
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const match of withoutComments.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selectors = match[1].split(",").map((one) => one.trim());
+    if (selectors.includes(selector)) return { selectors: match[1], body: match[2] };
+  }
+  return null;
+}
+
+/** Every `@media <query>` block in the sheet, concatenated. */
+function cssMedia(source, query) {
+  const blocks = [];
+  let from = 0;
+  for (;;) {
+    const at = source.indexOf(`@media ${query}`, from);
+    if (at === -1) break;
+    const open = source.indexOf("{", at);
+    let depth = 0;
+    for (let i = open; i < source.length; i += 1) {
+      if (source[i] === "{") depth += 1;
+      if (source[i] === "}") depth -= 1;
+      if (depth === 0) {
+        blocks.push(source.slice(open + 1, i));
+        from = i;
+        break;
+      }
+    }
+    if (from < open) break;
+  }
+  return blocks.length ? blocks.join("\n") : null;
+}
+
+test("cue cards fan on desktop and stack on phones", () => {
+  const fan = cssRule(styles, ".fitness-plugin .atomic-cue-fan");
+  assert.match(fan.body, /grid-template-columns:\s*repeat\(auto-fill, var\(--atomic-cue-step\)\)/);
+  const card = cssRule(styles, ".fitness-plugin .atomic-cue-card");
+  // A default button box shrink-wraps the sheet, which collapses phone cards.
+  assert.match(card.body, /display:\s*block/);
+  assert.match(card.body, /width:\s*var\(--atomic-cue-width\)/);
+
+  const sheet = cssRule(styles, ".fitness-plugin .atomic-cue-sheet");
+  assert.match(sheet.body, /width:\s*100%/);
+  assert.match(sheet.body, /box-sizing:\s*border-box/);
+  // Alternating tilt and vertical drop are what make a row read as a stack.
+  assert.match(
+    sheet.body,
+    /transform:\s*rotate\(var\(--atomic-cue-tilt\)\) translateY\(var\(--atomic-cue-drop\)\)/,
+  );
+
+  const phone = cssMedia(styles, "(max-width: 600px)");
+  assert.ok(phone, "cue cards need a phone breakpoint");
+  assert.match(cssRule(phone, ".fitness-plugin .atomic-cue-fan").body, /grid-template-columns:\s*1fr/);
+  assert.match(cssRule(phone, ".fitness-plugin .atomic-cue-sheet").body, /position:\s*relative/);
+});
+
+test("the cue pop works on hover, focus, and tap alike", () => {
+  // Remote desktops and touch-capable laptops report no hover even with a
+  // mouse attached, so the pop cannot live behind a hover media query.
+  const pop = cssRule(styles, ".fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet");
+  assert.match(pop.selectors, /:focus-visible \.atomic-cue-sheet/);
+  assert.match(pop.selectors, /\.is-open \.atomic-cue-sheet/);
+  assert.match(pop.body, /translateY\(-18px\)/);
+
+  const hoverOnly = cssMedia(styles, "(hover: hover) and (pointer: fine)") || "";
+  assert.doesNotMatch(hoverOnly, /atomic-cue/);
+
+  const reduced = cssMedia(styles, "(prefers-reduced-motion: reduce)");
+  const calmed = cssRule(reduced, ".fitness-plugin .atomic-cue-sheet");
+  assert.match(calmed.body, /transition:\s*none/);
+});
+
+test("phone cue cards pop only when tapped open", () => {
+  const phone = cssMedia(styles, "(max-width: 600px)");
+  assert.ok(phone, "cue cards need a phone breakpoint");
+  const hoverSheet = cssRule(
+    phone,
+    ".fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet",
+  );
+  assert.ok(hoverSheet, "phone CSS must reset sticky hover");
+  assert.doesNotMatch(hoverSheet.selectors, /\.is-open/);
+  assert.match(hoverSheet.body, /rotate\(var\(--atomic-cue-tilt\)\)/);
+  const openSheet = cssRule(
+    phone,
+    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet",
+  );
+  assert.match(openSheet.body, /translateY\(-6px\)/);
+  assert.match(phone, /--atomic-cue-drop:\s*0px/);
+  const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
+  assert.match(body.body, /transition:\s*none/);
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);

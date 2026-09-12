@@ -202,12 +202,21 @@ export default class FitnessPlugin extends Plugin {
     promptPendingUpdateNote(this);
   }
 
+  /**
+   * Register a codeblock for refreshes, replacing an earlier entry for the same
+   * host. Connectivity is deliberately not consulted here or in `refreshAll`:
+   * the editor detaches offscreen codeblocks without re-running their
+   * post-processor, so pruning detached hosts silently stopped refreshing every
+   * other block on the note. `AtomicBlockChild` owns both calls, and its
+   * `onunload` is now the only thing that bounds this list.
+   */
   trackLiveBlock(block: LiveBlock) {
-    // Drop detached elements and any earlier entry for this same host.
-    this.liveBlocks = this.liveBlocks.filter(
-      (b) => b.el.isConnected && b.el !== block.el,
-    );
+    this.liveBlocks = this.liveBlocks.filter((b) => b.el !== block.el);
     this.liveBlocks.push(block);
+  }
+
+  untrackLiveBlock(block: LiveBlock) {
+    this.liveBlocks = this.liveBlocks.filter((b) => b.el !== block.el);
   }
 
   scheduleRefresh() {
@@ -219,7 +228,8 @@ export default class FitnessPlugin extends Plugin {
   }
 
   async refreshAll() {
-    this.liveBlocks = this.liveBlocks.filter((b) => b.el.isConnected);
+    // renderTrackedBlock skips detached hosts, so they stay registered for the
+    // repaint that follows the editor reattaching them. See trackLiveBlock.
     await Promise.all(
       this.liveBlocks.map((block) => renderTrackedBlock(this, block)),
     );

@@ -31,16 +31,6 @@ const utcWeekdayDateEn = new Intl.DateTimeFormat("en", {
   day: "numeric",
   timeZone: "UTC",
 });
-const utcMonthLongEn = new Intl.DateTimeFormat("en", {
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
-const utcMonthLongZh = new Intl.DateTimeFormat("zh-HK", {
-  year: "numeric",
-  month: "long",
-  timeZone: "UTC",
-});
 const ymdFormatters = new Map<string, Intl.DateTimeFormat>();
 
 function utcNoon(y: number, m: number, d: number): Date {
@@ -66,10 +56,6 @@ export function ymdInZone(date: Date, timeZone: string): string {
 
 export function nowYear(timeZone: string): number {
   return Number(ymdInZone(new Date(), timeZone).slice(0, 4));
-}
-
-export function nowMonth(timeZone: string): number {
-  return Number(ymdInZone(new Date(), timeZone).slice(5, 7));
 }
 
 export function parseYmd(ymd: string): { y: number; m: number; d: number } | null {
@@ -165,23 +151,6 @@ export function weekdayDateForLanguage(
 ): string {
   const formatter = language === "en" ? utcWeekdayDateEn : utcWeekdayDateZh;
   return formatter.format(utcNoon(y, m, d));
-}
-
-export function monthLongEn(y: number, m: number): string {
-  return utcMonthLongEn.format(utcNoon(y, m, 1));
-}
-
-export function monthLongZh(y: number, m: number): string {
-  return utcMonthLongZh.format(utcNoon(y, m, 1));
-}
-
-export function formatMonthLabel(
-  y: number,
-  m: number,
-  language: Language,
-): string {
-  if (language === "en") return monthLongEn(y, m);
-  return `${monthLongEn(y, m)} / ${monthLongZh(y, m)}`;
 }
 
 export function extractYmdFromPath(path: string): string | null {

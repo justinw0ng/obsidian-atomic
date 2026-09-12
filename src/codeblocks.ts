@@ -1,4 +1,8 @@
-import { MarkdownRenderChild, type MarkdownPostProcessorContext } from "obsidian";
+import {
+  Component,
+  MarkdownRenderChild,
+  type MarkdownPostProcessorContext,
+} from "obsidian";
 import type FitnessPlugin from "./main";
 import { parseBlockOptions } from "./util/parse-block";
 import {
@@ -9,6 +13,7 @@ import {
   mountAtomicBlockShell,
 } from "./util/block-render";
 import { renderActions } from "./views/actions";
+import { renderAtomicCueLog } from "./views/cue-log";
 import { renderCues, resolveCuesYear } from "./views/cues";
 import {
   renderDashboard,
@@ -31,6 +36,7 @@ export type LiveBlock = {
   el: HTMLElement;
   source: string;
   sourcePath: string;
+  beginPaint: () => Component;
 };
 
 function frontmatterYear(
@@ -41,23 +47,42 @@ function frontmatterYear(
   return cache?.frontmatter?.year;
 }
 
+/**
+ * Owns one codeblock's lifecycle: it registers the block for refreshes while it
+ * is loaded and unregisters it when Obsidian unloads it. The editor detaches
+ * and reattaches offscreen codeblocks without unloading them, so this child,
+ * not element connectivity, is what decides whether a block is live.
+ */
 class AtomicBlockChild extends MarkdownRenderChild {
   private generation = 0;
+  private paint: Component | null = null;
+  private readonly block: LiveBlock;
 
   constructor(
     containerEl: HTMLElement,
-    private readonly startRender: () => void,
+    private readonly plugin: FitnessPlugin,
+    seed: Omit<LiveBlock, "beginPaint">,
   ) {
     super(containerEl);
+    this.block = { ...seed, beginPaint: () => this.beginPaint() };
+  }
+
+  beginPaint(): Component {
+    if (this.paint) this.removeChild(this.paint);
+    this.paint = new Component();
+    this.addChild(this.paint);
+    return this.paint;
   }
 
   onload(): void {
-    this.startRender();
+    this.plugin.trackLiveBlock(this.block);
+    void renderTrackedBlock(this.plugin, this.block);
     this.generation = currentBlockGeneration(this.containerEl);
   }
 
   onunload(): void {
     invalidateBlockRenderIfCurrent(this.containerEl, this.generation);
+    this.plugin.untrackLiveBlock(this.block);
   }
 }
 
@@ -72,6 +97,7 @@ export function renderTrackedBlock(
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
       generation,
+      beginPaint: block.beginPaint,
     });
   });
 }
@@ -83,6 +109,7 @@ export async function renderBlock(
   el: HTMLElement,
   ctx: Pick<MarkdownPostProcessorContext, "sourcePath"> & {
     generation?: number;
+    beginPaint: () => Component;
   },
 ): Promise<void> {
   if (!el.isConnected) return;
@@ -153,9 +180,9 @@ export async function renderBlock(
           data,
           activityTypes,
           year,
-          tz,
           activity,
           language,
+          { app: plugin.app, sourcePath, beginPaint: ctx.beginPaint },
         );
         break;
       }
@@ -169,6 +196,19 @@ export async function renderBlock(
       }
       case "atomic-gym-log": {
         await renderAtomicGymLog(plugin, el, sourcePath);
+        break;
+      }
+      case "atomic-cue-log": {
+        await renderAtomicCueLog(
+          plugin,
+          el,
+          {
+            app: plugin.app,
+            sourcePath,
+            beginPaint: ctx.beginPaint,
+          },
+          ctx.generation,
+        );
         break;
       }
       case "atomic-bookshelf": {
@@ -199,13 +239,8 @@ export function registerCodeblocks(plugin: FitnessPlugin): void {
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(kind, (source, el, ctx) => {
       const block = { kind, el, source, sourcePath: ctx.sourcePath };
-      plugin.trackLiveBlock(block);
       mountAtomicBlockShell(el);
-      ctx.addChild(
-        new AtomicBlockChild(el, () => {
-          void renderTrackedBlock(plugin, block);
-        }),
-      );
+      ctx.addChild(new AtomicBlockChild(el, plugin, block));
     });
   }
 }

@@ -352,10 +352,20 @@ export async function runCommandViaPalette(driver, query) {
   await input.sendKeys(Key.ENTER);
 }
 
+/** Remove any visible Notice toast so it cannot intercept a click. */
+export async function clearNotices(driver) {
+  await driver.executeScript(
+    `document.querySelectorAll(".notice").forEach((notice) => notice.remove())`,
+  );
+}
+
 export async function openAtomicSettings(driver) {
   await switchToObsidianWindow(driver, 8000);
   await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
   await sleep(150);
+  // Settings controls are clicked directly, so a toast left over from an
+  // earlier action must not be sitting on top of them.
+  await clearNotices(driver);
   await driver.executeScript(`
     const app = window.app;
     if (!app || !app.setting) throw new Error("window.app.setting missing");

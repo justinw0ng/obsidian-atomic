@@ -18,6 +18,7 @@ const ALL_KINDS = [
   "atomic-golf-cues",
   "atomic-gym-cues",
   "atomic-cues",
+  "atomic-cue-log",
   "atomic-timer",
   "atomic-gym-log",
   "atomic-bookshelf",

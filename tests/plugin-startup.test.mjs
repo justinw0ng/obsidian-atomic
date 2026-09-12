@@ -59,3 +59,26 @@ test("live block tracking is a single pass", () => {
   const body = bracedBlock(main, "trackLiveBlock(block: LiveBlock)");
   assert.equal((body.match(/\.filter\(/g) || []).length, 1);
 });
+
+test("tracking only replaces the same host and untracks on unload", () => {
+  // The editor detaches offscreen codeblocks without re-running their
+  // post-processor, so connectivity must not decide what stays registered.
+  const track = bracedBlock(main, "trackLiveBlock(block: LiveBlock)");
+  assert.match(track, /b\.el !== block\.el/);
+  assert.doesNotMatch(track, /isConnected/);
+
+  const refresh = bracedBlock(main, "async refreshAll()");
+  assert.doesNotMatch(refresh, /isConnected/);
+
+  const untrack = bracedBlock(main, "untrackLiveBlock(block: LiveBlock)");
+  assert.match(untrack, /b\.el !== block\.el/);
+
+  // The render child is the single owner of "which blocks are live".
+  const codeblocks = readFileSync(join(root, "src/codeblocks.ts"), "utf8");
+  const child = bracedBlock(codeblocks, "class AtomicBlockChild");
+  assert.match(child, /onload\(\): void \{[\s\S]*this\.plugin\.trackLiveBlock\(this\.block\)/);
+  assert.match(child, /onunload\(\): void \{[\s\S]*this\.plugin\.untrackLiveBlock\(this\.block\)/);
+  const processor = bracedBlock(codeblocks, "export function registerCodeblocks(");
+  assert.match(processor, /ctx\.addChild\(new AtomicBlockChild\(el, plugin, block\)\)/);
+  assert.doesNotMatch(processor, /trackLiveBlock/);
+});

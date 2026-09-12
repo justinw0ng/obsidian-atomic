@@ -115,6 +115,10 @@ const BLOCK_SPECS: Record<AtomicBlockKind, BlockSpec> = {
       },
     ],
   },
+  "atomic-cue-log": {
+    emptyKey: "block.opt.noneCueLog",
+    options: [],
+  },
   "atomic-timer": {
     emptyKey: "block.opt.noneTimer",
     options: [],

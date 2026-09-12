@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic — Cue cards mockup</title>
+  <style>
+    /*
+      Design review mockup for the cue card fan and the atomic-cue-log entry form.
+      Query params drive deterministic screenshots:
+        ?frame=desktop|mobile   which shell to draw
+        &pop=<n>                pop card n (0-based) as if hovered/tapped
+        &form=1                 show the cue entry form instead of the cue page
+    */
+    :root {
+      --paper: #fffdf7;
+      --ink: #2c2a26;
+      --ink-soft: #6d675c;
+      --rule: rgba(84, 106, 148, 0.22);
+      --margin-rule: rgba(214, 92, 92, 0.5);
+      --bg: #f6f6f3;
+      --panel: #ffffff;
+      --border: #e2e0da;
+      --accent: #f76707;
+      --atomic-cue-width: 228px;
+      --atomic-cue-step: 186px;
+      --atomic-cue-height: 140px;
+      --atomic-cue-line: 23px;
+      --atomic-cue-pop: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+    }
+
+    h1 { font-size: 1.2rem; margin: 0 0 4px; }
+    .lead { color: var(--ink-soft); margin: 0 0 18px; max-width: 70ch; font-size: 0.9rem; }
+
+    .shell {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 26px 30px;
+      max-width: 900px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .shell.is-mobile {
+      max-width: 390px;
+      padding: 18px 16px 26px;
+      border-radius: 26px;
+      border-width: 8px;
+      border-color: #1c1b19;
+    }
+
+    .note-title { font-size: 1.55rem; margin: 0 0 2px; font-weight: 700; }
+    .shell.is-mobile .note-title { font-size: 1.25rem; }
+    .note-sub { color: var(--ink-soft); font-size: 0.82rem; margin: 0 0 20px; }
+
+    /* ---- fan geometry ---- */
+
+    .atomic-cues {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, var(--atomic-cue-step));
+      row-gap: 34px;
+      padding: 16px 0 26px;
+      padding-right: calc(var(--atomic-cue-width) - var(--atomic-cue-step));
+    }
+
+    .atomic-cue-card {
+      position: relative;
+      width: var(--atomic-cue-width);
+      height: var(--atomic-cue-height);
+      padding: 0;
+      border: 0;
+      background: none;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      --atomic-cue-tilt: -2.4deg;
+      --atomic-cue-tint: #b7e4c0;
+    }
+
+    .atomic-cue-card:nth-child(4n + 2) { --atomic-cue-tilt: 1.6deg; --atomic-cue-tint: #bcdcf2; }
+    .atomic-cue-card:nth-child(4n + 3) { --atomic-cue-tilt: -1.1deg; --atomic-cue-tint: #f6dcb0; }
+    .atomic-cue-card:nth-child(4n + 4) { --atomic-cue-tilt: 2.1deg; --atomic-cue-tint: #eac7de; }
+
+    .atomic-cue-sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      /* Right padding keeps the resting text inside the strip the next card leaves visible. */
+      padding: 27px calc(var(--atomic-cue-width) - var(--atomic-cue-step) + 12px) 12px 42px;
+      border-radius: 3px;
+      transform-origin: 50% 92%;
+      transform: rotate(var(--atomic-cue-tilt));
+      background-color: color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--paper));
+      background-image:
+        linear-gradient(90deg, transparent 29px, var(--margin-rule) 29px, var(--margin-rule) 30px, transparent 30px),
+        repeating-linear-gradient(180deg, var(--rule), var(--rule) 1px, transparent 1px, transparent var(--atomic-cue-line));
+      background-position: 0 0, 0 26px;
+      box-shadow:
+        0 0 0 1px rgba(70, 60, 44, 0.07),
+        0 5px 12px rgba(38, 32, 22, 0.16);
+      transition:
+        transform 420ms var(--atomic-cue-pop),
+        box-shadow 420ms var(--atomic-cue-pop),
+        padding-right 420ms var(--atomic-cue-pop);
+    }
+
+    .atomic-cue-sheet::before {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 10px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(60, 52, 40, 0.13);
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    /*
+      Rest height is an exact 3-line multiple, so clipped cues cut on a ruled
+      line instead of mid-glyph, and short cues still fill a card's worth of
+      paper. The mask fades the last clipped line without hiding the rules.
+    */
+    .atomic-cue-body {
+      position: relative;
+      min-height: calc(3 * var(--atomic-cue-line));
+      max-height: calc(3 * var(--atomic-cue-line));
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+      mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+      transition: max-height 420ms var(--atomic-cue-pop);
+    }
+
+    .atomic-cue-text {
+      margin: 0;
+      font-family: "Caveat", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+      font-size: 1.35rem;
+      line-height: var(--atomic-cue-line);
+      color: var(--ink);
+    }
+
+    .atomic-cue-meta {
+      font-size: 0.66rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      opacity: 0;
+      transform: translateY(5px);
+      transition:
+        opacity 300ms var(--atomic-cue-pop) 90ms,
+        transform 300ms var(--atomic-cue-pop) 90ms;
+    }
+
+    .atomic-cue-count {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 0 5px;
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--atomic-cue-tint) 62%, var(--paper));
+      color: var(--ink);
+    }
+
+    /* ---- popped state ---- */
+
+    .atomic-cue-card.is-open { z-index: 5; }
+
+    .atomic-cue-card.is-open .atomic-cue-sheet {
+      transform: rotate(0deg) translateY(-18px) scale(1.07);
+      padding-right: 14px;
+      box-shadow:
+        0 0 0 1px rgba(70, 60, 44, 0.08),
+        0 20px 38px rgba(38, 32, 22, 0.28);
+    }
+
+    .atomic-cue-card.is-open .atomic-cue-body {
+      max-height: calc(10 * var(--atomic-cue-line));
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .atomic-cue-card.is-open .atomic-cue-meta { opacity: 1; transform: translateY(0); }
+
+    @media (hover: hover) and (pointer: fine) {
+      .atomic-cue-card:hover { z-index: 5; }
+      .atomic-cue-card:hover .atomic-cue-sheet {
+        transform: rotate(0deg) translateY(-18px) scale(1.07);
+        padding-right: 14px;
+        box-shadow:
+          0 0 0 1px rgba(70, 60, 44, 0.08),
+          0 20px 38px rgba(38, 32, 22, 0.28);
+      }
+      .atomic-cue-card:hover .atomic-cue-body {
+        max-height: calc(10 * var(--atomic-cue-line));
+        -webkit-mask-image: none;
+        mask-image: none;
+      }
+      .atomic-cue-card:hover .atomic-cue-meta { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- mobile ---- */
+
+    .shell.is-mobile .atomic-cues {
+      grid-template-columns: 1fr;
+      row-gap: 14px;
+      padding-right: 0;
+    }
+
+    .shell.is-mobile .atomic-cue-card {
+      width: 100%;
+      height: auto;
+      --atomic-cue-tilt: -0.6deg;
+    }
+
+    .shell.is-mobile .atomic-cue-card:nth-child(2n) { --atomic-cue-tilt: 0.6deg; }
+
+    .shell.is-mobile .atomic-cue-sheet {
+      position: relative;
+      padding-right: 14px;
+    }
+
+    .shell.is-mobile .atomic-cue-card.is-open .atomic-cue-sheet {
+      transform: rotate(0deg) translateY(-6px) scale(1.03);
+    }
+
+    /* ---- cue entry form ---- */
+
+    .atomic-cue-log {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 8px 0 18px;
+      background: #fbfbf9;
+    }
+
+    .atomic-cue-log-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    .atomic-cue-log-field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px; min-width: 0; }
+    .atomic-cue-log-field label { font-size: 0.72rem; color: var(--ink-soft); }
+    .atomic-cue-log-field input {
+      font: inherit;
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .atomic-cue-log button {
+      font: inherit;
+      padding: 7px 14px;
+      border: 0;
+      border-radius: 5px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+    }
+    .atomic-cue-log-existing { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .atomic-cue-log-chip {
+      font-size: 0.74rem;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #f1efe8;
+      color: var(--ink-soft);
+    }
+    .atomic-cue-log-hint { margin: 10px 0 0; font-size: 0.74rem; color: var(--ink-soft); font-style: italic; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .atomic-cue-sheet,
+      .atomic-cue-text,
+      .atomic-cue-meta { transition: none; }
+      .atomic-cue-card.is-open .atomic-cue-sheet { transform: rotate(0deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Atomic — cue cards</h1>
+  <p class="lead">
+    Every cue of the year as one physical index card in a fanned stack. Hover (or tap on mobile)
+    pops a card out of the fan and grows it to the full cue. The <code>atomic-cue-log</code> form
+    replaces typing raw markdown bullets; cues still live in the note's <code>## Reminders</code>
+    section.
+  </p>
+
+  <div class="shell" id="shell">
+    <p class="note-title" id="noteTitle">Golf cues</p>
+    <p class="note-sub" id="noteSub">atomics/exercise/Golf/Cues.md · 2026</p>
+    <div id="content"></div>
+  </div>
+
+  <script>
+    const CUES = [
+      { text: "Smooth tempo — count one-two on the backswing, three at impact", date: "2026-09-08", focus: "Tempo", count: 6 },
+      { text: "Left wrist flat at the top", date: "2026-09-05", focus: "Backswing", count: 4 },
+      { text: "Finish tall with the belt buckle facing the target", date: "2026-08-29", focus: "Follow-through", count: 3 },
+      { text: "Feel the grip pressure at 4 out of 10, no tighter", date: "2026-08-21", focus: "Grip", count: 3 },
+      { text: "Pause at the top before the transition", date: "2026-08-14", focus: "Transition", count: 2 },
+      { text: "Ball just inside the left heel for the driver", date: "2026-08-02", focus: "Stance", count: 2 },
+      { text: "Start the downswing from the ground up", date: "2026-07-26", focus: "Downswing", count: 2 },
+      { text: "Pick an intermediate target two feet in front of the ball", date: "2026-07-12", focus: "Alignment", count: 1 },
+      { text: "Weight stays centred, do not sway off the ball", date: "2026-06-30", focus: "Impact", count: 1 },
+      { text: "Breathe out before you start the takeaway", date: "2026-06-18", focus: "Takeaway", count: 1 },
+    ];
+
+    const params = new URLSearchParams(location.search);
+    const frame = params.get("frame") === "mobile" ? "mobile" : "desktop";
+    const pop = params.has("pop") ? Number(params.get("pop")) : -1;
+    const showForm = params.get("form") === "1";
+
+    const shell = document.getElementById("shell");
+    if (frame === "mobile") shell.classList.add("is-mobile");
+
+    const content = document.getElementById("content");
+
+    if (showForm) {
+      document.getElementById("noteTitle").textContent = "Golf — 2026-09-11";
+      document.getElementById("noteSub").textContent = "atomics/exercise/Golf/2026/2026-09-11.md";
+      content.insertAdjacentHTML("beforeend", `
+        <div class="atomic-cue-log">
+          <div class="atomic-cue-log-row">
+            <div class="atomic-cue-log-field">
+              <label for="cueText">Cue</label>
+              <input id="cueText" type="text" value="Pause at the top before the transition" />
+            </div>
+            <button type="button">Add cue</button>
+          </div>
+          <div class="atomic-cue-log-existing">
+            <span class="atomic-cue-log-chip">Smooth tempo</span>
+            <span class="atomic-cue-log-chip">Left wrist flat at the top</span>
+          </div>
+          <p class="atomic-cue-log-hint">Saved as a bullet under ## Reminders in this note.</p>
+        </div>
+      `);
+    }
+
+    const fan = document.createElement("div");
+    fan.className = "atomic-cues";
+    const list = frame === "mobile" ? CUES.slice(0, 5) : CUES;
+    list.forEach((cue, index) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "atomic-cue-card";
+      if (index === pop) card.classList.add("is-open");
+      const sheet = document.createElement("div");
+      sheet.className = "atomic-cue-sheet";
+      const body = document.createElement("div");
+      body.className = "atomic-cue-body";
+      const text = document.createElement("p");
+      text.className = "atomic-cue-text";
+      text.textContent = cue.text;
+      body.appendChild(text);
+      const meta = document.createElement("div");
+      meta.className = "atomic-cue-meta";
+      meta.textContent = `${cue.date} · ${cue.focus}`;
+      if (cue.count > 1) {
+        const count = document.createElement("span");
+        count.className = "atomic-cue-count";
+        count.textContent = `×${cue.count}`;
+        meta.appendChild(count);
+      }
+      sheet.append(body, meta);
+      card.appendChild(sheet);
+      card.addEventListener("click", () => {
+        const wasOpen = card.classList.contains("is-open");
+        fan.querySelectorAll(".atomic-cue-card.is-open").forEach((el) => el.classList.remove("is-open"));
+        if (!wasOpen) card.classList.add("is-open");
+      });
+      fan.appendChild(card);
+    });
+    content.appendChild(fan);
+  </script>
+</body>
+</html>

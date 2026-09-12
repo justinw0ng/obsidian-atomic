@@ -13,9 +13,10 @@ Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian
 | Year heatmaps | `atomic-heatmap` codeblock |
 | Today’s sessions | `atomic-today` codeblock |
 | Yearly dashboard | `atomic-dashboard` codeblock |
-| Golf cue rollup | `atomic-golf-cues` |
-| Gym cue rollup | `atomic-gym-cues` |
-| Generic cue rollup | `atomic-cues` with `activity: golf` or `activity: gym` |
+| Golf cue cards | `atomic-golf-cues` |
+| Gym cue cards | `atomic-gym-cues` |
+| Generic cue cards | `atomic-cues` with `activity: golf` or `activity: gym` |
+| Cue entry | `atomic-cue-log` on a session note — type a cue, click Add cue |
 | Quick actions | `atomic-actions`, or the command palette |
 | New gym / golf notes | **Atomic Tracker: New gym session** / **New golf session** |
 | Exercise session timer | `atomic-timer` on a gym/golf/exercise date note — writes `duration_min` |
@@ -247,6 +248,17 @@ With multiple activities, `columns` greater than `1` lays out heatmaps in a resp
 
 ![Heatmap activity filter examples](./images/atomic-heatmap-activity-filter.png)
 
+### Cue cards
+
+A cue page shows **every cue of the year as one index card** in a fanned stack, newest first. A
+repeated cue collapses onto a single card that carries a `×n` repeat badge, so there is no separate
+monthly or keepers list to read.
+
+Hover a card on desktop, or tap it on a phone, and it pops out of the fan and grows to the full cue
+with its date, focus, and repeat count. Tap again (or move the pointer away) to drop it back.
+Keyboard users can Tab to a card and press Enter or Space. With **Reduce motion** on, the card still
+reveals the cue, just without the lift.
+
 ### Cue note examples
 
 `atomics/exercise/Golf/Cues.md`:
@@ -297,7 +309,27 @@ Put `atomic-actions` on a note and use the buttons. Every **enabled** habit appe
 
 ![Quick actions, heatmap, and today](./images/atomic-actions.png)
 
-Gym notes keep sets in a markdown table and reminders under a **Reminders** heading. Golf notes store reminders under **Reminders**. Those feed the cue rollups.
+Gym notes keep sets in a markdown table and cues under a **Reminders** heading. Golf notes store cues under **Reminders** too. Those feed the cue cards.
+
+### Add a cue without typing markdown
+
+New exercise session notes include a cue form under the **Reminders** heading instead of an empty
+bullet:
+
+````markdown
+```atomic-cue-log
+# No options. Type a cue and add it. It is saved as a bullet under this note's Reminders heading.
+```
+````
+
+1. Type the cue. Markdown and Traditional Chinese are fine; use more than one line if you need to.
+2. Click **Add cue** (or press Ctrl/Cmd+Enter).
+
+The cue is written as a `- ` bullet under **Reminders** on that note (extra lines stay indented so
+they belong to that one item). Cues already on the note show as the same index cards as the cue
+page. Hover or press a long card to read the full markdown. You can still type bullets by hand.
+
+Older session notes: paste the fence under the note's **Reminders** heading.
 
 ### Log gym sets without typing each row
 

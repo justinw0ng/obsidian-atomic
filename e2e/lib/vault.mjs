@@ -6,6 +6,7 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -27,6 +28,10 @@ export const E2E_GYM_LOG_FENCE = `\`\`\`atomic-gym-log
 
 export const E2E_TIMER_FENCE = `\`\`\`atomic-timer
 # No options. Start, Stop, Resume, or Discard the timer on this note.
+\`\`\``;
+
+export const E2E_CUE_LOG_FENCE = `\`\`\`atomic-cue-log
+# No options. Type a cue and add it. It is saved as a bullet under this note\u2019s Reminders heading.
 \`\`\``;
 
 export const E2E_FILES = {
@@ -155,6 +160,8 @@ ${E2E_GYM_LOG_FENCE}
 
 ## Reminders
 
+${E2E_CUE_LOG_FENCE}
+
 - Brace the core
 `;
 }
@@ -178,7 +185,12 @@ ${E2E_TIMER_FENCE}
 
 ## Reminders
 
+${E2E_CUE_LOG_FENCE}
+
 - Smooth tempo
+- Left wrist flat at the top
+- Finish tall with the belt buckle facing the target, weight on the lead side
+- Grip pressure at four out of ten, no tighter
 `;
 }
 
@@ -328,6 +340,13 @@ function deployPlugin(vault, pluginRoot) {
     const src = join(pluginRoot, file);
     if (!existsSync(src)) throw new Error(`Missing plugin file ${src}`);
     copyFileSync(src, join(pluginDir, file));
+  }
+  const fontsSrc = join(pluginRoot, "fonts");
+  if (!existsSync(fontsSrc)) return;
+  const fontsDest = join(pluginDir, "fonts");
+  ensureDir(fontsDest);
+  for (const name of readdirSync(fontsSrc)) {
+    copyFileSync(join(fontsSrc, name), join(fontsDest, name));
   }
 }
 

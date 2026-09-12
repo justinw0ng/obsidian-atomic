@@ -41,8 +41,7 @@ ${defaultAtomicBlockFence("atomic-gym-log", language)}
 ${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
 
-- 
-` : ""}
+${defaultAtomicBlockFence("atomic-cue-log", language)}` : ""}
 `;
 }
 
@@ -69,8 +68,7 @@ felt:
 ${defaultAtomicBlockFence("atomic-timer", language)}${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
 
-- 
-` : ""}
+${defaultAtomicBlockFence("atomic-cue-log", language)}` : ""}
 `;
 }
 
@@ -93,7 +91,6 @@ location:
 ${defaultAtomicBlockFence("atomic-timer", language)}${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
 
-- 
-` : ""}
+${defaultAtomicBlockFence("atomic-cue-log", language)}` : ""}
 `;
 }

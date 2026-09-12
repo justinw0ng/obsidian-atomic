@@ -1,14 +1,31 @@
 import type { VaultDataSource } from "../data/vault-source";
-import {
-  buildKeepers,
-  cuesInCalendarMonth,
-  type Cue,
-} from "../core";
-import { formatMonthLabel, nowMonth, nowYear, resolveBlockYear } from "../dates";
+import { buildCueCards, sameCueCard, type Cue, type CueCard } from "../core/cues";
+import { nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
+import { PaintMemo, sameList } from "../util/paint-memo";
+import { appendCueCard, bindCueCardFan, type CueMarkdownHost } from "./cue-card";
+
+type CuePagePaintState = {
+  kind: "missing" | "cards";
+  year: number;
+  activity: string;
+  language: Language;
+  cards: readonly CueCard[];
+};
+
+const cuesPaint = new PaintMemo<CuePagePaintState>(
+  '[data-testid="atomic-cues"]',
+  (previous, next) =>
+    !!previous &&
+    previous.kind === next.kind &&
+    previous.year === next.year &&
+    previous.activity === next.activity &&
+    previous.language === next.language &&
+    sameList(previous.cards, next.cards, sameCueCard),
+);
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -23,18 +40,28 @@ export async function renderCues(
   data: VaultDataSource,
   activityTypes: ActivityType[],
   year: number,
-  timezone: string,
   activity: string,
   language: Language,
+  host: Omit<CueMarkdownHost, "component"> & {
+    beginPaint: () => CueMarkdownHost["component"];
+  },
 ): Promise<void> {
-  el.empty();
-  const root = el.createDiv({
-    cls: "fitness-plugin",
-    attr: { "data-testid": "atomic-cues", "data-activity": activity },
-  });
-
   const activityType = resolveCueActivityType(activityTypes, activity);
   if (!activityType) {
+    const paintState: CuePagePaintState = {
+      kind: "missing",
+      year,
+      activity,
+      language,
+      cards: [],
+    };
+    if (cuesPaint.shouldSkip(el, paintState)) return;
+    host.beginPaint();
+    el.empty();
+    const root = el.createDiv({
+      cls: "fitness-plugin atomic-cues",
+      attr: { "data-testid": "atomic-cues", "data-activity": activity },
+    });
     root.createEl("p", {
       text: t("view.cues.noCueActivity", language, { activity }),
       cls: "fitness-muted",
@@ -42,10 +69,45 @@ export async function renderCues(
     return;
   }
 
-  const currentYear = nowYear(timezone);
-  const month = year === currentYear ? nowMonth(timezone) : 12;
-  const monthLabel = formatMonthLabel(year, month, language);
+  const cards = buildCueCards(await collectCues(data, activityType, year), year);
+  const paintState: CuePagePaintState = {
+    kind: "cards",
+    year,
+    activity,
+    language,
+    cards,
+  };
+  if (cuesPaint.shouldSkip(el, paintState)) return;
+  const component = host.beginPaint();
+  el.empty();
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-cues",
+    attr: { "data-testid": "atomic-cues", "data-activity": activity },
+  });
+  root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
 
+  if (!cards.length) {
+    root.createEl("p", {
+      text: t("view.cues.empty", language, { year }),
+      cls: "fitness-muted atomic-cues-empty",
+    });
+    return;
+  }
+
+  const fan = root.createDiv({ cls: "atomic-cue-fan" });
+  const painted = await Promise.all(
+    cards.map((card) =>
+      appendCueCard(fan, card, { ...host, component }, language),
+    ),
+  );
+  bindCueCardFan(painted);
+}
+
+async function collectCues(
+  data: VaultDataSource,
+  activityType: ActivityType,
+  year: number,
+): Promise<Cue[]> {
   const sessions = await Promise.all(
     data
       .listSessions(activityType.folder, year)
@@ -55,6 +117,7 @@ export async function renderCues(
         reminders: await data.getSessionReminders(session.path),
       })),
   );
+
   const cues: Cue[] = [];
   for (const { session, reminders } of sessions) {
     const focus = session.focus.join(", ");
@@ -63,47 +126,5 @@ export async function renderCues(
       cues.push({ text, date: session.date, focus });
     }
   }
-
-  const thisMonth = cuesInCalendarMonth(cues, year, month);
-  const keepers = buildKeepers(cues, year);
-
-  root.createEl("h2", {
-    text: t("view.cues.thisMonth", language, { month: monthLabel }),
-  });
-  if (!thisMonth.length) {
-    root.createEl("p", {
-      text: t("view.cues.noReminders", language),
-      cls: "fitness-muted",
-    });
-  } else {
-    const ul = root.createEl("ul");
-    for (const c of thisMonth) {
-      const focusBit = c.focus ? ` · ${c.focus}` : "";
-      ul.createEl("li", { text: `${c.date}${focusBit}: ${c.text}` });
-    }
-  }
-
-  root.createEl("h2", {
-    text: t("view.cues.keepers", language, { year }),
-  });
-  if (!keepers.length) {
-    root.createEl("p", {
-      text: t("view.cues.noKeepers", language),
-      cls: "fitness-muted",
-    });
-  } else {
-    const ul = root.createEl("ul");
-    for (const k of keepers) {
-      const focusBit = k.focus ? ` · ${k.focus}` : "";
-      const li = ul.createEl("li");
-      li.createEl("strong", { text: k.text });
-      li.appendText(
-        t("view.cues.lastSeen", language, {
-          count: k.count,
-          lastSeen: k.lastSeen,
-          focus: focusBit,
-        }),
-      );
-    }
-  }
+  return cues;
 }

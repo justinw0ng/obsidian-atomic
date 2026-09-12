@@ -55,6 +55,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const sessionNote = src("src/core/session-note.ts");
   assert.match(sessionNote, /atomic-gym-log/);
   assert.match(sessionNote, /atomic-timer/);
+  assert.match(sessionNote, /atomic-cue-log/);
+  // The cue form replaced the bare markdown bullet the template used to leave.
+  assert.doesNotMatch(sessionNote, /\n- \n/);
 
   const gymSetup = src("src/commands/gym-log-setup.ts");
   assert.match(gymSetup, /atomic-gym-log-setup-modal/);
@@ -73,6 +76,53 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
+  assert.match(cues, /appendCueCard\(/);
+  assert.match(cues, /buildCueCards\(/);
+  assert.match(cues, /cuesPaint\.shouldSkip/);
+  assert.match(cues, /host\.beginPaint\(\)/);
+  assert.doesNotMatch(cues, /view\.cues\.thisMonth|view\.cues\.keepers/);
+  assert.doesNotMatch(cues, /innerHTML/);
+
+  const cueCard = src("src/views/cue-card.ts");
+  assert.match(cueCard, /"data-testid": "atomic-cue-card"/);
+  assert.match(cueCard, /createDiv\(\{/);
+  assert.match(cueCard, /tabindex: "0"/);
+  assert.match(cueCard, /"aria-expanded"/);
+  assert.match(cueCard, /cueCardEventShouldToggle/);
+  assert.match(cueCard, /isCueCardToggleKey/);
+  assert.match(cueCard, /"atomic-cue-text"/);
+  assert.match(cueCard, /"atomic-cue-repeats"/);
+  assert.match(cueCard, /MarkdownRenderer\.render/);
+  assert.match(cueCard, /cueTextNeedsMarkdown/);
+  assert.match(cueCard, /host\.component/);
+  assert.doesNotMatch(cueCard, /FitnessPlugin/);
+  assert.doesNotMatch(cueCard, /createEl\("button"/);
+  assert.doesNotMatch(cueCard, /innerHTML/);
+
+  const cueCardFan = src("src/util/cue-card-fan.ts");
+  assert.match(cueCardFan, /CUE_CARD_INTERACTIVE_SELECTOR/);
+  assert.match(cueCardFan, /a\[href]/);
+  assert.match(cueCardFan, /\[role='button']/);
+
+  const codeblocks = src("src/codeblocks.ts");
+  assert.match(codeblocks, /beginPaint\(\): Component/);
+  assert.match(codeblocks, /this\.addChild\(this\.paint\)/);
+  assert.doesNotMatch(codeblocks, /component: block\.beginPaint\(\)/);
+
+  const cueLog = src("src/views/cue-log.ts");
+  assert.match(cueLog, /data-testid": "atomic-cue-log"/);
+  assert.match(cueLog, /"atomic-cue-log-text"/);
+  assert.match(cueLog, /createEl\("textarea"/);
+  assert.doesNotMatch(cueLog, /addEventListener\("input"/);
+  assert.match(cueLog, /"atomic-cue-log-add"/);
+  assert.match(cueLog, /"atomic-cue-log-existing"/);
+  assert.match(cueLog, /appendCueCard\(/);
+  assert.match(cueLog, /cueLogPaint\.shouldSkip/);
+  assert.match(cueLog, /appendCueBullet\(/);
+  assert.match(cueLog, /sanitizeCueText\(/);
+  assert.match(cueLog, /vault\.process\(file, \(latest\) =>/);
+  assert.doesNotMatch(cueLog, /atomic-cue-log-chip/);
+  assert.doesNotMatch(cueLog, /innerHTML/);
 
   const dashboard = src("src/views/dashboard.ts");
   assert.match(dashboard, /"data-testid": "atomic-dashboard"/);
@@ -149,8 +199,18 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-dashboard-activity/);
   assert.match(health, /atomic-dashboard-year-prev/);
   assert.match(health, /atomic-dashboard-recent-row/);
+  assert.match(health, /atomic-cue-card/);
+  assert.match(health, /atomic-cue-log-add/);
+  assert.match(health, /前臂放鬆/);
+  assert.match(health, /aria-expanded/);
+  assert.match(health, /example\.com\/atomic-e2e/);
 
   const styles = src("styles.css");
+  assert.match(styles, /fonts\/caveat-latin-400\.woff2/);
+  assert.match(styles, /Atomic Cue CJK/);
+  assert.match(styles, /DFKai-SB/);
+  assert.match(styles, /max-height:\s*none/);
+  assert.doesNotMatch(styles, /atomic-cue-log-chip/);
   assert.doesNotMatch(styles, /:has\(/);
   assert.doesNotMatch(styles, /!important/);
   assert.doesNotMatch(styles, /scrollbar-width/);
