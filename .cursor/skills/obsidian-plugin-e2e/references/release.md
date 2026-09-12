@@ -39,7 +39,7 @@ Required local/CI commands for plugin changes: `npm run typecheck`, `npm test`, 
 
 ## In-app update note
 
-After users update, Atomic prompts them once with the **latest update note** (Modal, then **Got it**) when the catalog `version` equals the installed plugin version. The body follows **Settings → Language**: `en` → English; `zh-Hant-en` / `zh-Hant` / any `zh-Hant*` → Cantonese Traditional Chinese; unknown → English. Title and Got it already come from the i18n catalogs. Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
+After users update, Atomic shows the **latest update note** once as a short live Notice (toast) when the catalog `version` equals the installed plugin version. The body follows **Settings → Language**: `en` → English; `zh-Hant-en` / `zh-Hant` / any `zh-Hant*` → Cantonese Traditional Chinese; unknown → English. The title comes from the i18n catalogs. Last-seen version is stored in plugin `data.json` (`lastSeenUpdateNoteVersion`) so the prompt does not nag on every open.
 
 The catalog is `src/core/update-notes.json` (`body.en` and `body.zh-Hant`):
 

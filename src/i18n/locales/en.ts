@@ -94,6 +94,7 @@ export const en = {
   "notice.gymLogSetupLater": "You can import gym exercises later from Settings → Atomic Tracker.",
   "notice.gymLogSetupFailed": "Set log setup failed: {message}",
   "notice.gymExerciseSaved": "Saved {exercise} · {muscle}.",
+  "notice.updateNoteTitle": "What's new in {version}",
 
   "modal.dateTitle": "Date (YYYY-MM-DD)",
   "modal.cancel": "Cancel",
@@ -116,8 +117,6 @@ export const en = {
   "modal.gymSetupBody": "On a gym note, pick an exercise, enter weight and reps, then click Add set. The table still keeps every set. It writes the row for you. Set up once to remember exercises from your old notes and add this form to gym notes that don't have it yet.",
   "modal.gymSetupConfirm": "Set up now",
   "modal.gymSetupLater": "Later",
-  "modal.updateNoteTitle": "What's new in {version}",
-  "modal.updateNoteAck": "Got it",
   "location.home": "Home",
   "location.commercial": "Commercial",
   "location.hotelTravel": "Hotel/Travel",

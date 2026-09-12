@@ -13,6 +13,7 @@ import {
   parsePluginSemver,
   parseUpdateNote,
   requiredUpdateNoteBodies,
+  formatUpdateNoteNotice,
   updateNoteBodyForLanguage,
   updateNoteToShow,
 } from "../src/core/update-notes.ts";
@@ -54,6 +55,13 @@ test("parseUpdateNote requires bilingual bodies", () => {
   assert.equal(
     parseUpdateNote({ version: "1.1.8", body: { en: "  ", "zh-Hant": "可" } }),
     null,
+  );
+});
+
+test("formatUpdateNoteNotice is a short title-plus-body toast", () => {
+  assert.equal(
+    formatUpdateNoteNotice("What's new in 1.2.1", SAMPLE_NOTE.body.en),
+    "What's new in 1.2.1\nWhat's new note after updates.",
   );
 });
 

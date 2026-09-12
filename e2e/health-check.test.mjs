@@ -509,7 +509,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
-  it("prompts the latest update note after a version change and acks it once", async () => {
+  it("shows a short What's new notice after a version change and does not nag", async () => {
     await check(driver, "update-note", async () => {
       await driver.executeScript(`
         const plugin = app.plugins.getPlugin("atomic-tracker");
@@ -517,20 +517,22 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      await waitCss(driver, '[data-testid="atomic-update-note-modal"]');
-      const englishBody = await driver.executeScript(
-        `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
+      await waitCss(driver, '[data-testid="atomic-update-note-notice"]');
+      const englishNotice = await waitForNotice(driver, "What's new in");
+      assert.match(String(englishNotice), /Performance improvements/);
+      assert.match(String(englishNotice), /fewer vault reads/);
+      const leftoverModals = await driver.findElements(
+        By.css('[data-testid="atomic-update-note-modal"]'),
       );
-      assert.match(String(englishBody), /Performance improvements/);
-      assert.match(String(englishBody), /fewer vault reads/);
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-update-note-ack"]').click();
-      `);
+      assert.equal(leftoverModals.length, 0);
+      const current = await driver.executeScript(
+        `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
+      );
       await driver.wait(async () => {
-        const leftover = await driver.findElements(
-          By.css('[data-testid="atomic-update-note-modal"]'),
+        const seen = await driver.executeScript(
+          `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
         );
-        return leftover.length === 0;
+        return seen === current;
       }, 8000);
 
       await driver.executeScript(`
@@ -539,38 +541,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      await waitCss(driver, '[data-testid="atomic-update-note-modal"]');
-      const cantoneseBody = await driver.executeScript(
-        `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
-      );
-      assert.match(String(cantoneseBody), /用起嚟更順咗/);
-      assert.match(String(cantoneseBody), /大筆記庫/);
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-update-note-ack"]').click();
-      `);
-      await driver.wait(async () => {
-        const leftover = await driver.findElements(
-          By.css('[data-testid="atomic-update-note-modal"]'),
-        );
-        return leftover.length === 0;
-      }, 8000);
+      const cantoneseNotice = await waitForNotice(driver, "用起嚟更順咗");
+      assert.match(String(cantoneseNotice), /大筆記庫/);
+      assert.match(String(cantoneseNotice), /What's new in/);
 
       await driver.executeScript(`
         const plugin = app.plugins.getPlugin("atomic-tracker");
         plugin.settings.language = "en";
       `);
-      const seen = await driver.executeScript(
-        `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
-      );
-      const current = await driver.executeScript(
-        `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
-      );
-      assert.equal(seen, current);
+      await driver.wait(async () => {
+        const seen = await driver.executeScript(
+          `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+        );
+        return seen === current;
+      }, 8000);
       await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-update-note-notice"]').forEach((el) => el.remove());
         app.plugins.getPlugin("atomic-tracker").promptUpdateNoteIfNeeded();
       `);
       const leftover = await driver.findElements(
-        By.css('[data-testid="atomic-update-note-modal"]'),
+        By.css('[data-testid="atomic-update-note-notice"]'),
       );
       assert.equal(leftover.length, 0);
     });

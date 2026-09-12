@@ -60,11 +60,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(gymSetup, /atomic-gym-log-setup-confirm/);
 
   const updateNote = src("src/commands/update-note.ts");
-  assert.match(updateNote, /atomic-update-note-modal/);
-  assert.match(updateNote, /atomic-update-note-body/);
-  assert.match(updateNote, /atomic-update-note-ack/);
+  assert.match(updateNote, /atomic-update-note-notice/);
+  assert.match(updateNote, /new Notice\(/);
+  assert.match(updateNote, /formatUpdateNoteNotice/);
   assert.match(updateNote, /updateNoteBodyForLanguage/);
   assert.doesNotMatch(updateNote, /innerHTML/);
+  assert.doesNotMatch(updateNote, /Modal/);
+  assert.doesNotMatch(updateNote, /atomic-update-note-modal/);
+  assert.doesNotMatch(updateNote, /atomic-update-note-ack/);
 
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
@@ -124,8 +127,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-gym-log-setup-modal/);
   assert.match(health, /atomic-gym-log-setup-later/);
   assert.match(health, /promptGymLogSetupIfPending/);
-  assert.match(health, /atomic-update-note-modal/);
-  assert.match(health, /atomic-update-note-ack/);
+  assert.match(health, /atomic-update-note-notice/);
+  assert.match(health, /waitForNotice/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
   assert.match(health, /用起嚟更順咗/);
