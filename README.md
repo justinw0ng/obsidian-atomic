@@ -29,7 +29,7 @@ Daily note template setup: [examples/README.md](examples/README.md#use-the-daily
 - Exercise sessions and custom habits: enable/disable, one color picker → four heatmap shades
 - Gym set log (`atomic-gym-log`): pick an exercise, enter weight and reps, click Add set. You don't type the table row yourself
 - Cue log (`atomic-cue-log`): type multiline markdown (English or Traditional Chinese) on a session note and click Add cue; logged cues show as the same index cards as the cue page
-- Cue pages (`atomic-cues`, `atomic-golf-cues`, `atomic-gym-cues`): every cue of the year as an index card in a fanned stack; hover previews, click or tap opens a larger centered card with the full markdown
+- Cue pages (`atomic-cues`, `atomic-golf-cues`, `atomic-gym-cues`): every cue of the year as an index card in a fanned stack; hover previews, click or tap opens a centered card that grows with the cue and scrolls if it is taller than the window
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
 - Reading items with timers, book shelf, and Bases
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)

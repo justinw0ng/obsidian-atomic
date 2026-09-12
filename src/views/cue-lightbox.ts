@@ -1,6 +1,9 @@
 import {
+  CUE_CARD_FAN_WIDTH_PX,
+  CUE_CARD_FLY_INSET_PX,
   cueCardEventShouldToggle,
   cueCardFlyScale,
+  cueLightboxLayoutWidth,
   isCueCardToggleKey,
   isCueLightboxDismissKey,
 } from "../util/cue-card-fan";
@@ -74,13 +77,11 @@ function openCueLightbox(source: HTMLElement): void {
   paintLightboxSheet(source, card);
   card.style.setProperty("--atomic-cue-origin-left", `${origin.left}px`);
   card.style.setProperty("--atomic-cue-origin-top", `${origin.top}px`);
+  overlay.style.setProperty("--atomic-cue-fly-inset", `${CUE_CARD_FLY_INSET_PX}px`);
 
   overlay.detach();
   doc.body.appendChild(overlay);
-  card.style.setProperty(
-    "--atomic-cue-fly-scale",
-    String(cueCardFlyScale(card.getBoundingClientRect(), view)),
-  );
+  sizeLightboxCard(card, origin, view);
 
   const onKey = (event: KeyboardEvent): void => {
     if (!isCueLightboxDismissKey(event.key)) return;
@@ -139,6 +140,43 @@ function paintLightboxSheet(source: HTMLElement, card: HTMLElement): void {
   const sourceSheet = source.querySelector(".atomic-cue-sheet");
   if (!sourceSheet) return;
   card.appendChild(sourceSheet.cloneNode(true));
-  const dest = card.querySelector(".atomic-cue-text");
+  const dest = cueLightboxHtmlElement(card.querySelector(".atomic-cue-text"));
   if (dest) dest.id = LIGHTBOX_LABEL_ID;
+  const body = cueLightboxHtmlElement(card.querySelector(".atomic-cue-body"));
+  if (body) body.addClass("atomic-scrollport");
+}
+
+function sizeLightboxCard(
+  card: HTMLElement,
+  origin: { width: number },
+  view: Window,
+): void {
+  const scale = cueCardFlyScale({ width: origin.width }, view);
+  card.style.setProperty("--atomic-cue-fly-scale", String(scale));
+  const layoutWidth = cueLightboxLayoutWidth(
+    measureCueLightboxContentWidth(card),
+    view,
+    scale,
+    origin.width,
+  );
+  card.style.setProperty("--atomic-cue-lightbox-width", `${layoutWidth}px`);
+}
+
+/** Longest unwrapped cue line plus paper padding; wrap invert is CSS. */
+function measureCueLightboxContentWidth(card: HTMLElement): number {
+  const sheet = cueLightboxHtmlElement(card.querySelector(".atomic-cue-sheet"));
+  if (!sheet) return CUE_CARD_FAN_WIDTH_PX;
+  const probe = sheet.cloneNode(true);
+  if (!probe.instanceOf(HTMLElement)) return CUE_CARD_FAN_WIDTH_PX;
+  probe.addClass("atomic-cue-lightbox-measure");
+  probe.setAttr("aria-hidden", "true");
+  card.appendChild(probe);
+  const width = probe.scrollWidth;
+  probe.detach();
+  return Math.max(1, Math.ceil(width));
+}
+
+function cueLightboxHtmlElement(node: Element | null): HTMLElement | null {
+  if (!node?.instanceOf(HTMLElement)) return null;
+  return node;
 }

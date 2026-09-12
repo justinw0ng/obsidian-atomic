@@ -114,7 +114,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLightbox, /querySelector\("\.atomic-cue-sheet"\)/);
   assert.match(cueLightbox, /is-flying/);
   assert.match(cueLightbox, /cueCardFlyScale/);
+  assert.match(cueLightbox, /cueLightboxLayoutWidth/);
   assert.match(cueLightbox, /--atomic-cue-fly-scale/);
+  assert.match(cueLightbox, /--atomic-cue-lightbox-width/);
+  assert.match(cueLightbox, /atomic-scrollport/);
+  assert.match(cueLightbox, /atomic-cue-lightbox-measure/);
+  assert.match(cueLightbox, /instanceOf\(HTMLElement\)/);
+  assert.doesNotMatch(cueLightbox, /querySelectorAll\("p, li"\)/);
+  assert.doesNotMatch(cueLightbox, /style\.wordBreak/);
   assert.match(cueLightbox, /isCueLightboxDismissKey/);
   assert.match(cueLightbox, /cueCardEventShouldToggle/);
   assert.match(cueLightbox, /role: "dialog"/);
@@ -127,6 +134,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCardFan, /\[role='button']/);
   assert.match(cueCardFan, /isCueLightboxDismissKey/);
   assert.match(cueCardFan, /cueCardFlyScale/);
+  assert.match(cueCardFan, /cueLightboxLayoutWidth/);
 
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);
@@ -235,6 +243,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /sheetBgImage/);
   assert.match(health, /fadeOpacity/);
   assert.match(health, /maskImage/);
+  assert.match(health, /bodyOverflowY/);
+  assert.match(health, /scrollTop/);
+  assert.match(health, /scrollbarSize/);
+  assert.match(health, /widthSettled/);
+  assert.match(health, /長句寬度測試/);
   assert.match(health, /atomic-cue-log-add/);
   assert.match(health, /前臂放鬆/);
   assert.match(health, /aria-expanded/);
@@ -260,6 +273,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
   assert.match(styles, /-webkit-backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
   assert.match(styles, /translate\(-50%, -50%\) scale\(var\(--atomic-cue-fly-scale\)\)/);
+  assert.match(styles, /--atomic-cue-lightbox-width/);
+  assert.match(styles, /--atomic-cue-fly-inset/);
+  assert.match(styles, /overflow-y:\s*auto/);
+  assert.match(styles, /atomic-cue-lightbox-measure/);
+  assert.doesNotMatch(
+    styles,
+    /\.atomic-cue-lightbox-card:hover \.atomic-cue-sheet/,
+  );
   assert.match(styles, /\.is-preview/);
   assert.match(styles, /\.is-flying/);
   assert.doesNotMatch(styles, /--atomic-cue-width:\s*420px/);
