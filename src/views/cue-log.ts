@@ -35,13 +35,14 @@ export async function renderAtomicCueLog(
   }
 
   const row = root.createDiv({ cls: "atomic-cue-log-row" });
-  const field = row.createDiv({ cls: "atomic-cue-log-field" });
-  field.createEl("label", { text: t("view.cueLog.cue", language) });
+  // A wrapping label names the input without an aria-label, which Obsidian
+  // would turn into a tooltip that lingers over the note.
+  const field = row.createEl("label", { cls: "atomic-cue-log-field" });
+  field.createSpan({ text: t("view.cueLog.cue", language) });
   const input = field.createEl("input", {
     attr: {
       type: "text",
       "data-testid": "atomic-cue-log-text",
-      "aria-label": t("view.cueLog.cue", language),
       placeholder: t("view.cueLog.placeholder", language),
     },
   });

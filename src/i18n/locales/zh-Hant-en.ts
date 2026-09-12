@@ -254,7 +254,6 @@ export const zhHantEn = {
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured / 尚未設定支援提醒的 {activity} 運動活動。",
   "view.cues.empty": "No cues in {year} yet. Add one from a session note / {year} 仲未有提示。喺訓練筆記加一條啦。",
   "view.cues.repeats": "×{count}",
-  "view.cues.cardLabel": "Cue / 提示：{cue}。Last seen / 最近 {lastSeen}。",
   "view.cueLog.cue": "Cue / 提示",
   "view.cueLog.placeholder": "Keep the lead arm soft / 前臂放鬆",
   "view.cueLog.add": "Add cue / 加提示",

@@ -254,7 +254,6 @@ export const en = {
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured.",
   "view.cues.empty": "No cues in {year} yet. Add one from a session note.",
   "view.cues.repeats": "×{count}",
-  "view.cues.cardLabel": "Cue: {cue}. Last seen {lastSeen}.",
   "view.cueLog.cue": "Cue",
   "view.cueLog.placeholder": "Keep the lead arm soft",
   "view.cueLog.add": "Add cue",

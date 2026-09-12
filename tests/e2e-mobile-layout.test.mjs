@@ -292,23 +292,27 @@ test("cue cards fan on desktop, stack on phones, and pop without hover", () => {
   );
   assert.match(styles, /--atomic-cue-width:\s*228px/);
   assert.match(styles, /--atomic-cue-step:\s*186px/);
+  // Alternating tilt and vertical drop are what make the row read as a stack.
+  assert.match(
+    styles,
+    /\.atomic-cue-sheet\s*\{[^}]*transform:\s*rotate\(var\(--atomic-cue-tilt\)\) translateY\(var\(--atomic-cue-drop\)\)/s,
+  );
+  assert.equal((styles.match(/--atomic-cue-drop:/g) || []).length, 5);
 
-  // Tap and keyboard activation pop a card with no hover support at all.
-  const openAt = styles.indexOf(".fitness-plugin .atomic-cue-card.is-open");
+  // Hover, focus, and tap share one pop rule: remote desktops and
+  // touch-capable laptops report no hover even with a mouse attached.
+  const openAt = styles.indexOf(".fitness-plugin .atomic-cue-card:hover,");
   assert.ok(openAt > 0);
-  const cueHoverAt = styles.indexOf(
+  const cueRules = styles.slice(openAt);
+  assert.match(
+    cueRules,
+    /\.atomic-cue-card:hover \.atomic-cue-sheet,\n\.fitness-plugin \.atomic-cue-card:focus-visible \.atomic-cue-sheet,\n\.fitness-plugin \.atomic-cue-card\.is-open \.atomic-cue-sheet\s*\{[^}]*translateY\(-18px\)/s,
+  );
+  const cueHoverMedia = styles.indexOf(
     "@media (hover: hover) and (pointer: fine)",
     openAt,
   );
-  assert.ok(cueHoverAt > openAt, "hover rules must not be the only pop path");
-  assert.match(
-    styles.slice(openAt, cueHoverAt),
-    /\.atomic-cue-card\.is-open \.atomic-cue-sheet\s*\{[^}]*translateY\(-18px\)/s,
-  );
-  assert.match(
-    styles.slice(cueHoverAt),
-    /\.atomic-cue-card:focus-visible \.atomic-cue-sheet/,
-  );
+  assert.equal(cueHoverMedia, -1, "the cue pop must not sit behind a hover query");
 
   const phoneAt = styles.indexOf("@media (max-width: 600px)");
   assert.ok(phoneAt > openAt);
@@ -319,6 +323,15 @@ test("cue cards fan on desktop, stack on phones, and pop without hover", () => {
   assert.match(
     styles.slice(phoneAt),
     /\.fitness-plugin \.atomic-cue-sheet\s*\{[^}]*position:\s*relative/s,
+  );
+  // A default button box shrink-wraps the sheet, which collapses phone cards.
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-cue-card\s*\{[^}]*display:\s*block/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-cue-sheet\s*\{[^}]*width:\s*100%[^}]*box-sizing:\s*border-box/s,
   );
 
   const reducedAt = styles.indexOf(

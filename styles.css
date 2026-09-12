@@ -1605,7 +1605,10 @@
 
 .fitness-plugin .atomic-cue-card {
   --atomic-cue-tilt: -2.4deg;
+  --atomic-cue-drop: 0px;
   --atomic-cue-tint: #b7e4c0;
+  /* Block, not the default button box, which shrink-wraps the sheet. */
+  display: block;
   position: relative;
   width: var(--atomic-cue-width);
   height: var(--atomic-cue-height);
@@ -1623,16 +1626,19 @@
 
 .fitness-plugin .atomic-cue-card[data-cue-stock="1"] {
   --atomic-cue-tilt: 1.6deg;
+  --atomic-cue-drop: 9px;
   --atomic-cue-tint: #bcdcf2;
 }
 
 .fitness-plugin .atomic-cue-card[data-cue-stock="2"] {
   --atomic-cue-tilt: -1.1deg;
+  --atomic-cue-drop: 4px;
   --atomic-cue-tint: #f6dcb0;
 }
 
 .fitness-plugin .atomic-cue-card[data-cue-stock="3"] {
   --atomic-cue-tilt: 2.1deg;
+  --atomic-cue-drop: 13px;
   --atomic-cue-tint: #eac7de;
 }
 
@@ -1641,7 +1647,9 @@
   left: 0;
   right: 0;
   top: 0;
+  width: 100%;
   min-height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1649,7 +1657,7 @@
   padding: 27px calc(var(--atomic-cue-width) - var(--atomic-cue-step) + 12px) 12px 42px;
   border-radius: 3px;
   transform-origin: 50% 92%;
-  transform: rotate(var(--atomic-cue-tilt));
+  transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
   background-color: color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper));
   background-image:
     linear-gradient(
@@ -1737,11 +1745,19 @@
   color: var(--atomic-cue-ink);
 }
 
-/* Popped: tap or keyboard activation on any device. */
+/*
+  Popped state. Hover, keyboard focus, and the tap-driven `is-open` class share
+  one rule set so the pop is not gated behind a `(hover: hover)` query: remote
+  desktops and touch-capable laptops report no hover even with a mouse attached.
+*/
+.fitness-plugin .atomic-cue-card:hover,
+.fitness-plugin .atomic-cue-card:focus-visible,
 .fitness-plugin .atomic-cue-card.is-open {
   z-index: 5;
 }
 
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
 .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
   transform: rotate(0deg) translateY(-18px) scale(1.07);
   padding-right: 14px;
@@ -1750,45 +1766,19 @@
     0 20px 38px rgba(38, 32, 22, 0.28);
 }
 
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
 .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
   max-height: calc(10 * var(--atomic-cue-line));
   -webkit-mask-image: none;
   mask-image: none;
 }
 
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
 .fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* Popped: hover and keyboard focus on a pointer device. */
-@media (hover: hover) and (pointer: fine) {
-  .fitness-plugin .atomic-cue-card:hover,
-  .fitness-plugin .atomic-cue-card:focus-visible {
-    z-index: 5;
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
-    transform: rotate(0deg) translateY(-18px) scale(1.07);
-    padding-right: 14px;
-    box-shadow:
-      0 0 0 1px rgba(70, 60, 44, 0.08),
-      0 20px 38px rgba(38, 32, 22, 0.28);
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
-    max-height: calc(10 * var(--atomic-cue-line));
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Phones and narrow panes: one card per row, no overlap, tap to pop. */
@@ -1801,6 +1791,7 @@
 
   .fitness-plugin .atomic-cue-card {
     --atomic-cue-tilt: -0.6deg;
+    --atomic-cue-drop: 0px;
     width: 100%;
     height: auto;
   }
@@ -1819,6 +1810,8 @@
     padding-right: 14px;
   }
 
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
     transform: rotate(0deg) translateY(-6px) scale(1.03);
   }
@@ -1831,6 +1824,8 @@
     transition: none;
   }
 
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
     transform: rotate(0deg);
   }
@@ -1859,7 +1854,7 @@
   min-width: 0;
 }
 
-.fitness-plugin .atomic-cue-log-field label {
+.fitness-plugin .atomic-cue-log-field > span {
   font-size: 12px;
   color: var(--text-muted);
 }

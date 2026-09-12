@@ -98,6 +98,8 @@ function appendCueCard(
   index: number,
   language: Language,
 ): HTMLButtonElement {
+  // No aria-label: the cue and its meta row are the button's text, and an
+  // aria-label would also raise an Obsidian tooltip over the popped card.
   const button = fan.createEl("button", {
     cls: "atomic-cue-card",
     attr: {
@@ -106,10 +108,6 @@ function appendCueCard(
       "data-cue-stock": String(index % CUE_STOCK_COUNT),
       "data-cue-repeats": String(card.count),
       "data-cue-last-seen": card.lastSeen,
-      "aria-label": t("view.cues.cardLabel", language, {
-        cue: card.text,
-        lastSeen: card.lastSeen,
-      }),
     },
   });
 

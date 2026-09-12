@@ -176,6 +176,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         return !closed.isOpen && closed.lift < 4;
       }, 8000);
 
+      // Hover pops the card without the is-open class, on any pointer type.
+      const cardEls = await driver.findElements(By.css('[data-testid="atomic-cue-card"]'));
+      await driver.actions({ async: false }).move({ origin: cardEls[0] }).perform();
+      await driver.wait(async () => {
+        const hovered = await cueCardMetrics(driver, 0);
+        return !hovered.isOpen && hovered.lift > 8 && hovered.metaOpacity > 0.99;
+      }, 8000);
+
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
       const gymCues = await driver.executeScript(`
@@ -772,6 +780,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
   it("shows settings color picker, swatches, add, enable/disable, and delete", async () => {
     await check(driver, "settings", async () => {
       try {
+        // A Notice left over from an earlier test can swallow a settings click.
+        await driver.executeScript(
+          `document.querySelectorAll('.notice').forEach((notice) => notice.remove())`,
+        );
         await openAtomicSettings(driver);
 
       for (const id of ["gym", "golf", "reading"]) {
