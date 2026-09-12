@@ -18,7 +18,7 @@ import {
   type DashboardPaintState,
   type Felt,
 } from "../core/dashboard";
-import { formatMonthLabel, nowYear, resolveBlockYear } from "../dates";
+import { nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
@@ -26,7 +26,7 @@ import { exerciseActivities, hobbyActivities } from "../util/activity-types";
 import {
   activityLinks,
   appendBars,
-  appendDayBars,
+  appendMonthBars,
   appendPathLink,
   appendSectionTitle,
   FELT_LABEL_KEY,
@@ -285,15 +285,12 @@ function renderExerciseCard(
   if (data.volumeKg != null) {
     appendStat(nums, formatCompactKg(data.volumeKg), t("view.dashboard.unitVolume", ctx.language));
   }
-  appendDayBars(
+  appendMonthBars(
     card,
-    data.daily,
+    data.monthlyMinutes,
     data.activity.colors[2],
-    t("view.dashboard.barsSessionsMonth", ctx.language, {
-      month: formatMonthLabel(ctx.year, data.focusMonth, ctx.language),
-    }),
+    t("view.dashboard.barsHours", ctx.language),
     ctx,
-    data.focusMonth,
   );
   if (data.felt) appendFeltBar(card, data.felt, data.activity.colors, ctx);
   appendActivityFoot(
@@ -317,15 +314,12 @@ function renderHobbyCard(
   if (data.inProgress != null) {
     appendStat(nums, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
   }
-  appendDayBars(
+  appendMonthBars(
     card,
-    data.daily,
+    data.monthly,
     data.activity.colors[2],
-    t("view.dashboard.barsMinutesMonth", ctx.language, {
-      month: formatMonthLabel(ctx.year, data.focusMonth, ctx.language),
-    }),
+    t("view.dashboard.barsHours", ctx.language),
     ctx,
-    data.focusMonth,
   );
   appendActivityFoot(card, data, ctx, null);
 }
@@ -342,7 +336,6 @@ function renderActivityCard(
       "data-testid": "atomic-dashboard-activity",
       "data-activity": activity.id,
       "data-count": String(card.count),
-      "data-focus-month": `${ctx.year}-${String(card.focusMonth).padStart(2, "0")}`,
     },
   });
   el.style.setProperty("--atomic-dash-accent", activity.colors[2]);
@@ -398,7 +391,7 @@ export async function renderDashboard(
     cls: "fitness-plugin atomic-dashboard",
     attr: { "data-testid": "atomic-dashboard", "data-year": String(year) },
   });
-  const ctx: DashboardRenderContext = { data, language, year: model.year };
+  const ctx: DashboardRenderContext = { data, language };
   const onYear = (nextYear: number) => {
     void renderDashboard(el, data, activityTypes, nextYear, language);
   };

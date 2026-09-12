@@ -1,8 +1,8 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { barHeights, type DashboardActivityCard, type Felt } from "../core/dashboard";
+import { barHeights, formatHours, type DashboardActivityCard, type Felt } from "../core/dashboard";
 import {
-  formatMonthLabel,
   fullDateForLanguage,
+  monthShortEn,
   monthShortForLanguage,
   parseYmd,
 } from "../dates";
@@ -16,7 +16,6 @@ import { cuePathForActivity } from "../util/activity-types";
 export type DashboardRenderContext = {
   data: VaultDataSource;
   language: Language;
-  year: number;
 };
 
 export type DashboardBar = {
@@ -42,6 +41,12 @@ export function formatCount(n: number): string {
 
 export function monthLabel(index: number, ctx: DashboardRenderContext, year = 2000): string {
   return monthShortForLanguage(year, index + 1, 1, ctx.language);
+}
+
+function compactMonthLabel(index: number, ctx: DashboardRenderContext): string {
+  return ctx.language === "en"
+    ? monthShortEn(2000, index + 1, 1).slice(0, 1)
+    : String(index + 1);
 }
 
 export function localDate(ymd: string, ctx: DashboardRenderContext): string {
@@ -118,54 +123,49 @@ export function appendBars(
   }
 }
 
-function dayAxisLabel(day: number, lastDay: number, value: number): string {
-  if (value > 0 || day === 1 || day === lastDay || day % 5 === 0) return String(day);
-  return "";
+export function monthBars(
+  values: number[],
+  color: string,
+  ctx: DashboardRenderContext,
+): DashboardBar[] {
+  const heights = barHeights(values);
+  return values.map((value, index) => ({
+    value,
+    height: heights[index],
+    color,
+    title: `${monthLabel(index, ctx)}: ${formatHours(value)}`,
+  }));
 }
 
-/** One bar per calendar day in `month` (1-based), labeled so active days stay visible. */
-export function appendDayBars(
+/** Twelve-month chart; `values` are minutes, bar height and hover text use hours. */
+export function appendMonthBars(
   parent: HTMLElement,
   values: number[],
   color: string,
   title: string,
   ctx: DashboardRenderContext,
-  month: number,
 ): void {
-  const wrap = parent.createDiv({
-    cls: "atomic-dash-day-chart",
-    attr: {
-      "data-testid": "atomic-dashboard-activity-bars",
-      "data-focus-month": `${ctx.year}-${String(month).padStart(2, "0")}`,
-      "data-days": String(values.length),
-      title,
-    },
+  const bars = parent.createDiv({
+    cls: "atomic-dash-bars",
+    attr: { title, "data-testid": "atomic-dashboard-activity-bars" },
   });
-  wrap.style.setProperty("--atomic-dash-days", String(values.length));
-  wrap.createDiv({
-    cls: "atomic-dash-day-caption",
-    text: formatMonthLabel(ctx.year, month, ctx.language),
-  });
-  const heights = barHeights(values);
-  const bars = wrap.createDiv({ cls: "atomic-dash-bars is-daily" });
-  for (let i = 0; i < values.length; i++) {
-    const day = i + 1;
-    const value = values[i];
-    const active = value > 0;
+  const specs = monthBars(values, color, ctx);
+  specs.forEach((bar, index) => {
+    const active = bar.value > 0;
     const el = bars.createSpan({
       cls: `atomic-dash-bar is-month${active ? "" : " is-zero"}`,
       attr: {
-        "data-testid": "atomic-dashboard-day",
-        "data-day": String(day),
-        "data-value": String(value),
-        title: `${day}: ${formatCount(value)}`,
+        "data-testid": "atomic-dashboard-month-bar",
+        "data-month": String(index + 1),
+        "data-minutes": String(bar.value),
+        ...(bar.title ? { title: bar.title } : {}),
       },
     });
-    el.style.height = active ? `${heights[i]}%` : "0";
-    if (active) el.style.background = color;
-  }
-  const labels = wrap.createDiv({ cls: "atomic-dash-months atomic-dash-days" });
-  for (let i = 0; i < values.length; i++) {
-    labels.createSpan({ text: dayAxisLabel(i + 1, values.length, values[i]) });
+    el.style.height = active ? `${bar.height}%` : "0";
+    if (active && bar.color) el.style.background = bar.color;
+  });
+  const labels = parent.createDiv({ cls: "atomic-dash-months" });
+  for (let i = 0; i < 12; i++) {
+    labels.createSpan({ text: compactMonthLabel(i, ctx) });
   }
 }

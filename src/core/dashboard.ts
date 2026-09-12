@@ -6,7 +6,7 @@ import type { ActivityType, SessionMeta } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { rowVolumeKg } from "../core.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { daysInUtcMonth, monthIndexFromDate, parseYmd } from "../dates.ts";
+import { monthIndexFromDate } from "../dates.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { minutesByMonthForYear, type TimeLogEntry } from "./hobby.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -128,13 +128,12 @@ type DashboardCardBase = {
   minutes: number;
   /** Sessions per month (exercise) or timer minutes per month (hobby). */
   monthly: number[];
-  /** Sessions or minutes per day in `focusMonth` (1-based). */
-  daily: number[];
-  focusMonth: number;
 };
 
 export type DashboardExerciseCard = DashboardCardBase & {
   domain: "exercise";
+  /** Session minutes per month; drives the activity-card bars. */
+  monthlyMinutes: number[];
   /** Null unless the activity supports a set table. */
   volumeKg: number | null;
   lastDate: string | null;
@@ -211,28 +210,6 @@ function emptyMonths(): number[] {
   return Array(12).fill(0) as number[];
 }
 
-function emptyDays(year: number, month: number): number[] {
-  return Array(daysInUtcMonth(year, month)).fill(0) as number[];
-}
-
-/** 1-based month of `lastDate` when it falls in `year`; otherwise January. */
-function focusMonthFromLastDate(year: number, lastDate: string | null): number {
-  const parsed = lastDate ? parseYmd(lastDate) : null;
-  return parsed && parsed.y === year ? parsed.m : 1;
-}
-
-function addDaily(
-  daily: number[],
-  year: number,
-  month: number,
-  ymd: string | null | undefined,
-  weight: number,
-): void {
-  const parsed = ymd ? parseYmd(ymd) : null;
-  if (!parsed || parsed.y !== year || parsed.m !== month) return;
-  if (parsed.d >= 1 && parsed.d <= daily.length) daily[parsed.d - 1] += weight;
-}
-
 function addMonths(target: number[], source: number[]): void {
   for (let i = 0; i < 12; i++) target[i] += source[i];
 }
@@ -259,6 +236,15 @@ export function splitHoursMinutes(totalMinutes: number): { hours: number; minute
 
 export function averagePerSession(totalMinutes: number, sessions: number): number {
   return sessions > 0 ? Math.round(totalMinutes / sessions) : 0;
+}
+
+/** One decimal hour, for activity-card bar labels (`75` → `1.3`). */
+export function hoursFromMinutes(minutes: number): number {
+  return Math.round((minutes / 60) * 10) / 10;
+}
+
+export function formatHours(minutes: number): string {
+  return `${hoursFromMinutes(minutes).toLocaleString("en-US")}h`;
 }
 
 /**
@@ -290,11 +276,9 @@ type ExerciseSummary = {
   focusCounts: Map<string, number>;
 };
 
-function summarizeExercise(
-  { activity, sessions }: DashboardExerciseInput,
-  year: number,
-): ExerciseSummary {
+function summarizeExercise({ activity, sessions }: DashboardExerciseInput): ExerciseSummary {
   const monthly = emptyMonths();
+  const monthlyMinutes = emptyMonths();
   const monthlyVolume = emptyMonths();
   const felt: FeltCounts = { good: 0, ok: 0, bad: 0 };
   const muscleSets = new Map<string, number>();
@@ -309,7 +293,10 @@ function summarizeExercise(
   for (const { meta, setRows } of sessions) {
     const mi = monthIndexFromDate(meta.date);
     minutes += meta.duration_min;
-    if (mi >= 0) monthly[mi] += 1;
+    if (mi >= 0) {
+      monthly[mi] += 1;
+      monthlyMinutes[mi] += meta.duration_min;
+    }
 
     let sessionVolume = 0;
     if (activity.supportsSetTable) {
@@ -346,9 +333,6 @@ function summarizeExercise(
   if (activity.supportsSetTable) {
     columns.push({ activity, kind: "volume", values: monthlyVolume });
   }
-  const focusMonth = focusMonthFromLastDate(year, lastDate);
-  const daily = emptyDays(year, focusMonth);
-  for (const { meta } of sessions) addDaily(daily, year, focusMonth, meta.date, 1);
   return {
     card: {
       domain: "exercise",
@@ -356,8 +340,7 @@ function summarizeExercise(
       count: sessions.length,
       minutes,
       monthly,
-      daily,
-      focusMonth,
+      monthlyMinutes,
       volumeKg: activity.supportsSetTable ? volumeKg : null,
       lastDate,
       felt: isGolf ? felt : null,
@@ -371,17 +354,6 @@ function summarizeExercise(
   };
 }
 
-function latestHobbyDate(items: readonly DashboardHobbyItemInput[], year: number): string | null {
-  const prefix = `${year}-`;
-  let last: string | null = null;
-  for (const item of items) {
-    for (const entry of item.entries) {
-      if (entry.date.startsWith(prefix) && (!last || entry.date > last)) last = entry.date;
-    }
-  }
-  return last;
-}
-
 function summarizeHobby(
   { activity, items }: DashboardHobbyInput,
   year: number,
@@ -392,11 +364,6 @@ function summarizeHobby(
     addMonths(monthly, minutesByMonthForYear(item.entries, year));
     if (isInProgressStatus(item.frontmatter.status)) inProgress += 1;
   }
-  const focusMonth = focusMonthFromLastDate(year, latestHobbyDate(items, year));
-  const daily = emptyDays(year, focusMonth);
-  for (const item of items) {
-    for (const entry of item.entries) addDaily(daily, year, focusMonth, entry.date, entry.minutes);
-  }
   return {
     card: {
       domain: "hobby",
@@ -404,8 +371,6 @@ function summarizeHobby(
       count: items.length,
       minutes: monthly.reduce((sum, v) => sum + v, 0),
       monthly,
-      daily,
-      focusMonth,
       inProgress: activity.id === READING_ID ? inProgress : null,
     },
     column: { activity, kind: "minutes", values: monthly },
@@ -451,7 +416,7 @@ export function buildDashboardModel(input: DashboardInput): DashboardModel {
   let golf: DashboardExerciseCard | null = null;
 
   for (const exercise of input.exercise) {
-    const summary = summarizeExercise(exercise, input.year);
+    const summary = summarizeExercise(exercise);
     const { card } = summary;
     totalSessions += card.count;
     totalExerciseMinutes += card.minutes;

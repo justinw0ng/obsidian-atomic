@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  daysInUtcMonth,
   monthIndexFromDate,
   nowYear,
   resolveBlockYear,
@@ -58,11 +57,4 @@ test("monthIndexFromDate maps YYYY-MM-DD to a 0-based month or -1", () => {
   assert.equal(monthIndexFromDate("2026-08-14"), 7);
   assert.equal(monthIndexFromDate("2026-13-01"), -1);
   assert.equal(monthIndexFromDate(null), -1);
-});
-
-test("daysInUtcMonth is the calendar length of a 1-based month", () => {
-  assert.equal(daysInUtcMonth(2026, 9), 30);
-  assert.equal(daysInUtcMonth(2026, 1), 31);
-  assert.equal(daysInUtcMonth(2025, 2), 28);
-  assert.equal(daysInUtcMonth(2024, 2), 29);
 });

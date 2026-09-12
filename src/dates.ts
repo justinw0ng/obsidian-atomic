@@ -86,11 +86,6 @@ export function monthIndexFromDate(dateStr: string | null | undefined): number {
   return index >= 0 && index < 12 ? index : -1;
 }
 
-/** Calendar length of `month` (1–12) in UTC. */
-export function daysInUtcMonth(year: number, month: number): number {
-  return new Date(Date.UTC(year, month, 0, 12)).getUTCDate();
-}
-
 /** Sunday = 0 … Saturday = 6 (UTC calendar date). */
 export function weekdaySun0(y: number, m: number, d: number): number {
   return new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay();

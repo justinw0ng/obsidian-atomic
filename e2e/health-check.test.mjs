@@ -161,18 +161,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         ["reading", "2"],
       ]);
 
-      const focusMonth = today.slice(0, 7);
-      const day = String(Number(today.slice(8, 10)));
-      await waitCss(
-        driver,
-        `[data-testid="atomic-dashboard-activity"][data-activity="gym"][data-focus-month="${focusMonth}"] [data-testid="atomic-dashboard-activity-bars"]`,
-      );
-      const gymDayValue = await driver.executeScript(`
+      const month = String(Number(today.slice(5, 7)));
+      const gymMonthMinutes = await driver.executeScript(`
         return document.querySelector(
-          '[data-testid="atomic-dashboard-activity"][data-activity="gym"] [data-testid="atomic-dashboard-day"][data-day="${day}"]'
-        )?.getAttribute("data-value") || "";
+          '[data-testid="atomic-dashboard-activity"][data-activity="gym"] [data-testid="atomic-dashboard-month-bar"][data-month="${month}"]'
+        )?.getAttribute("data-minutes") || "";
       `);
-      assert.equal(gymDayValue, "1");
+      assert.equal(gymMonthMinutes, "45");
 
       await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
       const musclesText = await driver.executeScript(
