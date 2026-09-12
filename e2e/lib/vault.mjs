@@ -365,11 +365,11 @@ export function seedE2eVault(options = {}) {
 
   write(
     join(vault, E2E_FILES.golfCues),
-    `# Golf cues\n\n\`\`\`atomic-golf-cues\nyear: ${year}\n\`\`\`\n`,
+    `# Golf cues\n\n\`\`\`atomic-cues\nactivity: golf\nyear: ${year}\n\`\`\`\n`,
   );
   write(
     join(vault, E2E_FILES.gymCues),
-    `# Gym cues\n\n\`\`\`atomic-gym-cues\nyear: ${year}\n\`\`\`\n`,
+    `# Gym cues\n\n\`\`\`atomic-cues\nactivity: gym\nyear: ${year}\n\`\`\`\n`,
   );
   write(
     join(vault, E2E_FILES.cues),

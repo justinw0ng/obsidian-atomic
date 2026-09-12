@@ -11,19 +11,21 @@ test("codeblockLanguages registers atomic languages only", () => {
     "atomic-today",
     "atomic-dashboard",
     "atomic-actions",
-    "atomic-golf-cues",
-    "atomic-gym-cues",
     "atomic-cues",
     "atomic-cue-log",
     "atomic-timer",
     "atomic-gym-log",
     "atomic-bookshelf",
   ]);
+  assert.equal(codeblockLanguages().includes("atomic-golf-cues"), false);
+  assert.equal(codeblockLanguages().includes("atomic-gym-cues"), false);
 });
 
-test("resolveCueActivity uses dedicated kind or atomic-cues activity option", () => {
-  assert.equal(resolveCueActivity("atomic-golf-cues", {}), "golf");
-  assert.equal(resolveCueActivity("atomic-gym-cues", {}), "gym");
+test("resolveCueActivity reads activity from atomic-cues options only", () => {
   assert.equal(resolveCueActivity("atomic-cues", { activity: "gym" }), "gym");
   assert.equal(resolveCueActivity("atomic-cues", { activity: "golf" }), "golf");
+  assert.equal(resolveCueActivity("atomic-cues", { activity: "  gym  " }), "gym");
+  assert.equal(resolveCueActivity("atomic-cues", {}), null);
+  assert.equal(resolveCueActivity("atomic-golf-cues", {}), null);
+  assert.equal(resolveCueActivity("atomic-gym-cues", {}), null);
 });

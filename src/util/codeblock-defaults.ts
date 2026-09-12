@@ -79,26 +79,6 @@ const BLOCK_SPECS: Record<AtomicBlockKind, BlockSpec> = {
     emptyKey: "block.opt.noneActions",
     options: [],
   },
-  "atomic-golf-cues": {
-    headerKey: "block.opt.header",
-    options: [
-      {
-        key: "year",
-        example: "2026",
-        commentKey: "block.opt.yearCues",
-      },
-    ],
-  },
-  "atomic-gym-cues": {
-    headerKey: "block.opt.header",
-    options: [
-      {
-        key: "year",
-        example: "2026",
-        commentKey: "block.opt.yearCues",
-      },
-    ],
-  },
   "atomic-cues": {
     headerKey: "block.opt.header",
     options: [

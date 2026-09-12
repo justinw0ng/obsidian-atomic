@@ -157,8 +157,6 @@ export async function renderBlock(
         );
         break;
       }
-      case "atomic-golf-cues":
-      case "atomic-gym-cues":
       case "atomic-cues": {
         const activity = resolveCueActivity(kind, opts);
         if (!activity) {

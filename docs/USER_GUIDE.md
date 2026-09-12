@@ -19,7 +19,7 @@ Open today’s note, use the blocks on it, then look at the cue cards and book s
 
 1. Open the [latest GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases/latest).
 2. Download **`main.js`**, **`manifest.json`**, and **`styles.css`**.
-3. Copy those three files into `<vault>/.obsidian/plugins/atomic-tracker/`. Create the folder if it does not exist.
+3. Copy those three files into `<vault>/.obsidian/plugins/atomic-tracker/`. Create the folder if it does not exist. Do not use **Source code (zip)**.
 
 ---
 

@@ -44,6 +44,16 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     assert.equal(today, "2026-08-13");
     assert.equal(year, "2026");
 
+    const golfCues = readFileSync(join(vault, E2E_FILES.golfCues), "utf8");
+    assert.match(golfCues, /```atomic-cues/);
+    assert.match(golfCues, /^activity: golf$/m);
+    assert.doesNotMatch(golfCues, /atomic-golf-cues|atomic-gym-cues/);
+
+    const gymCues = readFileSync(join(vault, E2E_FILES.gymCues), "utf8");
+    assert.match(gymCues, /```atomic-cues/);
+    assert.match(gymCues, /^activity: gym$/m);
+    assert.doesNotMatch(gymCues, /atomic-golf-cues|atomic-gym-cues/);
+
     const heatmap = readFileSync(join(vault, E2E_FILES.heatmapReading), "utf8");
     assert.match(heatmap, /```atomic-heatmap/);
     assert.match(heatmap, /activity: reading/);
