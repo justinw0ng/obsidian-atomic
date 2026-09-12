@@ -149,7 +149,8 @@ test("seed --cue-hero writes Cues.md, the form, and unique golf cues", () => {
     );
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const golfCues = readFileSync(join(vault, CUE_HERO_FILES.golfCues), "utf8");
-    assert.match(golfCues, /```atomic-golf-cues/);
+    assert.match(golfCues, /```atomic-cues/);
+    assert.match(golfCues, /^activity: golf$/m);
     const today = readFileSync(join(vault, CUE_HERO_FILES.golfToday), "utf8");
     assert.match(today, /```atomic-cue-log/);
     assert.match(today, /Finish tall, belt buckle to the target/);

@@ -3,8 +3,6 @@ export const ATOMIC_CODEBLOCK_LANGUAGES: readonly string[] = [
   "atomic-today",
   "atomic-dashboard",
   "atomic-actions",
-  "atomic-golf-cues",
-  "atomic-gym-cues",
   "atomic-cues",
   "atomic-cue-log",
   "atomic-timer",
@@ -20,8 +18,6 @@ export function resolveCueActivity(
   kind: string,
   options: Record<string, string>,
 ): string | null {
-  if (kind === "atomic-golf-cues") return "golf";
-  if (kind === "atomic-gym-cues") return "gym";
   if (kind !== "atomic-cues") return null;
 
   const activity = options.activity?.trim();

@@ -15,8 +15,6 @@ const ALL_KINDS = [
   "atomic-today",
   "atomic-dashboard",
   "atomic-actions",
-  "atomic-golf-cues",
-  "atomic-gym-cues",
   "atomic-cues",
   "atomic-cue-log",
   "atomic-timer",
@@ -26,6 +24,8 @@ const ALL_KINDS = [
 
 test("every registered UI codeblock has a default body with option comments", () => {
   assert.deepEqual(codeblockLanguages(), ALL_KINDS);
+  assert.equal(isAtomicBlockKind("atomic-golf-cues"), false);
+  assert.equal(isAtomicBlockKind("atomic-gym-cues"), false);
   for (const kind of ALL_KINDS) {
     assert.equal(isAtomicBlockKind(kind), true);
     const body = defaultAtomicBlockBody(kind, "en");

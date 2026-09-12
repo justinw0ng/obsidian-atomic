@@ -441,11 +441,11 @@ write(
 
 write(
   join(VAULT, CUE_HERO_FILES.golfCues),
-  `# Golf Cues\n\n\`\`\`atomic-golf-cues\nyear: ${YEAR}\n\`\`\`\n`,
+  `# Golf Cues\n\n\`\`\`atomic-cues\nactivity: golf\nyear: ${YEAR}\n\`\`\`\n`,
 );
 write(
   join(VAULT, CUE_HERO_FILES.gymCues),
-  `# Gym Cues\n\n\`\`\`atomic-gym-cues\nyear: ${YEAR}\n\`\`\`\n`,
+  `# Gym Cues\n\n\`\`\`atomic-cues\nactivity: gym\nyear: ${YEAR}\n\`\`\`\n`,
 );
 
 console.log(
