@@ -1,10 +1,12 @@
+import type FitnessPlugin from "../main";
 import type { VaultDataSource } from "../data/vault-source";
-import { buildCueCards, type Cue, type CueCard } from "../core/cues";
+import { buildCueCards, type Cue } from "../core/cues";
 import { nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
+import { appendCueCard, bindCueCardFan } from "./cue-card";
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -16,11 +18,13 @@ export function resolveCuesYear(
 
 export async function renderCues(
   el: HTMLElement,
+  plugin: FitnessPlugin,
   data: VaultDataSource,
   activityTypes: ActivityType[],
   year: number,
   activity: string,
   language: Language,
+  sourcePath: string,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({
@@ -49,15 +53,10 @@ export async function renderCues(
   }
 
   const fan = root.createDiv({ cls: "atomic-cue-fan" });
-  const buttons = cards.map((card) => appendCueCard(fan, card, language));
-  // Touch devices have no hover, so a tap pops one card at a time.
-  for (const button of buttons) {
-    button.addEventListener("click", () => {
-      const wasOpen = button.hasClass("is-open");
-      for (const other of buttons) other.removeClass("is-open");
-      if (!wasOpen) button.addClass("is-open");
-    });
-  }
+  const buttons = await Promise.all(
+    cards.map((card) => appendCueCard(fan, card, plugin, sourcePath, language)),
+  );
+  bindCueCardFan(buttons);
 }
 
 async function collectCues(
@@ -84,36 +83,4 @@ async function collectCues(
     }
   }
   return cues;
-}
-
-function appendCueCard(
-  fan: HTMLElement,
-  card: CueCard,
-  language: Language,
-): HTMLButtonElement {
-  // No aria-label: the cue and its meta row are the button's text, and an
-  // aria-label would also raise an Obsidian tooltip over the popped card.
-  // Paper stock cycles from `:nth-child` in styles.css, not from an attribute.
-  const button = fan.createEl("button", {
-    cls: "atomic-cue-card",
-    attr: { type: "button", "data-testid": "atomic-cue-card" },
-  });
-
-  const sheet = button.createDiv({ cls: "atomic-cue-sheet" });
-  const body = sheet.createDiv({ cls: "atomic-cue-body" });
-  body.createEl("p", { cls: "atomic-cue-text", text: card.text });
-
-  const meta = sheet.createDiv({ cls: "atomic-cue-meta" });
-  meta.createSpan({
-    cls: "atomic-cue-date",
-    text: card.focus ? `${card.lastSeen} · ${card.focus}` : card.lastSeen,
-  });
-  if (card.count > 1) {
-    meta.createSpan({
-      cls: "atomic-cue-repeats",
-      text: t("view.cues.repeats", language, { count: card.count }),
-    });
-  }
-
-  return button;
 }

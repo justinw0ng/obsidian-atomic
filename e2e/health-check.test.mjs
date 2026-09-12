@@ -208,9 +208,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await waitCss(driver, '[data-testid="atomic-cue-log"]');
       await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
 
+      await waitCss(driver, '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]');
       const input = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');
-      await input.clear();
-      await input.sendKeys("Knees track over the toes");
+      await driver.executeScript(
+        `arguments[0].value = arguments[1];
+         arguments[0].dispatchEvent(new Event("input", { bubbles: true }));`,
+        input,
+        "前臂放鬆\nKnees track over the **toes**",
+      );
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-cue-log-add"]').click()`,
       );
@@ -221,16 +226,27 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymPath)});
         app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
       `);
-      assert.match(String(markdown), /\n- Brace the core\n- Knees track over the toes\n/);
+      assert.match(
+        String(markdown),
+        /\n- Brace the core\n- 前臂放鬆\n  Knees track over the \*\*toes\*\*\n/,
+      );
       assert.doesNotMatch(String(markdown), /## Reminders[\s\S]*## Reminders/);
       // The cue must land past the cue form fence, never inside it.
       assert.doesNotMatch(String(markdown), /```atomic-cue-log\n- /);
 
       await driver.wait(async () => {
-        const chips = await driver.executeScript(`
-          return [...document.querySelectorAll('.atomic-cue-log-chip')].map((chip) => chip.textContent);
+        const cards = await driver.executeScript(`
+          return [...document.querySelectorAll(
+            '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]'
+          )].map((card) => ({
+            text: card.querySelector('.atomic-cue-text')?.textContent || "",
+            strong: card.querySelector('.atomic-cue-text strong, .atomic-cue-text b')?.textContent || "",
+          }));
         `);
-        return Array.isArray(chips) && chips.includes("Knees track over the toes");
+        return (
+          Array.isArray(cards) &&
+          cards.some((card) => card.text.includes("前臂放鬆") && card.strong.includes("toes"))
+        );
       }, 8000);
 
       await openVaultFile(driver, E2E_FILES.gymCues);
@@ -240,7 +256,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           return [...document.querySelectorAll('[data-testid="atomic-cue-card"]')]
             .map((card) => card.querySelector('.atomic-cue-text')?.textContent || "");
         `);
-        return Array.isArray(cues) && cues.includes("Knees track over the toes");
+        return Array.isArray(cues) && cues.some((text) => text.includes("前臂放鬆"));
       }, 8000);
     });
   });

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   appendCueBullet,
   buildCueCards,
+  formatCueBullet,
   isRemindersHeadingLabel,
   normalizeCue,
   parseReminders,
@@ -84,15 +85,24 @@ test("normalizeCue folds case and whitespace", () => {
   assert.equal(normalizeCue(""), "");
 });
 
-test("sanitizeCueText flattens input so it cannot forge markdown", () => {
+test("sanitizeCueText keeps multiline markdown and blocks forged structure", () => {
   assert.equal(sanitizeCueText("  Soft grip  "), "Soft grip");
   assert.equal(
-    sanitizeCueText("Soft grip\n- Injected bullet"),
-    "Soft grip - Injected bullet",
+    sanitizeCueText("Soft grip\n- keep nested\n## Forged heading"),
+    "Soft grip\n- keep nested\n## Forged heading",
   );
   assert.equal(sanitizeCueText("- - Soft grip"), "Soft grip");
   assert.equal(sanitizeCueText("> ## Soft grip"), "Soft grip");
+  assert.equal(sanitizeCueText("前臂放鬆\n**節奏**"), "前臂放鬆\n**節奏**");
   assert.equal(sanitizeCueText("\n\n"), "");
+});
+
+test("formatCueBullet indents continuation lines of a multiline cue", () => {
+  assert.equal(formatCueBullet("Soft grip"), "- Soft grip");
+  assert.equal(
+    formatCueBullet("前臂放鬆\n**節奏** — count one-two"),
+    "- 前臂放鬆\n  **節奏** — count one-two",
+  );
 });
 
 test("appendCueBullet adds a bullet under an existing Reminders heading", () => {
@@ -137,19 +147,34 @@ test("appendCueBullet keeps the note untouched for an empty cue", () => {
   assert.equal(appendCueBullet("# Gym", "\n- ", "💡 Reminders"), "# Gym\n");
 });
 
-test("appendCueBullet sanitizes so a pasted cue cannot forge extra bullets", () => {
+test("appendCueBullet writes multiline markdown as one indented list item", () => {
   const updated = appendCueBullet(
     "# Golf\n\n## 💡 Reminders\n\n- First\n",
-    "Second\n- Forged\n## Forged heading",
+    "Second\n- nested\n## still in the cue",
     "💡 Reminders",
   );
 
   assert.deepEqual(parseReminders(updated), [
     "First",
-    "Second - Forged ## Forged heading",
+    "Second\n- nested\n## still in the cue",
   ]);
-  assert.doesNotMatch(updated, /\n- Forged/);
-  assert.doesNotMatch(updated, /\n## Forged heading/);
+  assert.match(updated, /\n- Second\n  - nested\n  ## still in the cue\n/);
+  assert.doesNotMatch(updated, /\n- nested/);
+  assert.doesNotMatch(updated, /\n## still in the cue/);
+});
+
+test("parseReminders keeps Traditional Chinese and markdown in one cue", () => {
+  const markdown = `## 💡 Reminders
+
+- 前臂放鬆
+  **節奏** — count one-two
+
+- Smooth tempo
+`;
+  assert.deepEqual(parseReminders(markdown), [
+    "前臂放鬆\n**節奏** — count one-two",
+    "Smooth tempo",
+  ]);
 });
 
 test("appendCueBullet stops at the next same-level heading", () => {

@@ -4,6 +4,7 @@ import { appendCueBullet, parseReminders, sanitizeCueText } from "../core/cues";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
 import { isStaleBlockRender } from "../util/block-render";
+import { appendCueCard, bindCueCardFan } from "./cue-card";
 
 /** Fill-in form for session cues. Cues still land as `## Reminders` bullets. */
 export async function renderAtomicCueLog(
@@ -23,7 +24,7 @@ export async function renderAtomicCueLog(
   const language = plugin.settings.language;
   el.empty();
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-cue-log",
+    cls: "fitness-plugin atomic-cues atomic-cue-log",
     attr: { "data-testid": "atomic-cue-log" },
   });
   if (!sourcePath) {
@@ -35,13 +36,12 @@ export async function renderAtomicCueLog(
   }
 
   const row = root.createDiv({ cls: "atomic-cue-log-row" });
-  // A wrapping label names the input without an aria-label, which Obsidian
-  // would turn into a tooltip that lingers over the note.
   const field = row.createEl("label", { cls: "atomic-cue-log-field" });
   field.createSpan({ text: t("view.cueLog.cue", language) });
-  const input = field.createEl("input", {
+  const input = field.createEl("textarea", {
+    cls: "atomic-cue-log-text",
     attr: {
-      type: "text",
+      rows: "4",
       "data-testid": "atomic-cue-log-text",
       placeholder: t("view.cueLog.placeholder", language),
     },
@@ -54,13 +54,16 @@ export async function renderAtomicCueLog(
 
   const existing = parseReminders(markdown);
   if (existing.length) {
-    const chips = root.createDiv({
-      cls: "atomic-cue-log-existing",
+    const fan = root.createDiv({
+      cls: "atomic-cue-fan atomic-cue-log-existing",
       attr: { "data-testid": "atomic-cue-log-existing" },
     });
-    for (const cue of existing) {
-      chips.createSpan({ cls: "atomic-cue-log-chip", text: cue });
-    }
+    const buttons = await Promise.all(
+      existing.map((text) =>
+        appendCueCard(fan, { text }, plugin, sourcePath, language),
+      ),
+    );
+    bindCueCardFan(buttons);
   }
 
   const addCue = async (): Promise<void> => {
@@ -81,7 +84,8 @@ export async function renderAtomicCueLog(
         appendCueBullet(latest, cue, t("template.reminders", language)),
       );
       input.value = "";
-      new Notice(t("notice.cueAdded", language, { cue }));
+      const preview = cue.split("\n")[0] ?? cue;
+      new Notice(t("notice.cueAdded", language, { cue: preview }));
     } finally {
       addButton.disabled = false;
     }
@@ -92,7 +96,7 @@ export async function renderAtomicCueLog(
     void addCue();
   });
   input.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
+    if (event.key !== "Enter" || (!event.metaKey && !event.ctrlKey)) return;
     event.preventDefault();
     void addCue();
   });

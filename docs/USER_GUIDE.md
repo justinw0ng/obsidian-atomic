@@ -322,12 +322,12 @@ bullet:
 ```
 ````
 
-1. Type the cue.
-2. Click **Add cue** (or press Enter).
+1. Type the cue. Markdown and Traditional Chinese are fine; use more than one line if you need to.
+2. Click **Add cue** (or press Ctrl/Cmd+Enter).
 
-The cue is written as a `- ` bullet under **Reminders** on that note, and the cues already on the
-note show as chips under the form. Nothing leaves markdown: you can still type bullets by hand, and
-hand-typed bullets appear as cards and chips the same way.
+The cue is written as a `- ` bullet under **Reminders** on that note (extra lines stay indented so
+they belong to that one item). Cues already on the note show as the same index cards as the cue
+page. Hover or press a long card to read the full markdown. You can still type bullets by hand.
 
 Older session notes: paste the fence under the note's **Reminders** heading.
 

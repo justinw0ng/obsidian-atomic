@@ -158,7 +158,16 @@ export async function renderBlock(
           frontmatterYear(plugin, sourcePath),
           tz,
         );
-        await renderCues(el, data, activityTypes, year, activity, language);
+        await renderCues(
+          el,
+          plugin,
+          data,
+          activityTypes,
+          year,
+          activity,
+          language,
+          sourcePath,
+        );
         break;
       }
       case "atomic-actions": {

@@ -166,7 +166,7 @@ export const zhHantEn = {
   "block.opt.noneActions": "No options. One button for each enabled habit. / 無選項。每個已啟用習慣一個按鈕。",
   "block.opt.noneTimer": "No options. Start, Stop, Resume, or Discard the timer on this note. / 無選項。在此筆記開始、停止、繼續或放棄計時。",
   "block.opt.noneGymLog": "No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself. / 無選項。揀個動作、填重量同次數，再加一組。唔使自己打表格嗰行。",
-  "block.opt.noneCueLog": "No options. Type a cue and add it. It is saved as a bullet under this note’s Reminders heading. / 無選項。打個提示再加，佢會存在這篇筆記嘅 Reminders 標題下面。",
+  "block.opt.noneCueLog": "No options. Type markdown (including Traditional Chinese) and add it. It is saved as a bullet under this note’s Reminders heading. / 無選項。用 Markdown（包括繁體中文）打個提示再加，佢會存在這篇筆記嘅 Reminders 標題下面。",
 
   "reading.status.selectLabel": "Reading status / 閱讀狀態",
   "reading.status.toRead": "To read / 待讀",
@@ -255,7 +255,7 @@ export const zhHantEn = {
   "view.cues.empty": "No cues in {year} yet. Add one from a session note / {year} 仲未有提示。喺訓練筆記加一條啦。",
   "view.cues.repeats": "×{count}",
   "view.cueLog.cue": "Cue / 提示",
-  "view.cueLog.placeholder": "Keep the lead arm soft / 前臂放鬆",
+  "view.cueLog.placeholder": "Keep the lead arm soft / 前臂放鬆\n**Tempo / 節奏** — count one-two",
   "view.cueLog.add": "Add cue / 加提示",
   "view.cueLog.needsSavedNote": "Save this note to add cues / 先儲存筆記才加得提示。",
   "view.bookShelf.open": "Open {title} / 開啟 {title}",

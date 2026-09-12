@@ -1,6 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import { copyFileSync, mkdirSync, existsSync } from "fs";
+import { copyFileSync, mkdirSync, existsSync, readdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -20,6 +20,14 @@ function deployToVault() {
   for (const f of ["main.js", "manifest.json", "styles.css"]) {
     const src = join(outdir, f);
     if (existsSync(src)) copyFileSync(src, join(vaultOut, f));
+  }
+  const fontsSrc = join(outdir, "fonts");
+  if (existsSync(fontsSrc)) {
+    const fontsDest = join(vaultOut, "fonts");
+    mkdirSync(fontsDest, { recursive: true });
+    for (const name of readdirSync(fontsSrc)) {
+      copyFileSync(join(fontsSrc, name), join(fontsDest, name));
+    }
   }
   console.log(`Deployed to ${vaultOut}`);
 }

@@ -6,6 +6,7 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -338,6 +339,13 @@ function deployPlugin(vault, pluginRoot) {
     const src = join(pluginRoot, file);
     if (!existsSync(src)) throw new Error(`Missing plugin file ${src}`);
     copyFileSync(src, join(pluginDir, file));
+  }
+  const fontsSrc = join(pluginRoot, "fonts");
+  if (!existsSync(fontsSrc)) return;
+  const fontsDest = join(pluginDir, "fonts");
+  ensureDir(fontsDest);
+  for (const name of readdirSync(fontsSrc)) {
+    copyFileSync(join(fontsSrc, name), join(fontsDest, name));
   }
 }
 

@@ -20,6 +20,11 @@ const HEADING = /^(#{1,6})\s+/;
 const BULLET = /^\s*[-*+]\s+(.+)$/;
 const EMPTY_BULLET = /^\s*[-*+]\s*$/;
 const FENCE = /^\s*(`{3,}|~{3,})/;
+/** Top-level Reminders bullets only. Indented markers stay inside a cue. */
+const TOP_BULLET = /^ {0,1}[-*+](?:\s+(.*))?$/;
+const CONTINUATION_INDENT = /^(?: {2}|\t)/;
+const FENCE_PREFIX = /^[`~]{3,}\s*/;
+const LEADING_BLOCK = /^(?:[-*+](?:\s+|$)|>\s*|#{1,6}(?:\s+|$))/;
 
 /** Heading level used when this module has to create the section itself. */
 const NEW_SECTION_LEVEL = "##";
@@ -67,7 +72,7 @@ function remindersSection(
   let headingIndex = -1;
   let level = 0;
   for (let index = 0; index < lines.length; index += 1) {
-    if (fenced[index]) continue;
+    if (fenced[index] || CONTINUATION_INDENT.test(lines[index])) continue;
     const match = lines[index].trim().match(REMINDERS_HEADING);
     if (!match) continue;
     headingIndex = index;
@@ -78,7 +83,7 @@ function remindersSection(
 
   let end = lines.length;
   for (let index = headingIndex + 1; index < lines.length; index += 1) {
-    if (fenced[index]) continue;
+    if (fenced[index] || CONTINUATION_INDENT.test(lines[index])) continue;
     const heading = lines[index].trim().match(HEADING);
     if (heading && heading[1].length <= level) {
       end = index;
@@ -99,32 +104,82 @@ export function parseReminders(markdown: string): string[] {
   if (!section) return [];
 
   const cues: string[] = [];
+  let current: string[] | null = null;
+
+  const flush = (): void => {
+    if (!current) return;
+    while (current.length && !current[current.length - 1].trim()) current.pop();
+    while (current.length && !current[0].trim()) current.shift();
+    if (current.length) cues.push(current.join("\n"));
+    current = null;
+  };
+
   for (let index = section.bodyStart; index < section.end; index += 1) {
-    if (fenced[index]) continue;
-    const bullet = lines[index].match(BULLET);
-    if (bullet) cues.push(bullet[1].trim());
+    if (fenced[index]) {
+      flush();
+      continue;
+    }
+    const line = lines[index];
+    const top = line.match(TOP_BULLET);
+    if (top && !CONTINUATION_INDENT.test(line)) {
+      flush();
+      const body = (top[1] ?? "").trimEnd();
+      current = body.trim() ? [body] : null;
+      continue;
+    }
+    if (!current) continue;
+    current.push(line.replace(CONTINUATION_INDENT, ""));
   }
+  flush();
   return cues;
 }
 
-/**
- * Flatten a cue to one markdown bullet's worth of text. Newlines, list markers,
- * and blockquote markers are stripped so typed input cannot forge extra bullets
- * or headings in the Reminders section.
- */
-export function sanitizeCueText(text: string): string {
-  let stripped = text
-    .replace(/[\r\n\u2028\u2029]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+function stripFencePrefix(line: string): string {
+  return line.replace(FENCE_PREFIX, "");
+}
+
+function stripLeadingBlocks(line: string): string {
+  let stripped = stripFencePrefix(line).trim();
   let previous = "";
   while (stripped !== previous) {
     previous = stripped;
-    stripped = stripped
-      .replace(/^(?:[-*+](?:\s+|$)|>\s*|#{1,6}(?:\s+|$))/, "")
-      .trim();
+    stripped = stripFencePrefix(stripped.replace(LEADING_BLOCK, "")).trim();
   }
   return stripped;
+}
+
+/**
+ * Keep multiline markdown, but strip anything that would forge a sibling
+ * bullet, a section heading, or a fence in the Reminders section. Continuation
+ * lines may keep list markers so nested markdown still renders on the card.
+ */
+export function sanitizeCueText(text: string): string {
+  const rawLines = text
+    .replace(/\r\n/g, "\n")
+    .replace(/[\u2028\u2029]/g, "\n")
+    .split("\n");
+  const cleaned = rawLines.map((line, index) =>
+    index === 0 ? stripLeadingBlocks(line) : stripFencePrefix(line.trimEnd()).replace(/^\s+/, ""),
+  );
+  while (cleaned.length && !cleaned[0]) cleaned.shift();
+  while (cleaned.length && !cleaned[cleaned.length - 1]) cleaned.pop();
+  const collapsed: string[] = [];
+  for (const line of cleaned) {
+    if (!line && collapsed[collapsed.length - 1] === "") continue;
+    collapsed.push(line);
+  }
+  return collapsed.join("\n");
+}
+
+/** One markdown list item: first line is the bullet, the rest stay indented. */
+export function formatCueBullet(text: string): string {
+  const lines = text.split("\n");
+  const first = lines[0] ?? "";
+  if (lines.length <= 1) return `- ${first}`;
+  return [
+    `- ${first}`,
+    ...lines.slice(1).map((line) => (line.length ? `  ${line}` : "  ")),
+  ].join("\n");
 }
 
 /**
@@ -140,7 +195,7 @@ export function appendCueBullet(
   const text = sanitizeCueText(cue);
   if (!text) return ensureTrailingNewline(markdown);
 
-  const bullet = `- ${text}`;
+  const bullet = formatCueBullet(text);
   const lines = markdown.split(/\r?\n/);
   const section = remindersSection(lines, fencedLines(lines));
 

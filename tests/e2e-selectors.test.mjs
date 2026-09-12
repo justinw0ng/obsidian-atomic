@@ -71,21 +71,29 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
-  assert.match(cues, /"data-testid": "atomic-cue-card"/);
+  assert.match(cues, /appendCueCard\(/);
   assert.match(cues, /buildCueCards\(/);
-  assert.match(cues, /"atomic-cue-text"/);
-  assert.match(cues, /"atomic-cue-repeats"/);
   assert.doesNotMatch(cues, /view\.cues\.thisMonth|view\.cues\.keepers/);
   assert.doesNotMatch(cues, /innerHTML/);
+
+  const cueCard = src("src/views/cue-card.ts");
+  assert.match(cueCard, /"data-testid": "atomic-cue-card"/);
+  assert.match(cueCard, /"atomic-cue-text"/);
+  assert.match(cueCard, /"atomic-cue-repeats"/);
+  assert.match(cueCard, /MarkdownRenderer\.render/);
+  assert.doesNotMatch(cueCard, /innerHTML/);
 
   const cueLog = src("src/views/cue-log.ts");
   assert.match(cueLog, /data-testid": "atomic-cue-log"/);
   assert.match(cueLog, /"atomic-cue-log-text"/);
+  assert.match(cueLog, /createEl\("textarea"/);
   assert.match(cueLog, /"atomic-cue-log-add"/);
   assert.match(cueLog, /"atomic-cue-log-existing"/);
+  assert.match(cueLog, /appendCueCard\(/);
   assert.match(cueLog, /appendCueBullet\(/);
   assert.match(cueLog, /sanitizeCueText\(/);
   assert.match(cueLog, /vault\.process\(file, \(latest\) =>/);
+  assert.doesNotMatch(cueLog, /atomic-cue-log-chip/);
   assert.doesNotMatch(cueLog, /innerHTML/);
 
   const dashboard = src("src/views/dashboard.ts");
@@ -154,8 +162,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-dashboard-recent-row/);
   assert.match(health, /atomic-cue-card/);
   assert.match(health, /atomic-cue-log-add/);
+  assert.match(health, /前臂放鬆/);
 
   const styles = src("styles.css");
+  assert.match(styles, /fonts\/caveat-latin-400\.woff2/);
+  assert.match(styles, /Atomic Cue CJK/);
+  assert.match(styles, /DFKai-SB/);
+  assert.match(styles, /max-height:\s*none/);
+  assert.doesNotMatch(styles, /atomic-cue-log-chip/);
   assert.doesNotMatch(styles, /:has\(/);
   assert.doesNotMatch(styles, /!important/);
   assert.doesNotMatch(styles, /scrollbar-width/);

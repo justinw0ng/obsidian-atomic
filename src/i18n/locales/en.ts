@@ -166,7 +166,7 @@ export const en = {
   "block.opt.noneActions": "No options. One button for each enabled habit.",
   "block.opt.noneTimer": "No options. Start, Stop, Resume, or Discard the timer on this note.",
   "block.opt.noneGymLog": "No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself.",
-  "block.opt.noneCueLog": "No options. Type a cue and add it. It is saved as a bullet under this note’s Reminders heading.",
+  "block.opt.noneCueLog": "No options. Type markdown (including Traditional Chinese) and add it. It is saved as a bullet under this note’s Reminders heading.",
 
   "reading.status.selectLabel": "Reading status",
   "reading.status.toRead": "To read",
@@ -255,7 +255,7 @@ export const en = {
   "view.cues.empty": "No cues in {year} yet. Add one from a session note.",
   "view.cues.repeats": "×{count}",
   "view.cueLog.cue": "Cue",
-  "view.cueLog.placeholder": "Keep the lead arm soft",
+  "view.cueLog.placeholder": "Keep the lead arm soft\n**Tempo** — count one-two",
   "view.cueLog.add": "Add cue",
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
   "view.bookShelf.open": "Open {title}",

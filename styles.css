@@ -1565,7 +1565,37 @@
    and grows it to the full cue.
    --------------------------------------------------------------------------- */
 
-.fitness-plugin.atomic-cues {
+@font-face {
+  font-family: "Caveat";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/caveat-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0100-024F, U+2010-2027, U+20AC, U+2190-2199;
+}
+
+@font-face {
+  font-family: "Atomic Cue CJK";
+  src:
+    local("Klee One"),
+    local("Zhi Mang Xing"),
+    local("DFKai-SB"),
+    local("標楷體"),
+    local("Kaiti TC"),
+    local("BiauKai"),
+    local("TW-Kai"),
+    local("STKaiti"),
+    local("KaiTi"),
+    local("AR PL UKai TW"),
+    local("AR PL KaitiM Big5"),
+    local("AR PL UKai CN"),
+    local("Noto Serif CJK TC"),
+    local("Noto Serif CJK");
+  unicode-range: U+2E80-2FFF, U+3000-303F, U+3040-30FF, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF;
+}
+
+.fitness-plugin.atomic-cues,
+.fitness-plugin.atomic-cue-log {
   --atomic-cue-width: 228px;
   --atomic-cue-step: 186px;
   --atomic-cue-height: 140px;
@@ -1577,7 +1607,7 @@
   --atomic-cue-rule: rgba(84, 106, 148, 0.22);
   --atomic-cue-margin-rule: rgba(214, 92, 92, 0.5);
   --atomic-cue-accent: var(--interactive-accent);
-  --atomic-cue-font: "Caveat", "Bradley Hand", "Segoe Print", "Ink Free", cursive;
+  --atomic-cue-font: "Caveat", "Atomic Cue CJK", "Klee One", "DFKai-SB", "Kaiti TC", "BiauKai", "TW-Kai", "STKaiti", "KaiTi", "AR PL UKai TW", "Noto Serif CJK TC", cursive;
   margin: 8px 0 16px;
   min-width: 0;
   /* Layout only: paint containment would clip a popped card. */
@@ -1585,7 +1615,8 @@
 }
 
 /* Index cards are physical paper, so they stay light in a dark theme. */
-.theme-dark .fitness-plugin.atomic-cues {
+.theme-dark .fitness-plugin.atomic-cues,
+.theme-dark .fitness-plugin.atomic-cue-log {
   --atomic-cue-paper: #ebe5d7;
   --atomic-cue-rule: rgba(60, 84, 128, 0.26);
   --atomic-cue-margin-rule: rgba(186, 78, 78, 0.55);
@@ -1729,6 +1760,25 @@
   word-break: break-word;
 }
 
+.fitness-plugin .atomic-cue-text p,
+.fitness-plugin .atomic-cue-text li {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+.fitness-plugin .atomic-cue-text p + p {
+  margin-top: var(--atomic-cue-line);
+}
+
+.fitness-plugin .atomic-cue-text ul,
+.fitness-plugin .atomic-cue-text ol {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
 .fitness-plugin .atomic-cue-meta {
   display: flex;
   align-items: center;
@@ -1775,7 +1825,7 @@
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
 .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
-  max-height: calc(10 * var(--atomic-cue-line));
+  max-height: none;
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -1832,7 +1882,7 @@
   }
 }
 
-/* Cue entry form on a session note. */
+/* Cue entry form on a session note. Existing cues reuse the same fan cards. */
 .fitness-plugin.atomic-cue-log {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -1860,17 +1910,16 @@
   color: var(--text-muted);
 }
 
-.fitness-plugin .atomic-cue-log-existing {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+.fitness-plugin textarea.atomic-cue-log-text {
+  font-family: var(--atomic-cue-font);
+  font-size: 1.2rem;
+  line-height: var(--atomic-cue-line);
+  min-height: calc(3 * var(--atomic-cue-line));
+  resize: vertical;
+  padding: 6px 9px;
+  color: var(--atomic-cue-ink);
 }
 
-.fitness-plugin .atomic-cue-log-chip {
-  font-size: 12px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--background-modifier-hover);
-  color: var(--text-muted);
+.fitness-plugin .atomic-cue-log-existing {
+  margin-top: 10px;
 }
