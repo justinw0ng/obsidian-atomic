@@ -8,8 +8,7 @@ import {
   parseReminders,
   sanitizeCueText,
 } from "../src/core/cues.ts";
-import { en } from "../src/i18n/locales/en.ts";
-import { zhHantEn } from "../src/i18n/locales/zh-Hant-en.ts";
+import { LANGUAGES, t } from "../src/i18n/index.ts";
 
 test("buildCueCards keeps every cue of the year, newest first", () => {
   const cards = buildCueCards(
@@ -257,8 +256,8 @@ test("appendCueBullet keeps a blank bullet a user wrote among real cues", () => 
   assert.equal(updated, "## 💡 Reminders\n\n- A\n-\n- B\n- New\n");
 });
 
-test("fenced blocks only close with the delimiter that opened them", () => {
-  const markdown = `## 💡 Reminders
+test("fenced blocks only close with a matching, long enough delimiter", () => {
+  const mixed = `## 💡 Reminders
 
 \`\`\`atomic-cue-log
 ~~~
@@ -267,19 +266,27 @@ test("fenced blocks only close with the delimiter that opened them", () => {
 
 - real cue
 `;
+  assert.deepEqual(parseReminders(mixed), ["real cue"]);
 
-  assert.deepEqual(parseReminders(markdown), ["real cue"]);
+  // A shorter run of the same character does not close a longer fence.
+  const longer = `## 💡 Reminders
+
+\`\`\`\`text
+\`\`\`
+# No options.
+\`\`\`\`
+
+- real cue
+`;
+  assert.deepEqual(parseReminders(longer), ["real cue"]);
 });
 
 test("every locale's Reminders heading round-trips through the scanner", () => {
   // appendCueBullet writes `## <template.reminders>` and later has to re-find
   // it, so a locale that drifts from the heading pattern would append a fresh
   // section on every click.
-  for (const [language, locale] of [
-    ["en", en],
-    ["zh-Hant-en", zhHantEn],
-  ]) {
-    const label = locale["template.reminders"];
+  for (const language of LANGUAGES) {
+    const label = t("template.reminders", language);
     assert.ok(
       isRemindersHeadingLabel(label),
       `${language} template.reminders (${label}) is not a Reminders heading`,

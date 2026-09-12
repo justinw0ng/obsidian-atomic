@@ -45,12 +45,16 @@ function fencedLines(lines: readonly string[]): boolean[] {
     const delimiter = line.match(FENCE)?.[1];
     if (openedWith === null) {
       fenced.push(delimiter !== undefined);
-      if (delimiter !== undefined) openedWith = delimiter[0];
+      if (delimiter !== undefined) openedWith = delimiter;
       continue;
     }
     fenced.push(true);
-    // Only the delimiter that opened the block can close it.
-    if (delimiter !== undefined && delimiter[0] === openedWith) openedWith = null;
+    // CommonMark: the closing fence is the same character, and at least as long.
+    const closes =
+      delimiter !== undefined &&
+      delimiter[0] === openedWith[0] &&
+      delimiter.length >= openedWith.length;
+    if (closes) openedWith = null;
   }
   return fenced;
 }
@@ -75,7 +79,7 @@ function remindersSection(
   let end = lines.length;
   for (let index = headingIndex + 1; index < lines.length; index += 1) {
     if (fenced[index]) continue;
-    const heading = lines[index].match(HEADING);
+    const heading = lines[index].trim().match(HEADING);
     if (heading && heading[1].length <= level) {
       end = index;
       break;
