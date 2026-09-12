@@ -37,6 +37,8 @@ Atomic bans these in `styles.css` because review flagged them:
 | `scrollbar-width` | Keep `::-webkit-scrollbar` / `-ms-overflow-style` if you must style scrollbars |
 | `mask` / `-webkit-mask` / `mask-image` | `css-masks` is only partial on Obsidian 1.4.5. Fade clipped cue text with a `::after` paper wash (`atomic-cue-body`) |
 
+`backdrop-filter` is allowed (cue lightbox blur). Keep the backdrop a transparent hit target. If the engine lacks `backdrop-filter`, do **not** fall back to a dim wash (`rgba` overlay / opacity) or a CSS mask — leave the backdrop transparent.
+
 Use Obsidian CSS variables (`--text-normal`, `--background-modifier-border`, …). Do not hardcode `element.style.color` for theme-facing chrome.
 
 Do not use lookbehind regexes if `isDesktopOnly` is false.

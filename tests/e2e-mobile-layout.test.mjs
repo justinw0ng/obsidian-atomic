@@ -346,7 +346,8 @@ test("the cue pop works on hover, focus, and tap alike", () => {
   // mouse attached, so the pop cannot live behind a hover media query.
   const pop = cssRule(styles, ".fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet");
   assert.match(pop.selectors, /:focus-visible \.atomic-cue-sheet/);
-  assert.match(pop.selectors, /\.is-open \.atomic-cue-sheet/);
+  assert.match(pop.selectors, /\.is-preview \.atomic-cue-sheet/);
+  assert.doesNotMatch(pop.selectors, /\.is-open/);
   assert.match(pop.body, /translateY\(-18px\)/);
 
   const wash = cssRule(styles, ".fitness-plugin .atomic-cue-body::after");
@@ -360,7 +361,8 @@ test("the cue pop works on hover, focus, and tap alike", () => {
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hideWash.selectors, /:focus-visible \.atomic-cue-body/);
-  assert.match(hideWash.selectors, /\.is-open \.atomic-cue-body/);
+  assert.match(hideWash.selectors, /\.is-preview \.atomic-cue-body/);
+  assert.doesNotMatch(hideWash.selectors, /\.is-open/);
   assert.match(hideWash.body, /--atomic-cue-wash:\s*0/);
   const sheet = cssRule(styles, ".fitness-plugin .atomic-cue-sheet");
   assert.match(sheet.body, /--atomic-cue-stock:/);
@@ -373,7 +375,59 @@ test("the cue pop works on hover, focus, and tap alike", () => {
   assert.match(calmed.body, /transition:\s*none/);
 });
 
-test("phone cue cards pop only when tapped open", () => {
+test("the cue lightbox is a centered larger card without overlay scrollbars", () => {
+  const lightbox = cssRule(styles, ".fitness-plugin.atomic-cue-lightbox");
+  assert.match(lightbox.body, /position:\s*fixed/);
+  assert.match(lightbox.body, /overflow:\s*hidden/);
+  assert.match(lightbox.body, /background:\s*transparent/);
+  assert.doesNotMatch(lightbox.body, /overflow:\s*auto/);
+  assert.doesNotMatch(lightbox.body, /mask/);
+  assert.doesNotMatch(lightbox.body, /--atomic-cue-width:\s*420px/);
+  assert.doesNotMatch(lightbox.body, /--atomic-cue-line:\s*28px/);
+
+  const backdrop = cssRule(styles, ".fitness-plugin .atomic-cue-lightbox-backdrop");
+  assert.match(backdrop.body, /background:\s*transparent/);
+  assert.doesNotMatch(backdrop.body, /rgba/);
+
+  const blurred = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop",
+  );
+  assert.match(blurred.body, /backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.match(blurred.body, /-webkit-backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.doesNotMatch(blurred.body, /rgba/);
+  assert.doesNotMatch(blurred.body, /mask/);
+  assert.match(styles, /@supports not \(\(backdrop-filter: blur\(1px\)\)/);
+  const fallback = styles.slice(styles.indexOf("@supports not ((backdrop-filter"));
+  assert.match(fallback, /background:\s*transparent/);
+  assert.doesNotMatch(fallback.slice(0, 400), /rgba/);
+
+  const placed = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card",
+  );
+  assert.match(placed.body, /left:\s*50%/);
+  assert.match(placed.body, /top:\s*50%/);
+  assert.match(placed.body, /translate\(-50%, -50%\) scale\(var\(--atomic-cue-fly-scale\)\)/);
+  assert.doesNotMatch(placed.body, /min\(var\(--atomic-cue-width\)/);
+
+  const sheet = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet",
+  );
+  assert.match(sheet.body, /position:\s*relative/);
+  assert.match(sheet.body, /rotate\(0deg\)/);
+  assert.doesNotMatch(sheet.body, /padding:\s*32px/);
+  assert.doesNotMatch(sheet.body, /min-height:\s*220px/);
+  const flyBody = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body",
+  );
+  assert.match(flyBody.body, /max-height:\s*none/);
+  assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\.atomic-cue-text[^{]*\{[^}]*1\.7rem/s);
+});
+
+test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
   const phone = cssMedia(styles, "(max-width: 600px)");
   assert.ok(phone, "cue cards need a phone breakpoint");
   const hoverSheet = cssRule(
@@ -383,11 +437,11 @@ test("phone cue cards pop only when tapped open", () => {
   assert.ok(hoverSheet, "phone CSS must reset sticky hover");
   assert.doesNotMatch(hoverSheet.selectors, /\.is-open/);
   assert.match(hoverSheet.body, /rotate\(var\(--atomic-cue-tilt\)\)/);
-  const openSheet = cssRule(
-    phone,
-    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet",
+  assert.equal(
+    cssRule(phone, ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet"),
+    null,
+    "phone tap must not keep an in-fan is-open expand",
   );
-  assert.match(openSheet.body, /translateY\(-6px\)/);
   assert.match(phone, /--atomic-cue-drop:\s*0px/);
   const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
   assert.match(body.body, /transition:\s*none/);
@@ -396,11 +450,12 @@ test("phone cue cards pop only when tapped open", () => {
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hoverBody.body, /--atomic-cue-wash:\s*1/);
-  const openBody = cssRule(
-    phone,
-    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-body",
+  const flyCard = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card",
   );
-  assert.match(openBody.body, /--atomic-cue-wash:\s*0/);
+  assert.match(flyCard.body, /width:\s*var\(--atomic-cue-width\)/);
+  assert.match(flyCard.body, /height:\s*auto/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {

@@ -1583,8 +1583,8 @@
 
 /* ---------------------------------------------------------------------------
    Cue cards: every cue of the year as one index card in a fanned stack.
-   Hover on a pointer device, or tap on touch, pops one card out of the fan
-   and grows it to the full cue.
+   Hover or keyboard focus lifts a card for a preview. Click after hover
+   (or tap on a phone) flies a larger card to the center of the screen.
    --------------------------------------------------------------------------- */
 
 @font-face {
@@ -1839,19 +1839,21 @@
 }
 
 /*
-  Popped state. Hover, keyboard focus, and the tap-driven `is-open` class share
-  one rule set so the pop is not gated behind a `(hover: hover)` query: remote
-  desktops and touch-capable laptops report no hover even with a mouse attached.
+  Preview lift. Hover and keyboard focus share one rule set so the pop is not
+  gated behind a `(hover: hover)` query: remote desktops and touch-capable
+  laptops report no hover even with a mouse attached. `.is-preview` is only
+  for capture scripts that cannot hold a real pointer over the card.
+  Click/tap opens the centered lightbox; it does not expand the fan card.
 */
 .fitness-plugin .atomic-cue-card:hover,
 .fitness-plugin .atomic-cue-card:focus-visible,
-.fitness-plugin .atomic-cue-card.is-open {
+.fitness-plugin .atomic-cue-card.is-preview {
   z-index: 5;
 }
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
   transform: rotate(0deg) translateY(-18px) scale(1.07);
   padding-right: 14px;
   box-shadow:
@@ -1861,16 +1863,21 @@
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
   max-height: none;
   --atomic-cue-wash: 0;
 }
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* The flying clone is the card; hide the fan sheet so it looks like it left. */
+.fitness-plugin .atomic-cue-card.is-flying .atomic-cue-sheet {
+  visibility: hidden;
 }
 
 /* Phones and narrow panes: one card per row, no overlap, tap to pop. */
@@ -1918,7 +1925,7 @@
 
   /*
     Sticky :hover on touch reflows this in-flow stack while scrolling.
-    Tap toggles `.is-open`; do not also pop on hover or focus.
+    Tap opens the centered lightbox; do not also pop on hover or focus.
   */
   .fitness-plugin .atomic-cue-card:hover,
   .fitness-plugin .atomic-cue-card:focus-visible {
@@ -1926,7 +1933,8 @@
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
     transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
     padding-right: 14px;
     box-shadow:
@@ -1935,36 +1943,17 @@
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
     max-height: calc(3 * var(--atomic-cue-line));
     --atomic-cue-wash: 1;
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta {
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
     opacity: 0;
     transform: translateY(5px);
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open {
-    z-index: 5;
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
-    transform: rotate(0deg) translateY(-6px) scale(1.03);
-    box-shadow:
-      0 0 0 1px rgba(70, 60, 44, 0.08),
-      0 20px 38px rgba(38, 32, 22, 0.28);
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
-    max-height: none;
-    --atomic-cue-wash: 0;
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1977,7 +1966,7 @@
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
   .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
     transform: rotate(0deg);
   }
 }
@@ -2022,4 +2011,114 @@
 
 .fitness-plugin .atomic-cue-log-existing {
   margin-top: 10px;
+}
+
+/*
+  Fly the same ruled index card to the center and scale it. Lives on
+  document.body so note overflow and the fan's contain: layout cannot clip
+  it. The backdrop is a transparent hit target that blurs what is behind
+  the card — no dim wash, no restyle, no masks, no overlay scrollbars.
+*/
+.fitness-plugin.atomic-cue-lightbox {
+  --atomic-cue-fly-scale: 1.65;
+  --atomic-cue-backdrop-blur: 10px;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  margin: 0;
+  overflow: hidden;
+  contain: none;
+  background: transparent;
+}
+
+.fitness-plugin .atomic-cue-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition:
+    -webkit-backdrop-filter 420ms var(--atomic-cue-pop),
+    backdrop-filter 420ms var(--atomic-cue-pop);
+}
+
+.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
+  -webkit-backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
+  backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
+}
+
+/*
+  Engines without backdrop-filter keep the transparent hit target.
+  Do not substitute a dim / opacity wash; css-masks is also off-limits.
+*/
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fitness-plugin .atomic-cue-lightbox-backdrop,
+  .fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
+  --atomic-cue-tilt: 0deg;
+  --atomic-cue-drop: 0px;
+  position: fixed;
+  left: var(--atomic-cue-origin-left);
+  top: var(--atomic-cue-origin-top);
+  width: var(--atomic-cue-width);
+  height: auto;
+  margin: 0;
+  overflow: hidden;
+  z-index: 1;
+  transform-origin: center center;
+  transform: none;
+  transition:
+    left 420ms var(--atomic-cue-pop),
+    top 420ms var(--atomic-cue-pop),
+    transform 420ms var(--atomic-cue-pop);
+}
+
+.fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(var(--atomic-cue-fly-scale));
+}
+
+/*
+  Same paper as the fan: do not change padding, line height, or type.
+  position: relative so height: auto wraps the unclamped sheet.
+  padding-right: 14px matches the hovered fan card so the full cue fits.
+*/
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-sheet {
+  position: relative;
+  transform: rotate(0deg);
+  padding-right: 14px;
+  box-shadow:
+    0 0 0 1px rgba(70, 60, 44, 0.08),
+    0 20px 38px rgba(38, 32, 22, 0.28);
+}
+
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-body {
+  max-height: none;
+  --atomic-cue-wash: 0;
+  overflow: hidden;
+}
+
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-meta,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-meta {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card,
+  .fitness-plugin .atomic-cue-lightbox-backdrop {
+    transition: none;
+  }
 }

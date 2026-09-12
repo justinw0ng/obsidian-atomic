@@ -6,6 +6,7 @@ import {
   cueCardEventShouldToggle,
   isCueCardToggleKey,
 } from "../util/cue-card-fan";
+import { closeCueLightbox, toggleCueLightbox } from "./cue-lightbox";
 
 export type CueMarkdownHost = {
   app: App;
@@ -20,31 +21,25 @@ export type CueCardPaint = {
   lastSeen?: string;
 };
 
+/** Close a body-level cue overlay before the fan host is emptied. */
+export function resetCueFan(): void {
+  closeCueLightbox();
+}
+
 export function bindCueCardFan(cards: readonly HTMLElement[]): void {
-  const syncExpanded = (): void => {
-    for (const card of cards) {
-      card.setAttr("aria-expanded", card.hasClass("is-open") ? "true" : "false");
-    }
-  };
-  const toggle = (card: HTMLElement): void => {
-    const wasOpen = card.hasClass("is-open");
-    for (const other of cards) other.removeClass("is-open");
-    if (!wasOpen) card.addClass("is-open");
-    syncExpanded();
-  };
+  resetCueFan();
   for (const card of cards) {
     card.addEventListener("click", (event) => {
       if (!cueCardEventShouldToggle(event.target, card)) return;
-      toggle(card);
+      toggleCueLightbox(card);
     });
     card.addEventListener("keydown", (event) => {
       if (!isCueCardToggleKey(event.key)) return;
       if (!cueCardEventShouldToggle(event.target, card)) return;
       event.preventDefault();
-      toggle(card);
+      toggleCueLightbox(card);
     });
   }
-  syncExpanded();
 }
 
 /** Same index card on the cue page and on the session-note form. */

@@ -7,7 +7,7 @@
  */
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { By } from "selenium-webdriver";
+import { By, Key } from "selenium-webdriver";
 import { E2E_FILES, seedE2eVault } from "./lib/vault.mjs";
 import {
   ARTIFACT_DIR,
@@ -86,6 +86,96 @@ async function waitForCuePop(driver, index) {
     throw new Error(`cue card ${index} never popped: ${JSON.stringify(last)}`);
   }
   return last;
+}
+
+function isCssTransparent(color) {
+  const value = String(color).trim().toLowerCase();
+  if (!value || value === "transparent") return true;
+  const match = value.match(
+    /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/,
+  );
+  return Boolean(match && match[4] !== undefined && Number(match[4]) === 0);
+}
+
+function cueLightboxMetrics(driver) {
+  return driver.executeScript(`
+    const overlay = document.querySelector('[data-testid="atomic-cue-lightbox"]');
+    if (!overlay) return null;
+    const card = overlay.querySelector('[data-testid="atomic-cue-lightbox-card"]');
+    if (!card) return { present: true, placed: overlay.classList.contains("is-placed") };
+    const body = card.querySelector(".atomic-cue-body");
+    const sheet = card.querySelector(".atomic-cue-sheet");
+    const text = card.querySelector(".atomic-cue-text");
+    const backdrop = overlay.querySelector('[data-testid="atomic-cue-lightbox-backdrop"]');
+    const source = document.querySelector('[data-testid="atomic-cue-card"][aria-expanded="true"]');
+    const sourceSheet = source?.querySelector(".atomic-cue-sheet");
+    const sourceText = source?.querySelector(".atomic-cue-text");
+    const bodyStyle = body ? getComputedStyle(body) : null;
+    const rect = card.getBoundingClientRect();
+    const textStyle = text ? getComputedStyle(text) : null;
+    const sheetStyle = sheet ? getComputedStyle(sheet) : null;
+    const sourceTextStyle = sourceText ? getComputedStyle(sourceText) : null;
+    const sourceSheetStyle = sourceSheet ? getComputedStyle(sourceSheet) : null;
+    return {
+      present: true,
+      placed: overlay.classList.contains("is-placed"),
+      text: text?.textContent || "",
+      width: rect.width,
+      height: rect.height,
+      centerX: (rect.left + rect.right) / 2,
+      centerY: (rect.top + rect.bottom) / 2,
+      vw: window.innerWidth,
+      vh: window.innerHeight,
+      overflowY: getComputedStyle(overlay).overflowY,
+      cardOverflowY: getComputedStyle(card).overflowY,
+      bodyOverflowY: bodyStyle?.overflowY || "",
+      maskImage: bodyStyle ? String(bodyStyle.maskImage || "") : "",
+      webkitMaskImage: bodyStyle ? String(bodyStyle.webkitMaskImage || "") : "",
+      clamped: !!(body && body.scrollHeight > body.clientHeight + 1),
+      overlayBg: getComputedStyle(overlay).backgroundColor,
+      backdropBg: backdrop ? getComputedStyle(backdrop).backgroundColor : "",
+      backdropFilter: backdrop
+        ? String(
+            getComputedStyle(backdrop).backdropFilter
+              || getComputedStyle(backdrop).webkitBackdropFilter
+              || "",
+          )
+        : "",
+      transform: getComputedStyle(card).transform,
+      fontSize: textStyle?.fontSize || "",
+      fontFamily: textStyle?.fontFamily || "",
+      lineHeight: textStyle?.lineHeight || "",
+      paddingLeft: sheetStyle?.paddingLeft || "",
+      paddingTop: sheetStyle?.paddingTop || "",
+      sheetBg: sheetStyle?.backgroundColor || "",
+      sheetBgImage: sheetStyle?.backgroundImage || "",
+      sourceFontSize: sourceTextStyle?.fontSize || "",
+      sourceFontFamily: sourceTextStyle?.fontFamily || "",
+      sourceLineHeight: sourceTextStyle?.lineHeight || "",
+      sourcePaddingLeft: sourceSheetStyle?.paddingLeft || "",
+      sourcePaddingTop: sourceSheetStyle?.paddingTop || "",
+      sourceFlying: !!source?.classList.contains("is-flying"),
+    };
+  `);
+}
+
+async function waitForCueLightbox(driver, textNeedle) {
+  let last = null;
+  try {
+    await driver.wait(async () => {
+      last = await cueLightboxMetrics(driver);
+      if (!last?.placed) return false;
+      if (textNeedle && !String(last.text).includes(textNeedle)) return false;
+      return Math.abs(last.centerX - last.vw / 2) < 48;
+    }, 8000);
+  } catch {
+    throw new Error(`cue lightbox never opened: ${JSON.stringify(last)}`);
+  }
+  return last;
+}
+
+async function waitForCueLightboxClosed(driver) {
+  await driver.wait(async () => (await cueLightboxMetrics(driver)) === null, 8000);
 }
 
 async function check(driver, name, fn) {
@@ -218,29 +308,76 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
       `);
-      const popped = await waitForCuePop(driver, 2);
-      assert.equal(popped.isOpen, true);
-      assert.equal(popped.ariaExpanded, "true");
-      assertNoCssMask(popped, "popped cue body");
-      assert.equal(popped.fadeOpacity, 0, "an open cue drops the bottom wash");
-      assert.ok(
-        popped.bodyHeight > before.bodyHeight,
-        `popped body should grow, ${before.bodyHeight} -> ${popped.bodyHeight}`,
+      const afterClick = await cueCardMetrics(driver, 2);
+      assert.equal(afterClick.isOpen, false, "click must not reuse the in-fan is-open expand");
+      assert.equal(afterClick.ariaExpanded, "true");
+      assert.ok(afterClick.clamped, "the fan card stays clipped; the lightbox shows the cue");
+      const lightbox = await waitForCueLightbox(
+        driver,
+        "Finish tall with the belt buckle facing the target",
       );
+      assert.ok(lightbox.width > 300, `lightbox card should be larger, width=${lightbox.width}`);
+      assert.ok(
+        Math.abs(lightbox.centerY - lightbox.vh / 2) < 64,
+        `lightbox should be vertically centered: ${lightbox.centerY} vs ${lightbox.vh / 2}`,
+      );
+      assert.equal(lightbox.overflowY, "hidden");
+      assert.equal(lightbox.cardOverflowY, "hidden");
+      assert.equal(lightbox.bodyOverflowY, "hidden");
+      assertNoCssMask(lightbox, "lightbox cue body");
+      assert.equal(lightbox.clamped, false, "the centered card shows the full cue");
+      assert.ok(isCssTransparent(lightbox.overlayBg), `overlay must not dim: ${lightbox.overlayBg}`);
+      assert.ok(
+        isCssTransparent(lightbox.backdropBg),
+        `backdrop must stay transparent: ${lightbox.backdropBg}`,
+      );
+      assert.match(
+        String(lightbox.backdropFilter),
+        /blur\(/,
+        `backdrop must blur, not dim: ${lightbox.backdropFilter}`,
+      );
+      assert.match(String(lightbox.transform), /matrix/, "the card flies with a scale transform");
+      assert.equal(lightbox.sourceFlying, true, "the fan sheet hides so the same card appears to fly");
+      assert.equal(lightbox.fontSize, lightbox.sourceFontSize, "centered type matches the fan card");
+      assert.equal(lightbox.lineHeight, lightbox.sourceLineHeight);
+      assert.equal(lightbox.paddingLeft, lightbox.sourcePaddingLeft, "text stays on the same margin rule");
+      assert.equal(lightbox.paddingTop, lightbox.sourcePaddingTop);
+      assert.equal(lightbox.fontFamily, lightbox.sourceFontFamily);
+      assert.match(String(lightbox.fontFamily), /Caveat/i);
+      assert.match(String(lightbox.sheetBgImage), /linear-gradient/, "centered paper keeps the ruled card");
+      assert.notEqual(lightbox.sheetBg, "rgb(255, 255, 255)", "centered paper stays pastel, not plain white");
 
       await driver.executeScript(`
-        document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
+        document.querySelector('[data-testid="atomic-cue-lightbox-backdrop"]').click();
       `);
+      await waitForCueLightboxClosed(driver);
       await driver.wait(async () => {
         const closed = await cueCardMetrics(driver, 2);
         return !closed.isOpen && closed.ariaExpanded === "false" && closed.lift < 4;
       }, 8000);
+
+      await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
+      `);
+      await waitForCueLightbox(driver, "belt buckle");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-cue-lightbox-card"]').click();
+      `);
+      await waitForCueLightboxClosed(driver);
+
+      await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
+      `);
+      await waitForCueLightbox(driver, "belt buckle");
+      await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
+      await waitForCueLightboxClosed(driver);
 
       // Hover pops the card without the is-open class, on any pointer type.
       const cardEls = await driver.findElements(By.css('[data-testid="atomic-cue-card"]'));
       await driver.actions({ async: false }).move({ origin: cardEls[0] }).perform();
       const hovered = await waitForCuePop(driver, 0);
       assert.equal(hovered.isOpen, false, "hover must not need the is-open class");
+      assert.equal(await cueLightboxMetrics(driver), null, "hover must not open the lightbox");
 
       const desktopViewport = await driver.executeScript(
         `return { width: window.innerWidth, height: window.innerHeight }`,
@@ -272,10 +409,17 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
       `);
-      await driver.wait(async () => {
-        const open = await cueCardMetrics(driver, 0);
-        return open && open.isOpen && !open.clamped && open.lift > 3;
-      }, 8000);
+      const phoneSource = await cueCardMetrics(driver, 0);
+      assert.equal(phoneSource.isOpen, false, "phone tap must not expand the in-flow card");
+      assert.equal(phoneSource.ariaExpanded, "true");
+      const phoneLightbox = await waitForCueLightbox(driver);
+      assert.ok(phoneLightbox.width > 200, "phone lightbox is a larger card");
+      assert.equal(phoneLightbox.clamped, false);
+      assert.ok(isCssTransparent(phoneLightbox.backdropBg), "phone tap must not dim the fan");
+      assert.match(String(phoneLightbox.backdropFilter), /blur\(/, "phone backdrop blurs without a wash");
+      assert.equal(phoneLightbox.fontSize, phoneLightbox.sourceFontSize);
+      assert.equal(phoneLightbox.paddingLeft, phoneLightbox.sourcePaddingLeft);
+      assert.match(String(phoneLightbox.sheetBgImage), /linear-gradient/);
 
       try {
         await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
@@ -351,18 +495,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         )].find((el) => el.querySelector("a[href]"));
         if (!card) return { found: false };
         const link = card.querySelector("a[href]");
+        const lightboxOpen = () => !!document.querySelector('[data-testid="atomic-cue-lightbox"]');
         const before = {
           open: card.classList.contains("is-open"),
           aria: card.getAttribute("aria-expanded"),
+          lightbox: lightboxOpen(),
         };
         link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-        const afterClick = card.classList.contains("is-open");
+        const afterClick = {
+          open: card.classList.contains("is-open"),
+          lightbox: lightboxOpen(),
+        };
         link.dispatchEvent(new KeyboardEvent("keydown", {
           key: "Enter",
           bubbles: true,
           cancelable: true,
         }));
-        const afterEnter = card.classList.contains("is-open");
+        const afterEnter = {
+          open: card.classList.contains("is-open"),
+          lightbox: lightboxOpen(),
+        };
         card.click();
         return {
           found: true,
@@ -373,6 +525,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           afterCardClick: {
             open: card.classList.contains("is-open"),
             aria: card.getAttribute("aria-expanded"),
+            lightbox: lightboxOpen(),
           },
         };
       `);
@@ -380,10 +533,30 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(linkToggle.href, "https://example.com/atomic-e2e");
       assert.equal(linkToggle.before.open, false);
       assert.equal(linkToggle.before.aria, "false");
-      assert.equal(linkToggle.afterClick, false, "clicking a cue link must not toggle the card");
-      assert.equal(linkToggle.afterEnter, false, "Enter on a cue link must not toggle the card");
-      assert.equal(linkToggle.afterCardClick.open, true);
+      assert.equal(linkToggle.before.lightbox, false);
+      assert.equal(linkToggle.afterClick.open, false, "clicking a cue link must not toggle the card");
+      assert.equal(linkToggle.afterClick.lightbox, false, "clicking a cue link must not open the lightbox");
+      assert.equal(linkToggle.afterEnter.open, false, "Enter on a cue link must not toggle the card");
+      assert.equal(linkToggle.afterEnter.lightbox, false);
+      assert.equal(linkToggle.afterCardClick.open, false, "card click opens the lightbox, not is-open");
       assert.equal(linkToggle.afterCardClick.aria, "true");
+      assert.equal(linkToggle.afterCardClick.lightbox, true);
+      const logLightbox = await waitForCueLightbox(driver, "前臂放鬆");
+      assert.match(logLightbox.text, /toes/);
+      const lightboxLink = await driver.executeScript(`
+        const overlay = document.querySelector('[data-testid="atomic-cue-lightbox"]');
+        const link = overlay?.querySelector("a[href]");
+        if (!link) return { found: false };
+        link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+        return {
+          found: true,
+          href: link.getAttribute("href"),
+          stillOpen: !!document.querySelector('[data-testid="atomic-cue-lightbox"]'),
+        };
+      `);
+      assert.equal(lightboxLink.found, true);
+      assert.equal(lightboxLink.href, "https://example.com/atomic-e2e");
+      assert.equal(lightboxLink.stillOpen, true, "a lightbox link click must not close the overlay");
 
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');

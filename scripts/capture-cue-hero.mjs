@@ -44,6 +44,7 @@ const DEFAULT_CUE_HERO_REVIEW = "/tmp/atomic-cue-hero-review";
 const REVIEW_DIR = process.env.ATOMIC_CUE_HERO_REVIEW || DEFAULT_CUE_HERO_REVIEW;
 const WALKTHROUGH_DIR = "/opt/cursor/artifacts";
 const HERO_OUT = join(ROOT, "docs/images/atomic-cue-hero.png");
+const GIF_OUT = join(ROOT, "docs/images/atomic-cue-hero.gif");
 const DESKTOP = { width: 1600, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 const HOVER_INDEX = 1;
@@ -132,11 +133,17 @@ body, html, .fitness-plugin, .atomic-block-host {
     margin-right: auto !important;
   }
 }
+
+.atomic-cue-lightbox,
+.atomic-cue-lightbox-card,
+.atomic-cue-lightbox .atomic-cue-body {
+  overflow: hidden !important;
+}
 `;
 
 function ensureCueCardBundle() {
   const bundlePath = join(ROOT, "main.js");
-  if (readFileSync(bundlePath, "utf8").includes("atomic-cue-card")) return false;
+  if (readFileSync(bundlePath, "utf8").includes("atomic-cue-fly-scale")) return false;
   const result = spawnSync("npm", ["run", "build"], { cwd: ROOT, encoding: "utf8" });
   if (result.status !== 0) {
     throw new Error(`build failed: ${(result.stderr || result.stdout || "").trim()}`);
@@ -311,11 +318,39 @@ async function visibleCueIndex(driver, preferIndex) {
 
 async function closeAllCues(driver) {
   await driver.executeScript(`
+    if (document.querySelector('[data-testid="atomic-cue-lightbox"]')) {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    }
     document.querySelectorAll('[data-testid="atomic-cue-card"]').forEach((card) => {
-      card.classList.remove("is-open");
+      card.classList.remove("is-preview");
+      card.setAttribute("aria-expanded", "false");
     });
   `);
-  await sleep(200);
+  await sleep(280);
+}
+
+async function waitForLightbox(driver) {
+  await driver.wait(async () => {
+    return driver.executeScript(`
+      const overlay = document.querySelector('[data-testid="atomic-cue-lightbox"]');
+      return !!overlay?.classList.contains("is-placed");
+    `);
+  }, 8000);
+  await sleep(300);
+}
+
+async function openLightbox(driver, preferIndex) {
+  const index = await visibleCueIndex(driver, preferIndex);
+  await driver.executeScript(
+    `
+    const card = document.querySelectorAll('[data-testid="atomic-cue-card"]')[arguments[0]];
+    if (!card) throw new Error("missing cue card " + arguments[0]);
+    card.scrollIntoView({ block: "center", inline: "nearest" });
+    card.click();
+    `,
+    index,
+  );
+  await waitForLightbox(driver);
 }
 
 async function popCue(driver, preferIndex) {
@@ -326,8 +361,8 @@ async function popCue(driver, preferIndex) {
     const card = cards[arguments[0]];
     if (!card) throw new Error("missing cue card " + arguments[0]);
     card.scrollIntoView({ block: "center", inline: "nearest" });
-    for (const other of cards) other.classList.remove("is-open");
-    card.classList.add("is-open");
+    for (const other of cards) other.classList.remove("is-preview");
+    card.classList.add("is-preview");
     `,
     index,
   );
@@ -336,7 +371,7 @@ async function popCue(driver, preferIndex) {
       `
       const card = document.querySelectorAll('[data-testid="atomic-cue-card"]')[arguments[0]];
       const meta = card?.querySelector(".atomic-cue-meta");
-      return !!card?.classList.contains("is-open") && !!meta && Number(getComputedStyle(meta).opacity) > 0.5;
+      return !!card?.classList.contains("is-preview") && !!meta && Number(getComputedStyle(meta).opacity) > 0.5;
       `,
       index,
     );
@@ -382,13 +417,43 @@ function composeCueHero(desktopPath, mobilePath) {
   });
 }
 
+function writeCueHeroGif(stills) {
+  const result = spawnSync(
+    "python3",
+    [
+      join(ROOT, "scripts/animate-cue-hero-gif.py"),
+      "--rest",
+      stills.desktopRest,
+      "--hover",
+      stills.desktopHover,
+      "--lightbox",
+      stills.desktopLightbox,
+      "--mobile-rest",
+      stills.mobileRest,
+      "--mobile-lightbox",
+      stills.mobileLightbox,
+      "--out",
+      GIF_OUT,
+      "--headline",
+      CUE_HERO_HEADLINE,
+    ],
+    { encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    throw new Error(`cue hero gif failed: ${(result.stderr || result.stdout || "").trim()}`);
+  }
+  console.log((result.stdout || "").trim() || `Wrote ${GIF_OUT}`);
+  return GIF_OUT;
+}
+
 function publishStills(paths) {
   for (const dir of [REVIEW_DIR, WALKTHROUGH_DIR, ARTIFACT_DIR]) {
     mkdirSync(dir, { recursive: true });
   }
   for (const [name, src] of Object.entries(paths)) {
     if (!src || !existsSync(src)) continue;
-    const filename = `${name}.png`;
+    const ext = src.endsWith(".gif") ? ".gif" : ".png";
+    const filename = `${name}${ext}`;
     copyFileSync(src, join(REVIEW_DIR, filename));
     copyFileSync(src, join(WALKTHROUGH_DIR, filename));
   }
@@ -423,6 +488,9 @@ async function main() {
       await popCue(driver, HOVER_INDEX);
       const desktopHover = await captureNamed(driver, "cue_hero_desktop_hover");
 
+      await openLightbox(driver, HOVER_INDEX);
+      const desktopLightbox = await captureNamed(driver, "cue_hero_desktop_lightbox");
+
       await resizeWindow(driver, MOBILE.width, MOBILE.height);
       await openHeroNote(driver, CUE_HERO_FILES.golfCues);
       await waitForCueCards(driver);
@@ -432,8 +500,8 @@ async function main() {
       await sleep(500);
       const mobileRest = await captureNamed(driver, "cue_hero_mobile_rest");
 
-      await popCue(driver, TAP_INDEX);
-      const mobileTap = await captureNamed(driver, "cue_hero_mobile_tap");
+      await openLightbox(driver, TAP_INDEX);
+      const mobileLightbox = await captureNamed(driver, "cue_hero_mobile_lightbox");
 
       await resizeWindow(driver, DESKTOP.width, DESKTOP.height);
       await openHeroNote(driver, CUE_HERO_FILES.golfToday);
@@ -444,14 +512,23 @@ async function main() {
       await sleep(400);
       const form = await captureNamed(driver, "cue_hero_form");
 
-      const hero = composeCueHero(desktopHover, mobileTap);
+      const hero = composeCueHero(desktopLightbox, mobileLightbox);
+      const gif = writeCueHeroGif({
+        desktopRest,
+        desktopHover,
+        desktopLightbox,
+        mobileRest,
+        mobileLightbox,
+      });
       publishStills({
         cue_hero_desktop_rest: desktopRest,
         cue_hero_desktop_hover: desktopHover,
+        cue_hero_desktop_lightbox: desktopLightbox,
         cue_hero_mobile_rest: mobileRest,
-        cue_hero_mobile_tap: mobileTap,
+        cue_hero_mobile_lightbox: mobileLightbox,
         cue_hero_form: form,
         atomic_cue_hero: hero,
+        atomic_cue_hero_gif: gif,
       });
       console.log(`Review stills: ${REVIEW_DIR}`);
     } finally {
