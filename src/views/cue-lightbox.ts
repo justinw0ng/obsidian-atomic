@@ -162,45 +162,14 @@ function sizeLightboxCard(
   card.style.setProperty("--atomic-cue-lightbox-width", `${layoutWidth}px`);
 }
 
-/** Longest unwrapped cue line plus paper padding; CJK stays one measure line. */
+/** Longest unwrapped cue line plus paper padding; wrap invert is CSS. */
 function measureCueLightboxContentWidth(card: HTMLElement): number {
   const sheet = cueLightboxHtmlElement(card.querySelector(".atomic-cue-sheet"));
   if (!sheet) return CUE_CARD_FAN_WIDTH_PX;
   const probe = sheet.cloneNode(true);
   if (!probe.instanceOf(HTMLElement)) return CUE_CARD_FAN_WIDTH_PX;
-  probe.style.position = "absolute";
-  probe.style.left = "-10000px";
-  probe.style.top = "0";
-  probe.style.width = "max-content";
-  probe.style.maxWidth = "none";
-  probe.style.maxHeight = "none";
-  probe.style.height = "auto";
-  probe.style.overflow = "visible";
-  probe.style.visibility = "hidden";
-  probe.style.pointerEvents = "none";
+  probe.addClass("atomic-cue-lightbox-measure");
   probe.setAttr("aria-hidden", "true");
-  const probeBody = cueLightboxHtmlElement(probe.querySelector(".atomic-cue-body"));
-  if (probeBody) {
-    probeBody.style.overflow = "visible";
-    probeBody.style.maxHeight = "none";
-  }
-  const probeText = cueLightboxHtmlElement(probe.querySelector(".atomic-cue-text"));
-  if (probeText) {
-    probeText.style.width = "max-content";
-    probeText.style.maxWidth = "none";
-    probeText.style.overflowWrap = "normal";
-    probeText.style.wordBreak = "keep-all";
-    const blocks = probeText.querySelectorAll("p, li");
-    for (let index = 0; index < blocks.length; index += 1) {
-      const block = cueLightboxHtmlElement(blocks.item(index));
-      if (!block) continue;
-      block.style.width = "max-content";
-      block.style.maxWidth = "none";
-      block.style.whiteSpace = "nowrap";
-      block.style.overflowWrap = "normal";
-      block.style.wordBreak = "keep-all";
-    }
-  }
   card.appendChild(probe);
   const width = probe.scrollWidth;
   probe.detach();

@@ -2099,10 +2099,10 @@
   position: relative so height: auto wraps the unclamped sheet.
   padding-right: 14px matches the hovered fan card so the full cue fits.
   min-height: 0 lets a tall sheet shrink so the body can scroll.
+  These sit after the fan :hover rules, so the lightbox does not need
+  :hover / :focus-visible copies.
 */
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet,
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet,
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-sheet {
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet {
   position: relative;
   flex: 1 1 auto;
   min-height: 0;
@@ -2115,9 +2115,7 @@
     0 20px 38px rgba(38, 32, 22, 0.28);
 }
 
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body,
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body,
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-body {
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body {
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
@@ -2126,11 +2124,39 @@
   overflow-y: auto;
 }
 
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta,
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-meta,
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-meta {
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta {
   opacity: 1;
   transform: none;
+}
+
+/*
+  Invert .atomic-cue-text wrap-anywhere so the probe's max-content is the
+  longest cue line (CJK included). Inheritance covers markdown blocks.
+*/
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-sheet.atomic-cue-lightbox-measure {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: max-content;
+  max-width: none;
+  max-height: none;
+  height: auto;
+  overflow: visible;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-measure .atomic-cue-body {
+  overflow: visible;
+  max-height: none;
+}
+
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-measure .atomic-cue-text {
+  width: max-content;
+  max-width: none;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {

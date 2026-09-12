@@ -118,7 +118,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLightbox, /--atomic-cue-fly-scale/);
   assert.match(cueLightbox, /--atomic-cue-lightbox-width/);
   assert.match(cueLightbox, /atomic-scrollport/);
+  assert.match(cueLightbox, /atomic-cue-lightbox-measure/);
   assert.match(cueLightbox, /instanceOf\(HTMLElement\)/);
+  assert.doesNotMatch(cueLightbox, /querySelectorAll\("p, li"\)/);
+  assert.doesNotMatch(cueLightbox, /style\.wordBreak/);
   assert.match(cueLightbox, /isCueLightboxDismissKey/);
   assert.match(cueLightbox, /cueCardEventShouldToggle/);
   assert.match(cueLightbox, /role: "dialog"/);
@@ -273,6 +276,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /--atomic-cue-lightbox-width/);
   assert.match(styles, /--atomic-cue-fly-inset/);
   assert.match(styles, /overflow-y:\s*auto/);
+  assert.match(styles, /atomic-cue-lightbox-measure/);
+  assert.doesNotMatch(
+    styles,
+    /\.atomic-cue-lightbox-card:hover \.atomic-cue-sheet/,
+  );
   assert.match(styles, /\.is-preview/);
   assert.match(styles, /\.is-flying/);
   assert.doesNotMatch(styles, /--atomic-cue-width:\s*420px/);

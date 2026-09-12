@@ -433,6 +433,35 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
     styles,
     /\.atomic-cue-lightbox-card \{[^}]*max-height:\s*calc\(\(100vh/,
   );
+  assert.equal(
+    cssRule(
+      styles,
+      ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet",
+    ),
+    null,
+    "lightbox sheet hover twins are unused cascade",
+  );
+  assert.equal(
+    cssRule(
+      styles,
+      ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body",
+    ),
+    null,
+    "lightbox body hover twins are unused cascade",
+  );
+  const measure = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-sheet.atomic-cue-lightbox-measure",
+  );
+  assert.match(measure.body, /width:\s*max-content/);
+  assert.match(measure.body, /visibility:\s*hidden/);
+  const measureText = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-measure .atomic-cue-text",
+  );
+  assert.match(measureText.body, /word-break:\s*keep-all/);
+  assert.match(measureText.body, /white-space:\s*nowrap/);
+  assert.match(measureText.body, /overflow-wrap:\s*normal/);
 });
 
 test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
