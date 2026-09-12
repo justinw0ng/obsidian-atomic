@@ -9,8 +9,11 @@ import {
   BOOK_SHELF_NOTE,
   DEMO_AUTHORS,
   FORBIDDEN_PUBLISHER_TITLES,
+  HEATMAP_GRID_NOTE,
+  HEATMAP_READING_NOTE,
   OPEN_COVER_TITLE,
   TIMER_ITEM_TITLE,
+  TODAY_NOTE,
   USER_GUIDE_VAULT,
   assertOriginalDemoNotes,
   patchReadingItems,
@@ -77,6 +80,15 @@ cover: ""
     assert.match(shelf, /# status: all  # /);
     assert.match(shelf, /# scale: 1  # /);
     assert.doesNotMatch(shelf, /^ /m);
+
+    const heatmap = readFileSync(join(vault, "atomics/Heatmap.md"), "utf8");
+    assert.equal(heatmap, HEATMAP_GRID_NOTE);
+    assert.match(heatmap, /activity: gym, golf, reading/);
+    const readingHeatmap = readFileSync(join(vault, "atomics/Heatmap reading.md"), "utf8");
+    assert.equal(readingHeatmap, HEATMAP_READING_NOTE);
+    const today = readFileSync(join(vault, "atomics/Today.md"), "utf8");
+    assert.equal(today, TODAY_NOTE);
+    assert.match(today, /date: 2026-08-11/);
   } finally {
     rmSync(vault, { recursive: true, force: true });
   }
@@ -99,17 +111,36 @@ test("capture script continues without xdotool when setRect works", () => {
   const root = join(dirname(fileURLToPath(import.meta.url)), "..");
   const shared = readFileSync(join(root, "scripts/docs-capture.mjs"), "utf8");
   const src = readFileSync(join(root, "scripts/capture-user-guide-screenshots.mjs"), "utf8");
+  const gif = readFileSync(join(root, "scripts/docs-gif.mjs"), "utf8");
   assert.match(shared, /error\?\.code === "ENOENT"/);
   assert.match(shared, /xdotool is not installed/);
   assert.match(shared, /setRectOk/);
   assert.match(shared, /compose-device-hero\.py/);
+  assert.match(shared, /export function ensureDocsBundle/);
+  assert.match(shared, /export function restoreBundledMain/);
   assert.match(src, /from "\.\/docs-capture\.mjs"/);
+  assert.match(src, /ensureDocsBundle/);
+  assert.match(src, /restoreBundledMain/);
   assert.match(src, /launchObsidian/);
   assert.match(src, /atomic-dashboard-hero\.png/);
   assert.match(src, /DASHBOARD_MOBILE/);
   assert.match(src, /ATOMIC_DOCS_SHOTS/);
-  assert.match(src, /wantShot\("dashboard"\)/);
-  assert.match(src, /assertDashboardBundle/);
+  assert.match(src, /wantShot\("bookShelf"\)/);
+  assert.match(src, /wantShot\("cuePopup"\)/);
+  assert.match(src, /\["dashboard", captureDashboardGif\]/);
   assert.match(src, /captureFullPageProof/);
   assert.match(src, /composeDashboardHero/);
+  assert.match(src, /from "\.\/docs-gif\.mjs"/);
+  assert.match(src, /atomic-book-shelf\.gif/);
+  assert.match(src, /atomic-cues-hover\.gif/);
+  assert.match(src, /atomic-cue-popup\.gif/);
+  assert.match(src, /assembleGif/);
+  assert.match(src, /atomic-cue-log/);
+  assert.doesNotMatch(src, /bootstrapMissingGifs/);
+  assert.doesNotMatch(src, /assertDashboardBundle/);
+  assert.doesNotMatch(src, /ensureCaptureBundle/);
+  assert.doesNotMatch(src, /\/cursor\/stores\//);
+  assert.doesNotMatch(gif, /\/cursor\/stores\//);
+  assert.doesNotMatch(gif, /assembleCueHoverPreviewGif/);
+  assert.match(gif, /ATOMIC_CUE_POPUP_STILLS/);
 });

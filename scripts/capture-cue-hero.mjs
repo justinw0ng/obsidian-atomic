@@ -17,10 +17,12 @@ import { fileURLToPath } from "node:url";
 import { CUE_HERO_FILES, CUE_HERO_HEADLINE } from "./cue-hero-content.mjs";
 import {
   composeDeviceHero,
+  ensureDocsBundle,
   hideCaptureScrollbars,
   openPreviewNote,
   parkMouse,
   resizeWindow,
+  restoreBundledMain,
 } from "./docs-capture.mjs";
 import { DEFAULT_DEMO_VAULT } from "./hero-capture-options.mjs";
 import {
@@ -140,24 +142,6 @@ body, html, .fitness-plugin, .atomic-block-host {
   overflow: hidden !important;
 }
 `;
-
-function ensureCueCardBundle() {
-  const bundlePath = join(ROOT, "main.js");
-  if (readFileSync(bundlePath, "utf8").includes("atomic-cue-fly-scale")) return false;
-  const result = spawnSync("npm", ["run", "build"], { cwd: ROOT, encoding: "utf8" });
-  if (result.status !== 0) {
-    throw new Error(`build failed: ${(result.stderr || result.stdout || "").trim()}`);
-  }
-  if (!readFileSync(bundlePath, "utf8").includes("atomic-cue-card")) {
-    throw new Error("main.js is still missing atomic-cue-card after build");
-  }
-  return true;
-}
-
-function restoreBundledMain(built) {
-  if (!built) return;
-  spawnSync("git", ["checkout", "--", "main.js"], { cwd: ROOT, stdio: "ignore" });
-}
 
 function runSeed() {
   const result = spawnSync(
@@ -463,7 +447,7 @@ async function main() {
   const skip = e2eSkipReason();
   if (skip) throw new Error(`Cannot capture cue hero: ${skip}`);
 
-  const built = ensureCueCardBundle();
+  const built = ensureDocsBundle(["atomic-cue-card", "atomic-cue-fly-scale"]);
   try {
     runSeed();
     installMinimalTheme();

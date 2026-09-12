@@ -2,7 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildDeviceHeroArgs } from "../scripts/docs-capture.mjs";
+import {
+  buildDeviceHeroArgs,
+  ensureDocsBundle,
+  restoreBundledMain,
+} from "../scripts/docs-capture.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const compositor = join(root, "scripts/compose-device-hero.py");
@@ -58,4 +62,10 @@ test("buildDeviceHeroArgs adds crop-chrome for the dashboard hero", () => {
   assert.equal(args.includes("--crop-chrome"), true);
   assert.equal(args.includes("--scrub-scrollbars"), true);
   assert.equal(args.at(-1) === "--crop-chrome" || args.includes("--crop-chrome"), true);
+});
+
+test("ensureDocsBundle is a no-op when markers are already in main.js", () => {
+  assert.equal(ensureDocsBundle([]), false);
+  assert.equal(ensureDocsBundle(["atomic-heatmap"]), false);
+  restoreBundledMain(false);
 });

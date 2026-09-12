@@ -58,7 +58,7 @@ test("user-facing install docs copy the three release files, not a zip", () => {
 
   assert.match(guide, /Manual install from a GitHub Release/);
   assert.match(guide, /Source code \(zip\)/);
-  assert.match(guide, /Build this plugin from source/);
+  assert.doesNotMatch(guide, /Build this plugin from source/);
 });
 
 test("release skill does not treat a zip as the sideload path", () => {

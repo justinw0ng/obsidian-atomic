@@ -34,4 +34,4 @@ Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic Tracker 
   3. Use **Light** mode
   4. README hero GIF: `scripts/capture-readme-hero.sh` (or `npm run docs:hero-gif` from the composed still). The animation opens the rightmost shelf book.
   5. Hero banner: hide heatmap, bookshelf, and cue overlay scroll thumbs and bars so the banner shows no scrollbar chrome. Center the mobile / narrow view; do not left-align it.
-  6. Use original demo covers from `docs/demo-covers/` (invented titles). Do not use publisher book covers or Open Library cover URLs. Recapture user-guide shots with `npm run docs:user-guide-screenshots`.
+  6. Use original demo covers from `docs/demo-covers/` (invented titles). Do not use publisher book covers or Open Library cover URLs. Recapture user-guide clips as GIFs with `npm run docs:user-guide-screenshots`.

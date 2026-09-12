@@ -3,13 +3,35 @@
  * Launch and teardown stay on e2e/lib/obsidian.mjs (launchObsidian, stopSession).
  */
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Key } from "selenium-webdriver";
 import { openVaultFile, sleep } from "../e2e/lib/obsidian.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+/** Build repo-root `main.js` when capture markers are missing. Returns true if this call built. */
+export function ensureDocsBundle(markers) {
+  const bundlePath = join(ROOT, "main.js");
+  const bundle = readFileSync(bundlePath, "utf8");
+  if (markers.every((marker) => bundle.includes(marker))) return false;
+  const result = spawnSync("npm", ["run", "build"], { cwd: ROOT, encoding: "utf8" });
+  if (result.status !== 0) {
+    throw new Error(`build failed: ${(result.stderr || result.stdout || "").trim()}`);
+  }
+  const next = readFileSync(bundlePath, "utf8");
+  const missing = markers.filter((marker) => !next.includes(marker));
+  if (missing.length) {
+    throw new Error(`main.js is still missing capture markers after build: ${missing.join(", ")}`);
+  }
+  return true;
+}
+
+export function restoreBundledMain(built) {
+  if (!built) return;
+  spawnSync("git", ["checkout", "--", "main.js"], { cwd: ROOT, stdio: "ignore" });
+}
 
 export async function collapseSidebars(driver) {
   await driver.executeScript(`
