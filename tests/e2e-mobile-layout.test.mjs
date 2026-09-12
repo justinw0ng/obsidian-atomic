@@ -349,6 +349,17 @@ test("the cue pop works on hover, focus, and tap alike", () => {
   assert.match(pop.selectors, /\.is-open \.atomic-cue-sheet/);
   assert.match(pop.body, /translateY\(-18px\)/);
 
+  const wash = cssRule(styles, ".fitness-plugin .atomic-cue-body::after");
+  assert.match(wash.body, /linear-gradient/);
+  assert.match(wash.body, /height:\s*15px/);
+  const hideWash = cssRule(
+    styles,
+    ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body::after",
+  );
+  assert.match(hideWash.selectors, /:focus-visible \.atomic-cue-body::after/);
+  assert.match(hideWash.selectors, /\.is-open \.atomic-cue-body::after/);
+  assert.match(hideWash.body, /opacity:\s*0/);
+
   const hoverOnly = cssMedia(styles, "(hover: hover) and (pointer: fine)") || "";
   assert.doesNotMatch(hoverOnly, /atomic-cue/);
 
@@ -375,6 +386,16 @@ test("phone cue cards pop only when tapped open", () => {
   assert.match(phone, /--atomic-cue-drop:\s*0px/);
   const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
   assert.match(body.body, /transition:\s*none/);
+  const hoverWash = cssRule(
+    phone,
+    ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body::after",
+  );
+  assert.match(hoverWash.body, /opacity:\s*1/);
+  const openWash = cssRule(
+    phone,
+    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-body::after",
+  );
+  assert.match(openWash.body, /opacity:\s*0/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {

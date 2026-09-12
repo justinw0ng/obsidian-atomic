@@ -1762,16 +1762,29 @@
 /*
   The resting height is an exact 3-line multiple, so a clipped cue cuts on a
   ruled line instead of mid-glyph and a one-line cue still fills a card's worth
-  of paper. The mask fades the last clipped line without hiding the rules.
+  of paper. A bottom wash fades the last clipped line.
 */
 .fitness-plugin .atomic-cue-body {
   position: relative;
   min-height: calc(3 * var(--atomic-cue-line));
   max-height: calc(3 * var(--atomic-cue-line));
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
-  mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
   transition: max-height 420ms var(--atomic-cue-pop);
+}
+
+.fitness-plugin .atomic-cue-body::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 15px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper))
+  );
 }
 
 .fitness-plugin .atomic-cue-text {
@@ -1851,8 +1864,12 @@
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
 .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
   max-height: none;
-  -webkit-mask-image: none;
-  mask-image: none;
+}
+
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-body::after,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body::after,
+.fitness-plugin .atomic-cue-card.is-open .atomic-cue-body::after {
+  opacity: 0;
 }
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
@@ -1926,8 +1943,11 @@
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
   .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
     max-height: calc(3 * var(--atomic-cue-line));
-    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
-    mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body::after,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body::after {
+    opacity: 1;
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
@@ -1949,8 +1969,10 @@
 
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
     max-height: none;
-    -webkit-mask-image: none;
-    mask-image: none;
+  }
+
+  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body::after {
+    opacity: 0;
   }
 
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {

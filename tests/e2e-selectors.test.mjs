@@ -200,6 +200,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-dashboard-year-prev/);
   assert.match(health, /atomic-dashboard-recent-row/);
   assert.match(health, /atomic-cue-card/);
+  assert.match(health, /fadeOpacity/);
+  assert.match(health, /maskImage/);
   assert.match(health, /atomic-cue-log-add/);
   assert.match(health, /前臂放鬆/);
   assert.match(health, /aria-expanded/);
@@ -214,4 +216,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /:has\(/);
   assert.doesNotMatch(styles, /!important/);
   assert.doesNotMatch(styles, /scrollbar-width/);
+  // css-masks is only partial on Obsidian 1.4.5; fade with a ::after wash.
+  assert.doesNotMatch(styles, /-webkit-mask/);
+  assert.doesNotMatch(styles, /(?:^|[^a-z-])mask(?:-|\s*:)/im);
+  assert.match(styles, /\.atomic-cue-body::after/);
 });
