@@ -219,13 +219,24 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const hovered = await waitForCuePop(driver, 0);
       assert.equal(hovered.isOpen, false, "hover must not need the is-open class");
 
-      const windowSize = await driver.manage().window().getRect();
-      await driver.manage().window().setRect({
-        x: windowSize.x,
-        y: windowSize.y,
-        width: 390,
-        height: 844,
-      });
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      try {
+        await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+          width: 390,
+          height: 844,
+          deviceScaleFactor: 1,
+          mobile: true,
+        });
+      } catch {
+        await driver.executeScript(`window.resizeTo(390, 844)`);
+      }
+      await driver.wait(async () => {
+        return driver.executeScript(
+          `return window.matchMedia("(max-width: 600px)").matches`,
+        );
+      }, 8000);
       await driver.wait(async () => {
         const rest = await cueCardMetrics(driver, 0);
         return rest && rest.clamped && rest.lift < 4 && !rest.isOpen;
@@ -241,12 +252,15 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         return open && open.isOpen && !open.clamped && open.lift > 3;
       }, 8000);
 
-      await driver.manage().window().setRect({
-        x: windowSize.x,
-        y: windowSize.y,
-        width: windowSize.width,
-        height: windowSize.height,
-      });
+      try {
+        await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
+      } catch {
+        await driver.executeScript(
+          `window.resizeTo(arguments[0], arguments[1])`,
+          desktopViewport.width,
+          desktopViewport.height,
+        );
+      }
 
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
