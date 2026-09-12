@@ -48,7 +48,7 @@
 
 /* Hide plugin-owned scrollbars in every heatmap / shelf layout.
    Obsidian paints overlay thumbs from these tokens; ::-webkit-scrollbar
-   alone loses that fight. Do not use scrollbar-width (directory ban). */
+   alone loses that fight. */
 .fitness-plugin,
 .atomic-block-host {
   --scrollbar-size: 0px;
