@@ -191,7 +191,7 @@ export const en = {
   "view.dashboard.prevYear": "Previous year",
   "view.dashboard.nextYear": "Next year",
   "view.dashboard.cues": "{activity} cues",
-  "view.dashboard.readingBookshelf": "Reading bookshelf",
+  "view.dashboard.readingBookshelf": "Bases",
   "view.dashboard.bookShelf": "Book shelf",
   "view.dashboard.kpiSessions": "Exercise sessions",
   "view.dashboard.kpiExerciseTime": "Exercise time",

@@ -191,7 +191,7 @@ export const zhHantEn = {
   "view.dashboard.prevYear": "Previous year / 上一年",
   "view.dashboard.nextYear": "Next year / 下一年",
   "view.dashboard.cues": "{activity} cues / 提醒彙整",
-  "view.dashboard.readingBookshelf": "Reading bookshelf",
+  "view.dashboard.readingBookshelf": "Bases",
   "view.dashboard.bookShelf": "Book shelf / 書架",
   "view.dashboard.kpiSessions": "Exercise sessions / 運動次數",
   "view.dashboard.kpiExerciseTime": "Exercise time / 運動時長",

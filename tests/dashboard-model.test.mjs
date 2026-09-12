@@ -12,7 +12,10 @@ import {
 } from "../src/core/dashboard.ts";
 import { parseSetTable } from "../src/core/set-table.ts";
 import { minutesByMonthForYear, parseTimeLog } from "../src/core/hobby.ts";
+import { BOOK_SHELF_HOST_REL } from "../src/hobbies/book-shelf-host.ts";
+import { READING_BOOKSHELF_REL } from "../src/hobbies/reading-bookshelf.ts";
 import { DEFAULT_ACTIVITY_TYPES } from "../src/types.ts";
+import { activityLinks } from "../src/views/dashboard-dom.ts";
 
 const [GYM, GOLF, READING] = DEFAULT_ACTIVITY_TYPES;
 
@@ -290,6 +293,23 @@ test("buildDashboardModel ignores sessions without a date for month buckets", ()
   assert.equal(model.totalSessions, 1);
   assert.deepEqual(model.sessionsByMonth, Array(12).fill(0));
   assert.equal(model.recent.length, 0);
+});
+
+test("reading dashboard links say Bases and Book shelf", () => {
+  const model = buildDashboardModel({
+    year: 2026,
+    exercise: [],
+    hobbies: [{ activity: READING, items: [] }],
+  });
+  const ctx = { data: { openPath() {} }, language: "en", year: 2026 };
+  const links = activityLinks(model.activities[0], ctx);
+  assert.deepEqual(
+    links.map((link) => [link.text, link.path]),
+    [
+      ["Bases", READING_BOOKSHELF_REL],
+      ["Book shelf", BOOK_SHELF_HOST_REL],
+    ],
+  );
 });
 
 test("minutesByMonthForYear buckets time-log minutes by month for one year", () => {

@@ -161,6 +161,16 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         ["reading", "2"],
       ]);
 
+      const readingLinks = await driver.executeScript(`
+        return [...document.querySelectorAll(
+          '[data-testid="atomic-dashboard-activity"][data-activity="reading"] [data-testid="atomic-dashboard-link"]'
+        )].map((a) => [a.getAttribute("data-path"), (a.textContent || "").trim()]);
+      `);
+      assert.deepEqual(readingLinks, [
+        ["atomics/hobbies/Reading/Bookshelf.base", "Bases"],
+        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf"],
+      ]);
+
       const month = String(Number(today.slice(5, 7)));
       const gymMonthMinutes = await driver.executeScript(`
         return document.querySelector(

@@ -54,7 +54,7 @@ export function localDate(ymd: string, ctx: DashboardRenderContext): string {
   return parsed ? fullDateForLanguage(parsed.y, parsed.m, parsed.d, ctx.language) : ymd;
 }
 
-/** Quick links an activity exposes: cues for exercise, bookshelves for Reading. */
+/** Quick links an activity exposes: cues for exercise, Bases and book shelf for Reading. */
 export function activityLinks(
   card: DashboardActivityCard,
   ctx: DashboardRenderContext,
@@ -85,7 +85,11 @@ export function appendPathLink(
   ctx: DashboardRenderContext,
   cls = "atomic-dash-link",
 ): HTMLAnchorElement {
-  const link = parent.createEl("a", { cls, text, attr: { href: "#" } });
+  const link = parent.createEl("a", {
+    cls,
+    text,
+    attr: { href: "#", "data-testid": "atomic-dashboard-link", "data-path": path },
+  });
   link.addEventListener("click", (event) => {
     event.preventDefault();
     void ctx.data.openPath(path);
