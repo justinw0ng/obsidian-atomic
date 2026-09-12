@@ -37,6 +37,17 @@ test("cue hero is a 1600x900 composed banner", () => {
   assert.ok(png.length < 1_500_000, `hero too large: ${png.length}`);
 });
 
+test("cue hero gif is a looping 1600x900 banner", () => {
+  const path = join(root, "docs/images/atomic-cue-hero.gif");
+  assert.equal(existsSync(path), true);
+  const gif = readFileSync(path);
+  assert.equal(gif.subarray(0, 6).toString(), "GIF89a");
+  assert.equal(gif.readUInt16LE(6), 1600);
+  assert.equal(gif.readUInt16LE(8), 900);
+  assert.ok(gif.length > 80_000, `gif too small: ${gif.length}`);
+  assert.ok(gif.length < 2_500_000, `gif too large: ${gif.length}`);
+});
+
 test("cue hero capture is a scenario on the shared docs-capture helpers", () => {
   const src = readFileSync(join(root, "scripts/capture-cue-hero.mjs"), "utf8");
   assert.match(src, /from "\.\/docs-capture\.mjs"/);
@@ -80,6 +91,7 @@ test("cue hero gif script flies from hover to the centered card", () => {
   assert.match(src, /Image\.blend/);
   assert.match(src, /--lightbox/);
   assert.match(src, /--mobile-lightbox/);
+  assert.match(src, /sys\.modules\[name\]/);
 });
 
 test("compose-device-hero still accepts cue headline copy", () => {
