@@ -112,7 +112,7 @@ From today’s note, press **Reading** (or click a book on the shelf). On the bo
 
 ## Cue cards and the shelf
 
-Cues from today show up as cards. Hover or tap a card to read it. Click it to enlarge it in the center. The rest of the fan blurs; the page does not dim.
+Cues from today show up as cards. Hover a card on desktop to lift it. Click it (or tap on a phone) to enlarge it in the center. The rest of the fan blurs; the page does not dim. Click outside, press Esc, or click the large card again to put it back.
 
 ![Cue card hover lift](./images/atomic-cues-hover.gif)
 

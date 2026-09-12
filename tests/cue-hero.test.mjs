@@ -22,7 +22,7 @@ function pngSize(buffer) {
 
 test("README embeds one cue-card hero banner", () => {
   const readme = readFileSync(join(root, "README.md"), "utf8");
-  assert.match(readme, /docs\/images\/atomic-cue-hero\.png/);
+  assert.match(readme, /docs\/images\/atomic-cue-hero\.gif/);
   assert.match(readme, /## Cue cards/);
 });
 
@@ -35,6 +35,17 @@ test("cue hero is a 1600x900 composed banner", () => {
   assert.equal(height, 900);
   assert.ok(png.length > 40_000, `hero too small: ${png.length}`);
   assert.ok(png.length < 1_500_000, `hero too large: ${png.length}`);
+});
+
+test("cue hero gif is a looping 1600x900 banner", () => {
+  const path = join(root, "docs/images/atomic-cue-hero.gif");
+  assert.equal(existsSync(path), true);
+  const gif = readFileSync(path);
+  assert.equal(gif.subarray(0, 6).toString(), "GIF89a");
+  assert.equal(gif.readUInt16LE(6), 1600);
+  assert.equal(gif.readUInt16LE(8), 900);
+  assert.ok(gif.length > 80_000, `gif too small: ${gif.length}`);
+  assert.ok(gif.length < 2_500_000, `gif too large: ${gif.length}`);
 });
 
 test("cue hero capture is a scenario on the shared docs-capture helpers", () => {
@@ -68,6 +79,25 @@ test("cue hero capture hides scrollbars and centers the phone fan", () => {
   assert.match(src, /CUE_HERO_HEADLINE/);
   assert.match(src, /atomic-cue-card/);
   assert.match(src, /trim-hero-shot\.py/);
+  assert.match(src, /openLightbox/);
+  assert.match(src, /is-preview/);
+  assert.match(src, /atomic-cue-lightbox/);
+  assert.match(src, /atomic-cue-fly-scale/);
+  assert.match(src, /animate-cue-hero-gif\.py/);
+  assert.match(src, /cue_hero_desktop_lightbox/);
+  assert.match(src, /cue_hero_mobile_lightbox/);
+});
+
+test("cue hero gif script flies from hover to the centered card", () => {
+  const src = readFileSync(join(root, "scripts/animate-cue-hero-gif.py"), "utf8");
+  assert.match(src, /animate-hero-gif\.py/);
+  assert.match(src, /save_gif/);
+  assert.match(src, /compose-device-hero\.py/);
+  assert.match(src, /FLY_FRAMES/);
+  assert.match(src, /Image\.blend/);
+  assert.match(src, /--lightbox/);
+  assert.match(src, /--mobile-lightbox/);
+  assert.match(src, /sys\.modules\[name\]/);
 });
 
 test("compose-device-hero still accepts cue headline copy", () => {

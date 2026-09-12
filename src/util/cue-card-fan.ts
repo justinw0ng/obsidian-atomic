@@ -30,6 +30,28 @@ export function isCueCardToggleKey(key: string): boolean {
   return key === "Enter" || key === " ";
 }
 
+export function isCueLightboxDismissKey(key: string): boolean {
+  return key === "Escape";
+}
+
+/** Viewport inset around the flying card, matching the CSS 48px gutter. */
+export const CUE_CARD_FLY_INSET_PX = 48;
+
+/** How much larger the same 228px paper becomes at the center. */
+export const CUE_CARD_FLY_MAX_SCALE = 1.65;
+
+/** Scale that enlarges the fan paper without overflowing the viewport. */
+export function cueCardFlyScale(
+  card: { width: number; height: number },
+  view: { innerWidth: number; innerHeight: number },
+): number {
+  const maxWidth = Math.max(1, view.innerWidth - CUE_CARD_FLY_INSET_PX);
+  const maxHeight = Math.max(1, view.innerHeight - CUE_CARD_FLY_INSET_PX);
+  const width = Math.max(1, card.width);
+  const height = Math.max(1, card.height);
+  return Math.min(CUE_CARD_FLY_MAX_SCALE, maxWidth / width, maxHeight / height);
+}
+
 function isCueCardEventTarget(node: unknown): node is CueCardEventTarget {
   return !!node && typeof node === "object";
 }

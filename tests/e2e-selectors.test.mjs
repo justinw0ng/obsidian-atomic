@@ -78,8 +78,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cues, /data-testid": "atomic-cues"/);
   assert.match(cues, /appendCueCard\(/);
   assert.match(cues, /buildCueCards\(/);
+  assert.match(cues, /resetCueFan/);
   assert.match(cues, /cuesPaint\.shouldSkip/);
   assert.match(cues, /host\.beginPaint\(\)/);
+  assert.doesNotMatch(cues, /closeCueLightbox/);
   assert.doesNotMatch(cues, /view\.cues\.thisMonth|view\.cues\.keepers/);
   assert.doesNotMatch(cues, /innerHTML/);
 
@@ -90,6 +92,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCard, /"aria-expanded"/);
   assert.match(cueCard, /cueCardEventShouldToggle/);
   assert.match(cueCard, /isCueCardToggleKey/);
+  assert.match(cueCard, /toggleCueLightbox/);
+  assert.match(cueCard, /resetCueFan/);
+  assert.match(cueCard, /closeCueLightbox/);
+  assert.doesNotMatch(cueCard, /syncExpanded/);
+  assert.doesNotMatch(cueCard, /is-open/);
   assert.match(cueCard, /"atomic-cue-text"/);
   assert.match(cueCard, /"atomic-cue-repeats"/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
@@ -99,10 +106,27 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(cueCard, /createEl\("button"/);
   assert.doesNotMatch(cueCard, /innerHTML/);
 
+  const cueLightbox = src("src/views/cue-lightbox.ts");
+  assert.match(cueLightbox, /"data-testid": "atomic-cue-lightbox"/);
+  assert.match(cueLightbox, /"atomic-cue-lightbox-card"/);
+  assert.match(cueLightbox, /"atomic-cue-lightbox-backdrop"/);
+  assert.match(cueLightbox, /cloneNode\(true\)/);
+  assert.match(cueLightbox, /querySelector\("\.atomic-cue-sheet"\)/);
+  assert.match(cueLightbox, /is-flying/);
+  assert.match(cueLightbox, /cueCardFlyScale/);
+  assert.match(cueLightbox, /--atomic-cue-fly-scale/);
+  assert.match(cueLightbox, /isCueLightboxDismissKey/);
+  assert.match(cueLightbox, /cueCardEventShouldToggle/);
+  assert.match(cueLightbox, /role: "dialog"/);
+  assert.doesNotMatch(cueLightbox, /aria-modal/);
+  assert.doesNotMatch(cueLightbox, /innerHTML/);
+
   const cueCardFan = src("src/util/cue-card-fan.ts");
   assert.match(cueCardFan, /CUE_CARD_INTERACTIVE_SELECTOR/);
   assert.match(cueCardFan, /a\[href]/);
   assert.match(cueCardFan, /\[role='button']/);
+  assert.match(cueCardFan, /isCueLightboxDismissKey/);
+  assert.match(cueCardFan, /cueCardFlyScale/);
 
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);
@@ -117,7 +141,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLog, /"atomic-cue-log-add"/);
   assert.match(cueLog, /"atomic-cue-log-existing"/);
   assert.match(cueLog, /appendCueCard\(/);
+  assert.match(cueLog, /resetCueFan/);
   assert.match(cueLog, /cueLogPaint\.shouldSkip/);
+  assert.doesNotMatch(cueLog, /closeCueLightbox/);
   assert.match(cueLog, /appendCueBullet\(/);
   assert.match(cueLog, /sanitizeCueText\(/);
   assert.match(cueLog, /vault\.process\(file, \(latest\) =>/);
@@ -200,6 +226,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-dashboard-year-prev/);
   assert.match(health, /atomic-dashboard-recent-row/);
   assert.match(health, /atomic-cue-card/);
+  assert.match(health, /atomic-cue-lightbox/);
+  assert.match(health, /atomic-cue-lightbox-card/);
+  assert.match(health, /atomic-cue-lightbox-backdrop/);
+  assert.match(health, /isCssTransparent/);
+  assert.match(health, /backdropFilter/);
+  assert.match(health, /sourcePaddingLeft/);
+  assert.match(health, /sheetBgImage/);
   assert.match(health, /fadeOpacity/);
   assert.match(health, /maskImage/);
   assert.match(health, /atomic-cue-log-add/);
@@ -222,4 +255,16 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /\.atomic-cue-body::after/);
   assert.match(styles, /--atomic-cue-wash/);
   assert.match(styles, /--atomic-cue-stock/);
+  assert.match(styles, /atomic-cue-lightbox/);
+  assert.match(styles, /--atomic-cue-backdrop-blur/);
+  assert.match(styles, /backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.match(styles, /-webkit-backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.match(styles, /translate\(-50%, -50%\) scale\(var\(--atomic-cue-fly-scale\)\)/);
+  assert.match(styles, /\.is-preview/);
+  assert.match(styles, /\.is-flying/);
+  assert.doesNotMatch(styles, /--atomic-cue-width:\s*420px/);
+  assert.doesNotMatch(styles, /rgba\(\s*28,\s*24,\s*18/);
+  assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\.atomic-cue-text[^{]*\{[^}]*font-size:\s*1\.7rem/s);
+  assert.doesNotMatch(styles, /\.atomic-cue-card\.is-open/);
+  assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
 });
