@@ -25,9 +25,9 @@ import type { ActivityType } from "../types";
 import { exerciseActivities, hobbyActivities } from "../util/activity-types";
 import {
   activityLinks,
+  appendActivityLink,
   appendBars,
   appendMonthBars,
-  appendPathLink,
   appendSectionTitle,
   FELT_LABEL_KEY,
   formatCount,
@@ -127,7 +127,7 @@ function renderHeader(
   const links = header.createDiv({ cls: "atomic-dash-links" });
   for (const card of model.activities) {
     for (const link of activityLinks(card, ctx)) {
-      const chip = appendPathLink(links, "", link.path, ctx, "atomic-dash-chip", link.open);
+      const chip = appendActivityLink(links, link, "atomic-dash-chip", "");
       chip.createSpan({ cls: "atomic-dash-dot" }).style.background = link.color;
       chip.appendText(link.text);
     }
@@ -270,9 +270,7 @@ function appendActivityFoot(
   const links = activityLinks(data, ctx);
   if (!links.length && !meta) return;
   const foot = card.createDiv({ cls: "atomic-dash-activity-foot" });
-  for (const link of links) {
-    appendPathLink(foot, link.text, link.path, ctx, "atomic-dash-link", link.open);
-  }
+  for (const link of links) appendActivityLink(foot, link);
   if (meta) foot.createSpan({ cls: "atomic-dash-meta", text: meta });
 }
 

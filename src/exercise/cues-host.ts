@@ -11,8 +11,12 @@ import { showNotice } from "../util/notice.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isSafeVaultFolder } from "../util/vault-path.ts";
 
+export function isCueHostActivity(activity: ActivityType): boolean {
+  return activity.domain === "exercise" && activity.supportsCues;
+}
+
 export function cueActivities(activityTypes: ActivityType[]): ActivityType[] {
-  return exerciseActivities(activityTypes).filter((activity) => activity.supportsCues);
+  return exerciseActivities(activityTypes).filter(isCueHostActivity);
 }
 
 /** Host note for the cues fan: title + modern `atomic-cues` fence. Path is `cuePathForActivity`. */
@@ -30,11 +34,11 @@ export async function ensureCuesHostFile(
   activity: ActivityType,
   language: Language = "en",
 ): Promise<{ path: string; created: boolean }> {
+  if (!isCueHostActivity(activity)) {
+    throw new Error("Cues host is only for cue-supporting exercise activities");
+  }
   const path = cuePathForActivity(activity);
   if (data.exists(path)) {
-    return { path, created: false };
-  }
-  if (activity.domain !== "exercise" || !activity.supportsCues) {
     return { path, created: false };
   }
   const folder = activity.folder.replace(/\/$/, "");

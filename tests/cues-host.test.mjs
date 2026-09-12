@@ -104,19 +104,19 @@ test("ensureCuesHostFiles covers every cue-supporting exercise and skips hobbies
   assert.equal(data.files.has("atomics/hobbies/Reading/Cues.md"), false);
 });
 
-test("ensureCuesHostFile does not invent a host for hobbies or cue-less exercise", async () => {
+test("ensureCuesHostFile rejects hobbies and cue-less exercise so created:false means exists", async () => {
   const reading = createHobbyActivityType("Reading");
   const running = createExerciseActivityType("Running");
   running.supportsCues = false;
   const data = mockData();
-  assert.deepEqual(await ensureCuesHostFile(data, reading, "en"), {
-    path: "atomics/hobbies/Reading/Cues.md",
-    created: false,
-  });
-  assert.deepEqual(await ensureCuesHostFile(data, running, "en"), {
-    path: "atomics/exercise/Running/Cues.md",
-    created: false,
-  });
+  await assert.rejects(
+    () => ensureCuesHostFile(data, reading, "en"),
+    /cue-supporting exercise/,
+  );
+  await assert.rejects(
+    () => ensureCuesHostFile(data, running, "en"),
+    /cue-supporting exercise/,
+  );
   assert.equal(data.created.length, 0);
 });
 
@@ -138,13 +138,17 @@ test("openCuesHostFile ensures then opens the cuePathForActivity note", async ()
   assert.deepEqual(data.opened, ["atomics/exercise/Gym/Cues.md"]);
 });
 
-test("dashboard cues links and the create command use the Book Shelf ensure path", () => {
+test("dashboard activity links own ensure-then-open; path links stay path-only", () => {
   const main = readFileSync(join(root, "src/main.ts"), "utf8");
   const dashboard = readFileSync(join(root, "src/views/dashboard-dom.ts"), "utf8");
   assert.match(main, /id: "create-cues"/);
   assert.match(main, /createCuesHostCommand/);
   assert.match(main, /this\.ensureCuesHosts\(\)/);
   assert.match(dashboard, /openCuesHostFile/);
-  assert.match(dashboard, /open\?: \(\) => Promise<void>/);
-  assert.match(dashboard, /void \(open \? open\(\) : ctx\.data\.openPath\(path\)\)/);
+  assert.match(dashboard, /export function appendActivityLink\(/);
+  assert.match(dashboard, /void link\.open\(\)/);
+  assert.doesNotMatch(dashboard, /open\?:/);
+  const pathLink = dashboard.slice(dashboard.indexOf("export function appendPathLink("));
+  assert.match(pathLink, /void ctx\.data\.openPath\(path\)/);
+  assert.doesNotMatch(pathLink.slice(0, pathLink.indexOf("export function appendSectionTitle")), /open\?/);
 });

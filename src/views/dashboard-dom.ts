@@ -30,11 +30,12 @@ export type DashboardBar = {
   attrs?: Record<string, string>;
 };
 
-export type DashboardLink = {
+/** Quick-link chip/foot item. `open` is required so cues can ensure-then-open without teaching `appendPathLink`. */
+export type DashboardActivityLink = {
   text: string;
   path: string;
   color: string;
-  open?: () => Promise<void>;
+  open: () => Promise<void>;
 };
 
 export const FELT_LABEL_KEY: Record<Felt, string> = {
@@ -66,25 +67,54 @@ export function localDate(ymd: string, ctx: DashboardRenderContext): string {
 export function activityLinks(
   card: DashboardActivityCard,
   ctx: DashboardRenderContext,
-): DashboardLink[] {
+): DashboardActivityLink[] {
   const { activity } = card;
   const color = activity.colors[2];
-  const links: DashboardLink[] = [];
+  const links: DashboardActivityLink[] = [];
   if (card.domain === "exercise" && activity.supportsCues) {
+    const path = cuePathForActivity(activity);
     links.push({
       text: t("view.dashboard.cues", ctx.language, { activity: activity.label }),
-      path: cuePathForActivity(activity),
+      path,
       color,
       open: () => openCuesHostFile(ctx.data, activity, ctx.language),
     });
   }
   if (card.domain === "hobby" && activity.id === "reading") {
     links.push(
-      { text: t("view.dashboard.readingBookshelf", ctx.language), path: READING_BOOKSHELF_REL, color },
-      { text: t("view.dashboard.bookShelf", ctx.language), path: BOOK_SHELF_HOST_REL, color },
+      {
+        text: t("view.dashboard.readingBookshelf", ctx.language),
+        path: READING_BOOKSHELF_REL,
+        color,
+        open: () => ctx.data.openPath(READING_BOOKSHELF_REL),
+      },
+      {
+        text: t("view.dashboard.bookShelf", ctx.language),
+        path: BOOK_SHELF_HOST_REL,
+        color,
+        open: () => ctx.data.openPath(BOOK_SHELF_HOST_REL),
+      },
     );
   }
   return links;
+}
+
+export function appendActivityLink(
+  parent: HTMLElement,
+  link: DashboardActivityLink,
+  cls = "atomic-dash-link",
+  text = link.text,
+): HTMLAnchorElement {
+  const el = parent.createEl("a", {
+    cls,
+    text,
+    attr: { href: "#", "data-testid": "atomic-dashboard-link", "data-path": link.path },
+  });
+  el.addEventListener("click", (event) => {
+    event.preventDefault();
+    void link.open();
+  });
+  return el;
 }
 
 export function appendPathLink(
@@ -93,7 +123,6 @@ export function appendPathLink(
   path: string,
   ctx: DashboardRenderContext,
   cls = "atomic-dash-link",
-  open?: () => Promise<void>,
 ): HTMLAnchorElement {
   const link = parent.createEl("a", {
     cls,
@@ -102,7 +131,7 @@ export function appendPathLink(
   });
   link.addEventListener("click", (event) => {
     event.preventDefault();
-    void (open ? open() : ctx.data.openPath(path));
+    void ctx.data.openPath(path);
   });
   return link;
 }
