@@ -31,7 +31,8 @@ test("vault listeners register after layout ready so the startup create burst is
   assert.doesNotMatch(onload, /this\.app\.vault\.on\(/);
   const layoutReady = bracedBlock(onload, "onLayoutReady(() => {");
   assert.match(layoutReady, /this\.registerVaultEvents\(\)/);
-  assert.match(layoutReady, /migrateDedicatedCueHosts\(this\.data, this\.settings\)/);
+  assert.match(layoutReady, /dedicatedCueHostPaths\(this\.settings\)/);
+  assert.match(layoutReady, /processNote\(path, rewriteDedicatedCueFences\)/);
   assert.match(layoutReady, /this\.scheduleRefresh\(\)/);
   assert.match(layoutReady, /this\.ensureCuesHosts\(\)/);
   assert.match(layoutReady, /if \(this\.unloaded\) return;/);
