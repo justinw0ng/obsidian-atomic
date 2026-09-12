@@ -1,5 +1,5 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { barHeights, type DashboardActivityCard, type Felt } from "../core/dashboard";
+import { barHeights, formatHours, type DashboardActivityCard, type Felt } from "../core/dashboard";
 import {
   fullDateForLanguage,
   monthShortEn,
@@ -25,6 +25,8 @@ export type DashboardBar = {
   /** Omit to keep the stylesheet default (KPI sparklines). */
   color?: string;
   title?: string;
+  /** Extra data-* hooks; merged with `title` when present. */
+  attrs?: Record<string, string>;
 };
 
 export type DashboardLink = { text: string; path: string; color: string };
@@ -54,7 +56,7 @@ export function localDate(ymd: string, ctx: DashboardRenderContext): string {
   return parsed ? fullDateForLanguage(parsed.y, parsed.m, parsed.d, ctx.language) : ymd;
 }
 
-/** Quick links an activity exposes: cues for exercise, bookshelves for Reading. */
+/** Quick links an activity exposes: cues for exercise, Bases and book shelf for Reading. */
 export function activityLinks(
   card: DashboardActivityCard,
   ctx: DashboardRenderContext,
@@ -85,7 +87,11 @@ export function appendPathLink(
   ctx: DashboardRenderContext,
   cls = "atomic-dash-link",
 ): HTMLAnchorElement {
-  const link = parent.createEl("a", { cls, text, attr: { href: "#" } });
+  const link = parent.createEl("a", {
+    cls,
+    text,
+    attr: { href: "#", "data-testid": "atomic-dashboard-link", "data-path": path },
+  });
   link.addEventListener("click", (event) => {
     event.preventDefault();
     void ctx.data.openPath(path);
@@ -114,15 +120,18 @@ export function appendBars(
 ): void {
   for (const bar of bars) {
     const active = bar.value > 0;
+    const attr: Record<string, string> = { ...bar.attrs };
+    if (bar.title) attr.title = bar.title;
     const el = parent.createSpan({
       cls: `atomic-dash-bar is-${variant}${active ? "" : " is-zero"}`,
-      attr: bar.title ? { title: bar.title } : undefined,
+      attr: Object.keys(attr).length ? attr : undefined,
     });
     el.style.height = active ? `${bar.height}%` : "0";
     if (active && bar.color) el.style.background = bar.color;
   }
 }
 
+/** `values` are minutes; height and hover text use hours. */
 export function monthBars(
   values: number[],
   color: string,
@@ -133,11 +142,16 @@ export function monthBars(
     value,
     height: heights[index],
     color,
-    title: `${monthLabel(index, ctx)}: ${formatCount(value)}`,
+    title: `${monthLabel(index, ctx)}: ${formatHours(value)}`,
+    attrs: {
+      "data-testid": "atomic-dashboard-month-bar",
+      "data-month": String(index + 1),
+      "data-minutes": String(value),
+    },
   }));
 }
 
-/** Twelve-month mini chart with single-letter month labels underneath. */
+/** Twelve-month chart; `values` are minutes, bar height and hover text use hours. */
 export function appendMonthBars(
   parent: HTMLElement,
   values: number[],
@@ -145,7 +159,10 @@ export function appendMonthBars(
   title: string,
   ctx: DashboardRenderContext,
 ): void {
-  const bars = parent.createDiv({ cls: "atomic-dash-bars", attr: { title } });
+  const bars = parent.createDiv({
+    cls: "atomic-dash-bars",
+    attr: { title, "data-testid": "atomic-dashboard-activity-bars" },
+  });
   appendBars(bars, monthBars(values, color, ctx), "month");
   const labels = parent.createDiv({ cls: "atomic-dash-months" });
   for (let i = 0; i < 12; i++) {

@@ -75,7 +75,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(dashboard, /"atomic-dashboard-year-next"/);
   assert.match(dashboard, /"data-testid": "atomic-dashboard-kpi"/);
   assert.match(dashboard, /"data-testid": "atomic-dashboard-activity"/);
+  assert.match(dashboard, /appendMonthBars\(/);
   assert.match(dashboard, /buildDashboardModel\(/);
+  const dashboardDom = src("src/views/dashboard-dom.ts");
+  assert.match(dashboardDom, /"atomic-dashboard-activity-bars"/);
+  assert.match(dashboardDom, /"atomic-dashboard-month-bar"/);
+  assert.match(dashboardDom, /appendBars\(bars, monthBars\(/);
+  assert.match(dashboardDom, /"atomic-dashboard-link"/);
   assert.doesNotMatch(dashboard, /Math\.max\(\d+, heights/);
   assert.doesNotMatch(dashboard, /innerHTML/);
   const dashboardSections = src("src/views/dashboard-sections.ts");

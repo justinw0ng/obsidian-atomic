@@ -161,6 +161,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         ["reading", "2"],
       ]);
 
+      const readingLinks = await driver.executeScript(`
+        return [...document.querySelectorAll(
+          '[data-testid="atomic-dashboard-activity"][data-activity="reading"] [data-testid="atomic-dashboard-link"]'
+        )].map((a) => [a.getAttribute("data-path"), (a.textContent || "").trim()]);
+      `);
+      assert.deepEqual(readingLinks, [
+        ["atomics/hobbies/Reading/Bookshelf.base", "Bases"],
+        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf"],
+      ]);
+      await saveScreenshot(driver, "dashboard-reading-links");
+
+      const month = String(Number(today.slice(5, 7)));
+      const gymMonthMinutes = await driver.executeScript(`
+        return document.querySelector(
+          '[data-testid="atomic-dashboard-activity"][data-activity="gym"] [data-testid="atomic-dashboard-month-bar"][data-month="${month}"]'
+        )?.getAttribute("data-minutes") || "";
+      `);
+      // Minutes, not session count (a one-session month would be "1").
+      assert.match(String(gymMonthMinutes), /^[1-9]\d+$/);
+
       await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
       const musclesText = await driver.executeScript(
         `return document.querySelector('[data-testid="atomic-dashboard-muscles"]')?.textContent || ""`,

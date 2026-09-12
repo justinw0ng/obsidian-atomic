@@ -3,6 +3,7 @@
  */
 import { spawn, spawnSync } from "node:child_process";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { createConnection } from "node:net";
 import { join } from "node:path";
 import { Builder, By, Key, until } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome.js";
@@ -53,6 +54,31 @@ async function fetchJson(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
   return res.json();
+}
+
+function isCdpPortOpen(port) {
+  return new Promise((resolve) => {
+    const socket = createConnection({ host: "127.0.0.1", port });
+    const finish = (open) => {
+      socket.removeAllListeners();
+      socket.on("error", () => {});
+      socket.destroy();
+      resolve(open);
+    };
+    socket.setTimeout(750);
+    socket.once("connect", () => finish(true));
+    socket.once("timeout", () => finish(true));
+    socket.once("error", () => finish(false));
+  });
+}
+
+export async function waitForCdpGone(port = DEBUG_PORT, timeoutMs = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (!(await isCdpPortOpen(port))) return;
+    await sleep(200);
+  }
+  throw new Error(`Previous Obsidian CDP still listening on port ${port}`);
 }
 
 export async function waitForCdp(port = DEBUG_PORT, timeoutMs = 90000) {
@@ -140,7 +166,8 @@ export async function launchObsidian(vaultPath, filePath) {
   if (!binary) throw new Error("Obsidian binary not found");
 
   killObsidian();
-  await sleep(1000);
+  await waitForCdpGone();
+  await sleep(300);
 
   const vaultId = registerVaultInObsidianConfig(vaultPath, E2E_VAULT_ID);
   const encoded = encodeURIComponent(filePath);

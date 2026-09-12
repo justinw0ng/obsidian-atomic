@@ -287,9 +287,9 @@ function renderExerciseCard(
   }
   appendMonthBars(
     card,
-    data.monthly,
+    data.monthlyMinutes,
     data.activity.colors[2],
-    t("view.dashboard.barsSessions", ctx.language),
+    t("view.dashboard.barsHours", ctx.language),
     ctx,
   );
   if (data.felt) appendFeltBar(card, data.felt, data.activity.colors, ctx);
@@ -316,9 +316,9 @@ function renderHobbyCard(
   }
   appendMonthBars(
     card,
-    data.monthly,
+    data.monthlyMinutes,
     data.activity.colors[2],
-    t("view.dashboard.barsMinutes", ctx.language),
+    t("view.dashboard.barsHours", ctx.language),
     ctx,
   );
   appendActivityFoot(card, data, ctx, null);
