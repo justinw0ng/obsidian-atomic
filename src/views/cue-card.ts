@@ -2,6 +2,10 @@ import { MarkdownRenderer, type App, type Component } from "obsidian";
 import { cueTextNeedsMarkdown } from "../core/cues";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
+import {
+  cueCardEventShouldToggle,
+  isCueCardToggleKey,
+} from "../util/cue-card-fan";
 
 export type CueMarkdownHost = {
   app: App;
@@ -17,21 +21,30 @@ export type CueCardPaint = {
 };
 
 export function bindCueCardFan(cards: readonly HTMLElement[]): void {
+  const syncExpanded = (): void => {
+    for (const card of cards) {
+      card.setAttr("aria-expanded", card.hasClass("is-open") ? "true" : "false");
+    }
+  };
   const toggle = (card: HTMLElement): void => {
     const wasOpen = card.hasClass("is-open");
     for (const other of cards) other.removeClass("is-open");
     if (!wasOpen) card.addClass("is-open");
+    syncExpanded();
   };
   for (const card of cards) {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (event) => {
+      if (!cueCardEventShouldToggle(event.target, card)) return;
       toggle(card);
     });
     card.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
+      if (!isCueCardToggleKey(event.key)) return;
+      if (!cueCardEventShouldToggle(event.target, card)) return;
       event.preventDefault();
       toggle(card);
     });
   }
+  syncExpanded();
 }
 
 /** Same index card on the cue page and on the session-note form. */
@@ -43,7 +56,12 @@ export async function appendCueCard(
 ): Promise<HTMLElement> {
   const el = fan.createDiv({
     cls: "atomic-cue-card",
-    attr: { tabindex: "0", role: "button", "data-testid": "atomic-cue-card" },
+    attr: {
+      tabindex: "0",
+      role: "button",
+      "aria-expanded": "false",
+      "data-testid": "atomic-cue-card",
+    },
   });
 
   const sheet = el.createDiv({ cls: "atomic-cue-sheet" });

@@ -87,6 +87,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCard, /"data-testid": "atomic-cue-card"/);
   assert.match(cueCard, /createDiv\(\{/);
   assert.match(cueCard, /tabindex: "0"/);
+  assert.match(cueCard, /"aria-expanded"/);
+  assert.match(cueCard, /cueCardEventShouldToggle/);
+  assert.match(cueCard, /isCueCardToggleKey/);
   assert.match(cueCard, /"atomic-cue-text"/);
   assert.match(cueCard, /"atomic-cue-repeats"/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
@@ -95,6 +98,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(cueCard, /FitnessPlugin/);
   assert.doesNotMatch(cueCard, /createEl\("button"/);
   assert.doesNotMatch(cueCard, /innerHTML/);
+
+  const cueCardFan = src("src/util/cue-card-fan.ts");
+  assert.match(cueCardFan, /CUE_CARD_INTERACTIVE_SELECTOR/);
+  assert.match(cueCardFan, /a\[href]/);
+  assert.match(cueCardFan, /\[role='button']/);
 
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);
@@ -194,6 +202,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-cue-card/);
   assert.match(health, /atomic-cue-log-add/);
   assert.match(health, /前臂放鬆/);
+  assert.match(health, /aria-expanded/);
+  assert.match(health, /example\.com\/atomic-e2e/);
 
   const styles = src("styles.css");
   assert.match(styles, /fonts\/caveat-latin-400\.woff2/);

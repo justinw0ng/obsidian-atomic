@@ -47,6 +47,7 @@ function cueCardMetrics(driver, index) {
     const body = card.querySelector('.atomic-cue-body');
     return {
       isOpen: card.classList.contains('is-open'),
+      ariaExpanded: card.getAttribute('aria-expanded'),
       lift: card.getBoundingClientRect().top - sheet.getBoundingClientRect().top,
       bodyHeight: body.clientHeight,
       clamped: body.scrollHeight > body.clientHeight + 1,
@@ -194,12 +195,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const before = await cueCardMetrics(driver, 2);
       assert.ok(before.clamped, "a long cue should be clipped at rest");
       assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
+      assert.equal(before.ariaExpanded, "false");
 
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
       `);
       const popped = await waitForCuePop(driver, 2);
       assert.equal(popped.isOpen, true);
+      assert.equal(popped.ariaExpanded, "true");
       assert.ok(
         popped.bodyHeight > before.bodyHeight,
         `popped body should grow, ${before.bodyHeight} -> ${popped.bodyHeight}`,
@@ -210,7 +213,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       `);
       await driver.wait(async () => {
         const closed = await cueCardMetrics(driver, 2);
-        return !closed.isOpen && closed.lift < 4;
+        return !closed.isOpen && closed.ariaExpanded === "false" && closed.lift < 4;
       }, 8000);
 
       // Hover pops the card without the is-open class, on any pointer type.
@@ -285,7 +288,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         `arguments[0].value = arguments[1];
          arguments[0].dispatchEvent(new Event("input", { bubbles: true }));`,
         input,
-        "前臂放鬆\nKnees track over the **toes**",
+        "前臂放鬆\nKnees track over the **toes** — [notes](https://example.com/atomic-e2e)",
       );
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-cue-log-add"]').click()`,
@@ -299,7 +302,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       `);
       assert.match(
         String(markdown),
-        /\n- Brace the core\n- 前臂放鬆\n  Knees track over the \*\*toes\*\*\n/,
+        /\n- Brace the core\n- 前臂放鬆\n  Knees track over the \*\*toes\*\* — \[notes\]\(https:\/\/example\.com\/atomic-e2e\)\n/,
       );
       assert.doesNotMatch(String(markdown), /## Reminders[\s\S]*## Reminders/);
       // The cue must land past the cue form fence, never inside it.
@@ -319,6 +322,46 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           cards.some((card) => card.text.includes("前臂放鬆") && card.strong.includes("toes"))
         );
       }, 8000);
+
+      const linkToggle = await driver.executeScript(`
+        const card = [...document.querySelectorAll(
+          '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]'
+        )].find((el) => el.querySelector("a[href]"));
+        if (!card) return { found: false };
+        const link = card.querySelector("a[href]");
+        const before = {
+          open: card.classList.contains("is-open"),
+          aria: card.getAttribute("aria-expanded"),
+        };
+        link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+        const afterClick = card.classList.contains("is-open");
+        link.dispatchEvent(new KeyboardEvent("keydown", {
+          key: "Enter",
+          bubbles: true,
+          cancelable: true,
+        }));
+        const afterEnter = card.classList.contains("is-open");
+        card.click();
+        return {
+          found: true,
+          href: link.getAttribute("href"),
+          before,
+          afterClick,
+          afterEnter,
+          afterCardClick: {
+            open: card.classList.contains("is-open"),
+            aria: card.getAttribute("aria-expanded"),
+          },
+        };
+      `);
+      assert.equal(linkToggle.found, true, "the new cue should render a markdown link");
+      assert.equal(linkToggle.href, "https://example.com/atomic-e2e");
+      assert.equal(linkToggle.before.open, false);
+      assert.equal(linkToggle.before.aria, "false");
+      assert.equal(linkToggle.afterClick, false, "clicking a cue link must not toggle the card");
+      assert.equal(linkToggle.afterEnter, false, "Enter on a cue link must not toggle the card");
+      assert.equal(linkToggle.afterCardClick.open, true);
+      assert.equal(linkToggle.afterCardClick.aria, "true");
 
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
