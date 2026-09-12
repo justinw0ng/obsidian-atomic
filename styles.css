@@ -2018,9 +2018,12 @@
   document.body so note overflow and the fan's contain: layout cannot clip
   it. The backdrop is a transparent hit target that blurs what is behind
   the card — no dim wash, no restyle, no masks, no overlay scrollbars.
+  Width grows with the cue; the card body scrolls if the cue is taller
+  than the viewport.
 */
 .fitness-plugin.atomic-cue-lightbox {
   --atomic-cue-fly-scale: 1.65;
+  --atomic-cue-fly-inset: 48px;
   --atomic-cue-backdrop-blur: 10px;
   position: fixed;
   inset: 0;
@@ -2066,7 +2069,11 @@
   position: fixed;
   left: var(--atomic-cue-origin-left);
   top: var(--atomic-cue-origin-top);
+  display: flex;
+  flex-direction: column;
   width: var(--atomic-cue-width);
+  max-width: calc((100vw - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
+  max-height: calc((100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
   height: auto;
   margin: 0;
   overflow: hidden;
@@ -2076,12 +2083,14 @@
   transition:
     left 420ms var(--atomic-cue-pop),
     top 420ms var(--atomic-cue-pop),
+    width 420ms var(--atomic-cue-pop),
     transform 420ms var(--atomic-cue-pop);
 }
 
 .fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card {
   left: 50%;
   top: 50%;
+  width: var(--atomic-cue-lightbox-width, var(--atomic-cue-width));
   transform: translate(-50%, -50%) scale(var(--atomic-cue-fly-scale));
 }
 
@@ -2089,11 +2098,16 @@
   Same paper as the fan: do not change padding, line height, or type.
   position: relative so height: auto wraps the unclamped sheet.
   padding-right: 14px matches the hovered fan card so the full cue fits.
+  min-height: 0 lets a tall sheet shrink so the body can scroll.
 */
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet,
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet,
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-sheet {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
   transform: rotate(0deg);
   padding-right: 14px;
   box-shadow:
@@ -2104,9 +2118,12 @@
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body,
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body,
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-body {
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: none;
   --atomic-cue-wash: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta,

@@ -122,6 +122,10 @@ function cueLightboxMetrics(driver) {
       text: text?.textContent || "",
       width: rect.width,
       height: rect.height,
+      left: rect.left,
+      right: rect.right,
+      top: rect.top,
+      bottom: rect.bottom,
       centerX: (rect.left + rect.right) / 2,
       centerY: (rect.top + rect.bottom) / 2,
       vw: window.innerWidth,
@@ -129,6 +133,13 @@ function cueLightboxMetrics(driver) {
       overflowY: getComputedStyle(overlay).overflowY,
       cardOverflowY: getComputedStyle(card).overflowY,
       bodyOverflowY: bodyStyle?.overflowY || "",
+      bodyOverflowX: bodyStyle?.overflowX || "",
+      scrollTop: body ? body.scrollTop : 0,
+      scrollHeight: body ? body.scrollHeight : 0,
+      clientHeight: body ? body.clientHeight : 0,
+      scrollbarThumb: bodyStyle ? bodyStyle.getPropertyValue("--scrollbar-thumb-bg").trim() : "",
+      scrollbarSize: bodyStyle ? bodyStyle.getPropertyValue("--scrollbar-size").trim() : "",
+      hasScrollport: !!body?.classList.contains("atomic-scrollport"),
       maskImage: bodyStyle ? String(bodyStyle.maskImage || "") : "",
       webkitMaskImage: bodyStyle ? String(bodyStyle.webkitMaskImage || "") : "",
       clamped: !!(body && body.scrollHeight > body.clientHeight + 1),
@@ -318,14 +329,27 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       );
       assert.ok(lightbox.width > 300, `lightbox card should be larger, width=${lightbox.width}`);
       assert.ok(
+        lightbox.width <= lightbox.vw - 24,
+        `lightbox must stay in the viewport: width=${lightbox.width} vw=${lightbox.vw}`,
+      );
+      assert.ok(
+        lightbox.right <= lightbox.vw + 1 && lightbox.left >= -1,
+        `lightbox must not overflow horizontally: ${lightbox.left}…${lightbox.right} vw=${lightbox.vw}`,
+      );
+      assert.ok(
         Math.abs(lightbox.centerY - lightbox.vh / 2) < 64,
         `lightbox should be vertically centered: ${lightbox.centerY} vs ${lightbox.vh / 2}`,
       );
       assert.equal(lightbox.overflowY, "hidden");
       assert.equal(lightbox.cardOverflowY, "hidden");
-      assert.equal(lightbox.bodyOverflowY, "hidden");
+      assert.equal(lightbox.bodyOverflowY, "auto", "tall cues scroll inside the card body");
+      assert.equal(lightbox.bodyOverflowX, "hidden");
+      assert.equal(lightbox.hasScrollport, true);
+      assert.equal(lightbox.scrollbarThumb, "transparent");
+      assert.equal(lightbox.scrollbarSize, "0px");
       assertNoCssMask(lightbox, "lightbox cue body");
-      assert.equal(lightbox.clamped, false, "the centered card shows the full cue");
+      assert.equal(lightbox.clamped, false, "this cue still fits without scrolling");
+      await shot(driver, "cue-lightbox-wide");
       assert.ok(isCssTransparent(lightbox.overlayBg), `overlay must not dim: ${lightbox.overlayBg}`);
       assert.ok(
         isCssTransparent(lightbox.backdropBg),
@@ -347,6 +371,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.match(String(lightbox.sheetBgImage), /linear-gradient/, "centered paper keeps the ruled card");
       assert.notEqual(lightbox.sheetBg, "rgb(255, 255, 255)", "centered paper stays pastel, not plain white");
 
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-cue-lightbox-backdrop"]').click();
+      `);
+      await waitForCueLightboxClosed(driver);
+      await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
+      `);
+      const shortLightbox = await waitForCueLightbox(driver, "Smooth tempo");
+      assert.ok(
+        lightbox.width > shortLightbox.width + 24,
+        `long cue should grow wider than a short card: ${lightbox.width} vs ${shortLightbox.width}`,
+      );
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-cue-lightbox-backdrop"]').click();
       `);
@@ -543,6 +579,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(linkToggle.afterCardClick.lightbox, true);
       const logLightbox = await waitForCueLightbox(driver, "前臂放鬆");
       assert.match(logLightbox.text, /toes/);
+      assert.equal(logLightbox.bodyOverflowY, "auto");
+      assert.ok(
+        logLightbox.width > 400,
+        `CJK / markdown cue should grow with the longest line: width=${logLightbox.width}`,
+      );
+      assert.ok(logLightbox.width <= logLightbox.vw - 24);
+      await shot(driver, "cue-lightbox-cjk");
       const lightboxLink = await driver.executeScript(`
         const overlay = document.querySelector('[data-testid="atomic-cue-lightbox"]');
         const link = overlay?.querySelector("a[href]");
@@ -557,6 +600,65 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(lightboxLink.found, true);
       assert.equal(lightboxLink.href, "https://example.com/atomic-e2e");
       assert.equal(lightboxLink.stillOpen, true, "a lightbox link click must not close the overlay");
+
+      const tallCue = [
+        `長句寬度測試：${"揮桿節奏要慢而且穩定".repeat(4)}`,
+        ...Array.from({ length: 40 }, (_, index) => `Keep the lead wrist flat — line ${index + 1}`),
+      ].join("\n");
+      const tallInput = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');
+      await driver.executeScript(
+        `arguments[0].value = arguments[1];
+         arguments[0].dispatchEvent(new Event("input", { bubbles: true }));`,
+        tallInput,
+        tallCue,
+      );
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-cue-log-add"]').click()`,
+      );
+      await waitForNotice(driver, "Added cue");
+      await driver.wait(async () => {
+        return driver.executeScript(`
+          return [...document.querySelectorAll(
+            '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]'
+          )].some((card) => (card.querySelector('.atomic-cue-text')?.textContent || "").includes("長句寬度測試"));
+        `);
+      }, 8000);
+      await driver.executeScript(`
+        const card = [...document.querySelectorAll(
+          '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]'
+        )].find((el) => (el.querySelector('.atomic-cue-text')?.textContent || "").includes("長句寬度測試"));
+        card?.click();
+      `);
+      const tallLightbox = await waitForCueLightbox(driver, "長句寬度測試");
+      assert.equal(tallLightbox.bodyOverflowY, "auto");
+      assert.equal(tallLightbox.hasScrollport, true);
+      assert.equal(tallLightbox.scrollbarThumb, "transparent");
+      assert.equal(tallLightbox.scrollbarSize, "0px");
+      assert.ok(tallLightbox.clamped, "a cue taller than the window scrolls the card body");
+      assert.ok(
+        tallLightbox.height <= tallLightbox.vh - 24,
+        `tall card must stay in the viewport: height=${tallLightbox.height} vh=${tallLightbox.vh}`,
+      );
+      assert.ok(
+        tallLightbox.width <= tallLightbox.vw - 24,
+        `wide CJK card must stay in the viewport: width=${tallLightbox.width} vw=${tallLightbox.vw}`,
+      );
+      assert.ok(
+        tallLightbox.width >= logLightbox.width,
+        `uncapped CJK line should be at least as wide as the shorter cue: ${tallLightbox.width} vs ${logLightbox.width}`,
+      );
+      assert.ok(
+        tallLightbox.width > tallLightbox.vw * 0.55,
+        `long CJK line should use most of the viewport: width=${tallLightbox.width} vw=${tallLightbox.vw}`,
+      );
+      await driver.executeScript(`
+        const body = document.querySelector('[data-testid="atomic-cue-lightbox"] .atomic-cue-body');
+        if (body) body.scrollTop = 120;
+      `);
+      const scrolled = await cueLightboxMetrics(driver);
+      assert.ok(scrolled.scrollTop >= 80, `card body should scroll: scrollTop=${scrolled.scrollTop}`);
+      assertNoCssMask(scrolled, "scrolling lightbox cue body");
+      await shot(driver, "cue-lightbox-tall");
 
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');

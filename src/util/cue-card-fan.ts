@@ -34,22 +34,41 @@ export function isCueLightboxDismissKey(key: string): boolean {
   return key === "Escape";
 }
 
-/** Viewport inset around the flying card, matching the CSS 48px gutter. */
+/** Viewport inset around the flying card. Mirrored as `--atomic-cue-fly-inset`. */
 export const CUE_CARD_FLY_INSET_PX = 48;
 
-/** How much larger the same 228px paper becomes at the center. */
+/** Resting fan paper width; the centered card never shrinks below this. */
+export const CUE_CARD_FAN_WIDTH_PX = 228;
+
+/** How much larger the fan paper becomes at the center. */
 export const CUE_CARD_FLY_MAX_SCALE = 1.65;
 
-/** Scale that enlarges the fan paper without overflowing the viewport. */
+/** Scale that enlarges the fan paper without overflowing the viewport width. */
 export function cueCardFlyScale(
-  card: { width: number; height: number },
-  view: { innerWidth: number; innerHeight: number },
+  card: { width: number },
+  view: { innerWidth: number },
 ): number {
   const maxWidth = Math.max(1, view.innerWidth - CUE_CARD_FLY_INSET_PX);
-  const maxHeight = Math.max(1, view.innerHeight - CUE_CARD_FLY_INSET_PX);
   const width = Math.max(1, card.width);
-  const height = Math.max(1, card.height);
-  return Math.min(CUE_CARD_FLY_MAX_SCALE, maxWidth / width, maxHeight / height);
+  return Math.min(CUE_CARD_FLY_MAX_SCALE, maxWidth / width);
+}
+
+/**
+ * Layout width of the centered card: at least the fan paper, up to the
+ * content, never past the scaled viewport. Height overflow scrolls instead.
+ */
+export function cueLightboxLayoutWidth(
+  contentWidth: number,
+  view: { innerWidth: number },
+  scale: number,
+  minWidth = CUE_CARD_FAN_WIDTH_PX,
+): number {
+  const visualMax = Math.max(1, view.innerWidth - CUE_CARD_FLY_INSET_PX);
+  const safeScale = Math.max(0.01, scale);
+  const maxLayout = visualMax / safeScale;
+  const floor = Math.min(Math.max(1, minWidth), maxLayout);
+  const wanted = Number.isFinite(contentWidth) && contentWidth > 0 ? contentWidth : floor;
+  return Math.min(maxLayout, Math.max(floor, wanted));
 }
 
 function isCueCardEventTarget(node: unknown): node is CueCardEventTarget {

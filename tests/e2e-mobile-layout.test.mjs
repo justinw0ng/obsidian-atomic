@@ -424,7 +424,15 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
     ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body",
   );
   assert.match(flyBody.body, /max-height:\s*none/);
+  assert.match(flyBody.body, /overflow-y:\s*auto/);
+  assert.match(flyBody.body, /overflow-x:\s*hidden/);
+  assert.doesNotMatch(flyBody.body, /overflow:\s*hidden/);
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\.atomic-cue-text[^{]*\{[^}]*1\.7rem/s);
+  assert.match(placed.body, /--atomic-cue-lightbox-width/);
+  assert.match(
+    styles,
+    /\.atomic-cue-lightbox-card \{[^}]*max-height:\s*calc\(\(100vh/,
+  );
 });
 
 test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {

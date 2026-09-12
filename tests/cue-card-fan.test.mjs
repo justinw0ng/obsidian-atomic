@@ -1,12 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  CUE_CARD_FAN_WIDTH_PX,
   CUE_CARD_FLY_INSET_PX,
   CUE_CARD_FLY_MAX_SCALE,
   CUE_CARD_INTERACTIVE_SELECTOR,
   cueCardEventFromInteractive,
   cueCardEventShouldToggle,
   cueCardFlyScale,
+  cueLightboxLayoutWidth,
   isCueCardToggleKey,
   isCueLightboxDismissKey,
 } from "../src/util/cue-card-fan.ts";
@@ -39,13 +41,31 @@ test("isCueLightboxDismissKey is only Escape", () => {
 });
 
 test("cueCardFlyScale enlarges the same paper and caps to the viewport", () => {
-  const paper = { width: 228, height: 140 };
-  assert.equal(cueCardFlyScale(paper, { innerWidth: 1600, innerHeight: 900 }), CUE_CARD_FLY_MAX_SCALE);
+  const paper = { width: CUE_CARD_FAN_WIDTH_PX };
+  assert.equal(cueCardFlyScale(paper, { innerWidth: 1600 }), CUE_CARD_FLY_MAX_SCALE);
   assert.equal(
-    cueCardFlyScale(paper, { innerWidth: 390, innerHeight: 844 }),
-    (390 - CUE_CARD_FLY_INSET_PX) / 228,
+    cueCardFlyScale(paper, { innerWidth: 390 }),
+    (390 - CUE_CARD_FLY_INSET_PX) / CUE_CARD_FAN_WIDTH_PX,
   );
-  assert.ok(cueCardFlyScale({ width: 228, height: 400 }, { innerWidth: 400, innerHeight: 400 }) < 1.2);
+  assert.equal(
+    cueCardFlyScale({ width: CUE_CARD_FAN_WIDTH_PX }, { innerWidth: 400 }),
+    (400 - CUE_CARD_FLY_INSET_PX) / CUE_CARD_FAN_WIDTH_PX,
+  );
+});
+
+test("cueLightboxLayoutWidth grows with the cue and stays inside the scaled viewport", () => {
+  const desktop = { innerWidth: 1600 };
+  assert.equal(cueLightboxLayoutWidth(100, desktop, CUE_CARD_FLY_MAX_SCALE), CUE_CARD_FAN_WIDTH_PX);
+  assert.equal(cueLightboxLayoutWidth(800, desktop, CUE_CARD_FLY_MAX_SCALE), 800);
+  assert.equal(
+    cueLightboxLayoutWidth(1400, desktop, CUE_CARD_FLY_MAX_SCALE),
+    (1600 - CUE_CARD_FLY_INSET_PX) / CUE_CARD_FLY_MAX_SCALE,
+  );
+  const phoneScale = (390 - CUE_CARD_FLY_INSET_PX) / CUE_CARD_FAN_WIDTH_PX;
+  assert.equal(
+    cueLightboxLayoutWidth(800, { innerWidth: 390 }, phoneScale),
+    CUE_CARD_FAN_WIDTH_PX,
+  );
 });
 
 test("the interactive selector covers markdown links and nested controls", () => {
