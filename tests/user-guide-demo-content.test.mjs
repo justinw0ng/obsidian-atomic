@@ -96,15 +96,16 @@ test("prepareUserGuideVault seeds the vault it patches", () => {
 });
 
 test("capture script continues without xdotool when setRect works", () => {
-  const src = readFileSync(
-    join(dirname(fileURLToPath(import.meta.url)), "..", "scripts/capture-user-guide-screenshots.mjs"),
-    "utf8",
-  );
-  assert.match(src, /error\?\.code === "ENOENT"/);
-  assert.match(src, /xdotool is not installed/);
-  assert.match(src, /setRectOk/);
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  const shared = readFileSync(join(root, "scripts/docs-capture.mjs"), "utf8");
+  const src = readFileSync(join(root, "scripts/capture-user-guide-screenshots.mjs"), "utf8");
+  assert.match(shared, /error\?\.code === "ENOENT"/);
+  assert.match(shared, /xdotool is not installed/);
+  assert.match(shared, /setRectOk/);
+  assert.match(shared, /compose-device-hero\.py/);
+  assert.match(src, /from "\.\/docs-capture\.mjs"/);
+  assert.match(src, /launchObsidian/);
   assert.match(src, /atomic-dashboard-hero\.png/);
-  assert.match(src, /compose-device-hero\.py/);
   assert.match(src, /DASHBOARD_MOBILE/);
   assert.match(src, /ATOMIC_DOCS_SHOTS/);
   assert.match(src, /wantShot\("dashboard"\)/);

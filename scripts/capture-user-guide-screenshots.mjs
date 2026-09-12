@@ -8,31 +8,31 @@
  * in the hero device frame (trims status bar / home indicator; never cover-crops).
  * Dashboard hero uses contain/letterbox on both desktop and phone so no panel is chopped.
  */
-import { spawn, spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Key } from "selenium-webdriver";
-import { E2E_VAULT_ID, registerVaultInObsidianConfig } from "../e2e/lib/vault.mjs";
 import {
   ARTIFACT_DIR,
   attachSelenium,
   closeSettings,
-  DEBUG_PORT,
-  DEFAULT_DISPLAY,
   e2eSkipReason,
-  findObsidianBinary,
+  launchObsidian,
   openAtomicSettings,
-  openVaultFile,
-  resolveDisplay,
   saveScreenshot,
   sleep,
   stopSession,
   switchToObsidianWindow,
   waitCss,
-  waitForCdp,
   waitForPlugin,
 } from "../e2e/lib/obsidian.mjs";
+import {
+  composeDeviceHero,
+  hideCaptureScrollbars,
+  hideNoteProperties,
+  openPreviewNote,
+  parkMouse,
+  resizeWindow,
+} from "./docs-capture.mjs";
 import {
   OPEN_COVER_TITLE,
   prepareUserGuideVault,
@@ -96,94 +96,6 @@ function assertDashboardBundle() {
   }
 }
 
-async function collapseSidebars(driver) {
-  await driver.executeScript(`
-    app.workspace.leftSplit?.collapse?.();
-    app.workspace.rightSplit?.collapse?.();
-  `);
-}
-
-async function showPreview(driver) {
-  await driver.executeAsyncScript(`
-    const done = arguments[0];
-    const leaf = app.workspace.getMostRecentLeaf();
-    if (!leaf) {
-      done(false);
-      return;
-    }
-    const state = leaf.getViewState();
-    state.state = state.state || {};
-    state.state.mode = "preview";
-    state.state.source = false;
-    leaf.setViewState(state).then(() => done(true), () => done(false));
-  `);
-}
-
-async function launchForCapture(vaultPath, filePath) {
-  spawnSync("pkill", ["-9", "-f", "/opt/Obsidian/obsidian"], { stdio: "ignore" });
-  spawnSync("pkill", ["-9", "-f", "/usr/bin/obsidian"], { stdio: "ignore" });
-  await sleep(1000);
-  const binary = findObsidianBinary();
-  if (!binary) throw new Error("Obsidian binary not found");
-  const vaultId = registerVaultInObsidianConfig(vaultPath, E2E_VAULT_ID);
-  const uri = `obsidian://open?vault=${vaultId}&file=${encodeURIComponent(filePath)}`;
-  const child = spawn(
-    binary,
-    [
-      "--no-sandbox",
-      "--disable-dev-shm-usage",
-      `--remote-debugging-port=${DEBUG_PORT}`,
-      "--remote-allow-origins=*",
-      uri,
-    ],
-    {
-      env: { ...process.env, DISPLAY: resolveDisplay() || DEFAULT_DISPLAY },
-      detached: true,
-      stdio: "ignore",
-    },
-  );
-  child.unref();
-  const version = await waitForCdp(DEBUG_PORT);
-  return { child, version, vaultId };
-}
-
-function spawnXdotool(args) {
-  const result = spawnSync("xdotool", args, { encoding: "utf8" });
-  if (result.error?.code === "ENOENT") {
-    return { missing: true, result };
-  }
-  return { missing: false, result };
-}
-
-function xdotoolResize(width, height) {
-  const search = spawnXdotool(["search", "--name", "Obsidian"]);
-  if (search.missing) return { missing: true };
-  const ids = (search.result.stdout || "").trim().split("\n").filter(Boolean);
-  for (const id of ids) {
-    spawnXdotool(["windowmove", "--sync", id, "0", "0"]);
-    spawnXdotool(["windowsize", "--sync", id, String(width), String(height)]);
-    spawnXdotool(["windowactivate", "--sync", id]);
-  }
-  return { missing: false };
-}
-
-async function resizeWindow(driver, width, height) {
-  let setRectOk = false;
-  try {
-    await driver.manage().window().setRect({ x: 0, y: 0, width, height });
-    setRectOk = true;
-  } catch {
-    // Electron sometimes rejects setRect; xdotool is the fallback.
-  }
-  const xdo = xdotoolResize(width, height);
-  if (xdo.missing && !setRectOk) {
-    throw new Error(
-      "Could not resize the Obsidian window. Electron rejected setRect and xdotool is not installed. Install xdotool (apt install xdotool) or allow window.setRect.",
-    );
-  }
-  await sleep(400);
-}
-
 async function waitForCoverImages(driver, min = 12, timeoutMs = 30000) {
   const start = Date.now();
   let last = 0;
@@ -196,15 +108,6 @@ async function waitForCoverImages(driver, min = 12, timeoutMs = 30000) {
     await sleep(400);
   }
   throw new Error(`Cover images not ready (loaded ${last}, need ${min})`);
-}
-
-async function parkMouse(driver) {
-  try {
-    await driver.actions({ async: false }).sendKeys(Key.ESCAPE).perform();
-    await driver.actions({ async: false }).move({ x: 12, y: 12, origin: "viewport" }).perform();
-  } catch {
-    // Mouse parking is best-effort.
-  }
 }
 
 async function openCover(driver, title) {
@@ -276,80 +179,19 @@ async function openCover(driver, title) {
   return result;
 }
 
-async function openNote(driver, path) {
-  await openVaultFile(driver, path);
-  await collapseSidebars(driver);
-  await showPreview(driver);
-  await sleep(600);
-}
-
 function composeDashboardHero(desktopPath, mobilePath, mobileKind = "window") {
-  const out = join(IMAGES, OUTPUTS.dashboardHero);
-  const args = [
-    join(ROOT, "scripts/compose-device-hero.py"),
-    "--desktop",
-    desktopPath,
-    "--mobile",
-    mobilePath,
-    "--out",
-    out,
-    "--headline",
-    DASHBOARD_HERO_HEADLINE,
-    "--crop-chrome",
-    "--desktop-fit",
-    "contain",
-    "--phone-fit",
-    "contain",
-    "--mobile-kind",
+  return composeDeviceHero({
+    desktop: desktopPath,
+    mobile: mobilePath,
+    out: join(IMAGES, OUTPUTS.dashboardHero),
+    headline: DASHBOARD_HERO_HEADLINE,
+    cropChrome: true,
+    desktopFit: "contain",
+    phoneFit: "contain",
     mobileKind,
-    "--phone-pad",
-    "22",
-    "--scrub-scrollbars",
-  ];
-  const result = spawnSync("python3", args, { encoding: "utf8" });
-  if (result.status !== 0) {
-    throw new Error(
-      `compose dashboard hero failed: ${(result.stderr || result.stdout || "").trim()}`,
-    );
-  }
-  if (!existsSync(out)) throw new Error(`Failed to write ${out}`);
-  console.log((result.stdout || "").trim() || `Wrote ${out}`);
-  return out;
-}
-
-async function hideNoteProperties(driver) {
-  await driver.executeScript(`
-    if (app.vault?.setConfig) {
-      app.vault.setConfig("propertiesInDocument", "hidden");
-    }
-    for (const el of document.querySelectorAll(
-      ".metadata-container, .metadata-properties-heading, .metadata-add-button",
-    )) {
-      el.style.setProperty("display", "none");
-    }
-  `);
-}
-
-async function hideCaptureScrollbars(driver) {
-  await driver.executeScript(`
-    const root = document.documentElement;
-    root.style.setProperty("--scrollbar-thumb-bg", "transparent", "important");
-    root.style.setProperty("--scrollbar-active-thumb-bg", "transparent", "important");
-    root.style.setProperty("--scrollbar-bg", "transparent", "important");
-    const style = document.getElementById("atomic-hero-hide-scrollbars")
-      || document.createElement("style");
-    style.id = "atomic-hero-hide-scrollbars";
-    style.textContent = \`
-      * { scrollbar-width: none !important; }
-      *::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
-    \`;
-    document.head.appendChild(style);
-    for (const el of document.querySelectorAll(
-      ".markdown-preview-view, .markdown-reading-view, .cm-scroller, .view-content, .workspace-leaf-content",
-    )) {
-      el.style.setProperty("overflow", "hidden", "important");
-    }
-  `);
+    phonePad: 22,
+    scrubScrollbars: true,
+  });
 }
 
 async function prepareDashboardPhoneView(driver) {
@@ -460,7 +302,7 @@ async function main() {
   if (wantShot("dashboard")) assertDashboardBundle();
   prepareUserGuideVault();
   const launchFile = wantShot("bookShelf") ? FILES.bookShelf : FILES.dashboard;
-  const launched = await launchForCapture(USER_GUIDE_VAULT, launchFile);
+  const launched = await launchObsidian(USER_GUIDE_VAULT, launchFile);
   const driver = await attachSelenium(undefined, launched.version);
   try {
     await switchToObsidianWindow(driver);
@@ -468,7 +310,7 @@ async function main() {
     await resizeWindow(driver, 1920, 1200);
 
     if (wantShot("bookShelf")) {
-      await openNote(driver, FILES.bookShelf);
+      await openPreviewNote(driver, FILES.bookShelf);
       await waitCss(driver, '[data-testid="atomic-bookshelf"]');
       await waitForCoverImages(driver, 12);
       await parkMouse(driver);
@@ -481,7 +323,7 @@ async function main() {
     }
 
     if (wantShot("timer")) {
-      await openNote(driver, FILES.timerItem);
+      await openPreviewNote(driver, FILES.timerItem);
       await waitCss(driver, '[data-testid="atomic-timer"]');
       await waitCss(driver, '[data-testid="atomic-timer-stop"]');
       await parkMouse(driver);
@@ -490,7 +332,7 @@ async function main() {
     }
 
     if (wantShot("gymLog")) {
-      await openNote(driver, FILES.gymSession);
+      await openPreviewNote(driver, FILES.gymSession);
       await waitCss(driver, '[data-testid="atomic-gym-log"]');
       await waitCss(driver, '[data-testid="atomic-gym-log-add"]');
       await parkMouse(driver);
@@ -500,7 +342,7 @@ async function main() {
 
     if (wantShot("dashboard")) {
       await resizeWindow(driver, DASHBOARD_DESKTOP.width, DASHBOARD_DESKTOP.height);
-      await openNote(driver, FILES.dashboard);
+      await openPreviewNote(driver, FILES.dashboard);
       await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
       await hideNoteProperties(driver);
       await hideCaptureScrollbars(driver);
@@ -518,7 +360,7 @@ async function main() {
         await composeDashboardHero(desktopSrc, DASHBOARD_PHONE_SRC, "phone");
       } else {
         await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
-        await openNote(driver, FILES.dashboard);
+        await openPreviewNote(driver, FILES.dashboard);
         await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
         await prepareDashboardPhoneView(driver);
         await parkMouse(driver);
@@ -539,7 +381,7 @@ async function main() {
     }
 
     if (wantShot("settings")) {
-      await openNote(driver, FILES.bookShelf);
+      await openPreviewNote(driver, FILES.bookShelf);
       await waitCss(driver, '[data-testid="atomic-bookshelf"]');
       await waitForCoverImages(driver, 12);
       await openAtomicSettings(driver);
@@ -556,7 +398,7 @@ async function main() {
 
     if (wantShot("enable")) {
       await resizeWindow(driver, 1280, 800);
-      await openNote(driver, FILES.timerItem);
+      await openPreviewNote(driver, FILES.timerItem);
       await waitCss(driver, '[data-testid="atomic-timer"]');
       await openCommunityPlugins(driver);
       await sleep(600);

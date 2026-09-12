@@ -37,6 +37,21 @@ test("cue hero is a 1600x900 composed banner", () => {
   assert.ok(png.length < 1_500_000, `hero too large: ${png.length}`);
 });
 
+test("cue hero capture is a scenario on the shared docs-capture helpers", () => {
+  const src = readFileSync(join(root, "scripts/capture-cue-hero.mjs"), "utf8");
+  assert.match(src, /from "\.\/docs-capture\.mjs"/);
+  assert.match(src, /launchObsidian/);
+  assert.match(src, /stopSession/);
+  assert.match(src, /composeDeviceHero/);
+  assert.match(src, /cropChrome: false/);
+  assert.match(src, /\/tmp\/atomic-cue-hero-review/);
+  assert.doesNotMatch(src, /\/cursor\/stores\//);
+  assert.doesNotMatch(src, /function launchForCapture/);
+  assert.doesNotMatch(src, /function resizeWindow/);
+  assert.doesNotMatch(src, /function parkMouse/);
+  assert.doesNotMatch(src, /openlibrary/i);
+});
+
 test("cue hero capture hides scrollbars and centers the phone fan", () => {
   const src = readFileSync(join(root, "scripts/capture-cue-hero.mjs"), "utf8");
   assert.match(src, /--scrollbar-thumb-bg/);
@@ -46,14 +61,9 @@ test("cue hero capture hides scrollbars and centers the phone fan", () => {
   assert.match(src, /justify-content: center/);
   assert.match(src, /max-width: 600px/);
   assert.match(src, /margin-left: auto/);
-  assert.match(src, /--scrub-scrollbars/);
-  assert.match(src, /--phone-pad/);
-  assert.doesNotMatch(src, /--crop-chrome/);
   assert.match(src, /CUE_HERO_HEADLINE/);
   assert.match(src, /atomic-cue-card/);
-  assert.match(src, /\["checkout", "--", "main\.js"\]/);
   assert.match(src, /trim-hero-shot\.py/);
-  assert.doesNotMatch(src, /openlibrary/i);
 });
 
 test("compose-device-hero still accepts cue headline copy", () => {
