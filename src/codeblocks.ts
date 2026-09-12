@@ -48,6 +48,7 @@ class AtomicBlockChild extends MarkdownRenderChild {
   constructor(
     containerEl: HTMLElement,
     private readonly startRender: () => void,
+    private readonly stopTracking: () => void,
   ) {
     super(containerEl);
   }
@@ -59,6 +60,7 @@ class AtomicBlockChild extends MarkdownRenderChild {
 
   onunload(): void {
     invalidateBlockRenderIfCurrent(this.containerEl, this.generation);
+    this.stopTracking();
   }
 }
 
@@ -199,9 +201,15 @@ export function registerCodeblocks(plugin: FitnessPlugin): void {
       plugin.trackLiveBlock(block);
       mountAtomicBlockShell(el);
       ctx.addChild(
-        new AtomicBlockChild(el, () => {
-          void renderTrackedBlock(plugin, block);
-        }),
+        new AtomicBlockChild(
+          el,
+          () => {
+            void renderTrackedBlock(plugin, block);
+          },
+          () => {
+            plugin.untrackLiveBlock(el);
+          },
+        ),
       );
     });
   }

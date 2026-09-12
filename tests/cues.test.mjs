@@ -58,6 +58,25 @@ test("buildCueCards drops blank cues and other years", () => {
   assert.deepEqual(cards.map((card) => card.text), ["Real cue"]);
 });
 
+test("buildCueCards keeps note order for cues that share a date", () => {
+  const cards = buildCueCards(
+    [
+      { text: "First written", date: "2026-09-12" },
+      { text: "Second written", date: "2026-09-12" },
+      { text: "Third written", date: "2026-09-12" },
+      { text: "Older", date: "2026-09-01" },
+    ],
+    2026,
+  );
+
+  assert.deepEqual(cards.map((card) => card.text), [
+    "First written",
+    "Second written",
+    "Third written",
+    "Older",
+  ]);
+});
+
 test("normalizeCue folds case and whitespace", () => {
   assert.equal(normalizeCue("  Keep  Lead Arm Soft "), "keep lead arm soft");
   assert.equal(normalizeCue(null), "");
@@ -143,6 +162,56 @@ test("appendCueBullet stops at the next same-level heading", () => {
     updated,
     "## 💡 Reminders\n\n- First\n- Second\n\n## Session log\n\n- keep\n",
   );
+});
+
+test("appendCueBullet writes past the cue form fence, not inside it", () => {
+  const markdown = `# Gym — 2026-09-12
+
+## 💡 Reminders
+
+\`\`\`atomic-cue-log
+# No options. Type a cue and add it.
+\`\`\`
+
+- Brace the core
+`;
+
+  const updated = appendCueBullet(markdown, "Knees over toes", "💡 Reminders");
+  assert.match(updated, /\n- Brace the core\n- Knees over toes\n$/);
+  assert.deepEqual(parseReminders(updated), ["Brace the core", "Knees over toes"]);
+});
+
+test("appendCueBullet leaves a blank line after a fence-only section", () => {
+  const markdown = `## 💡 Reminders
+
+\`\`\`atomic-cue-log
+# No options. Type a cue and add it.
+\`\`\`
+`;
+
+  const updated = appendCueBullet(markdown, "Soft grip", "💡 Reminders");
+  assert.match(updated, /\`\`\`\n\n- Soft grip\n$/);
+  assert.deepEqual(parseReminders(updated), ["Soft grip"]);
+});
+
+test("parseReminders and appendCueBullet ignore headings inside a fence", () => {
+  const markdown = `## 💡 Reminders
+
+\`\`\`atomic-cue-log
+## Reminders
+- not a cue
+\`\`\`
+
+- real cue
+
+## Session log
+
+- keep me
+`;
+
+  assert.deepEqual(parseReminders(markdown), ["real cue"]);
+  const updated = appendCueBullet(markdown, "Second cue", "💡 Reminders");
+  assert.match(updated, /\n- real cue\n- Second cue\n\n## Session log\n/);
 });
 
 test("appendCueBullet finds the bilingual Reminders heading", () => {

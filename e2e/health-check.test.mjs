@@ -152,9 +152,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
       `);
+      // The pop is a 420ms transition, so let it settle before measuring.
       await driver.wait(async () => {
         const open = await cueCardMetrics(driver, 2);
-        return open.isOpen && open.lift > 8 && !open.clamped;
+        return (
+          open.isOpen && open.lift > 8 && !open.clamped && open.metaOpacity > 0.99
+        );
       }, 8000);
 
       const popped = await cueCardMetrics(driver, 2);
@@ -163,7 +166,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         `popped card should lift out of the fan, lifted ${popped.lift}px`,
       );
       assert.ok(popped.bodyHeight > before.bodyHeight);
-      assert.equal(popped.metaOpacity, 1);
+      assert.ok(popped.metaOpacity > 0.99, "the meta row should fade in");
 
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
@@ -205,6 +208,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       `);
       assert.match(String(markdown), /\n- Brace the core\n- Knees track over the toes\n/);
       assert.doesNotMatch(String(markdown), /## Reminders[\s\S]*## Reminders/);
+      // The cue must land past the cue form fence, never inside it.
+      assert.doesNotMatch(String(markdown), /```atomic-cue-log\n- /);
 
       await driver.wait(async () => {
         const chips = await driver.executeScript(`

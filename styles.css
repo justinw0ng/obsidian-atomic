@@ -1617,6 +1617,8 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  /* Obsidian buttons default to nowrap; a cue has to wrap on the card. */
+  white-space: normal;
 }
 
 .fitness-plugin .atomic-cue-card[data-cue-stock="1"] {
@@ -1708,6 +1710,9 @@
   font-size: 1.35rem;
   line-height: var(--atomic-cue-line);
   color: var(--atomic-cue-ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .fitness-plugin .atomic-cue-meta {

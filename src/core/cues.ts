@@ -20,6 +20,23 @@ const REMINDERS_HEADING = /^##\s+(?:\S+\s+)?Reminders(?:\s*\/\s*.+)?\s*$/i;
 const ANY_HEADING = /^(#{1,6})\s+/;
 const BULLET = /^\s*[-*+]\s+(.+)$/;
 const EMPTY_BULLET = /^\s*[-*+]\s*$/;
+const FENCE = /^\s*(?:```|~~~)/;
+
+/**
+ * Which lines sit inside a fenced block, delimiters included. Atomic's own
+ * `atomic-cue-log` fence lives in the Reminders section, and its option
+ * comments start with `#`, so section scanning has to ignore fenced lines.
+ */
+function fencedLines(lines: readonly string[]): boolean[] {
+  const fenced: boolean[] = [];
+  let open = false;
+  for (const line of lines) {
+    const delimiter = FENCE.test(line);
+    fenced.push(open || delimiter);
+    if (delimiter) open = !open;
+  }
+  return fenced;
+}
 
 export function normalizeCue(text: string): string {
   return String(text || "")
@@ -30,9 +47,12 @@ export function normalizeCue(text: string): string {
 
 export function parseReminders(markdown: string): string[] {
   const lines = String(markdown).split(/\r?\n/);
+  const fenced = fencedLines(lines);
   const out: string[] = [];
   let inRem = false;
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index += 1) {
+    if (fenced[index]) continue;
+    const line = lines[index];
     if (REMINDERS_HEADING.test(line.trim())) {
       inRem = true;
       continue;
@@ -83,7 +103,10 @@ export function appendCueBullet(
 
   const bullet = `- ${text}`;
   const lines = source.split(/\r?\n/);
-  const headingIndex = lines.findIndex((line) => REMINDERS_HEADING.test(line.trim()));
+  const fenced = fencedLines(lines);
+  const headingIndex = lines.findIndex(
+    (line, index) => !fenced[index] && REMINDERS_HEADING.test(line.trim()),
+  );
 
   if (headingIndex === -1) {
     const base = trimTrailingBlankLines(lines).join("\n");
@@ -94,6 +117,7 @@ export function appendCueBullet(
   const headingLevel = lines[headingIndex].match(ANY_HEADING)?.[1].length ?? 2;
   let sectionEnd = lines.length;
   for (let index = headingIndex + 1; index < lines.length; index += 1) {
+    if (fenced[index]) continue;
     const heading = lines[index].match(ANY_HEADING);
     if (heading && heading[1].length <= headingLevel) {
       sectionEnd = index;
@@ -105,13 +129,16 @@ export function appendCueBullet(
   const body = trimTrailingBlankLines(
     lines
       .slice(headingIndex + 1, sectionEnd)
-      .filter((line) => !EMPTY_BULLET.test(line)),
+      .filter((line, offset) => fenced[headingIndex + 1 + offset] || !EMPTY_BULLET.test(line)),
   );
+  // Keep a blank line after prose or a fence; keep a tight list after a bullet.
+  const separator = body.length && !BULLET.test(body[body.length - 1]) ? [""] : [];
 
   return ensureTrailingNewline(
     [
       ...lines.slice(0, headingIndex + 1),
       ...(body.length ? body : [""]),
+      ...separator,
       bullet,
       "",
       ...lines.slice(sectionEnd),
@@ -121,21 +148,24 @@ export function appendCueBullet(
 
 /**
  * Every cue of the year as one card, newest first, deduped by normalized text.
- * Repeats collapse into a single card that carries the repeat count.
+ * Repeats collapse into a single card that carries the repeat count. Cues that
+ * share a date keep the order they appear in the note.
  */
 export function buildCueCards(cues: readonly Cue[], year: number): CueCard[] {
   const prefix = `${year}-`;
   const byKey = new Map<string, CueCard>();
+  const seenAt = new Map<string, number>();
   const ordered = cues
     .filter((cue) => String(cue.date || "").startsWith(prefix))
     .slice()
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
-  for (const cue of ordered) {
+  ordered.forEach((cue, index) => {
     const key = normalizeCue(cue.text);
-    if (!key) continue;
+    if (!key) return;
     const previous = byKey.get(key);
     if (!previous) {
+      seenAt.set(key, index);
       byKey.set(key, {
         key,
         text: String(cue.text).trim(),
@@ -144,19 +174,19 @@ export function buildCueCards(cues: readonly Cue[], year: number): CueCard[] {
         firstSeen: cue.date,
         lastSeen: cue.date,
       });
-      continue;
+      return;
     }
+    seenAt.set(key, index);
     previous.count += 1;
     previous.text = String(cue.text).trim();
     previous.focus = cue.focus || previous.focus;
     previous.lastSeen = cue.date;
-  }
+  });
 
   return [...byKey.values()].sort(
     (a, b) =>
       b.lastSeen.localeCompare(a.lastSeen) ||
-      b.count - a.count ||
-      a.key.localeCompare(b.key),
+      (seenAt.get(a.key) ?? 0) - (seenAt.get(b.key) ?? 0),
   );
 }
 
