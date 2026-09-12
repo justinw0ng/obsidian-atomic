@@ -94,4 +94,4 @@ README hero (`scripts/capture-readme-hero.sh`, or `npm run docs:hero-gif` from t
 - Hide heatmap, bookshelf, and cue overlay scroll thumbs and bars. The hero banner shows no scrollbar chrome.
 - Center the mobile / narrow view in the hero. Do not left-align it in the phone frame.
 
-Scripts: `npm run docs:user-guide-screenshots`, `scripts/capture-readme-hero.sh`.
+Scripts: `npm run docs:user-guide-screenshots`, `scripts/capture-readme-hero.sh`, `npm run docs:hero-gif`.
