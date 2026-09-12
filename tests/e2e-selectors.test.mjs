@@ -243,6 +243,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /bodyOverflowY/);
   assert.match(health, /scrollTop/);
   assert.match(health, /scrollbarSize/);
+  assert.match(health, /widthSettled/);
   assert.match(health, /長句寬度測試/);
   assert.match(health, /atomic-cue-log-add/);
   assert.match(health, /前臂放鬆/);

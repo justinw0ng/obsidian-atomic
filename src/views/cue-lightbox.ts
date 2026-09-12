@@ -164,27 +164,47 @@ function sizeLightboxCard(
 
 /** Longest unwrapped cue line plus paper padding; CJK stays one measure line. */
 function measureCueLightboxContentWidth(card: HTMLElement): number {
-  const text = cueLightboxHtmlElement(card.querySelector(".atomic-cue-text"));
   const sheet = cueLightboxHtmlElement(card.querySelector(".atomic-cue-sheet"));
-  const meta = cueLightboxHtmlElement(card.querySelector(".atomic-cue-meta"));
-  if (!text || !sheet) return CUE_CARD_FAN_WIDTH_PX;
-  const previous = {
-    width: text.style.width,
-    wrap: text.style.overflowWrap,
-    wordBreak: text.style.wordBreak,
-  };
-  text.style.width = "max-content";
-  text.style.overflowWrap = "normal";
-  text.style.wordBreak = "keep-all";
-  const textWidth = text.scrollWidth;
-  const metaWidth = meta ? meta.scrollWidth : 0;
-  text.style.width = previous.width;
-  text.style.overflowWrap = previous.wrap;
-  text.style.wordBreak = previous.wordBreak;
-  const style = card.ownerDocument.defaultView?.getComputedStyle(sheet);
-  const pad = style ? parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) : 0;
-  const chrome = Number.isFinite(pad) ? pad : 0;
-  return Math.ceil(Math.max(textWidth, metaWidth) + chrome);
+  if (!sheet) return CUE_CARD_FAN_WIDTH_PX;
+  const probe = sheet.cloneNode(true);
+  if (!probe.instanceOf(HTMLElement)) return CUE_CARD_FAN_WIDTH_PX;
+  probe.style.position = "absolute";
+  probe.style.left = "-10000px";
+  probe.style.top = "0";
+  probe.style.width = "max-content";
+  probe.style.maxWidth = "none";
+  probe.style.maxHeight = "none";
+  probe.style.height = "auto";
+  probe.style.overflow = "visible";
+  probe.style.visibility = "hidden";
+  probe.style.pointerEvents = "none";
+  probe.setAttr("aria-hidden", "true");
+  const probeBody = cueLightboxHtmlElement(probe.querySelector(".atomic-cue-body"));
+  if (probeBody) {
+    probeBody.style.overflow = "visible";
+    probeBody.style.maxHeight = "none";
+  }
+  const probeText = cueLightboxHtmlElement(probe.querySelector(".atomic-cue-text"));
+  if (probeText) {
+    probeText.style.width = "max-content";
+    probeText.style.maxWidth = "none";
+    probeText.style.overflowWrap = "normal";
+    probeText.style.wordBreak = "keep-all";
+    const blocks = probeText.querySelectorAll("p, li");
+    for (let index = 0; index < blocks.length; index += 1) {
+      const block = cueLightboxHtmlElement(blocks.item(index));
+      if (!block) continue;
+      block.style.width = "max-content";
+      block.style.maxWidth = "none";
+      block.style.whiteSpace = "nowrap";
+      block.style.overflowWrap = "normal";
+      block.style.wordBreak = "keep-all";
+    }
+  }
+  card.appendChild(probe);
+  const width = probe.scrollWidth;
+  probe.detach();
+  return Math.max(1, Math.ceil(width));
 }
 
 function cueLightboxHtmlElement(node: Element | null): HTMLElement | null {

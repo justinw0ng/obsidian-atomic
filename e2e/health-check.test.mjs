@@ -111,11 +111,19 @@ function cueLightboxMetrics(driver) {
     const sourceSheet = source?.querySelector(".atomic-cue-sheet");
     const sourceText = source?.querySelector(".atomic-cue-text");
     const bodyStyle = body ? getComputedStyle(body) : null;
+    const cardStyle = getComputedStyle(card);
     const rect = card.getBoundingClientRect();
     const textStyle = text ? getComputedStyle(text) : null;
     const sheetStyle = sheet ? getComputedStyle(sheet) : null;
     const sourceTextStyle = sourceText ? getComputedStyle(sourceText) : null;
     const sourceSheetStyle = sourceSheet ? getComputedStyle(sourceSheet) : null;
+    const layoutWidth = parseFloat(
+      cardStyle.getPropertyValue("--atomic-cue-lightbox-width") || card.style.getPropertyValue("--atomic-cue-lightbox-width"),
+    );
+    const flyScale = parseFloat(
+      cardStyle.getPropertyValue("--atomic-cue-fly-scale") || card.style.getPropertyValue("--atomic-cue-fly-scale"),
+    );
+    const expectedWidth = (Number.isFinite(layoutWidth) ? layoutWidth : 0) * (Number.isFinite(flyScale) && flyScale > 0 ? flyScale : 1);
     return {
       present: true,
       placed: overlay.classList.contains("is-placed"),
@@ -130,6 +138,10 @@ function cueLightboxMetrics(driver) {
       centerY: (rect.top + rect.bottom) / 2,
       vw: window.innerWidth,
       vh: window.innerHeight,
+      layoutWidth: Number.isFinite(layoutWidth) ? layoutWidth : 0,
+      flyScale: Number.isFinite(flyScale) ? flyScale : 0,
+      expectedWidth,
+      widthSettled: expectedWidth > 0 && Math.abs(rect.width - expectedWidth) < 12,
       overflowY: getComputedStyle(overlay).overflowY,
       cardOverflowY: getComputedStyle(card).overflowY,
       bodyOverflowY: bodyStyle?.overflowY || "",
@@ -177,7 +189,11 @@ async function waitForCueLightbox(driver, textNeedle) {
       last = await cueLightboxMetrics(driver);
       if (!last?.placed) return false;
       if (textNeedle && !String(last.text).includes(textNeedle)) return false;
-      return Math.abs(last.centerX - last.vw / 2) < 48;
+      return (
+        Math.abs(last.centerX - last.vw / 2) < 48
+        && Math.abs(last.centerY - last.vh / 2) < 64
+        && last.widthSettled
+      );
     }, 8000);
   } catch {
     throw new Error(`cue lightbox never opened: ${JSON.stringify(last)}`);
