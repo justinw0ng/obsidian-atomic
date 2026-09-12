@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,22 +24,39 @@ test("user guide has no journey-style metaphors", () => {
   assert.doesNotMatch(guide, /\bsaga\b/i);
 });
 
-test("user guide is topic-by-topic and user-centric", () => {
-  assert.match(guide, /^## What Atomic Tracker does$/m);
+test("user guide follows one day from today's note", () => {
   assert.match(guide, /^## Install Atomic Tracker$/m);
-  assert.match(guide, /^## Choose your habits$/m);
-  assert.match(guide, /^## See a year of habits$/m);
-  assert.match(guide, /^## See today$/m);
-  assert.match(guide, /^## See the year on one page$/m);
-  assert.match(guide, /^## Start a gym or golf session$/m);
-  assert.match(guide, /^## Time a session$/m);
-  assert.match(guide, /^## Log gym sets$/m);
-  assert.match(guide, /^## Keep cues you will reuse$/m);
-  assert.match(guide, /^## Track reading$/m);
-  assert.match(guide, /^## Time your reading$/m);
-  assert.match(guide, /^## See your books on a shelf$/m);
-  assert.match(guide, /improves daily habit tracking|records exercise, reading/);
-  assert.match(guide, /upcoming popup/);
+  assert.match(guide, /^## Open today’s note$/m);
+  assert.match(guide, /^## Heatmap$/m);
+  assert.match(guide, /^## Timer$/m);
+  assert.match(guide, /^## Gym log$/m);
+  assert.match(guide, /^## Cues$/m);
+  assert.match(guide, /^## Reading$/m);
+  assert.match(guide, /^## Cue cards and the shelf$/m);
+  assert.match(guide, /examples\/daily-notes\/2026-08-11\.md/);
+  assert.match(guide, /records gym, golf, and reading/);
+  assert.match(guide, /enlarge it in the center/);
+});
+
+test("user guide has no capture or author meta", () => {
+  assert.doesNotMatch(guide, /docs\/images/);
+  assert.doesNotMatch(guide, /docs\/demo-covers/);
+  assert.doesNotMatch(guide, /Readable line length/);
+  assert.doesNotMatch(guide, /captured on Linux/);
+  assert.doesNotMatch(guide, /window chrome/);
+  assert.doesNotMatch(guide, /publisher artwork/);
+  assert.doesNotMatch(guide, /invented titles/);
+  assert.doesNotMatch(guide, /Framer/);
+  assert.doesNotMatch(guide, /upcoming popup/);
+  assert.doesNotMatch(guide, /OBSIDIAN_PLUGIN_OUT/);
+  assert.doesNotMatch(guide, /heading above the UI/);
+  assert.doesNotMatch(guide, /scrollbar hidden/);
+  assert.doesNotMatch(guide, /plugin chrome/);
+  assert.doesNotMatch(guide, /npm install/);
+  assert.doesNotMatch(guide, /npm run build/);
+  assert.doesNotMatch(guide, /Build this plugin/);
+  assert.doesNotMatch(guide, /Vault layout/);
+  assert.doesNotMatch(guide, /```text/);
 });
 
 test("user guide usage images are GIFs that exist", () => {
