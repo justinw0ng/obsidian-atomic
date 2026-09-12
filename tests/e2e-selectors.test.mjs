@@ -230,6 +230,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-cue-lightbox-card/);
   assert.match(health, /atomic-cue-lightbox-backdrop/);
   assert.match(health, /isCssTransparent/);
+  assert.match(health, /backdropFilter/);
   assert.match(health, /sourcePaddingLeft/);
   assert.match(health, /sheetBgImage/);
   assert.match(health, /fadeOpacity/);
@@ -255,6 +256,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /--atomic-cue-wash/);
   assert.match(styles, /--atomic-cue-stock/);
   assert.match(styles, /atomic-cue-lightbox/);
+  assert.match(styles, /--atomic-cue-backdrop-blur/);
+  assert.match(styles, /backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.match(styles, /-webkit-backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
   assert.match(styles, /translate\(-50%, -50%\) scale\(var\(--atomic-cue-fly-scale\)\)/);
   assert.match(styles, /\.is-preview/);
   assert.match(styles, /\.is-flying/);

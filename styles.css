@@ -2016,11 +2016,12 @@
 /*
   Fly the same ruled index card to the center and scale it. Lives on
   document.body so note overflow and the fan's contain: layout cannot clip
-  it. The backdrop is a transparent hit target only — no wash, no restyle.
-  No masks, no overlay scrollbars.
+  it. The backdrop is a transparent hit target that blurs what is behind
+  the card — no dim wash, no restyle, no masks, no overlay scrollbars.
 */
 .fitness-plugin.atomic-cue-lightbox {
   --atomic-cue-fly-scale: 1.65;
+  --atomic-cue-backdrop-blur: 10px;
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -2034,6 +2035,29 @@
   position: absolute;
   inset: 0;
   background: transparent;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition:
+    -webkit-backdrop-filter 420ms var(--atomic-cue-pop),
+    backdrop-filter 420ms var(--atomic-cue-pop);
+}
+
+.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
+  -webkit-backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
+  backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
+}
+
+/*
+  Engines without backdrop-filter keep the transparent hit target.
+  Do not substitute a dim / opacity wash; css-masks is also off-limits.
+*/
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fitness-plugin .atomic-cue-lightbox-backdrop,
+  .fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
@@ -2093,7 +2117,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
+  .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card,
+  .fitness-plugin .atomic-cue-lightbox-backdrop {
     transition: none;
   }
 }

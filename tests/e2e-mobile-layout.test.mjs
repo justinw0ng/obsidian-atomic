@@ -389,6 +389,19 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
   assert.match(backdrop.body, /background:\s*transparent/);
   assert.doesNotMatch(backdrop.body, /rgba/);
 
+  const blurred = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop",
+  );
+  assert.match(blurred.body, /backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.match(blurred.body, /-webkit-backdrop-filter:\s*blur\(var\(--atomic-cue-backdrop-blur\)\)/);
+  assert.doesNotMatch(blurred.body, /rgba/);
+  assert.doesNotMatch(blurred.body, /mask/);
+  assert.match(styles, /@supports not \(\(backdrop-filter: blur\(1px\)\)/);
+  const fallback = styles.slice(styles.indexOf("@supports not ((backdrop-filter"));
+  assert.match(fallback, /background:\s*transparent/);
+  assert.doesNotMatch(fallback.slice(0, 400), /rgba/);
+
   const placed = cssRule(
     styles,
     ".fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card",

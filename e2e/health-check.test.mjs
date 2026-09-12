@@ -134,6 +134,13 @@ function cueLightboxMetrics(driver) {
       clamped: !!(body && body.scrollHeight > body.clientHeight + 1),
       overlayBg: getComputedStyle(overlay).backgroundColor,
       backdropBg: backdrop ? getComputedStyle(backdrop).backgroundColor : "",
+      backdropFilter: backdrop
+        ? String(
+            getComputedStyle(backdrop).backdropFilter
+              || getComputedStyle(backdrop).webkitBackdropFilter
+              || "",
+          )
+        : "",
       transform: getComputedStyle(card).transform,
       fontSize: textStyle?.fontSize || "",
       fontFamily: textStyle?.fontFamily || "",
@@ -324,6 +331,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         isCssTransparent(lightbox.backdropBg),
         `backdrop must stay transparent: ${lightbox.backdropBg}`,
       );
+      assert.match(
+        String(lightbox.backdropFilter),
+        /blur\(/,
+        `backdrop must blur, not dim: ${lightbox.backdropFilter}`,
+      );
       assert.match(String(lightbox.transform), /matrix/, "the card flies with a scale transform");
       assert.equal(lightbox.sourceFlying, true, "the fan sheet hides so the same card appears to fly");
       assert.equal(lightbox.fontSize, lightbox.sourceFontSize, "centered type matches the fan card");
@@ -404,6 +416,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.ok(phoneLightbox.width > 200, "phone lightbox is a larger card");
       assert.equal(phoneLightbox.clamped, false);
       assert.ok(isCssTransparent(phoneLightbox.backdropBg), "phone tap must not dim the fan");
+      assert.match(String(phoneLightbox.backdropFilter), /blur\(/, "phone backdrop blurs without a wash");
       assert.equal(phoneLightbox.fontSize, phoneLightbox.sourceFontSize);
       assert.equal(phoneLightbox.paddingLeft, phoneLightbox.sourcePaddingLeft);
       assert.match(String(phoneLightbox.sheetBgImage), /linear-gradient/);
