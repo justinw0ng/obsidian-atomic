@@ -1,72 +1,43 @@
 # Atomic Tracker — user guide
 
-Step-by-step setup for the Obsidian Atomic Tracker plugin: gym and golf sessions, Reading timers, heatmaps, dashboard, cue rollups, and bookshelf views under `atomics/**`.
+Atomic Tracker records exercise, reading, and other habits in your Obsidian vault. Each topic below is one thing you can do. Watch the clip, then do the same in your vault.
 
-Screenshots live in [`docs/images/`](./images/). Captured on Linux with Obsidian in Light mode; macOS and Windows look the same aside from window chrome. Book-shelf and Reading shots use original typographic demo covers with invented titles, not publisher artwork.
+Clips live in [`docs/images/`](./images/). They were captured on Linux in **Light** mode with **Readable line length** off. macOS and Windows look the same aside from window chrome. Book-shelf and Reading clips use original typographic demo covers with invented titles, not publisher artwork.
 
----
-
-## What you get
-
-| Feature | How you use it |
-|---------|----------------|
-| Year heatmaps | `atomic-heatmap` codeblock |
-| Today’s sessions | `atomic-today` codeblock |
-| Yearly dashboard | `atomic-dashboard` codeblock |
-| Golf cue cards | `atomic-golf-cues` |
-| Gym cue cards | `atomic-gym-cues` |
-| Generic cue cards | `atomic-cues` with `activity: golf` or `activity: gym` |
-| Cue entry | `atomic-cue-log` on a session note — type a cue, click Add cue |
-| Quick actions | `atomic-actions`, or the command palette |
-| New gym / golf notes | **Atomic Tracker: New gym session** / **New golf session** |
-| Exercise session timer | `atomic-timer` on a gym/golf/exercise date note — writes `duration_min` |
-| Gym set log | On a gym note, pick an exercise, enter weight/reps, click Add set. The table row is written for you |
-| Reading items | **Atomic Tracker: New reading item** |
-| Reading timer | `atomic-timer` in a Reading item note |
-| Reading notes in Bases | **Atomic Tracker: Open reading Bases** |
-| Book shelf | `atomic-bookshelf`, or **Atomic Tracker: Open book shelf** |
-| Property dropdowns | Dropdowns in Properties / Bases (Reading `status`; golf `felt`; gym/golf `location` preset or **Custom…**; gym `weight_unit`) |
-
-Session data is plain markdown in your vault. Nothing is sent over the network.
+Session data is plain markdown under `atomics/**`. Nothing is sent over the network.
 
 Rendered views (heatmap, dashboard, book shelf, timer, gym set log, cues) do not show an “Atomic Tracker …” heading above the UI. The plugin name stays in Settings and in command palette prefixes only.
 
 ---
 
-## 1. Install Obsidian
+## What Atomic Tracker does
 
-1. Download Obsidian from [obsidian.md/download](https://obsidian.md/download).
-2. Install for your OS.
-3. Launch Obsidian.
-
-![Obsidian welcome screen](./images/01-obsidian-welcome.png)
-
----
-
-## 2. Create or open a vault
-
-1. Choose **Create new vault** (or open an existing one).
-2. Name it (example: `Atomic Demo`).
-3. Pick a folder on disk and create it.
-
-![Create a new vault](./images/02-create-vault.png)
-
-![Vault open in Obsidian](./images/03-vault-open.png)
+| You want to | Use |
+|-------------|-----|
+| See a year of work | `atomic-heatmap` |
+| See today’s sessions | `atomic-today` |
+| See the year as cards and totals | `atomic-dashboard` |
+| Start a gym or golf session | `atomic-actions`, or **New gym session** / **New golf session** |
+| Time a gym or golf session | `atomic-timer` on the date note — writes `duration_min` |
+| Log a gym set | Pick an exercise, enter weight and reps, click **Add set** |
+| Keep a cue you will reuse | `atomic-cue-log` on the session note, then `atomic-golf-cues` / `atomic-gym-cues` / `atomic-cues` |
+| Track a book or other item habit | **New reading item** (or **New hobby item**) plus `atomic-timer` |
+| See books on a shelf | `atomic-bookshelf`, or **Open book shelf** |
+| Browse Reading notes in Bases | **Open reading Bases** |
+| Fill Properties without typing | Dropdowns for Reading `status`, golf `felt`, gym/golf `location` (preset or **Custom…**), gym `weight_unit` |
 
 ---
 
-## 3. Turn on community plugins
+## Install Atomic Tracker
 
-1. Open **Settings** (gear icon, or `Ctrl/Cmd + ,`).
-2. Go to **Community plugins**.
-3. If you see **Restricted mode**, turn it off.
-4. Confirm any trust prompt for your vault.
+1. Download Obsidian from [obsidian.md/download](https://obsidian.md/download) and create or open a vault.
+2. **Settings → Community plugins**. Turn off **Restricted mode** if you see it, and confirm any trust prompt.
+3. Install the plugin (community listing when available, or the three GitHub Release files below).
+4. Find **Atomic Tracker** and toggle it on.
 
-![Community plugins settings](./images/04-settings-community-plugins.png)
+![Enable Atomic Tracker](./images/06-enable-atomic-plugin.gif)
 
----
-
-## 4. Install Atomic Tracker
+After you **update** Atomic Tracker to a new version, a short **What's new** notification appears once (the same live toast Obsidian uses for other plugin messages). It dismisses on its own. It does not show again until a later version ships another note. The body follows **Settings → Language**: English when Language is English; Cantonese Traditional Chinese when Language is Traditional Chinese & English.
 
 ### Manual install from a GitHub Release
 
@@ -78,9 +49,7 @@ For end users who are not building from source:
 
 Do **not** use GitHub’s “Source code (zip)” or any `.zip` asset. Releases do not publish an `atomic-tracker-*.zip`. Obsidian needs those three files sitting in the `atomic-tracker` plugin folder; a source zip is the wrong artifact.
 
-![Plugin folder layout](./images/05-install-plugin-folder.png)
-
-The screenshot may show a demo path under `/tmp/...`. On your machine use `<your-vault>/.obsidian/plugins/atomic-tracker/` with the same three files.
+On your machine the folder is `<your-vault>/.obsidian/plugins/atomic-tracker/` with the same three files.
 
 ### Build this plugin from source
 
@@ -109,21 +78,11 @@ npm run build
 
 ---
 
-## 5. Enable Atomic Tracker
+## Choose your habits
 
-1. **Settings → Community plugins**.
-2. Click **Reload plugins** if the list is stale.
-3. Find **Atomic Tracker** and toggle it on.
+Open **Settings → Atomic Tracker**. Enable the habits you actually do. One color picker per habit becomes the four heatmap shades (light → dark). Disable a habit to hide it from heatmaps, the dashboard, and commands without deleting notes. Delete removes it from settings only (Reading is not force-added back afterward).
 
-![Enable Atomic plugin](./images/06-enable-atomic-plugin.png)
-
-After you **update** Atomic Tracker to a new version, a short **What's new** notification appears once (the same live toast Obsidian uses for other plugin messages). It dismisses on its own. It does not show again until a later version ships another note. The body follows **Settings → Language**: English when Language is English; Cantonese Traditional Chinese when Language is Traditional Chinese & English.
-
----
-
-## 6. Configure settings
-
-**Settings → Atomic Tracker**:
+![Atomic Tracker settings](./images/07-settings-atomic.gif)
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
@@ -134,17 +93,11 @@ After you **update** Atomic Tracker to a new version, a short **What's new** not
 | Gym exercises | empty until you log or import | Exercises for the dropdown; **Import from gym notes** remembers old ones and adds the form to old gym notes |
 | General habits | Reading | Enable/disable, label, folder, **one color**, delete; add custom item+timer habits |
 
-![Atomic settings — exercise + general habits](./images/07-settings-atomic.png)
-
-Each habit has a single color picker. Atomic derives the four heatmap shades (light → dark) automatically; a small swatch row previews them. Disable a habit to hide it from heatmaps, dashboard, and commands without deleting vault notes. Delete removes it from settings only (Reading is not force-added back afterward).
-
 Exercise folders default to `atomics/exercise/Gym` and `atomics/exercise/Golf`. Reading defaults to `atomics/hobbies/Reading` with item notes under `Items/`.
 
 Language only changes plugin chrome, prompts, notices, command names after reload, and templates created after the change. There is no Simplified Chinese or Chinese-only mode.
 
----
-
-## 7. Recommended vault layout
+### Vault layout
 
 ```text
 Vault/
@@ -173,36 +126,19 @@ Vault/
     └── styles.css
 ```
 
-### Dashboard note example
-
-Same note as [`examples/dashboard/Dashboard.md`](../examples/dashboard/Dashboard.md). Copy it to `atomics/Dashboard.md`:
-
-````markdown
----
-year: 2026
----
-
-# Atomic Dashboard
-
-```atomic-dashboard
-# Uncomment a line to use it. Lines that start with # are ignored.
-year: 2026  # calendar year. Omit to use the note year property, or this year
-```
-````
-
 A daily-note composition (book shelf, actions, 2×2 heatmaps, today) is in [`examples/daily-notes/2026-08-11.md`](../examples/daily-notes/2026-08-11.md). The reusable Obsidian template is [`examples/templates/Atomic daily note.md`](../examples/templates/Atomic%20daily%20note.md). Setup: [examples/README.md](../examples/README.md#use-the-daily-note-template).
 
-### Heatmap note example
+---
 
-Newly created UI blocks include every option as a comment, so you can customize them without opening this guide. Uncomment a line to use it; lines that start with `#` are ignored.
+## See a year of habits
+
+`atomic-heatmap` paints one year of minutes so you can see streaks and gaps. It shows **all enabled** habits by default. Narrow it with `activity:`.
+
+![Year heatmap](./images/atomic-heatmap.gif)
+
+Newly created UI blocks include every option as a comment. Uncomment a line to use it; lines that start with `#` are ignored.
 
 ````markdown
-# Heatmaps
-
-```atomic-actions
-# No options. One button for each enabled habit.
-```
-
 ```atomic-heatmap
 # Uncomment a line to use it. Lines that start with # are ignored.
 year: 2026  # calendar year. Omit to use a YYYY-MM-DD note path, or this year
@@ -212,14 +148,11 @@ year: 2026  # calendar year. Omit to use a YYYY-MM-DD note path, or this year
 # min-column-width: 300  # wrap below this column width in px. Default: 300
 # default-span: 1.2  # relative width of each heatmap column. Default: 1.2
 ```
-
-```atomic-today
-# Uncomment a line to use it. Lines that start with # are ignored.
-# date: 2026-08-08  # YYYY-MM-DD. Omit to use the note path date, or today
-```
 ````
 
-`atomic-heatmap` shows **all enabled** habits by default. Narrow it with `activity:`:
+Watch the same year filtered to Reading, then Gym + Golf, then all three:
+
+![Heatmap activity filters](./images/atomic-heatmap-activity-filter.gif)
 
 ````markdown
 ```atomic-heatmap
@@ -244,22 +177,177 @@ year: 2026
 
 Use `activity: all` (or omit the field) for every enabled exercise + general habit. Unknown or disabled ids show a short notice; valid ids in the list still render.
 
-With multiple activities, `columns` greater than `1` lays out heatmaps in a responsive grid (`.fitness-heatmap-grid`) that wraps when the pane is narrower than `columns × min-column-width`. `columns: 1` (default) keeps the original vertical stack.
+With multiple activities, `columns` greater than `1` lays out heatmaps in a responsive grid (`.fitness-heatmap-grid`) that wraps when the pane is narrower than `columns × min-column-width`. `columns: 1` (default) keeps a vertical stack.
 
-![Heatmap activity filter examples](./images/atomic-heatmap-activity-filter.png)
+On a narrow pane the year grid scrolls horizontally (scrollbar hidden) so every day cell stays a full circle. Today is a ring on that day’s circle: **black in light mode**, **white in dark mode**.
+
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `rows` | `1` | Preferred row count for the grid |
+| `columns` | `1` | Max columns (`1` = vertical stack) |
+| `min-column-width` | `300` | Minimum px width per column before wrapping |
+| `default-span` | `1.2` | CSS `fr` weight for each grid track |
+
+---
+
+## See today
+
+`atomic-today` lists today’s gym, golf, and other exercise sessions so you can open the note you need.
+
+![Today’s sessions](./images/atomic-today.gif)
+
+````markdown
+```atomic-today
+# Uncomment a line to use it. Lines that start with # are ignored.
+# date: 2026-08-08  # YYYY-MM-DD. Omit to use the note path date, or today
+```
+````
+
+---
+
+## See the year on one page
+
+Open `atomics/Dashboard.md` with **Atomic Tracker: Open dashboard**, or paste an `atomic-dashboard` fence into any note. Use Reading view. `year:` in the fence wins, then the note’s `year` property, then this calendar year. The `‹ ›` switcher only changes the on-screen year; it does not edit the note.
+
+![Year dashboard](./images/atomic-dashboard.gif)
+
+Same note as [`examples/dashboard/Dashboard.md`](../examples/dashboard/Dashboard.md):
+
+````markdown
+---
+year: 2026
+---
+
+# Atomic Dashboard
+
+```atomic-dashboard
+# Uncomment a line to use it. Lines that start with # are ignored.
+year: 2026  # calendar year. Omit to use the note year property, or this year
+```
+````
+
+The block is a stack of cards for that year:
+
+- **Header** — `{year} overview`, the date range and session count, a `‹ ›` year switcher, and chips that open Gym/Golf cues or reading Bases.
+- **KPI cards** — exercise sessions and exercise time when any exercise habit is enabled (sessions include a monthly sparkline). **Volume lifted** appears when a set-table habit such as Gym has logged sets. **Habit time** appears when a timer habit such as Reading has minutes.
+- **Activity cards** — one card per enabled habit. Exercise cards show sessions, minutes, optional volume, monthly bars sized by hours that month, last session date, and a cues link. Golf also shows how sessions felt. Habit cards show item count, timer minutes, monthly bars sized by hours, and Reading’s in-progress count plus Bases and book shelf links.
+- **Monthly** — grouped bars of sessions per month by activity. Open **Show monthly table** for the exact grid, including volume (kg) and habit minutes when those apply.
+- **Muscles / Golf focus** — shown only when the data exists: Gym set-table volume by muscle, and Golf focus tags across sessions.
+- **Recent sessions** — latest ten notes. Click a row to open that session.
+
+Disable a habit in Settings to drop its card, chips, and KPI contribution without deleting notes. On a narrow pane the same cards stack to one column.
+
+---
+
+## Start a gym or golf session
+
+Put `atomic-actions` on a note. Every **enabled** habit appears as a button: exercise types create a daily session; general habits (Reading, Chess, …) create an item note.
+
+![Quick actions](./images/atomic-actions.gif)
+
+````markdown
+```atomic-actions
+# No options. One button for each enabled habit.
+```
+````
+
+Or use the command palette (`Ctrl/Cmd + P`):
+
+1. Run **Atomic Tracker: New gym session** or **Atomic Tracker: New golf session**
+2. Enter the date, then follow location / unit prompts for gym
+
+Gym notes keep sets in a markdown table and cues under a **Reminders** heading. Golf notes store cues under **Reminders** too. Those feed the cue cards.
+
+### Session frontmatter and property dropdowns
+
+Gym and golf daily notes use `type: session` frontmatter. Atomic turns several fields into **dropdowns** in Properties (and in Bases table cells).
+
+| Property | Golf sessions (`activity: golf`) | Gym sessions (`activity: gym`) |
+|----------|----------------------------------|--------------------------------|
+| `location` | Home net, Driving range, Course, Other — plus **Custom…** | Home, Commercial, Hotel/Travel, Other — plus **Custom…** |
+| `felt` | good, ok, bad | — |
+| `weight_unit` | — | kg, lb |
+
+For `location`, pick a preset or **Custom…** at the bottom of the list. **Custom…** opens a prompt; whatever you enter is stored in `location`. When you create a gym session and choose predefined **Other**, Atomic may still ask for `location_detail` (separate from a custom `location` string).
+
+Dropdown labels follow **Settings → Atomic Tracker → Language**. If a note already has a value outside the list, it still appears as an extra option so nothing is lost.
+
+After updating the plugin, reload Atomic once (toggle off/on under Community plugins) if dropdowns do not appear immediately.
+
+---
+
+## Time a session
+
+New gym, golf, and other exercise date notes include `atomic-timer`. **Start** / **Stop** write elapsed minutes into `duration_min` (added to whatever is already there) and clear `timer_started_at`. Stop does not prompt for a Time log note and does not add a Time log section — gym set rows stay independent.
+
+![Session timer](./images/atomic-session-timer.gif)
+
+````markdown
+```atomic-timer
+# No options. Start, Stop, Resume, or Discard the timer on this note.
+```
+````
+
+Heatmaps and the dashboard still read `duration_min` from the date file. The timer lives on that file (`atomics/exercise/<Activity>/YYYY/YYYY-MM-DD.md`), not on the daily note.
+
+You can still type `duration_min` by hand. Older session notes: paste the fence onto the date file (above the set table on gym notes).
+
+---
+
+## Log gym sets
+
+You do not have to type each table row. New gym notes include `atomic-gym-log`.
+
+![Gym set log](./images/atomic-gym-log.gif)
+
+````markdown
+```atomic-gym-log
+# No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself.
+```
+````
+
+1. Pick an **exercise** from the dropdown (ones you have logged before).
+2. Enter **Weight**, **Reps**, and an optional **Notes** value.
+3. Click **Add set**. A row appears in the table on the same note. The dropdown stays on that exercise so the next set is one tap away.
+
+**New exercise…** at the bottom of the dropdown saves a new exercise so you can pick it next time. Saved exercises live in plugin settings, not in a vault note.
+
+After you update from an older Atomic version, an **Easier gym sets** modal explains the form and offers a one-time setup: remember exercises from your old gym notes, and add this form to notes that don't have it. Choose **Later** to skip; **Settings → Atomic Tracker → Import from gym notes** does the same thing.
+
+You can still edit the table by hand.
+
+---
+
+## Keep cues you will reuse
+
+A cue is a short reminder you want again — a golf swing thought, a gym setup, anything you would otherwise lose in a bullet list. Type it on the session note. Atomic saves it as markdown and shows it as an index card.
+
+![Add a cue](./images/atomic-cue-log.gif)
+
+New exercise session notes include a cue form under **Reminders**:
+
+````markdown
+```atomic-cue-log
+# No options. Type a cue and add it. It is saved as a bullet under this note's Reminders heading.
+```
+````
+
+1. Type the cue. Markdown and Traditional Chinese are fine; use more than one line if you need to.
+2. Click **Add cue** (or press Ctrl/Cmd+Enter).
+
+The cue is written as a `- ` bullet under **Reminders** on that note (extra lines stay indented so they belong to that one item). Older session notes: paste the fence under the note's **Reminders** heading. You can still type bullets by hand.
 
 ### Cue cards
 
-A cue page shows **every cue of the year as one index card** in a fanned stack, newest first. A
-repeated cue collapses onto a single card that carries a `×n` repeat badge, so there is no separate
-monthly or keepers list to read.
+The cue page shows **every cue of the year as one index card** in a fanned stack, newest first. A repeated cue collapses onto a single card that carries a `×n` repeat badge.
 
-Hover a card on desktop, or tap it on a phone, and it pops out of the fan and grows to the full cue
-with its date, focus, and repeat count. Tap again (or move the pointer away) to drop it back.
-Keyboard users can Tab to a card and press Enter or Space. With **Reduce motion** on, the card still
-reveals the cue, just without the lift.
+Hover a card on desktop (or tap it on a phone) and it lifts out of the fan so you can read the full cue, date, focus, and repeat count. Tap again (or move the pointer away) to drop it back. Keyboard users can Tab to a card and press Enter or Space. With **Reduce motion** on, the card still reveals the cue, just without the lift.
 
-### Cue note examples
+![Cue card hover lift](./images/atomic-cues-hover.gif)
+
+A follow-up build enlarges the card to the center of the pane with a blur-only backdrop (no dim overlay). This clip matches that upcoming popup:
+
+![Cue card center enlarge](./images/atomic-cue-popup.gif)
 
 `atomics/exercise/Golf/Cues.md`:
 
@@ -295,105 +383,9 @@ activity: golf  # required: golf, gym, or another exercise id
 
 ---
 
-## 8. Create your first sessions
-
-### From the command palette
-
-1. `Ctrl/Cmd + P`
-2. Run **Atomic Tracker: New gym session** or **Atomic Tracker: New golf session**
-3. Enter the date, then follow location / unit prompts for gym
-
-### From the actions codeblock
-
-Put `atomic-actions` on a note and use the buttons. Every **enabled** habit appears there: exercise types create a daily session; general habits (Reading, Chess, …) create an item note.
-
-![Quick actions, heatmap, and today](./images/atomic-actions.png)
-
-Gym notes keep sets in a markdown table and cues under a **Reminders** heading. Golf notes store cues under **Reminders** too. Those feed the cue cards.
-
-### Add a cue without typing markdown
-
-New exercise session notes include a cue form under the **Reminders** heading instead of an empty
-bullet:
-
-````markdown
-```atomic-cue-log
-# No options. Type a cue and add it. It is saved as a bullet under this note's Reminders heading.
-```
-````
-
-1. Type the cue. Markdown and Traditional Chinese are fine; use more than one line if you need to.
-2. Click **Add cue** (or press Ctrl/Cmd+Enter).
-
-The cue is written as a `- ` bullet under **Reminders** on that note (extra lines stay indented so
-they belong to that one item). Cues already on the note show as the same index cards as the cue
-page. Hover or press a long card to read the full markdown. You can still type bullets by hand.
-
-Older session notes: paste the fence under the note's **Reminders** heading.
-
-### Log gym sets without typing each row
-
-You don't have to fill in the gym table one row at a time.
-
-New gym notes include:
-
-````markdown
-```atomic-gym-log
-# No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself.
-```
-````
-
-![Gym set log](./images/atomic-gym-log.png)
-
-1. Pick an **exercise** from the dropdown (ones you have logged before).
-2. Enter **Weight**, **Reps**, and an optional **Notes** value.
-3. Click **Add set**. A row appears in the table on the same note. The dropdown stays on that exercise so the next set is one tap away.
-
-**New exercise…** at the bottom of the dropdown saves a new exercise so you can pick it next time. Saved exercises live in plugin settings, not in a vault note.
-
-After you update from an older Atomic version, an **Easier gym sets** modal explains the form and offers a one-time setup: remember exercises from your old gym notes, and add this form to notes that don't have it. Choose **Later** to skip; **Settings → Atomic Tracker → Import from gym notes** does the same thing.
-
-You can still edit the table by hand.
-
-### Time an exercise session
-
-New gym, golf, and other exercise date notes include the same `atomic-timer` block used on Reading items:
-
-````markdown
-```atomic-timer
-# No options. Start, Stop, Resume, or Discard the timer on this note.
-```
-````
-
-On a session note (`type: session`), **Start** / **Stop** write elapsed minutes into `duration_min` (added to whatever is already there) and clear `timer_started_at`. You can still type `duration_min` by hand. Stop does not prompt for a Time log note and does not add a Time log section — gym set rows stay independent.
-
-Heatmaps and the dashboard still read `duration_min` from the date file. The timer lives on that file (`atomics/exercise/<Activity>/YYYY/YYYY-MM-DD.md`), not on the daily note.
-
-Older session notes: paste the fence onto the date file (above the set table on gym notes).
-
-### Session frontmatter and property dropdowns
-
-Gym and golf daily notes use `type: session` frontmatter. Atomic turns several fields into **dropdowns** in Properties (and in Bases table cells).
-
-| Property | Golf sessions (`activity: golf`) | Gym sessions (`activity: gym`) |
-|----------|----------------------------------|--------------------------------|
-| `location` | Home net, Driving range, Course, Other — plus **Custom…** | Home, Commercial, Hotel/Travel, Other — plus **Custom…** |
-| `felt` | good, ok, bad | — |
-| `weight_unit` | — | kg, lb |
-
-For `location`, pick a preset or **Custom…** at the bottom of the list. **Custom…** opens a prompt; whatever you enter is stored in `location`. When you create a gym session and choose predefined **Other**, Atomic may still ask for `location_detail` (separate from a custom `location` string).
-
-Dropdown labels follow **Settings → Atomic → Language**. If a note already has a value outside the list, it still appears as an extra option so nothing is lost.
-
-After updating the plugin, reload Atomic once (toggle off/on under Community plugins) if dropdowns do not appear immediately.
-
----
-
-## 9. Track Reading and other general habits
+## Track reading
 
 **Reading / 睇書** is the default general habit (item notes + timer). You can disable or delete it in settings, and add other general habits the same way (for example Chess under `atomics/hobbies/Chess`).
-
-### Create a book or hobby item
 
 1. Run **Atomic Tracker: New reading item** (Reading only), or **Atomic Tracker: New hobby item** and pick an enabled general habit.
 2. Enter the item title.
@@ -437,9 +429,13 @@ related_canvas:
 
 Use **Remarks** for notes. **Time log** is managed by the timer.
 
-### Use the timer
+---
 
-Reading item notes include:
+## Time your reading
+
+Reading item notes include the same `atomic-timer` block. **Stop** asks for a short note, clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Those minutes feed the heatmap and the dashboard.
+
+![Reading timer](./images/atomic-reading-timer.gif)
 
 ````markdown
 ```atomic-timer
@@ -447,19 +443,15 @@ Reading item notes include:
 ```
 ````
 
-![Reading timer](./images/atomic-reading-timer.png)
+Exercise date notes use the same block but write `duration_min` instead (see [Time a session](#time-a-session)).
 
-In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Timer-log minutes feed `atomic-heatmap` and the dashboard hobby section. Exercise date notes use the same block but write `duration_min` instead (see [Time an exercise session](#time-an-exercise-session)).
+---
 
-### Open reading Bases
+## See your books on a shelf
 
-Run **Atomic Tracker: Open reading Bases**. Atomic Tracker creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
+Run **Atomic Tracker: Open book shelf**. Atomic Tracker creates `atomics/hobbies/Reading/Book Shelf.md` if missing. Hover (or tap once on a phone) rolls a cover open. Desktop click opens the book note; on a phone, a second tap opens the note.
 
-Soft-requires Obsidian’s **Bases** core plugin. If Bases is disabled, Atomic shows a notice and leaves the vault unchanged.
-
-### Open the book shelf
-
-Run **Atomic Tracker: Open book shelf**. Atomic Tracker creates `atomics/hobbies/Reading/Book Shelf.md` if missing:
+![Book shelf](./images/atomic-book-shelf.gif)
 
 ````markdown
 ```atomic-bookshelf
@@ -469,6 +461,8 @@ activity: reading  # habit id (enabled item habit with a timer). Default: readin
 # scale: 1  # book size vs default, 0.25–4. Default: 1. Alias: ratio
 ```
 ````
+
+The clip uses the same invented demo set as the README hero (`docs/demo-covers/`). Your vault can use any local or remote cover image.
 
 **Filter by status** (optional). Omit `status` or use `status: all` to show every book. Otherwise only items whose frontmatter `status` matches are shown:
 
@@ -488,27 +482,9 @@ Valid `status` values: `to-read`, `reading`, `to-read-again`, `finished`. Unknow
 
 **Scale the shelf** (optional). `scale` (or the alias `ratio`) multiplies the default book size. Omit it or use `scale: 1` for the usual cover. `0.5` is half size; `1.5` is one and a half; `2` is double. Positive values outside `0.25`–`4` are clamped to that range. Zero, negative, and non-numeric values fall back to `1`. Narrow panes still shrink books so a row can keep three covers; `scale` sets the preferred size on a wide pane.
 
-````markdown
-```atomic-bookshelf
-activity: reading
-scale: 1.5
-```
+The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks. A row always keeps **at least three books**; if the pane is too narrow even at the minimum cover size, that row scrolls horizontally (scrollbar hidden) instead of wrapping to one or two books. Wider panes still wrap extra books onto the next plank. Hover/focus on a desktop pointer rolls the cover open on a spine hinge (local CSS 3D). No Framer runtime.
 
-```atomic-bookshelf
-activity: reading
-ratio: 0.5
-```
-````
-
-![Book shelf](./images/atomic-book-shelf.png)
-
-![Book shelf cover open on hover](./images/atomic-book-shelf-open.png)
-
-The screenshots above show the same invented demo set as the README hero (`docs/demo-covers/`). Your vault can use any local or remote cover image.
-
-The shelf is a plugin-rendered scene with no heading above the books. Books stand on planks. Covers are a bit smaller than earlier builds so they sit closer to Obsidian’s UI scale. A row always keeps **at least three books**; if the pane is too narrow even at the minimum cover size, that row scrolls horizontally (scrollbar hidden) instead of wrapping to one or two books. Wider panes still wrap extra books onto the next plank. Hover/focus on a desktop pointer rolls the cover open on a spine hinge (local CSS 3D). On iOS and Android, the first tap opens the cover the same way; a second tap opens the book note. Desktop click still opens the note immediately. No Framer runtime.
-
-#### Set a custom book cover
+### Set a custom book cover
 
 By default an empty `cover` field shows a colored spine with the title. To use your own art on the Atomic book shelf (and in Bases Cards when the view uses `cover`):
 
@@ -526,100 +502,15 @@ Optional: set `spine_color` to a hex color (for example `#7c3aed`) when you want
 
 ---
 
-## 10. Use the views
+## Open reading in Bases
 
-Open your dashboard or heatmap note. Codeblocks render in Reading view.
+Run **Atomic Tracker: Open reading Bases**. Atomic Tracker creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
 
-### `atomic-dashboard`
-
-Open `atomics/Dashboard.md` with **Atomic Tracker: Open dashboard**, or paste an `atomic-dashboard` fence into any note. Use Reading view. `year:` in the fence wins, then the note’s `year` property, then this calendar year.
-
-![Dashboard](./images/atomic-dashboard.png)
-
-The block is a stack of cards for that year:
-
-- **Header** — `{year} overview`, the date range and session count, a `‹ ›` year switcher, and chips that open Gym/Golf cues or reading Bases. The switcher only changes the on-screen year; it does not edit the note. A vault refresh returns to the configured year.
-- **KPI cards** — exercise sessions and exercise time when any exercise habit is enabled (sessions include a monthly sparkline). **Volume lifted** appears when a set-table habit such as Gym has logged sets. **Habit time** appears when a timer habit such as Reading has minutes.
-- **Activity cards** — one card per enabled habit. Exercise cards show sessions, minutes, optional volume, monthly bars sized by hours that month, last session date, and a cues link. Golf also shows how sessions felt. Habit cards show item count, timer minutes, monthly bars sized by hours, and Reading’s in-progress count plus Bases and book shelf links.
-- **Monthly** — grouped bars of sessions per month by activity. Open **Show monthly table** for the exact grid, including volume (kg) and habit minutes when those apply.
-- **Muscles / Golf focus** — shown only when the data exists: Gym set-table volume by muscle, and Golf focus tags across sessions.
-- **Recent sessions** — latest ten notes. Click a row to open that session.
-
-Disable a habit in Settings to drop its card, chips, and KPI contribution without deleting notes. On a narrow pane the same cards stack to one column.
-
-### `atomic-heatmap`
-
-![Heatmap](./images/atomic-heatmap.png)
-
-Optional YAML inside a codeblock body:
-
-```text
-year: 2026
-activity: all
-```
-
-`activity` accepts `all`, one activity id (`reading`, `gym`, …), or a comma-separated list (`gym, golf, reading`).
-
-On a narrow pane the year grid scrolls horizontally (scrollbar hidden) so every day cell stays a full circle. Today is a ring on that day’s circle: **black in light mode**, **white in dark mode**.
-
-Optional multi-activity grid layout (ignored for a single activity):
-
-| Option | Default | Meaning |
-|--------|---------|---------|
-| `rows` | `1` | Preferred row count for the grid |
-| `columns` | `1` | Max columns (`1` = vertical stack) |
-| `min-column-width` | `300` | Minimum px width per column before wrapping |
-| `default-span` | `1.2` | CSS `fr` weight for each grid track |
-
-Example with inline defaults:
-
-```text
-activity: gym, golf, reading
-rows: 2              # default: 1
-columns: 2           # default: 1
-min-column-width: 300  # default: 300
-default-span: 1.2      # default: 1.2
-```
-
-### `atomic-bookshelf`
-
-Renders the 3D book shelf for a timer-backed general habit (Reading by default). Options in the codeblock body:
-
-```text
-activity: reading
-status: all
-scale: 1              # default: 1; alias: ratio
-```
-
-| Option | Default | Meaning |
-|--------|---------|---------|
-| `activity` | `reading` | Hobby activity id (must be enabled, item + timer) |
-| `status` | all | `all` or omitted → every book; otherwise one or more status ids (`reading`, `to-read`, …) comma-separated |
-| `scale` | `1` | Size multiplier vs the default book. `1` = usual cover; `0.5` = half; `2` = double. Positive values clamp to `0.25`–`4`. Zero, negative, and invalid values fall back to `1`. |
-| `ratio` | `1` | Alias for `scale`. If both are set, `scale` wins. |
-
-Books are sorted by status (reading first), then title. Click a book to open its item note.
-
-### `atomic-timer`
-
-Renders Start / Stop / Resume / Discard on the host note. No options.
-
-- **Reading / hobby item notes:** Stop appends a Time log bullet and increments `total_min`. Those minutes feed the heatmap.
-- **Exercise session notes** (`type: session`): Stop writes elapsed minutes into `duration_min` (adds to the existing value) and does not create a Time log. Heatmaps still read `duration_min`.
-
-### `atomic-gym-log`
-
-Renders the gym set form on a gym session note. No options. Pick an exercise, enter weight and reps, then **Add set**. You don't type the table row yourself.
-
-For today blocks:
-
-```text
-date: 2026-08-08
-```
+Soft-requires Obsidian’s **Bases** core plugin. If Bases is disabled, Atomic shows a notice and leaves the vault unchanged.
 
 ---
 
-## 11. Commands reference
+## Commands
 
 | Command | Action |
 |---------|--------|
@@ -636,7 +527,7 @@ date: 2026-08-08
 
 ---
 
-## Troubleshooting
+## If something looks wrong
 
 | Problem | Fix |
 |---------|-----|

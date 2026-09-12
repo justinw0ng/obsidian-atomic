@@ -9,8 +9,11 @@ import {
   BOOK_SHELF_NOTE,
   DEMO_AUTHORS,
   FORBIDDEN_PUBLISHER_TITLES,
+  HEATMAP_GRID_NOTE,
+  HEATMAP_READING_NOTE,
   OPEN_COVER_TITLE,
   TIMER_ITEM_TITLE,
+  TODAY_NOTE,
   USER_GUIDE_VAULT,
   assertOriginalDemoNotes,
   patchReadingItems,
@@ -77,6 +80,15 @@ cover: ""
     assert.match(shelf, /# status: all  # /);
     assert.match(shelf, /# scale: 1  # /);
     assert.doesNotMatch(shelf, /^ /m);
+
+    const heatmap = readFileSync(join(vault, "atomics/Heatmap.md"), "utf8");
+    assert.equal(heatmap, HEATMAP_GRID_NOTE);
+    assert.match(heatmap, /activity: gym, golf, reading/);
+    const readingHeatmap = readFileSync(join(vault, "atomics/Heatmap reading.md"), "utf8");
+    assert.equal(readingHeatmap, HEATMAP_READING_NOTE);
+    const today = readFileSync(join(vault, "atomics/Today.md"), "utf8");
+    assert.equal(today, TODAY_NOTE);
+    assert.match(today, /date: 2026-08-11/);
   } finally {
     rmSync(vault, { recursive: true, force: true });
   }
@@ -112,4 +124,10 @@ test("capture script continues without xdotool when setRect works", () => {
   assert.match(src, /assertDashboardBundle/);
   assert.match(src, /captureFullPageProof/);
   assert.match(src, /composeDashboardHero/);
+  assert.match(src, /from "\.\/docs-gif\.mjs"/);
+  assert.match(src, /atomic-book-shelf\.gif/);
+  assert.match(src, /atomic-cues-hover\.gif/);
+  assert.match(src, /atomic-cue-popup\.gif/);
+  assert.match(src, /assembleGif/);
+  assert.match(src, /bootstrapMissingGifs/);
 });

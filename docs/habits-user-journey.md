@@ -8,8 +8,8 @@ Review walkthrough for the habits settings / heatmap work.
 |----------|------|
 | **E2E recording (Obsidian)** | `/opt/cursor/artifacts/atomic-habits-e2e-user-journey.mp4` |
 | Demo vault | `/workspace/obsidian-demo` (plugin installed under `.obsidian/plugins/obsidian-atomic/`) |
-| Settings screenshot | [`docs/images/07-settings-atomic.png`](./images/07-settings-atomic.png) |
-| Heatmap filter screenshot | [`docs/images/atomic-heatmap-activity-filter.png`](./images/atomic-heatmap-activity-filter.png) |
+| Settings screenshot | [`docs/images/07-settings-atomic.gif`](./images/07-settings-atomic.gif) |
+| Heatmap filter screenshot | [`docs/images/atomic-heatmap-activity-filter.gif`](./images/atomic-heatmap-activity-filter.gif) |
 
 ## Journey steps
 

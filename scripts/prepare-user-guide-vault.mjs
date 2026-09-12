@@ -9,7 +9,9 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { GOLF_SHOWCASE_CUES } from "./cue-hero-content.mjs";
 import { DEFAULT_DEMO_VAULT } from "./hero-capture-options.mjs";
+import { E2E_CUE_LOG_FENCE, E2E_TIMER_FENCE } from "../e2e/lib/vault.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const USER_GUIDE_VAULT = DEFAULT_DEMO_VAULT;
@@ -133,8 +135,124 @@ export const BOOK_SHELF_NOTE = [
   "",
 ].join("\n");
 
+export const HEATMAP_READING_NOTE = [
+  "# Reading heatmap",
+  "",
+  "```atomic-heatmap",
+  "year: 2026",
+  "activity: reading",
+  "```",
+  "",
+].join("\n");
+
+export const HEATMAP_EXERCISE_NOTE = [
+  "# Gym and golf heatmaps",
+  "",
+  "```atomic-heatmap",
+  "year: 2026",
+  "activity: gym, golf",
+  "```",
+  "",
+].join("\n");
+
+export const HEATMAP_GRID_NOTE = [
+  "# All habits",
+  "",
+  "```atomic-heatmap",
+  "year: 2026",
+  "activity: gym, golf, reading",
+  "rows: 2",
+  "columns: 2",
+  "```",
+  "",
+].join("\n");
+
+export const TODAY_NOTE = [
+  "# Today",
+  "",
+  "```atomic-today",
+  "date: 2026-08-11",
+  "```",
+  "",
+].join("\n");
+
+const GYM_GUIDE_CUES = [
+  "Brace before the first plate moves",
+  "Knees track over the toes",
+  "Finish the lockout, then breathe",
+  "Scapula set, then press",
+];
+
 export function writeUserGuideNotes(vault = USER_GUIDE_VAULT) {
   writeFileSync(join(vault, "atomics/hobbies/Reading/Book Shelf.md"), BOOK_SHELF_NOTE);
+  writeFileSync(join(vault, "atomics/Heatmap reading.md"), HEATMAP_READING_NOTE);
+  writeFileSync(join(vault, "atomics/Heatmap gym golf.md"), HEATMAP_EXERCISE_NOTE);
+  writeFileSync(join(vault, "atomics/Heatmap.md"), HEATMAP_GRID_NOTE);
+  writeFileSync(join(vault, "atomics/Today.md"), TODAY_NOTE);
+}
+
+export function enrichGuideCues(vault = USER_GUIDE_VAULT) {
+  const golfDir = join(vault, "atomics/exercise/Golf/2026");
+  if (existsSync(golfDir)) {
+    const golfFiles = readdirSync(golfDir)
+      .filter((name) => name.endsWith(".md"))
+      .sort();
+    for (let index = 0; index < Math.min(GOLF_SHOWCASE_CUES.length, golfFiles.length); index += 1) {
+      const path = join(golfDir, golfFiles[index]);
+      const cue = GOLF_SHOWCASE_CUES[index];
+      let markdown = readFileSync(path, "utf8");
+      if (!markdown.includes(cue)) {
+        markdown = markdown.replace(/- Short game focus/, `- ${cue}`);
+        writeFileSync(path, markdown);
+      }
+    }
+  }
+
+  const golfToday = join(vault, "atomics/exercise/Golf/2026/2026-08-11.md");
+  if (existsSync(golfToday)) {
+    let markdown = readFileSync(golfToday, "utf8");
+    if (!markdown.includes("```atomic-cue-log")) {
+      markdown = markdown.replace(
+        /## Reminders\n\n/,
+        `## Reminders\n\n${E2E_CUE_LOG_FENCE}\n\n`,
+      );
+      writeFileSync(golfToday, markdown);
+    }
+  }
+
+  const gymDir = join(vault, "atomics/exercise/Gym/2026");
+  if (existsSync(gymDir)) {
+    const gymFiles = readdirSync(gymDir)
+      .filter((name) => name.endsWith(".md"))
+      .sort();
+    for (let index = 0; index < Math.min(GYM_GUIDE_CUES.length, gymFiles.length); index += 1) {
+      const path = join(gymDir, gymFiles[index]);
+      const cue = GYM_GUIDE_CUES[index];
+      let markdown = readFileSync(path, "utf8");
+      if (!markdown.includes(cue)) {
+        markdown = markdown.replace(/## Reminders\n\n- \n/, `## Reminders\n\n- ${cue}\n`);
+        writeFileSync(path, markdown);
+      }
+    }
+  }
+
+  const gymToday = join(vault, "atomics/exercise/Gym/2026/2026-08-11.md");
+  if (existsSync(gymToday)) {
+    let markdown = readFileSync(gymToday, "utf8");
+    if (!markdown.includes("```atomic-timer")) {
+      markdown = markdown.replace(
+        /# Gym — 2026-08-11\n\n/,
+        `# Gym — 2026-08-11\n\n${E2E_TIMER_FENCE}\n\n`,
+      );
+    }
+    if (!markdown.includes("```atomic-cue-log")) {
+      markdown = markdown.replace(
+        /## Reminders\n\n/,
+        `## Reminders\n\n${E2E_CUE_LOG_FENCE}\n\n`,
+      );
+    }
+    writeFileSync(gymToday, markdown);
+  }
 }
 
 export function patchObsidianConfig(vault = USER_GUIDE_VAULT) {
@@ -194,6 +312,7 @@ export function prepareUserGuideVault(vault = USER_GUIDE_VAULT) {
   }
   writeUserGuideNotes(vault);
   patchReadingItems(vault);
+  enrichGuideCues(vault);
   patchObsidianConfig(vault);
   assertOriginalDemoNotes(vault);
   return vault;
