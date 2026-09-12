@@ -97,6 +97,26 @@ export function normalizeCue(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/** True when two year-page cards would paint the same DOM. */
+export function sameCueCard(left: CueCard, right: CueCard): boolean {
+  return (
+    left.key === right.key &&
+    left.text === right.text &&
+    left.focus === right.focus &&
+    left.count === right.count &&
+    left.lastSeen === right.lastSeen
+  );
+}
+
+/**
+ * Whether cue body needs Obsidian's markdown pipeline. Plain one-line cues
+ * (the common case, including CJK) skip it so a fan of cards does not run
+ * N post-processors on every paint.
+ */
+export function cueTextNeedsMarkdown(text: string): boolean {
+  return /[*_`#[\]!<>~|]|(?:^|\n)\s*(?:\d+\.|[-+])\s|https?:\/\//.test(text);
+}
+
 export function parseReminders(markdown: string): string[] {
   const lines = markdown.split(/\r?\n/);
   const fenced = fencedLines(lines);

@@ -97,7 +97,6 @@ export function renderTrackedBlock(
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
       generation,
-      component: block.beginPaint(),
       beginPaint: block.beginPaint,
     });
   });
@@ -110,7 +109,6 @@ export async function renderBlock(
   el: HTMLElement,
   ctx: Pick<MarkdownPostProcessorContext, "sourcePath"> & {
     generation?: number;
-    component: Component;
     beginPaint: () => Component;
   },
 ): Promise<void> {
@@ -184,7 +182,7 @@ export async function renderBlock(
           year,
           activity,
           language,
-          { app: plugin.app, component: ctx.component, sourcePath },
+          { app: plugin.app, sourcePath, beginPaint: ctx.beginPaint },
         );
         break;
       }
@@ -206,7 +204,6 @@ export async function renderBlock(
           el,
           {
             app: plugin.app,
-            component: ctx.component,
             sourcePath,
             beginPaint: ctx.beginPaint,
           },

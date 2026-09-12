@@ -1,4 +1,5 @@
 import { MarkdownRenderer, type App, type Component } from "obsidian";
+import { cueTextNeedsMarkdown } from "../core/cues";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 
@@ -48,13 +49,19 @@ export async function appendCueCard(
   const sheet = el.createDiv({ cls: "atomic-cue-sheet" });
   const body = sheet.createDiv({ cls: "atomic-cue-body" });
   const text = body.createDiv({ cls: "atomic-cue-text" });
-  await MarkdownRenderer.render(
-    host.app,
-    card.text,
-    text,
-    host.sourcePath,
-    host.component,
-  );
+  if (cueTextNeedsMarkdown(card.text)) {
+    await MarkdownRenderer.render(
+      host.app,
+      card.text,
+      text,
+      host.sourcePath,
+      host.component,
+    );
+  } else {
+    for (const paragraph of card.text.split("\n")) {
+      if (paragraph) text.createEl("p", { text: paragraph });
+    }
+  }
 
   const count = card.count ?? 0;
   if (card.lastSeen || count > 1) {

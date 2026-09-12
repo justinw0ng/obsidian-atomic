@@ -357,6 +357,26 @@ test("the cue pop works on hover, focus, and tap alike", () => {
   assert.match(calmed.body, /transition:\s*none/);
 });
 
+test("phone cue cards pop only when tapped open", () => {
+  const phone = cssMedia(styles, "(max-width: 600px)");
+  assert.ok(phone, "cue cards need a phone breakpoint");
+  const hoverSheet = cssRule(
+    phone,
+    ".fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet",
+  );
+  assert.ok(hoverSheet, "phone CSS must reset sticky hover");
+  assert.doesNotMatch(hoverSheet.selectors, /\.is-open/);
+  assert.match(hoverSheet.body, /rotate\(var\(--atomic-cue-tilt\)\)/);
+  const openSheet = cssRule(
+    phone,
+    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet",
+  );
+  assert.match(openSheet.body, /translateY\(-6px\)/);
+  assert.match(phone, /--atomic-cue-drop:\s*0px/);
+  const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
+  assert.match(body.body, /transition:\s*none/);
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);

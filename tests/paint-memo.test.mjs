@@ -51,6 +51,8 @@ test("every paint-skipping view goes through one PaintMemo", () => {
     ["src/views/heatmap.ts", /heatmapPaint\.shouldSkip\(el, paintState\)/],
     ["src/views/book-shelf.ts", /bookShelfPaint\.shouldSkip\(el, paintState\)/],
     ["src/views/dashboard.ts", /dashboardPaint\.shouldSkip\(el, dashboardPaintState\(input, language\)\)/],
+    ["src/views/cues.ts", /cuesPaint\.shouldSkip\(el, paintState\)/],
+    ["src/views/cue-log.ts", /cueLogPaint\.shouldSkip\(el, paintState\)/],
   ]) {
     const source = readFileSync(join(root, file), "utf8");
     assert.match(source, pattern, file);

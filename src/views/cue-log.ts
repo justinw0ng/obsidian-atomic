@@ -4,15 +4,31 @@ import { appendCueBullet, parseReminders, sanitizeCueText } from "../core/cues";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
 import { isStaleBlockRender } from "../util/block-render";
+import { PaintMemo, sameList } from "../util/paint-memo";
 import {
   appendCueCard,
   bindCueCardFan,
   type CueMarkdownHost,
 } from "./cue-card";
 
-export type CueLogHost = CueMarkdownHost & {
+export type CueLogHost = Omit<CueMarkdownHost, "component"> & {
   beginPaint: () => CueMarkdownHost["component"];
 };
+
+type CueLogPaintState = {
+  sourcePath: string;
+  language: string;
+  cues: readonly string[];
+};
+
+const cueLogPaint = new PaintMemo<CueLogPaintState>(
+  '[data-testid="atomic-cue-log"]',
+  (previous, next) =>
+    !!previous &&
+    previous.sourcePath === next.sourcePath &&
+    previous.language === next.language &&
+    sameList(previous.cues, next.cues),
+);
 
 /** Fill-in form for session cues. Cues still land as `## Reminders` bullets. */
 export async function renderAtomicCueLog(
@@ -30,6 +46,15 @@ export async function renderAtomicCueLog(
   }
 
   const language = plugin.settings.language;
+  const existing = host.sourcePath ? parseReminders(markdown) : [];
+  const paintState: CueLogPaintState = {
+    sourcePath: host.sourcePath,
+    language,
+    cues: existing,
+  };
+  if (cueLogPaint.shouldSkip(el, paintState)) return;
+
+  const component = host.beginPaint();
   el.empty();
   const root = el.createDiv({
     cls: "fitness-plugin atomic-cues atomic-cue-log",
@@ -60,7 +85,6 @@ export async function renderAtomicCueLog(
     attr: { "data-testid": "atomic-cue-log-add" },
   });
 
-  const existing = parseReminders(markdown);
   if (existing.length) {
     const fan = root.createDiv({
       cls: "atomic-cue-fan atomic-cue-log-existing",
@@ -68,7 +92,12 @@ export async function renderAtomicCueLog(
     });
     const painted = await Promise.all(
       existing.map((text) =>
-        appendCueCard(fan, { text }, host, language),
+        appendCueCard(
+          fan,
+          { text },
+          { app: host.app, component, sourcePath: host.sourcePath },
+          language,
+        ),
       ),
     );
     bindCueCardFan(painted);
@@ -97,12 +126,7 @@ export async function renderAtomicCueLog(
     } finally {
       addButton.disabled = false;
     }
-    void renderAtomicCueLog(
-      plugin,
-      el,
-      { ...host, component: host.beginPaint() },
-      generation,
-    );
+    void renderAtomicCueLog(plugin, el, host, generation);
   };
 
   addButton.addEventListener("click", () => {

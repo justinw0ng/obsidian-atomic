@@ -1598,6 +1598,9 @@
 
 @font-face {
   font-family: "Atomic Cue CJK";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
   src:
     local("Klee One"),
     local("Zhi Mang Xing"),
@@ -1874,6 +1877,17 @@
     height: auto;
   }
 
+  /*
+    Desktop nth-child tilt/drop rules are more specific than the reset
+    above, so restated here or phones keep a 9–13px translateY stagger.
+  */
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 2),
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 3),
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
+    --atomic-cue-tilt: -0.6deg;
+    --atomic-cue-drop: 0px;
+  }
+
   .fitness-plugin .atomic-cue-card:nth-child(2n) {
     --atomic-cue-tilt: 0.6deg;
   }
@@ -1881,12 +1895,67 @@
   .fitness-plugin .atomic-cue-sheet {
     position: relative;
     padding-right: 14px;
+    transition:
+      transform 420ms var(--atomic-cue-pop),
+      box-shadow 420ms var(--atomic-cue-pop);
+  }
+
+  /* max-height cannot interpolate to none; skip layout frames on tap. */
+  .fitness-plugin .atomic-cue-body {
+    transition: none;
+  }
+
+  /*
+    Sticky :hover on touch reflows this in-flow stack while scrolling.
+    Tap toggles `.is-open`; do not also pop on hover or focus.
+  */
+  .fitness-plugin .atomic-cue-card:hover,
+  .fitness-plugin .atomic-cue-card:focus-visible {
+    z-index: auto;
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
+    transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
+    padding-right: 14px;
+    box-shadow:
+      0 0 0 1px rgba(70, 60, 44, 0.07),
+      0 5px 12px rgba(38, 32, 22, 0.16);
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
+    max-height: calc(3 * var(--atomic-cue-line));
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  .fitness-plugin .atomic-cue-card.is-open {
+    z-index: 5;
+  }
+
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
     transform: rotate(0deg) translateY(-6px) scale(1.03);
+    box-shadow:
+      0 0 0 1px rgba(70, 60, 44, 0.08),
+      0 20px 38px rgba(38, 32, 22, 0.28);
+  }
+
+  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
+    max-height: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

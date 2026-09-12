@@ -219,6 +219,35 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const hovered = await waitForCuePop(driver, 0);
       assert.equal(hovered.isOpen, false, "hover must not need the is-open class");
 
+      const windowSize = await driver.manage().window().getRect();
+      await driver.manage().window().setRect({
+        x: windowSize.x,
+        y: windowSize.y,
+        width: 390,
+        height: 844,
+      });
+      await driver.wait(async () => {
+        const rest = await cueCardMetrics(driver, 0);
+        return rest && rest.clamped && rest.lift < 4 && !rest.isOpen;
+      }, 8000);
+      const phoneHover = await cueCardMetrics(driver, 0);
+      assert.ok(phoneHover.clamped, "phone hover must not expand a card");
+
+      await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
+      `);
+      await driver.wait(async () => {
+        const open = await cueCardMetrics(driver, 0);
+        return open && open.isOpen && !open.clamped && open.lift > 3;
+      }, 8000);
+
+      await driver.manage().window().setRect({
+        x: windowSize.x,
+        y: windowSize.y,
+        width: windowSize.width,
+        height: windowSize.height,
+      });
+
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
       const gymCues = await driver.executeScript(`

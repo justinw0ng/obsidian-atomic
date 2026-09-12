@@ -1,11 +1,31 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { buildCueCards, type Cue } from "../core/cues";
+import { buildCueCards, sameCueCard, type Cue, type CueCard } from "../core/cues";
 import { nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
+import { PaintMemo, sameList } from "../util/paint-memo";
 import { appendCueCard, bindCueCardFan, type CueMarkdownHost } from "./cue-card";
+
+type CuePagePaintState = {
+  kind: "missing" | "cards";
+  year: number;
+  activity: string;
+  language: Language;
+  cards: readonly CueCard[];
+};
+
+const cuesPaint = new PaintMemo<CuePagePaintState>(
+  '[data-testid="atomic-cues"]',
+  (previous, next) =>
+    !!previous &&
+    previous.kind === next.kind &&
+    previous.year === next.year &&
+    previous.activity === next.activity &&
+    previous.language === next.language &&
+    sameList(previous.cards, next.cards, sameCueCard),
+);
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -22,16 +42,26 @@ export async function renderCues(
   year: number,
   activity: string,
   language: Language,
-  host: CueMarkdownHost,
+  host: Omit<CueMarkdownHost, "component"> & {
+    beginPaint: () => CueMarkdownHost["component"];
+  },
 ): Promise<void> {
-  el.empty();
-  const root = el.createDiv({
-    cls: "fitness-plugin atomic-cues",
-    attr: { "data-testid": "atomic-cues", "data-activity": activity },
-  });
-
   const activityType = resolveCueActivityType(activityTypes, activity);
   if (!activityType) {
+    const paintState: CuePagePaintState = {
+      kind: "missing",
+      year,
+      activity,
+      language,
+      cards: [],
+    };
+    if (cuesPaint.shouldSkip(el, paintState)) return;
+    host.beginPaint();
+    el.empty();
+    const root = el.createDiv({
+      cls: "fitness-plugin atomic-cues",
+      attr: { "data-testid": "atomic-cues", "data-activity": activity },
+    });
     root.createEl("p", {
       text: t("view.cues.noCueActivity", language, { activity }),
       cls: "fitness-muted",
@@ -40,6 +70,20 @@ export async function renderCues(
   }
 
   const cards = buildCueCards(await collectCues(data, activityType, year), year);
+  const paintState: CuePagePaintState = {
+    kind: "cards",
+    year,
+    activity,
+    language,
+    cards,
+  };
+  if (cuesPaint.shouldSkip(el, paintState)) return;
+  const component = host.beginPaint();
+  el.empty();
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-cues",
+    attr: { "data-testid": "atomic-cues", "data-activity": activity },
+  });
   root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
 
   if (!cards.length) {
@@ -52,7 +96,9 @@ export async function renderCues(
 
   const fan = root.createDiv({ cls: "atomic-cue-fan" });
   const painted = await Promise.all(
-    cards.map((card) => appendCueCard(fan, card, host, language)),
+    cards.map((card) =>
+      appendCueCard(fan, card, { ...host, component }, language),
+    ),
   );
   bindCueCardFan(painted);
 }

@@ -78,6 +78,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cues, /data-testid": "atomic-cues"/);
   assert.match(cues, /appendCueCard\(/);
   assert.match(cues, /buildCueCards\(/);
+  assert.match(cues, /cuesPaint\.shouldSkip/);
+  assert.match(cues, /host\.beginPaint\(\)/);
   assert.doesNotMatch(cues, /view\.cues\.thisMonth|view\.cues\.keepers/);
   assert.doesNotMatch(cues, /innerHTML/);
 
@@ -88,6 +90,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCard, /"atomic-cue-text"/);
   assert.match(cueCard, /"atomic-cue-repeats"/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
+  assert.match(cueCard, /cueTextNeedsMarkdown/);
   assert.match(cueCard, /host\.component/);
   assert.doesNotMatch(cueCard, /FitnessPlugin/);
   assert.doesNotMatch(cueCard, /createEl\("button"/);
@@ -96,14 +99,17 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);
   assert.match(codeblocks, /this\.addChild\(this\.paint\)/);
+  assert.doesNotMatch(codeblocks, /component: block\.beginPaint\(\)/);
 
   const cueLog = src("src/views/cue-log.ts");
   assert.match(cueLog, /data-testid": "atomic-cue-log"/);
   assert.match(cueLog, /"atomic-cue-log-text"/);
   assert.match(cueLog, /createEl\("textarea"/);
+  assert.doesNotMatch(cueLog, /addEventListener\("input"/);
   assert.match(cueLog, /"atomic-cue-log-add"/);
   assert.match(cueLog, /"atomic-cue-log-existing"/);
   assert.match(cueLog, /appendCueCard\(/);
+  assert.match(cueLog, /cueLogPaint\.shouldSkip/);
   assert.match(cueLog, /appendCueBullet\(/);
   assert.match(cueLog, /sanitizeCueText\(/);
   assert.match(cueLog, /vault\.process\(file, \(latest\) =>/);

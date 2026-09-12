@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import {
   appendCueBullet,
   buildCueCards,
+  cueTextNeedsMarkdown,
   formatCueBullet,
   isRemindersHeadingLabel,
   normalizeCue,
   parseReminders,
+  sameCueCard,
   sanitizeCueText,
 } from "../src/core/cues.ts";
 import { LANGUAGES, t } from "../src/i18n/index.ts";
@@ -336,4 +338,26 @@ test("appendCueBullet finds the bilingual Reminders heading", () => {
 
   assert.deepEqual(parseReminders(updated), ["Soft grip", "Finish tall"]);
   assert.equal(updated.match(/## 💡 Reminders/g).length, 1);
+});
+
+test("plain and CJK cues skip the markdown pipeline", () => {
+  assert.equal(cueTextNeedsMarkdown("Brace the core"), false);
+  assert.equal(cueTextNeedsMarkdown("前臂放鬆\n保持核心"), false);
+  assert.equal(cueTextNeedsMarkdown("Knees track over the **toes**"), true);
+  assert.equal(cueTextNeedsMarkdown("See [[warm-up]]"), true);
+  assert.equal(cueTextNeedsMarkdown("1. Hinge first"), true);
+  assert.equal(cueTextNeedsMarkdown("https://example.com"), true);
+});
+
+test("sameCueCard compares the painted fields", () => {
+  const card = {
+    key: "brace the core",
+    text: "Brace the core",
+    focus: "Core",
+    count: 2,
+    lastSeen: "2026-09-12",
+  };
+  assert.equal(sameCueCard(card, { ...card }), true);
+  assert.equal(sameCueCard(card, { ...card, count: 3 }), false);
+  assert.equal(sameCueCard(card, { ...card, text: "Brace" }), false);
 });
