@@ -16,7 +16,7 @@ Read this file first, then the reference for the phase you are in. Do not skip p
 | Phase | Reference |
 | --- | --- |
 | Layering, vault data, codeblocks | [references/architecture.md](references/architecture.md) |
-| Unit tests, typecheck, build, Selenium | [references/verify.md](references/verify.md) |
+| Unit tests, typecheck, build, Selenium, docs screenshots | [references/verify.md](references/verify.md) |
 | Directory review lint that actually failed here | [references/plugin-review.md](references/plugin-review.md) |
 | Version, GitHub Release, community directory | [references/release.md](references/release.md) |
 | Cloud VM, Obsidian install, `AGENTS.md` | [references/cloud.md](references/cloud.md) |
@@ -129,7 +129,7 @@ npm run test:e2e
 git checkout -- main.js
 ```
 
-Details, selectors, vault seeding, and skip rules: [verify.md](references/verify.md). Cloud install of the `.deb`: [cloud.md](references/cloud.md).
+Details, selectors, vault seeding, skip rules, and docs/hero screenshots: [verify.md](references/verify.md). Cloud install of the `.deb`: [cloud.md](references/cloud.md).
 
 ## 4. Keep the review linter green
 

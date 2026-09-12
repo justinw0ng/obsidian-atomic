@@ -131,6 +131,18 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
 });
 
+test("skill and AGENTS.md keep hero banner capture rules", () => {
+  const verify = read(".cursor/skills/obsidian-plugin-e2e/references/verify.md");
+  const agents = read("AGENTS.md");
+  for (const text of [verify, agents]) {
+    assert.match(text, /capture-readme-hero\.sh/);
+    assert.match(text, /heatmap, bookshelf, and cue overlay/);
+    assert.match(text, /no scrollbar/);
+    assert.match(text, /Center the mobile \/ narrow view/);
+    assert.match(text, /docs:user-guide-screenshots/);
+  }
+});
+
 test("skill and AGENTS.md keep in-app update notes and optional Actions inputs", () => {
   const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
   const release = read(".cursor/skills/obsidian-plugin-e2e/references/release.md");

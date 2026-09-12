@@ -88,4 +88,10 @@ User-guide and README captures are not the health check. When you recapture them
 3. Light mode
 4. Invented demo covers from `docs/demo-covers/`, never publisher artwork or Open Library URLs
 
+README hero (`scripts/capture-readme-hero.sh`, or `npm run docs:hero-gif` from the composed still):
+
+- The animation opens the rightmost shelf book.
+- Hide heatmap, bookshelf, and cue overlay scroll thumbs and bars. The hero banner shows no scrollbar chrome.
+- Center the mobile / narrow view in the hero. Do not left-align it in the phone frame.
+
 Scripts: `npm run docs:user-guide-screenshots`, `scripts/capture-readme-hero.sh`.
