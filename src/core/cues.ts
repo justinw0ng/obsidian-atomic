@@ -158,6 +158,8 @@ export function sanitizeCueText(text: string): string {
     .replace(/\r\n/g, "\n")
     .replace(/[\u2028\u2029]/g, "\n")
     .split("\n");
+  while (rawLines.length && !rawLines[0].trim()) rawLines.shift();
+  while (rawLines.length && !rawLines[rawLines.length - 1].trim()) rawLines.pop();
   const cleaned = rawLines.map((line, index) =>
     index === 0 ? stripLeadingBlocks(line) : stripFencePrefix(line.trimEnd()).replace(/^\s+/, ""),
   );
