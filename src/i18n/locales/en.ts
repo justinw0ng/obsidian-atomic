@@ -49,6 +49,7 @@ export const en = {
   "command.openReadingBookshelf": "Open reading Bases",
   "command.createBookShelf": "Create book shelf",
   "command.openBookShelf": "Open book shelf",
+  "command.createCues": "Create cues notes",
   "command.openDashboard": "Open dashboard",
 
   "notice.created": "Created: {path}",
@@ -80,6 +81,10 @@ export const en = {
   "notice.enableBases": "Enable the Bases core plugin to use reading Bases.",
   "notice.createdBookShelf": "Created book shelf: {path}",
   "notice.bookShelfExists": "Book shelf already exists: {path}",
+  "notice.createdCues": "Created cues: {paths}",
+  "notice.cuesExist": "Cues notes already exist: {paths}",
+  "notice.noCueActivities": "No cue-supporting exercise activities configured",
+  "notice.cuesFailed": "Could not create cues: {message}",
   "notice.timerNeedsSavedNote": "Timer can only update a saved note.",
   "notice.timerNotRunning": "Timer is not running.",
   "notice.timerAlreadyRunning": "Timer is already running.",

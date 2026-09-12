@@ -6,6 +6,7 @@ import {
   monthShortForLanguage,
   parseYmd,
 } from "../dates";
+import { openCuesHostFile } from "../exercise/cues-host";
 import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
 import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -29,7 +30,12 @@ export type DashboardBar = {
   attrs?: Record<string, string>;
 };
 
-export type DashboardLink = { text: string; path: string; color: string };
+export type DashboardLink = {
+  text: string;
+  path: string;
+  color: string;
+  open?: () => Promise<void>;
+};
 
 export const FELT_LABEL_KEY: Record<Felt, string> = {
   good: "view.dashboard.feltGood",
@@ -69,6 +75,7 @@ export function activityLinks(
       text: t("view.dashboard.cues", ctx.language, { activity: activity.label }),
       path: cuePathForActivity(activity),
       color,
+      open: () => openCuesHostFile(ctx.data, activity, ctx.language),
     });
   }
   if (card.domain === "hobby" && activity.id === "reading") {
@@ -86,6 +93,7 @@ export function appendPathLink(
   path: string,
   ctx: DashboardRenderContext,
   cls = "atomic-dash-link",
+  open?: () => Promise<void>,
 ): HTMLAnchorElement {
   const link = parent.createEl("a", {
     cls,
@@ -94,7 +102,7 @@ export function appendPathLink(
   });
   link.addEventListener("click", (event) => {
     event.preventDefault();
-    void ctx.data.openPath(path);
+    void (open ? open() : ctx.data.openPath(path));
   });
   return link;
 }

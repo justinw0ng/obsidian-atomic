@@ -49,6 +49,7 @@ export const zhHantEn = {
   "command.openReadingBookshelf": "Open reading Bases / 開啟閱讀 Bases",
   "command.createBookShelf": "Create book shelf / 建立書架",
   "command.openBookShelf": "Open book shelf / 開啟書架",
+  "command.createCues": "Create cues notes / 建立提示筆記",
   "command.openDashboard": "Open dashboard / 開啟儀表板",
 
   "notice.created": "Created / 已建立: {path}",
@@ -80,6 +81,10 @@ export const zhHantEn = {
   "notice.enableBases": "Enable the Bases core plugin to use reading Bases / 請啟用 Bases 核心外掛以使用閱讀 Bases。",
   "notice.createdBookShelf": "Created book shelf / 已建立書架: {path}",
   "notice.bookShelfExists": "Book shelf already exists / 書架已存在: {path}",
+  "notice.createdCues": "Created cues / 已建立提示: {paths}",
+  "notice.cuesExist": "Cues notes already exist / 提示筆記已存在: {paths}",
+  "notice.noCueActivities": "No cue-supporting exercise activities configured / 尚未設定支援提示的運動活動",
+  "notice.cuesFailed": "Could not create cues / 無法建立提示: {message}",
   "notice.timerNeedsSavedNote": "Timer can only update a saved note / Timer 只可更新已儲存的筆記。",
   "notice.timerNotRunning": "Timer is not running / Timer 尚未開始。",
   "notice.timerAlreadyRunning": "Timer is already running / Timer 已在運行。",

@@ -98,6 +98,8 @@ On the same session note, type a short reminder and click **Add cue**. Atomic sa
 
 ![Add a cue](./images/atomic-cue-log.gif)
 
+The year fan lives on `{folder}/Cues.md` (for example `atomics/exercise/Gym/Cues.md`). Atomic creates that host when it is missing — when the plugin loads, when you open a dashboard **Cues** link, or when you run **Atomic Tracker: Create cues notes**. Existing hosts are left unchanged. A new host uses `atomic-cues` with `activity:` set to the exercise id.
+
 ---
 
 ## Reading

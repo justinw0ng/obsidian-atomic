@@ -3,6 +3,7 @@ import { createActivitySession } from "./commands/create-session";
 import { createHobbyItem, createReadingItem } from "./commands/create-reading-item";
 import { registerCodeblocks, renderTrackedBlock, type LiveBlock } from "./codeblocks";
 import { VaultDataSource } from "./data/vault-source";
+import { createCuesHostCommand, ensureCuesHostFiles } from "./exercise/cues-host";
 import {
   createBookShelfHostCommand,
   openBookShelfHostCommand,
@@ -55,6 +56,7 @@ export default class FitnessPlugin extends Plugin {
       this.registerVaultEvents();
       void migrateDedicatedCueHosts(this.data, this.settings);
       this.scheduleRefresh();
+      this.ensureCuesHosts();
       this.promptGymLogSetupIfPending();
       this.promptUpdateNoteIfNeeded();
     });
@@ -140,6 +142,18 @@ export default class FitnessPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "create-cues",
+      name: t("command.createCues", this.settings.language),
+      callback: () => {
+        void createCuesHostCommand(
+          this.data,
+          this.settings.activityTypes,
+          this.settings.language,
+        );
+      },
+    });
+
+    this.addCommand({
       id: "open-dashboard",
       name: t("command.openDashboard", this.settings.language),
       callback: () => {
@@ -202,6 +216,15 @@ export default class FitnessPlugin extends Plugin {
 
   promptUpdateNoteIfNeeded(): void {
     promptPendingUpdateNote(this);
+  }
+
+  /** Ensure `{folder}/Cues.md` for every enabled cue-supporting exercise. Silent; open/command retry. */
+  private ensureCuesHosts(): void {
+    void ensureCuesHostFiles(
+      this.data,
+      this.settings.activityTypes,
+      this.settings.language,
+    ).catch(() => undefined);
   }
 
   /**

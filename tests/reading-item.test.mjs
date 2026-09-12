@@ -84,6 +84,7 @@ test("create reading/hobby item and timer stop use Obsidian promptText, not wind
     join(root, "src/hobbies/book-shelf-host.ts"),
     "utf8",
   );
+  const cuesHost = readFileSync(join(root, "src/exercise/cues-host.ts"), "utf8");
   assert.match(reading, /promptText/);
   assert.doesNotMatch(reading, /window\.prompt/);
   assert.doesNotMatch(reading, /await import\(["']obsidian["']\)/);
@@ -91,6 +92,7 @@ test("create reading/hobby item and timer stop use Obsidian promptText, not wind
   assert.doesNotMatch(timer, /window\.prompt/);
   assert.doesNotMatch(bookshelf, /await import\(["']obsidian["']\)/);
   assert.doesNotMatch(bookShelfHost, /await import\(["']obsidian["']\)/);
+  assert.doesNotMatch(cuesHost, /await import\(["']obsidian["']\)/);
   assert.match(
     readFileSync(join(root, "src/util/notice.ts"), "utf8"),
     /require\(["']obsidian["']\)/,

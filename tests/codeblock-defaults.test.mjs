@@ -8,7 +8,9 @@ import {
   isAtomicBlockKind,
 } from "../src/util/codeblock-defaults.ts";
 import { bookShelfHostMarkdown } from "../src/hobbies/book-shelf-host.ts";
+import { cuesHostMarkdown } from "../src/exercise/cues-host.ts";
 import { readingItemMarkdown } from "../src/commands/hobby-item.ts";
+import { createExerciseActivityType } from "../src/util/activity-types.ts";
 
 const ALL_KINDS = [
   "atomic-heatmap",
@@ -106,4 +108,14 @@ test("newly created book shelf and reading item notes use the default fences", (
   );
   const item = readingItemMarkdown("Atomic Habits", "en");
   assert.ok(item.endsWith(defaultAtomicBlockFence("atomic-timer", "en")));
+});
+
+test("newly created cues host notes use the default atomic-cues fence", () => {
+  const gym = createExerciseActivityType("Gym");
+  assert.equal(
+    cuesHostMarkdown(gym, "en"),
+    `# Gym\n\n${defaultAtomicBlockFence("atomic-cues", "en", { activity: "gym" })}`,
+  );
+  const body = defaultAtomicBlockBody("atomic-cues", "en", { activity: "gym" });
+  assert.deepEqual(parseBlockOptions(body), { activity: "gym" });
 });

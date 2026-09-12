@@ -802,6 +802,86 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
+  it("ensures missing exercise Cues.md hosts and does not overwrite existing ones", async () => {
+    await check(driver, "cues-host", async () => {
+      const gymHost = "atomics/exercise/Gym/Cues.md";
+      const golfHost = "atomics/exercise/Golf/Cues.md";
+
+      const before = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymHost)});
+        if (!file) { done(null); return; }
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.equal(before, "# Gym Cues\n");
+
+      await runCommandViaPalette(driver, "Create cues notes");
+      await waitForNotice(driver, "Cues notes already exist");
+
+      const afterCommand = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymHost)});
+        if (!file) { done(null); return; }
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.equal(afterCommand, "# Gym Cues\n", "Create cues notes must not overwrite");
+
+      const deleted = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const paths = ${JSON.stringify([gymHost, golfHost])};
+        Promise.all(paths.map(async (path) => {
+          const file = app.vault.getAbstractFileByPath(path);
+          if (file) await app.vault.delete(file);
+        })).then(() => done(true), (err) => done(String(err)));
+      `);
+      assert.equal(deleted, true);
+
+      await runCommandViaPalette(driver, "Create cues notes");
+      await waitForNotice(driver, "Created cues");
+
+      const created = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const paths = ${JSON.stringify([gymHost, golfHost])};
+        Promise.all(paths.map(async (path) => {
+          const file = app.vault.getAbstractFileByPath(path);
+          if (!file) return { path, missing: true };
+          return { path, markdown: await app.vault.read(file) };
+        })).then((rows) => done(rows), (err) => done(String(err)));
+      `);
+      assert.ok(Array.isArray(created), String(created));
+      const gym = created.find((row) => row.path === gymHost);
+      const golf = created.find((row) => row.path === golfHost);
+      assert.match(String(gym?.markdown), /```atomic-cues/);
+      assert.match(String(gym?.markdown), /^activity: gym /m);
+      assert.match(String(golf?.markdown), /```atomic-cues/);
+      assert.match(String(golf?.markdown), /^activity: golf /m);
+
+      await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymHost)});
+        app.vault.delete(file).then(() => done(true), (err) => done(String(err)));
+      `);
+
+      await openVaultFile(driver, E2E_FILES.dashboard);
+      await waitCss(driver, '[data-testid="atomic-dashboard"]');
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-dashboard-link"][data-path="${gymHost}"]'
+        ).click();
+      `);
+      await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
+      const reopened = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymHost)});
+        if (!file) { done(null); return; }
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.match(String(reopened), /```atomic-cues/);
+      assert.match(String(reopened), /^activity: gym /m);
+      await saveScreenshot(driver, "cues-host-ensured");
+    });
+  });
+
   it("switches the dashboard year in place", async () => {
     await check(driver, "dashboard-year", async () => {
       const year = today.slice(0, 4);
