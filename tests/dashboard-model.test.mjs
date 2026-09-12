@@ -137,7 +137,8 @@ test("buildDashboardModel builds one card per activity with domain-specific fiel
   assert.equal(reading.count, 2);
   assert.equal(reading.minutes, 70);
   assert.equal(reading.inProgress, 1);
-  assert.deepEqual(reading.monthly, [45, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0]);
+  assert.deepEqual(reading.monthlyMinutes, [45, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0]);
+  assert.equal("monthly" in reading, false);
   assert.equal("lastDate" in reading, false);
   assert.equal("felt" in reading, false);
 });

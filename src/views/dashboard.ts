@@ -316,7 +316,7 @@ function renderHobbyCard(
   }
   appendMonthBars(
     card,
-    data.monthly,
+    data.monthlyMinutes,
     data.activity.colors[2],
     t("view.dashboard.barsHours", ctx.language),
     ctx,

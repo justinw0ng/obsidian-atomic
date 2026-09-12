@@ -25,6 +25,8 @@ export type DashboardBar = {
   /** Omit to keep the stylesheet default (KPI sparklines). */
   color?: string;
   title?: string;
+  /** Extra data-* hooks; merged with `title` when present. */
+  attrs?: Record<string, string>;
 };
 
 export type DashboardLink = { text: string; path: string; color: string };
@@ -118,15 +120,18 @@ export function appendBars(
 ): void {
   for (const bar of bars) {
     const active = bar.value > 0;
+    const attr: Record<string, string> = { ...bar.attrs };
+    if (bar.title) attr.title = bar.title;
     const el = parent.createSpan({
       cls: `atomic-dash-bar is-${variant}${active ? "" : " is-zero"}`,
-      attr: bar.title ? { title: bar.title } : undefined,
+      attr: Object.keys(attr).length ? attr : undefined,
     });
     el.style.height = active ? `${bar.height}%` : "0";
     if (active && bar.color) el.style.background = bar.color;
   }
 }
 
+/** `values` are minutes; height and hover text use hours. */
 export function monthBars(
   values: number[],
   color: string,
@@ -138,6 +143,11 @@ export function monthBars(
     height: heights[index],
     color,
     title: `${monthLabel(index, ctx)}: ${formatHours(value)}`,
+    attrs: {
+      "data-testid": "atomic-dashboard-month-bar",
+      "data-month": String(index + 1),
+      "data-minutes": String(value),
+    },
   }));
 }
 
@@ -153,21 +163,7 @@ export function appendMonthBars(
     cls: "atomic-dash-bars",
     attr: { title, "data-testid": "atomic-dashboard-activity-bars" },
   });
-  const specs = monthBars(values, color, ctx);
-  specs.forEach((bar, index) => {
-    const active = bar.value > 0;
-    const el = bars.createSpan({
-      cls: `atomic-dash-bar is-month${active ? "" : " is-zero"}`,
-      attr: {
-        "data-testid": "atomic-dashboard-month-bar",
-        "data-month": String(index + 1),
-        "data-minutes": String(bar.value),
-        ...(bar.title ? { title: bar.title } : {}),
-      },
-    });
-    el.style.height = active ? `${bar.height}%` : "0";
-    if (active && bar.color) el.style.background = bar.color;
-  });
+  appendBars(bars, monthBars(values, color, ctx), "month");
   const labels = parent.createDiv({ cls: "atomic-dash-months" });
   for (let i = 0; i < 12; i++) {
     labels.createSpan({ text: compactMonthLabel(i, ctx) });

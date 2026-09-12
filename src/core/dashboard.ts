@@ -126,14 +126,14 @@ type DashboardCardBase = {
   /** Sessions for exercise, items for hobbies. */
   count: number;
   minutes: number;
-  /** Sessions per month (exercise) or timer minutes per month (hobby). */
-  monthly: number[];
+  /** Minutes per month; drives the activity-card bars. */
+  monthlyMinutes: number[];
 };
 
 export type DashboardExerciseCard = DashboardCardBase & {
   domain: "exercise";
-  /** Session minutes per month; drives the activity-card bars. */
-  monthlyMinutes: number[];
+  /** Session counts per month (monthly table and year sparkline). */
+  monthly: number[];
   /** Null unless the activity supports a set table. */
   volumeKg: number | null;
   lastDate: string | null;
@@ -358,10 +358,10 @@ function summarizeHobby(
   { activity, items }: DashboardHobbyInput,
   year: number,
 ): { card: DashboardHobbyCard; column: DashboardMonthlyColumn } {
-  const monthly = emptyMonths();
+  const monthlyMinutes = emptyMonths();
   let inProgress = 0;
   for (const item of items) {
-    addMonths(monthly, minutesByMonthForYear(item.entries, year));
+    addMonths(monthlyMinutes, minutesByMonthForYear(item.entries, year));
     if (isInProgressStatus(item.frontmatter.status)) inProgress += 1;
   }
   return {
@@ -369,11 +369,11 @@ function summarizeHobby(
       domain: "hobby",
       activity,
       count: items.length,
-      minutes: monthly.reduce((sum, v) => sum + v, 0),
-      monthly,
+      minutes: monthlyMinutes.reduce((sum, v) => sum + v, 0),
+      monthlyMinutes,
       inProgress: activity.id === READING_ID ? inProgress : null,
     },
-    column: { activity, kind: "minutes", values: monthly },
+    column: { activity, kind: "minutes", values: monthlyMinutes },
   };
 }
 
