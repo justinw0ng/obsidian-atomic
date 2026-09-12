@@ -1,8 +1,12 @@
-import { MarkdownRenderer } from "obsidian";
-import type { CueCard } from "../core/cues";
+import { MarkdownRenderer, type App, type Component } from "obsidian";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
-import type FitnessPlugin from "../main";
+
+export type CueMarkdownHost = {
+  app: App;
+  component: Component;
+  sourcePath: string;
+};
 
 export type CueCardPaint = {
   text: string;
@@ -11,12 +15,20 @@ export type CueCardPaint = {
   lastSeen?: string;
 };
 
-export function bindCueCardFan(buttons: readonly HTMLButtonElement[]): void {
-  for (const button of buttons) {
-    button.addEventListener("click", () => {
-      const wasOpen = button.hasClass("is-open");
-      for (const other of buttons) other.removeClass("is-open");
-      if (!wasOpen) button.addClass("is-open");
+export function bindCueCardFan(cards: readonly HTMLElement[]): void {
+  const toggle = (card: HTMLElement): void => {
+    const wasOpen = card.hasClass("is-open");
+    for (const other of cards) other.removeClass("is-open");
+    if (!wasOpen) card.addClass("is-open");
+  };
+  for (const card of cards) {
+    card.addEventListener("click", () => {
+      toggle(card);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      toggle(card);
     });
   }
 }
@@ -24,20 +36,25 @@ export function bindCueCardFan(buttons: readonly HTMLButtonElement[]): void {
 /** Same index card on the cue page and on the session-note form. */
 export async function appendCueCard(
   fan: HTMLElement,
-  card: CueCardPaint | CueCard,
-  plugin: FitnessPlugin,
-  sourcePath: string,
+  card: CueCardPaint,
+  host: CueMarkdownHost,
   language: Language,
-): Promise<HTMLButtonElement> {
-  const button = fan.createEl("button", {
+): Promise<HTMLElement> {
+  const el = fan.createDiv({
     cls: "atomic-cue-card",
-    attr: { type: "button", "data-testid": "atomic-cue-card" },
+    attr: { tabindex: "0", role: "button", "data-testid": "atomic-cue-card" },
   });
 
-  const sheet = button.createDiv({ cls: "atomic-cue-sheet" });
+  const sheet = el.createDiv({ cls: "atomic-cue-sheet" });
   const body = sheet.createDiv({ cls: "atomic-cue-body" });
   const text = body.createDiv({ cls: "atomic-cue-text" });
-  await MarkdownRenderer.render(plugin.app, card.text, text, sourcePath, plugin);
+  await MarkdownRenderer.render(
+    host.app,
+    card.text,
+    text,
+    host.sourcePath,
+    host.component,
+  );
 
   const count = card.count ?? 0;
   if (card.lastSeen || count > 1) {
@@ -56,5 +73,5 @@ export async function appendCueCard(
     }
   }
 
-  return button;
+  return el;
 }

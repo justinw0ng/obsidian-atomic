@@ -4,16 +4,24 @@ import { appendCueBullet, parseReminders, sanitizeCueText } from "../core/cues";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
 import { isStaleBlockRender } from "../util/block-render";
-import { appendCueCard, bindCueCardFan } from "./cue-card";
+import {
+  appendCueCard,
+  bindCueCardFan,
+  type CueMarkdownHost,
+} from "./cue-card";
+
+export type CueLogHost = CueMarkdownHost & {
+  beginPaint: () => CueMarkdownHost["component"];
+};
 
 /** Fill-in form for session cues. Cues still land as `## Reminders` bullets. */
 export async function renderAtomicCueLog(
   plugin: FitnessPlugin,
   el: HTMLElement,
-  sourcePath: string,
+  host: CueLogHost,
   generation?: number,
 ): Promise<void> {
-  const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
+  const markdown = host.sourcePath ? await plugin.data.readCachedBody(host.sourcePath) : "";
   if (
     !el.isConnected ||
     (generation !== undefined && isStaleBlockRender(el, generation))
@@ -27,7 +35,7 @@ export async function renderAtomicCueLog(
     cls: "fitness-plugin atomic-cues atomic-cue-log",
     attr: { "data-testid": "atomic-cue-log" },
   });
-  if (!sourcePath) {
+  if (!host.sourcePath) {
     root.createEl("p", {
       cls: "fitness-muted",
       text: t("view.cueLog.needsSavedNote", language),
@@ -58,12 +66,12 @@ export async function renderAtomicCueLog(
       cls: "atomic-cue-fan atomic-cue-log-existing",
       attr: { "data-testid": "atomic-cue-log-existing" },
     });
-    const buttons = await Promise.all(
+    const painted = await Promise.all(
       existing.map((text) =>
-        appendCueCard(fan, { text }, plugin, sourcePath, language),
+        appendCueCard(fan, { text }, host, language),
       ),
     );
-    bindCueCardFan(buttons);
+    bindCueCardFan(painted);
   }
 
   const addCue = async (): Promise<void> => {
@@ -73,7 +81,7 @@ export async function renderAtomicCueLog(
       new Notice(t("notice.cueMissingText", language));
       return;
     }
-    const file = plugin.data.getFileByPath(sourcePath);
+    const file = plugin.data.getFileByPath(host.sourcePath);
     if (!file) {
       new Notice(t("notice.cueNeedsSavedNote", language));
       return;
@@ -89,7 +97,12 @@ export async function renderAtomicCueLog(
     } finally {
       addButton.disabled = false;
     }
-    void renderAtomicCueLog(plugin, el, sourcePath);
+    void renderAtomicCueLog(
+      plugin,
+      el,
+      { ...host, component: host.beginPaint() },
+      generation,
+    );
   };
 
   addButton.addEventListener("click", () => {

@@ -1,4 +1,3 @@
-import type FitnessPlugin from "../main";
 import type { VaultDataSource } from "../data/vault-source";
 import { buildCueCards, type Cue } from "../core/cues";
 import { nowYear, resolveBlockYear } from "../dates";
@@ -6,7 +5,7 @@ import { nowYear, resolveBlockYear } from "../dates";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
-import { appendCueCard, bindCueCardFan } from "./cue-card";
+import { appendCueCard, bindCueCardFan, type CueMarkdownHost } from "./cue-card";
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -18,13 +17,12 @@ export function resolveCuesYear(
 
 export async function renderCues(
   el: HTMLElement,
-  plugin: FitnessPlugin,
   data: VaultDataSource,
   activityTypes: ActivityType[],
   year: number,
   activity: string,
   language: Language,
-  sourcePath: string,
+  host: CueMarkdownHost,
 ): Promise<void> {
   el.empty();
   const root = el.createDiv({
@@ -53,10 +51,10 @@ export async function renderCues(
   }
 
   const fan = root.createDiv({ cls: "atomic-cue-fan" });
-  const buttons = await Promise.all(
-    cards.map((card) => appendCueCard(fan, card, plugin, sourcePath, language)),
+  const painted = await Promise.all(
+    cards.map((card) => appendCueCard(fan, card, host, language)),
   );
-  bindCueCardFan(buttons);
+  bindCueCardFan(painted);
 }
 
 async function collectCues(

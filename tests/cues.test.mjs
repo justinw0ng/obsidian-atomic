@@ -94,6 +94,8 @@ test("sanitizeCueText keeps multiline markdown and blocks forged structure", () 
   assert.equal(sanitizeCueText("- - Soft grip"), "Soft grip");
   assert.equal(sanitizeCueText("> ## Soft grip"), "Soft grip");
   assert.equal(sanitizeCueText("前臂放鬆\n**節奏**"), "前臂放鬆\n**節奏**");
+  assert.equal(sanitizeCueText("\n- Soft grip"), "Soft grip");
+  assert.equal(sanitizeCueText("-\n- actual cue"), "actual cue");
   assert.equal(sanitizeCueText("\n\n"), "");
 });
 

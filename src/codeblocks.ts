@@ -1,4 +1,8 @@
-import { MarkdownRenderChild, type MarkdownPostProcessorContext } from "obsidian";
+import {
+  Component,
+  MarkdownRenderChild,
+  type MarkdownPostProcessorContext,
+} from "obsidian";
 import type FitnessPlugin from "./main";
 import { parseBlockOptions } from "./util/parse-block";
 import {
@@ -32,6 +36,7 @@ export type LiveBlock = {
   el: HTMLElement;
   source: string;
   sourcePath: string;
+  beginPaint: () => Component;
 };
 
 function frontmatterYear(
@@ -50,13 +55,23 @@ function frontmatterYear(
  */
 class AtomicBlockChild extends MarkdownRenderChild {
   private generation = 0;
+  private paint: Component | null = null;
+  private readonly block: LiveBlock;
 
   constructor(
     containerEl: HTMLElement,
     private readonly plugin: FitnessPlugin,
-    private readonly block: LiveBlock,
+    seed: Omit<LiveBlock, "beginPaint">,
   ) {
     super(containerEl);
+    this.block = { ...seed, beginPaint: () => this.beginPaint() };
+  }
+
+  beginPaint(): Component {
+    if (this.paint) this.removeChild(this.paint);
+    this.paint = new Component();
+    this.addChild(this.paint);
+    return this.paint;
   }
 
   onload(): void {
@@ -82,6 +97,8 @@ export function renderTrackedBlock(
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
       generation,
+      component: block.beginPaint(),
+      beginPaint: block.beginPaint,
     });
   });
 }
@@ -93,6 +110,8 @@ export async function renderBlock(
   el: HTMLElement,
   ctx: Pick<MarkdownPostProcessorContext, "sourcePath"> & {
     generation?: number;
+    component: Component;
+    beginPaint: () => Component;
   },
 ): Promise<void> {
   if (!el.isConnected) return;
@@ -160,13 +179,12 @@ export async function renderBlock(
         );
         await renderCues(
           el,
-          plugin,
           data,
           activityTypes,
           year,
           activity,
           language,
-          sourcePath,
+          { app: plugin.app, component: ctx.component, sourcePath },
         );
         break;
       }
@@ -183,7 +201,17 @@ export async function renderBlock(
         break;
       }
       case "atomic-cue-log": {
-        await renderAtomicCueLog(plugin, el, sourcePath, ctx.generation);
+        await renderAtomicCueLog(
+          plugin,
+          el,
+          {
+            app: plugin.app,
+            component: ctx.component,
+            sourcePath,
+            beginPaint: ctx.beginPaint,
+          },
+          ctx.generation,
+        );
         break;
       }
       case "atomic-bookshelf": {

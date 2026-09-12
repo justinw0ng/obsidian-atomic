@@ -152,21 +152,29 @@ function stripLeadingBlocks(line: string): string {
  * Keep multiline markdown, but strip anything that would forge a sibling
  * bullet, a section heading, or a fence in the Reminders section. Continuation
  * lines may keep list markers so nested markdown still renders on the card.
+ * Leading lines that sanitize to nothing are skipped until a real first line.
  */
 export function sanitizeCueText(text: string): string {
-  const rawLines = text
-    .replace(/\r\n/g, "\n")
-    .replace(/[\u2028\u2029]/g, "\n")
-    .split("\n");
-  while (rawLines.length && !rawLines[0].trim()) rawLines.shift();
-  while (rawLines.length && !rawLines[rawLines.length - 1].trim()) rawLines.pop();
-  const cleaned = rawLines.map((line, index) =>
-    index === 0 ? stripLeadingBlocks(line) : stripFencePrefix(line.trimEnd()).replace(/^\s+/, ""),
+  const lines = trimBlankEdges(
+    text.replace(/\r\n/g, "\n").replace(/[\u2028\u2029]/g, "\n").split("\n"),
   );
-  while (cleaned.length && !cleaned[0]) cleaned.shift();
-  while (cleaned.length && !cleaned[cleaned.length - 1]) cleaned.pop();
+  while (lines.length) {
+    const first = stripLeadingBlocks(lines[0]);
+    if (first) {
+      lines[0] = first;
+      break;
+    }
+    lines.shift();
+  }
+  if (!lines.length) return "";
+  const cleaned = [
+    lines[0],
+    ...lines.slice(1).map((line) =>
+      stripFencePrefix(line.trimEnd()).replace(/^\s+/, ""),
+    ),
+  ];
   const collapsed: string[] = [];
-  for (const line of cleaned) {
+  for (const line of trimBlankEdges(cleaned)) {
     if (!line && collapsed[collapsed.length - 1] === "") continue;
     collapsed.push(line);
   }
