@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "body": {
     "en": "Cues are index cards you fill in from a form — multiline markdown and Traditional Chinese included.",
     "zh-Hant": "提示而家係一張張索引卡 — 用表格填寫就得，支援多行 markdown 同繁體中文。"
