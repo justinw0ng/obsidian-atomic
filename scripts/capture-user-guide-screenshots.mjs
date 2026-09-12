@@ -6,9 +6,9 @@
  * Dashboard still writes docs/images/atomic-dashboard.png and composes
  * docs/images/atomic-dashboard-hero.png via compose-device-hero.py.
  * Optional: ATOMIC_DASHBOARD_PHONE_SRC=/path/to/phone.jpg for a real phone frame.
+ * Optional: ATOMIC_CUE_POPUP_STILLS=/path/to/png-dir to rebuild atomic-cue-popup.gif.
  */
-import { spawnSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -29,20 +29,19 @@ import {
 } from "../e2e/lib/obsidian.mjs";
 import {
   composeDeviceHero,
+  ensureDocsBundle,
   hideCaptureScrollbars,
   hideNoteProperties,
   openPreviewNote,
   parkMouse,
   resizeWindow,
+  restoreBundledMain,
 } from "./docs-capture.mjs";
 import {
-  LIGHTBOX_STILLS,
-  assembleCueHoverPreviewGif,
   assembleCuePopupPreviewGif,
   assembleGif,
   grabFrame,
   grabHold,
-  stillsToGif,
   frameDir,
 } from "./docs-gif.mjs";
 import {
@@ -111,68 +110,6 @@ const REQUESTED_SHOTS = new Set(
 
 function wantShot(name) {
   return REQUESTED_SHOTS.has("all") || REQUESTED_SHOTS.has(name);
-}
-
-function assertDashboardBundle() {
-  const bundle = readFileSync(join(ROOT, "main.js"), "utf8");
-  if (!bundle.includes("atomic-dashboard-recent")) {
-    throw new Error(
-      "main.js is missing the card dashboard. Run `npm run build`, recapture, then `git checkout -- main.js` if you are not shipping a release.",
-    );
-  }
-}
-
-function ensureCaptureBundle() {
-  const bundle = readFileSync(join(ROOT, "main.js"), "utf8");
-  if (bundle.includes("atomic-dashboard-recent") && bundle.includes("atomic-cue-log")) {
-    return false;
-  }
-  const result = spawnSync("npm", ["run", "build"], { cwd: ROOT, encoding: "utf8" });
-  if (result.status !== 0) {
-    throw new Error(`build failed: ${(result.stderr || result.stdout || "").trim()}`);
-  }
-  const next = readFileSync(join(ROOT, "main.js"), "utf8");
-  if (!next.includes("atomic-cue-log") || !next.includes("atomic-dashboard-recent")) {
-    throw new Error("main.js is still missing capture markers after build");
-  }
-  return true;
-}
-
-function restoreBundledMain(built) {
-  if (!built) return;
-  spawnSync("git", ["checkout", "--", "main.js"], { cwd: ROOT, stdio: "ignore" });
-}
-
-function bootstrapMissingGifs() {
-  const conversions = [
-    [["atomic-book-shelf.png", "atomic-book-shelf-open.png"], "atomic-book-shelf.gif"],
-    [["atomic-reading-timer.png"], "atomic-reading-timer.gif"],
-    [["atomic-gym-log.png"], "atomic-gym-log.gif"],
-    [["atomic-dashboard.png"], "atomic-dashboard.gif"],
-    [["07-settings-atomic.png"], "07-settings-atomic.gif"],
-    [["06-enable-atomic-plugin.png"], "06-enable-atomic-plugin.gif"],
-    [["atomic-heatmap.png"], "atomic-heatmap.gif"],
-    [["atomic-heatmap-activity-filter.png"], "atomic-heatmap-activity-filter.gif"],
-    [["atomic-actions.png"], "atomic-actions.gif"],
-    [["atomic-actions.png"], "atomic-today.gif"],
-    [["atomic-gym-log.png"], "atomic-session-timer.gif"],
-  ];
-  for (const [stills, outName] of conversions) {
-    if (existsSync(join(IMAGES, outName))) continue;
-    const frames = stills.map((name) => join(IMAGES, name)).filter((path) => existsSync(path));
-    if (!frames.length) continue;
-    stillsToGif(frames, outName, { durationMs: 800, holdFirst: 0, holdLast: 1, maxWidth: 1280 });
-  }
-  if (!existsSync(join(IMAGES, OUTPUTS.cueLog)) && existsSync(LIGHTBOX_STILLS.form)) {
-    stillsToGif([LIGHTBOX_STILLS.form], OUTPUTS.cueLog, {
-      durationMs: 800,
-      holdFirst: 0,
-      holdLast: 1,
-      maxWidth: 1280,
-    });
-  }
-  assembleCueHoverPreviewGif();
-  assembleCuePopupPreviewGif();
 }
 
 async function waitForCoverImages(driver, min = 12, timeoutMs = 30000) {
@@ -693,12 +630,10 @@ async function main() {
     throw new Error(`Cannot capture screenshots: ${skip}`);
   }
 
-  bootstrapMissingGifs();
-  assembleCuePopupPreviewGif();
+  if (wantShot("cuePopup")) assembleCuePopupPreviewGif();
 
-  const built = ensureCaptureBundle();
+  const built = ensureDocsBundle(["atomic-dashboard-recent", "atomic-cue-log"]);
   try {
-    if (wantShot("dashboard")) assertDashboardBundle();
     prepareUserGuideVault();
     const launchFile = wantShot("bookShelf") ? FILES.bookShelf : FILES.dashboard;
     const launched = await launchObsidian(USER_GUIDE_VAULT, launchFile);

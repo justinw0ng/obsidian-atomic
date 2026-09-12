@@ -1,6 +1,7 @@
 /**
  * GIF helpers for user-guide captures.
  * Frame grabbing uses Selenium screenshots; assembly is assemble-docs-gif.py.
+ * Cue-popup stills come from ATOMIC_CUE_POPUP_STILLS (a directory of PNGs), never a store path.
  */
 import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
@@ -12,15 +13,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const GIF_FRAME_ROOT = "/tmp/atomic-user-guide-gif-frames";
 export const ASSEMBLE_GIF = join(ROOT, "scripts/assemble-docs-gif.py");
 export const IMAGES = join(ROOT, "docs/images");
-
-export const LIGHTBOX_STILLS = {
-  rest: "/cursor/stores/bc-c0dad2ad-85e0-46cf-a0e0-1846b4ce8f67/media/cue-cards/lightbox/cue_hero_desktop_rest.png",
-  hover: "/cursor/stores/bc-c0dad2ad-85e0-46cf-a0e0-1846b4ce8f67/media/cue-cards/lightbox/cue_hero_desktop_hover.png",
-  popup: "/cursor/stores/bc-c0dad2ad-85e0-46cf-a0e0-1846b4ce8f67/media/cue-cards/lightbox/cue_hero_desktop_lightbox.png",
-  form: "/cursor/stores/bc-c0dad2ad-85e0-46cf-a0e0-1846b4ce8f67/media/cue-cards/lightbox/cue_hero_form.png",
-  mobileRest: "/cursor/stores/bc-c0dad2ad-85e0-46cf-a0e0-1846b4ce8f67/media/cue-cards/lightbox/cue_hero_mobile_rest.png",
-  mobilePopup: "/cursor/stores/bc-c0dad2ad-85e0-46cf-a0e0-1846b4ce8f67/media/cue-cards/lightbox/cue_hero_mobile_lightbox.png",
-};
+export const CUE_POPUP_GIF = "atomic-cue-popup.gif";
 
 export function frameDir(name) {
   const dir = join(GIF_FRAME_ROOT, name);
@@ -77,38 +70,26 @@ export function assembleGif(frames, outName, options = {}) {
   return out;
 }
 
-export function stillsToGif(stills, outName, options = {}) {
-  const frames = stills.filter((path) => path && existsSync(path));
-  if (!frames.length) {
-    throw new Error(`No stills exist for ${outName}: ${stills.join(", ")}`);
-  }
-  return assembleGif(frames, outName, options);
-}
-
-/** Upcoming fly-to-center popup (stills from the in-flight lightbox work). */
+/** Rebuild the cue-popup clip from ATOMIC_CUE_POPUP_STILLS. Keeps the committed GIF when unset. */
 export function assembleCuePopupPreviewGif() {
-  const frames = [LIGHTBOX_STILLS.rest, LIGHTBOX_STILLS.hover, LIGHTBOX_STILLS.popup];
-  const missing = frames.filter((path) => !existsSync(path));
-  if (missing.length) {
-    console.warn(`Skip cue popup GIF; missing stills: ${missing.join(", ")}`);
-    return null;
+  const out = join(IMAGES, CUE_POPUP_GIF);
+  const dir = (process.env.ATOMIC_CUE_POPUP_STILLS || "").trim();
+  if (!dir) {
+    if (existsSync(out)) {
+      console.log(`Keep committed ${CUE_POPUP_GIF} (ATOMIC_CUE_POPUP_STILLS unset)`);
+      return out;
+    }
+    throw new Error(
+      `${CUE_POPUP_GIF} is missing. Set ATOMIC_CUE_POPUP_STILLS to a directory of PNG stills.`,
+    );
   }
-  return assembleGif(frames, "atomic-cue-popup.gif", {
+  const frames = listPngs(dir);
+  if (!frames.length) {
+    throw new Error(`ATOMIC_CUE_POPUP_STILLS has no PNGs: ${dir}`);
+  }
+  return assembleGif(frames, CUE_POPUP_GIF, {
     maxWidth: 1280,
     durationMs: 700,
-    holdFirst: 1,
-    holdLast: 2,
-    colors: 96,
-  });
-}
-
-export function assembleCueHoverPreviewGif() {
-  const frames = [LIGHTBOX_STILLS.rest, LIGHTBOX_STILLS.hover];
-  if (frames.some((path) => !existsSync(path))) return null;
-  if (existsSync(join(IMAGES, "atomic-cues-hover.gif"))) return join(IMAGES, "atomic-cues-hover.gif");
-  return assembleGif(frames, "atomic-cues-hover.gif", {
-    maxWidth: 1280,
-    durationMs: 600,
     holdFirst: 1,
     holdLast: 2,
     colors: 96,

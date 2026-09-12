@@ -40,12 +40,16 @@ test("cue hero is a 1600x900 composed banner", () => {
 test("cue hero capture is a scenario on the shared docs-capture helpers", () => {
   const src = readFileSync(join(root, "scripts/capture-cue-hero.mjs"), "utf8");
   assert.match(src, /from "\.\/docs-capture\.mjs"/);
+  assert.match(src, /ensureDocsBundle/);
+  assert.match(src, /restoreBundledMain/);
   assert.match(src, /launchObsidian/);
   assert.match(src, /stopSession/);
   assert.match(src, /composeDeviceHero/);
   assert.match(src, /cropChrome: false/);
   assert.match(src, /\/tmp\/atomic-cue-hero-review/);
   assert.doesNotMatch(src, /\/cursor\/stores\//);
+  assert.doesNotMatch(src, /function ensureCueCardBundle/);
+  assert.doesNotMatch(src, /function restoreBundledMain/);
   assert.doesNotMatch(src, /function launchForCapture/);
   assert.doesNotMatch(src, /function resizeWindow/);
   assert.doesNotMatch(src, /function parkMouse/);

@@ -6,6 +6,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { assembleCuePopupPreviewGif } from "../scripts/docs-gif.mjs";
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const guide = readFileSync(join(root, "docs/USER_GUIDE.md"), "utf8");
 
@@ -116,6 +118,19 @@ test("assemble-docs-gif writes a looping GIF from PNG frames", (t) => {
     assert.equal(gif.readUInt16LE(8), 16);
   } finally {
     rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("cue popup assemble keeps the committed GIF without store stills", () => {
+  const previous = process.env.ATOMIC_CUE_POPUP_STILLS;
+  delete process.env.ATOMIC_CUE_POPUP_STILLS;
+  try {
+    const out = assembleCuePopupPreviewGif();
+    assert.match(out, /atomic-cue-popup\.gif$/);
+    assert.equal(existsSync(out), true);
+  } finally {
+    if (previous === undefined) delete process.env.ATOMIC_CUE_POPUP_STILLS;
+    else process.env.ATOMIC_CUE_POPUP_STILLS = previous;
   }
 });
 
