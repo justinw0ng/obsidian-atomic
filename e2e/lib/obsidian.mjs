@@ -55,6 +55,18 @@ async function fetchJson(url) {
   return res.json();
 }
 
+async function waitForCdpGone(port = DEBUG_PORT, timeoutMs = 15000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      await fetchJson(`http://127.0.0.1:${port}/json/version`);
+    } catch {
+      return;
+    }
+    await sleep(200);
+  }
+}
+
 export async function waitForCdp(port = DEBUG_PORT, timeoutMs = 90000) {
   const start = Date.now();
   let lastError = "";
@@ -140,7 +152,8 @@ export async function launchObsidian(vaultPath, filePath) {
   if (!binary) throw new Error("Obsidian binary not found");
 
   killObsidian();
-  await sleep(1000);
+  await waitForCdpGone();
+  await sleep(300);
 
   const vaultId = registerVaultInObsidianConfig(vaultPath, E2E_VAULT_ID);
   const encoded = encodeURIComponent(filePath);

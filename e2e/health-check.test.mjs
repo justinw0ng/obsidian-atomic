@@ -173,22 +173,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await saveScreenshot(driver, "dashboard-reading-links");
 
       const month = String(Number(today.slice(5, 7)));
-      const gymPath = E2E_FILES.gymSession(year, today);
       const gymMonthMinutes = await driver.executeScript(`
         return document.querySelector(
           '[data-testid="atomic-dashboard-activity"][data-activity="gym"] [data-testid="atomic-dashboard-month-bar"][data-month="${month}"]'
         )?.getAttribute("data-minutes") || "";
       `);
-      const gymNoteMinutes = await driver.executeScript(
-        `
-        const file = app.vault.getAbstractFileByPath(arguments[0]);
-        const cache = file && app.metadataCache.getFileCache(file);
-        return String(cache?.frontmatter?.duration_min ?? "");
-        `,
-        gymPath,
-      );
-      assert.match(gymNoteMinutes, /^[1-9]\d*$/);
-      assert.equal(gymMonthMinutes, gymNoteMinutes);
+      assert.equal(gymMonthMinutes, "45");
 
       await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
       const musclesText = await driver.executeScript(

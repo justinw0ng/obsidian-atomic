@@ -29,6 +29,12 @@ test("e2eSkipReason honors SKIP_E2E even when a display is available", () => {
   });
 });
 
+test("launchObsidian waits for the previous CDP port to close", () => {
+  const src = readFileSync(new URL("../e2e/lib/obsidian.mjs", import.meta.url), "utf8");
+  assert.match(src, /async function waitForCdpGone/);
+  assert.match(src, /killObsidian\(\);\n  await waitForCdpGone\(\);/);
+});
+
 test("noticeTexts reads notices in one script to avoid stale elements", () => {
   const src = readFileSync(new URL("../e2e/lib/obsidian.mjs", import.meta.url), "utf8");
   assert.match(src, /export async function noticeTexts/);
