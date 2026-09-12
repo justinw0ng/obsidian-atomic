@@ -35,6 +35,7 @@ Atomic bans these in `styles.css` because review flagged them:
 | `:has(` | Use a class on the host (`atomic-block-host`) or JS (`unclipBookShelfAncestors`) |
 | `!important` | Raise specificity (`button.atomic-book`, `img.atomic-book-cover-image`) |
 | `scrollbar-width` | Keep `::-webkit-scrollbar` / `-ms-overflow-style` if you must style scrollbars |
+| `mask` / `-webkit-mask` / `mask-image` | `css-masks` is only partial on Obsidian 1.4.5. Fade clipped cue text with a `::after` paper wash (`atomic-cue-body`) |
 
 Use Obsidian CSS variables (`--text-normal`, `--background-modifier-border`, …). Do not hardcode `element.style.color` for theme-facing chrome.
 
@@ -63,7 +64,7 @@ Register events with `this.registerEvent` so disable/unload drops them.
 - `innerHTML` absent from heatmap, gym log
 - `setWarning` / `setDestructive` / recursive `display()` absent from settings
 - `getSettingDefinitions` present
-- `:has(`, `!important`, `scrollbar-width` absent from `styles.css`
+- `:has(`, `!important`, `scrollbar-width`, `mask` / `-webkit-mask` absent from `styles.css`
 
 When review invents a new ban, add a `doesNotMatch` (or a `match` for the replacement) in that file in the same PR as the fix.
 
