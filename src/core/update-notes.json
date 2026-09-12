@@ -1,7 +1,7 @@
 {
-  "version": "1.2.2",
+  "version": "1.3.0",
   "body": {
-    "en": "Performance improvements — the dashboard and notes refresh with fewer vault reads, so Atomic stays snappier on large vaults and on mobile.",
-    "zh-Hant": "Atomic 用起嚟更順咗 — 開總覽同刷新筆記會快啲，手機同大筆記庫都更流暢。"
+    "en": "Cues are index cards you fill in from a form — multiline markdown and Traditional Chinese included.\nWhat's new appears as a short toast after you update.\nHeatmaps and the bookshelf no longer show extra scrollbars.",
+    "zh-Hant": "提示而家係一張張索引卡 — 用表格填寫就得，支援多行 markdown 同繁體中文。\n更新之後會彈一個短提示。\n熱圖同書架唔會再畫多餘捲軸。"
   }
 }
