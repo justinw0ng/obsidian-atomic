@@ -72,9 +72,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
   assert.match(cues, /"data-testid": "atomic-cue-card"/);
-  assert.match(cues, /"data-cue-stock"/);
-  assert.match(cues, /"data-cue-repeats"/);
   assert.match(cues, /buildCueCards\(/);
+  assert.match(cues, /"atomic-cue-text"/);
+  assert.match(cues, /"atomic-cue-repeats"/);
   assert.doesNotMatch(cues, /view\.cues\.thisMonth|view\.cues\.keepers/);
   assert.doesNotMatch(cues, /innerHTML/);
 

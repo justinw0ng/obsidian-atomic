@@ -2,27 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   LB_TO_KG,
-  normalizeCue,
   durationToLevel,
   isLoadedWeight,
   toKg,
   rowVolumeKg,
   parseSetTable,
   yearFromDailyPath,
-  buildCueCards,
-  parseReminders,
 } from "../src/core.ts";
 
 test("exports expected helpers", () => {
-  assert.equal(typeof normalizeCue, "function");
   assert.equal(typeof durationToLevel, "function");
   assert.equal(typeof isLoadedWeight, "function");
   assert.equal(typeof toKg, "function");
   assert.equal(typeof rowVolumeKg, "function");
   assert.equal(typeof parseSetTable, "function");
   assert.equal(typeof yearFromDailyPath, "function");
-  assert.equal(typeof buildCueCards, "function");
-  assert.equal(typeof parseReminders, "function");
 });
 
 test("isLoadedWeight rejects BW and empties", () => {
@@ -99,49 +93,3 @@ test("yearFromDailyPath", () => {
   assert.equal(yearFromDailyPath("Inbox/note.md", 2026), 2026);
 });
 
-test("normalizeCue", () => {
-  assert.equal(normalizeCue("  Keep  Lead Arm Soft "), "keep lead arm soft");
-});
-
-test("parseReminders extracts bullets under Reminders", () => {
-  const md = `
-# Golf — 2026-08-02
-
-## Session log
-
-- **Balls:** 80
-
-## Reminders
-
-- Keep lead arm soft at address
-- Finish balanced on lead side
-
-## Other
-
-- ignore me
-`;
-  assert.deepEqual(parseReminders(md), [
-    "Keep lead arm soft at address",
-    "Finish balanced on lead side",
-  ]);
-});
-
-test("parseReminders accepts bilingual emoji heading", () => {
-  const md = `
-# ⛳ Golf / 高爾夫 — 2026-08-08
-
-## 💡 Reminders / 提醒
-
-- Soft grip pressure
-- 
-- Finish tall
-
-## Next
-
-- ignore me
-`;
-  assert.deepEqual(parseReminders(md), [
-    "Soft grip pressure",
-    "Finish tall",
-  ]);
-});

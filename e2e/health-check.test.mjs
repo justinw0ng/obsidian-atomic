@@ -55,6 +55,23 @@ function cueCardMetrics(driver, index) {
   `);
 }
 
+/**
+ * Wait for a cue card's 420ms pop to settle, and report the last measurement
+ * rather than a bare timeout when it never does.
+ */
+async function waitForCuePop(driver, index) {
+  let last = null;
+  try {
+    await driver.wait(async () => {
+      last = await cueCardMetrics(driver, index);
+      return !last.clamped && last.lift > 8 && last.metaOpacity > 0.99;
+    }, 8000);
+  } catch {
+    throw new Error(`cue card ${index} never popped: ${JSON.stringify(last)}`);
+  }
+  return last;
+}
+
 async function check(driver, name, fn) {
   try {
     await fn();
@@ -148,25 +165,17 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
 
       const before = await cueCardMetrics(driver, 2);
       assert.ok(before.clamped, "a long cue should be clipped at rest");
+      assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
 
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
       `);
-      // The pop is a 420ms transition, so let it settle before measuring.
-      await driver.wait(async () => {
-        const open = await cueCardMetrics(driver, 2);
-        return (
-          open.isOpen && open.lift > 8 && !open.clamped && open.metaOpacity > 0.99
-        );
-      }, 8000);
-
-      const popped = await cueCardMetrics(driver, 2);
+      const popped = await waitForCuePop(driver, 2);
+      assert.equal(popped.isOpen, true);
       assert.ok(
-        popped.lift > 8,
-        `popped card should lift out of the fan, lifted ${popped.lift}px`,
+        popped.bodyHeight > before.bodyHeight,
+        `popped body should grow, ${before.bodyHeight} -> ${popped.bodyHeight}`,
       );
-      assert.ok(popped.bodyHeight > before.bodyHeight);
-      assert.ok(popped.metaOpacity > 0.99, "the meta row should fade in");
 
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
@@ -179,10 +188,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       // Hover pops the card without the is-open class, on any pointer type.
       const cardEls = await driver.findElements(By.css('[data-testid="atomic-cue-card"]'));
       await driver.actions({ async: false }).move({ origin: cardEls[0] }).perform();
-      await driver.wait(async () => {
-        const hovered = await cueCardMetrics(driver, 0);
-        return !hovered.isOpen && hovered.lift > 8 && hovered.metaOpacity > 0.99;
-      }, 8000);
+      const hovered = await waitForCuePop(driver, 0);
+      assert.equal(hovered.isOpen, false, "hover must not need the is-open class");
 
       await openVaultFile(driver, E2E_FILES.gymCues);
       await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
@@ -780,10 +787,6 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
   it("shows settings color picker, swatches, add, enable/disable, and delete", async () => {
     await check(driver, "settings", async () => {
       try {
-        // A Notice left over from an earlier test can swallow a settings click.
-        await driver.executeScript(
-          `document.querySelectorAll('.notice').forEach((notice) => notice.remove())`,
-        );
         await openAtomicSettings(driver);
 
       for (const id of ["gym", "golf", "reading"]) {

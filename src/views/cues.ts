@@ -1,13 +1,10 @@
 import type { VaultDataSource } from "../data/vault-source";
-import { buildCueCards, type Cue, type CueCard } from "../core";
+import { buildCueCards, type Cue, type CueCard } from "../core/cues";
 import { nowYear, resolveBlockYear } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
-
-/** Paper tints cycle through four index-card stocks, like a real card pack. */
-const CUE_STOCK_COUNT = 4;
 
 export function resolveCuesYear(
   opts: Record<string, string>,
@@ -41,10 +38,7 @@ export async function renderCues(
   }
 
   const cards = buildCueCards(await collectCues(data, activityType, year), year);
-  root.setAttr("data-cue-count", String(cards.length));
-  if (activityType.baseColor) {
-    root.style.setProperty("--atomic-cue-accent", activityType.baseColor);
-  }
+  root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
 
   if (!cards.length) {
     root.createEl("p", {
@@ -55,7 +49,7 @@ export async function renderCues(
   }
 
   const fan = root.createDiv({ cls: "atomic-cue-fan" });
-  const buttons = cards.map((card, index) => appendCueCard(fan, card, index, language));
+  const buttons = cards.map((card) => appendCueCard(fan, card, language));
   // Touch devices have no hover, so a tap pops one card at a time.
   for (const button of buttons) {
     button.addEventListener("click", () => {
@@ -95,20 +89,14 @@ async function collectCues(
 function appendCueCard(
   fan: HTMLElement,
   card: CueCard,
-  index: number,
   language: Language,
 ): HTMLButtonElement {
   // No aria-label: the cue and its meta row are the button's text, and an
   // aria-label would also raise an Obsidian tooltip over the popped card.
+  // Paper stock cycles from `:nth-child` in styles.css, not from an attribute.
   const button = fan.createEl("button", {
     cls: "atomic-cue-card",
-    attr: {
-      type: "button",
-      "data-testid": "atomic-cue-card",
-      "data-cue-stock": String(index % CUE_STOCK_COUNT),
-      "data-cue-repeats": String(card.count),
-      "data-cue-last-seen": card.lastSeen,
-    },
+    attr: { type: "button", "data-testid": "atomic-cue-card" },
   });
 
   const sheet = button.createDiv({ cls: "atomic-cue-sheet" });

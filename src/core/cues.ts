@@ -11,59 +11,96 @@ export type CueCard = {
   text: string;
   focus: string;
   count: number;
-  firstSeen: string;
   lastSeen: string;
 };
 
-/** `## 💡 Reminders`, `## Reminders / 提醒`, and plain `## Reminders`. */
-const REMINDERS_HEADING = /^##\s+(?:\S+\s+)?Reminders(?:\s*\/\s*.+)?\s*$/i;
-const ANY_HEADING = /^(#{1,6})\s+/;
+/** `## 💡 Reminders`, `### Reminders / 提醒`, and plain `## Reminders`. */
+const REMINDERS_HEADING = /^(#{1,6})\s+(?:\S+\s+)?Reminders(?:\s*\/\s*.+)?\s*$/i;
+const HEADING = /^(#{1,6})\s+/;
 const BULLET = /^\s*[-*+]\s+(.+)$/;
 const EMPTY_BULLET = /^\s*[-*+]\s*$/;
-const FENCE = /^\s*(?:```|~~~)/;
+const FENCE = /^\s*(`{3,}|~{3,})/;
+
+/** Heading level used when this module has to create the section itself. */
+const NEW_SECTION_LEVEL = "##";
+
+type RemindersSection = {
+  /** Index of the `## Reminders` line itself. */
+  headingIndex: number;
+  /** First line after the heading. */
+  bodyStart: number;
+  /** First line past the section: the next heading at or above its level. */
+  end: number;
+};
 
 /**
  * Which lines sit inside a fenced block, delimiters included. Atomic's own
- * `atomic-cue-log` fence lives in the Reminders section, and its option
- * comments start with `#`, so section scanning has to ignore fenced lines.
+ * `atomic-cue-log` fence lives in the Reminders section and its option comments
+ * start with `#`, so both reading and writing have to ignore fenced lines.
  */
 function fencedLines(lines: readonly string[]): boolean[] {
   const fenced: boolean[] = [];
-  let open = false;
+  let openedWith: string | null = null;
   for (const line of lines) {
-    const delimiter = FENCE.test(line);
-    fenced.push(open || delimiter);
-    if (delimiter) open = !open;
+    const delimiter = line.match(FENCE)?.[1];
+    if (openedWith === null) {
+      fenced.push(delimiter !== undefined);
+      if (delimiter !== undefined) openedWith = delimiter[0];
+      continue;
+    }
+    fenced.push(true);
+    // Only the delimiter that opened the block can close it.
+    if (delimiter !== undefined && delimiter[0] === openedWith) openedWith = null;
   }
   return fenced;
 }
 
+/** The note's Reminders section, or null when it has none. */
+function remindersSection(
+  lines: readonly string[],
+  fenced: readonly boolean[],
+): RemindersSection | null {
+  let headingIndex = -1;
+  let level = 0;
+  for (let index = 0; index < lines.length; index += 1) {
+    if (fenced[index]) continue;
+    const match = lines[index].trim().match(REMINDERS_HEADING);
+    if (!match) continue;
+    headingIndex = index;
+    level = match[1].length;
+    break;
+  }
+  if (headingIndex === -1) return null;
+
+  let end = lines.length;
+  for (let index = headingIndex + 1; index < lines.length; index += 1) {
+    if (fenced[index]) continue;
+    const heading = lines[index].match(HEADING);
+    if (heading && heading[1].length <= level) {
+      end = index;
+      break;
+    }
+  }
+  return { headingIndex, bodyStart: headingIndex + 1, end };
+}
+
 export function normalizeCue(text: string): string {
-  return String(text || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
+  return text.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 export function parseReminders(markdown: string): string[] {
-  const lines = String(markdown).split(/\r?\n/);
+  const lines = markdown.split(/\r?\n/);
   const fenced = fencedLines(lines);
-  const out: string[] = [];
-  let inRem = false;
-  for (let index = 0; index < lines.length; index += 1) {
+  const section = remindersSection(lines, fenced);
+  if (!section) return [];
+
+  const cues: string[] = [];
+  for (let index = section.bodyStart; index < section.end; index += 1) {
     if (fenced[index]) continue;
-    const line = lines[index];
-    if (REMINDERS_HEADING.test(line.trim())) {
-      inRem = true;
-      continue;
-    }
-    if (inRem && /^##\s+/.test(line)) break;
-    if (inRem) {
-      const m = line.match(BULLET);
-      if (m) out.push(m[1].trim());
-    }
+    const bullet = lines[index].match(BULLET);
+    if (bullet) cues.push(bullet[1].trim());
   }
-  return out;
+  return cues;
 }
 
 /**
@@ -72,11 +109,10 @@ export function parseReminders(markdown: string): string[] {
  * or headings in the Reminders section.
  */
 export function sanitizeCueText(text: string): string {
-  const flat = String(text ?? "")
+  let stripped = text
     .replace(/[\r\n\u2028\u2029]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  let stripped = flat;
   let previous = "";
   while (stripped !== previous) {
     previous = stripped;
@@ -88,7 +124,7 @@ export function sanitizeCueText(text: string): string {
 }
 
 /**
- * Append a cue as a bullet in the note's Reminders section, creating the
+ * Append a cue as the last bullet of the note's Reminders section, creating the
  * section when the note has none. Returns the markdown unchanged when the cue
  * sanitizes to nothing.
  */
@@ -98,50 +134,34 @@ export function appendCueBullet(
   headingLabel: string,
 ): string {
   const text = sanitizeCueText(cue);
-  const source = String(markdown ?? "");
-  if (!text) return ensureTrailingNewline(source);
+  if (!text) return ensureTrailingNewline(markdown);
 
   const bullet = `- ${text}`;
-  const lines = source.split(/\r?\n/);
-  const fenced = fencedLines(lines);
-  const headingIndex = lines.findIndex(
-    (line, index) => !fenced[index] && REMINDERS_HEADING.test(line.trim()),
-  );
+  const lines = markdown.split(/\r?\n/);
+  const section = remindersSection(lines, fencedLines(lines));
 
-  if (headingIndex === -1) {
-    const base = trimTrailingBlankLines(lines).join("\n");
-    const heading = `## ${headingLabel}`;
+  if (!section) {
+    const base = trimBlankEdges(lines).join("\n");
+    const heading = `${NEW_SECTION_LEVEL} ${headingLabel}`;
     return `${base}${base ? "\n\n" : ""}${heading}\n\n${bullet}\n`;
   }
 
-  const headingLevel = lines[headingIndex].match(ANY_HEADING)?.[1].length ?? 2;
-  let sectionEnd = lines.length;
-  for (let index = headingIndex + 1; index < lines.length; index += 1) {
-    if (fenced[index]) continue;
-    const heading = lines[index].match(ANY_HEADING);
-    if (heading && heading[1].length <= headingLevel) {
-      sectionEnd = index;
-      break;
-    }
-  }
-
-  // Empty `- ` lines are the placeholder older session templates left behind.
-  const body = trimTrailingBlankLines(
-    lines
-      .slice(headingIndex + 1, sectionEnd)
-      .filter((line, offset) => fenced[headingIndex + 1 + offset] || !EMPTY_BULLET.test(line)),
-  );
-  // Keep a blank line after prose or a fence; keep a tight list after a bullet.
-  const separator = body.length && !BULLET.test(body[body.length - 1]) ? [""] : [];
+  const body = trimBlankEdges(lines.slice(section.bodyStart, section.end));
+  // Older session templates left a lone `- ` placeholder under the heading.
+  // Replace that, but never a blank bullet a user wrote among real cues.
+  const kept = body.length === 1 && EMPTY_BULLET.test(body[0]) ? [] : body;
+  const last = kept[kept.length - 1];
+  const separator = last !== undefined && !BULLET.test(last) ? [""] : [];
 
   return ensureTrailingNewline(
     [
-      ...lines.slice(0, headingIndex + 1),
-      ...(body.length ? body : [""]),
+      ...lines.slice(0, section.bodyStart),
+      "",
+      ...kept,
       ...separator,
       bullet,
       "",
-      ...lines.slice(sectionEnd),
+      ...lines.slice(section.end),
     ].join("\n"),
   );
 }
@@ -154,44 +174,40 @@ export function appendCueBullet(
 export function buildCueCards(cues: readonly Cue[], year: number): CueCard[] {
   const prefix = `${year}-`;
   const byKey = new Map<string, CueCard>();
-  const seenAt = new Map<string, number>();
+  const lastIndex = new Map<string, number>();
   const ordered = cues
-    .filter((cue) => String(cue.date || "").startsWith(prefix))
+    .filter((cue) => cue.date.startsWith(prefix))
     .slice()
-    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    .sort((a, b) => a.date.localeCompare(b.date));
 
   ordered.forEach((cue, index) => {
     const key = normalizeCue(cue.text);
     if (!key) return;
-    const previous = byKey.get(key);
-    if (!previous) {
-      seenAt.set(key, index);
-      byKey.set(key, {
-        key,
-        text: String(cue.text).trim(),
-        focus: cue.focus || "",
-        count: 1,
-        firstSeen: cue.date,
-        lastSeen: cue.date,
-      });
-      return;
-    }
-    seenAt.set(key, index);
-    previous.count += 1;
-    previous.text = String(cue.text).trim();
-    previous.focus = cue.focus || previous.focus;
-    previous.lastSeen = cue.date;
+    const card = byKey.get(key) ?? { key, text: "", focus: "", count: 0, lastSeen: "" };
+    card.count += 1;
+    card.text = cue.text.trim();
+    card.focus = cue.focus || card.focus;
+    card.lastSeen = cue.date;
+    byKey.set(key, card);
+    lastIndex.set(key, index);
   });
 
   return [...byKey.values()].sort(
     (a, b) =>
       b.lastSeen.localeCompare(a.lastSeen) ||
-      (seenAt.get(a.key) ?? 0) - (seenAt.get(b.key) ?? 0),
+      (lastIndex.get(a.key) ?? 0) - (lastIndex.get(b.key) ?? 0),
   );
 }
 
-function trimTrailingBlankLines(lines: string[]): string[] {
-  const out = lines.slice();
-  while (out.length && !out[out.length - 1].trim()) out.pop();
-  return out;
+/** Does this heading label round-trip through the Reminders section scanner? */
+export function isRemindersHeadingLabel(label: string): boolean {
+  return REMINDERS_HEADING.test(`${NEW_SECTION_LEVEL} ${label}`);
+}
+
+function trimBlankEdges(lines: readonly string[]): string[] {
+  let start = 0;
+  let end = lines.length;
+  while (start < end && !lines[start].trim()) start += 1;
+  while (end > start && !lines[end - 1].trim()) end -= 1;
+  return lines.slice(start, end);
 }

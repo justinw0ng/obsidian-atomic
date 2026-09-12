@@ -5,9 +5,6 @@ import { extractYmdFromPath } from "./dates.ts";
 export type { SetRow } from "./core/set-table";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 export { parseSetTable } from "./core/set-table.ts";
-export type { Cue, CueCard } from "./core/cues";
-// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-export { appendCueBullet, buildCueCards, normalizeCue, parseReminders, sanitizeCueText } from "./core/cues.ts";
 
 export const LB_TO_KG = 0.45359237;
 

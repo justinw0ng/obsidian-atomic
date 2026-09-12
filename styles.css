@@ -1603,6 +1603,12 @@
   padding: 14px calc(var(--atomic-cue-width) - var(--atomic-cue-step)) 24px 0;
 }
 
+/*
+  Four fixed pastel paper stocks cycle by position, the way a pack of index
+  cards does. They are deliberately not derived from the activity colour: the
+  paper is the physical object, and the activity colour shows up on the repeat
+  badge (--atomic-cue-accent).
+*/
 .fitness-plugin .atomic-cue-card {
   --atomic-cue-tilt: -2.4deg;
   --atomic-cue-drop: 0px;
@@ -1624,19 +1630,19 @@
   white-space: normal;
 }
 
-.fitness-plugin .atomic-cue-card[data-cue-stock="1"] {
+.fitness-plugin .atomic-cue-card:nth-child(4n + 2) {
   --atomic-cue-tilt: 1.6deg;
   --atomic-cue-drop: 9px;
   --atomic-cue-tint: #bcdcf2;
 }
 
-.fitness-plugin .atomic-cue-card[data-cue-stock="2"] {
+.fitness-plugin .atomic-cue-card:nth-child(4n + 3) {
   --atomic-cue-tilt: -1.1deg;
   --atomic-cue-drop: 4px;
   --atomic-cue-tint: #f6dcb0;
 }
 
-.fitness-plugin .atomic-cue-card[data-cue-stock="3"] {
+.fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
   --atomic-cue-tilt: 2.1deg;
   --atomic-cue-drop: 13px;
   --atomic-cue-tint: #eac7de;
@@ -1796,13 +1802,8 @@
     height: auto;
   }
 
-  .fitness-plugin .atomic-cue-card[data-cue-stock="1"],
-  .fitness-plugin .atomic-cue-card[data-cue-stock="3"] {
+  .fitness-plugin .atomic-cue-card:nth-child(2n) {
     --atomic-cue-tilt: 0.6deg;
-  }
-
-  .fitness-plugin .atomic-cue-card[data-cue-stock="2"] {
-    --atomic-cue-tilt: -0.6deg;
   }
 
   .fitness-plugin .atomic-cue-sheet {

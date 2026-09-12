@@ -285,61 +285,76 @@ test("cover images apply coverObjectPosition after load", () => {
   );
 });
 
-test("cue cards fan on desktop, stack on phones, and pop without hover", () => {
-  assert.match(
-    styles,
-    /\.fitness-plugin \.atomic-cue-fan\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fill, var\(--atomic-cue-step\)\)/s,
-  );
-  assert.match(styles, /--atomic-cue-width:\s*228px/);
-  assert.match(styles, /--atomic-cue-step:\s*186px/);
-  // Alternating tilt and vertical drop are what make the row read as a stack.
-  assert.match(
-    styles,
-    /\.atomic-cue-sheet\s*\{[^}]*transform:\s*rotate\(var\(--atomic-cue-tilt\)\) translateY\(var\(--atomic-cue-drop\)\)/s,
-  );
-  assert.equal((styles.match(/--atomic-cue-drop:/g) || []).length, 5);
+/** The rule whose selector list includes `selector` exactly, or null. */
+function cssRule(source, selector) {
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, "");
+  for (const match of withoutComments.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selectors = match[1].split(",").map((one) => one.trim());
+    if (selectors.includes(selector)) return { selectors: match[1], body: match[2] };
+  }
+  return null;
+}
 
-  // Hover, focus, and tap share one pop rule: remote desktops and
-  // touch-capable laptops report no hover even with a mouse attached.
-  const openAt = styles.indexOf(".fitness-plugin .atomic-cue-card:hover,");
-  assert.ok(openAt > 0);
-  const cueRules = styles.slice(openAt);
-  assert.match(
-    cueRules,
-    /\.atomic-cue-card:hover \.atomic-cue-sheet,\n\.fitness-plugin \.atomic-cue-card:focus-visible \.atomic-cue-sheet,\n\.fitness-plugin \.atomic-cue-card\.is-open \.atomic-cue-sheet\s*\{[^}]*translateY\(-18px\)/s,
-  );
-  const cueHoverMedia = styles.indexOf(
-    "@media (hover: hover) and (pointer: fine)",
-    openAt,
-  );
-  assert.equal(cueHoverMedia, -1, "the cue pop must not sit behind a hover query");
+/** Every `@media <query>` block in the sheet, concatenated. */
+function cssMedia(source, query) {
+  const blocks = [];
+  let from = 0;
+  for (;;) {
+    const at = source.indexOf(`@media ${query}`, from);
+    if (at === -1) break;
+    const open = source.indexOf("{", at);
+    let depth = 0;
+    for (let i = open; i < source.length; i += 1) {
+      if (source[i] === "{") depth += 1;
+      if (source[i] === "}") depth -= 1;
+      if (depth === 0) {
+        blocks.push(source.slice(open + 1, i));
+        from = i;
+        break;
+      }
+    }
+    if (from < open) break;
+  }
+  return blocks.length ? blocks.join("\n") : null;
+}
 
-  const phoneAt = styles.indexOf("@media (max-width: 600px)");
-  assert.ok(phoneAt > openAt);
-  assert.match(
-    styles.slice(phoneAt),
-    /\.fitness-plugin \.atomic-cue-fan\s*\{[^}]*grid-template-columns:\s*1fr/s,
-  );
-  assert.match(
-    styles.slice(phoneAt),
-    /\.fitness-plugin \.atomic-cue-sheet\s*\{[^}]*position:\s*relative/s,
-  );
+test("cue cards fan on desktop and stack on phones", () => {
+  const fan = cssRule(styles, ".fitness-plugin .atomic-cue-fan");
+  assert.match(fan.body, /grid-template-columns:\s*repeat\(auto-fill, var\(--atomic-cue-step\)\)/);
+  const card = cssRule(styles, ".fitness-plugin .atomic-cue-card");
   // A default button box shrink-wraps the sheet, which collapses phone cards.
+  assert.match(card.body, /display:\s*block/);
+  assert.match(card.body, /width:\s*var\(--atomic-cue-width\)/);
+
+  const sheet = cssRule(styles, ".fitness-plugin .atomic-cue-sheet");
+  assert.match(sheet.body, /width:\s*100%/);
+  assert.match(sheet.body, /box-sizing:\s*border-box/);
+  // Alternating tilt and vertical drop are what make a row read as a stack.
   assert.match(
-    styles,
-    /\.fitness-plugin \.atomic-cue-card\s*\{[^}]*display:\s*block/s,
-  );
-  assert.match(
-    styles,
-    /\.fitness-plugin \.atomic-cue-sheet\s*\{[^}]*width:\s*100%[^}]*box-sizing:\s*border-box/s,
+    sheet.body,
+    /transform:\s*rotate\(var\(--atomic-cue-tilt\)\) translateY\(var\(--atomic-cue-drop\)\)/,
   );
 
-  const reducedAt = styles.indexOf(
-    "@media (prefers-reduced-motion: reduce)",
-    phoneAt,
-  );
-  assert.ok(reducedAt > phoneAt, "cue pop needs a reduced-motion escape hatch");
-  assert.match(styles.slice(reducedAt), /\.atomic-cue-sheet,/);
+  const phone = cssMedia(styles, "(max-width: 600px)");
+  assert.ok(phone, "cue cards need a phone breakpoint");
+  assert.match(cssRule(phone, ".fitness-plugin .atomic-cue-fan").body, /grid-template-columns:\s*1fr/);
+  assert.match(cssRule(phone, ".fitness-plugin .atomic-cue-sheet").body, /position:\s*relative/);
+});
+
+test("the cue pop works on hover, focus, and tap alike", () => {
+  // Remote desktops and touch-capable laptops report no hover even with a
+  // mouse attached, so the pop cannot live behind a hover media query.
+  const pop = cssRule(styles, ".fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet");
+  assert.match(pop.selectors, /:focus-visible \.atomic-cue-sheet/);
+  assert.match(pop.selectors, /\.is-open \.atomic-cue-sheet/);
+  assert.match(pop.body, /translateY\(-18px\)/);
+
+  const hoverOnly = cssMedia(styles, "(hover: hover) and (pointer: fine)") || "";
+  assert.doesNotMatch(hoverOnly, /atomic-cue/);
+
+  const reduced = cssMedia(styles, "(prefers-reduced-motion: reduce)");
+  const calmed = cssRule(reduced, ".fitness-plugin .atomic-cue-sheet");
+  assert.match(calmed.body, /transition:\s*none/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {

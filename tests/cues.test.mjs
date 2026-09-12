@@ -3,10 +3,13 @@ import assert from "node:assert/strict";
 import {
   appendCueBullet,
   buildCueCards,
+  isRemindersHeadingLabel,
   normalizeCue,
   parseReminders,
   sanitizeCueText,
 } from "../src/core/cues.ts";
+import { en } from "../src/i18n/locales/en.ts";
+import { zhHantEn } from "../src/i18n/locales/zh-Hant-en.ts";
 
 test("buildCueCards keeps every cue of the year, newest first", () => {
   const cards = buildCueCards(
@@ -20,10 +23,10 @@ test("buildCueCards keeps every cue of the year, newest first", () => {
   );
 
   assert.deepEqual(
-    cards.map((card) => [card.key, card.count, card.firstSeen, card.lastSeen]),
+    cards.map((card) => [card.key, card.count, card.lastSeen]),
     [
-      ["keep lead arm soft", 2, "2026-01-02", "2026-03-01"],
-      ["one-off cue", 1, "2026-02-01", "2026-02-01"],
+      ["keep lead arm soft", 2, "2026-03-01"],
+      ["one-off cue", 1, "2026-02-01"],
     ],
   );
 });
@@ -79,7 +82,7 @@ test("buildCueCards keeps note order for cues that share a date", () => {
 
 test("normalizeCue folds case and whitespace", () => {
   assert.equal(normalizeCue("  Keep  Lead Arm Soft "), "keep lead arm soft");
-  assert.equal(normalizeCue(null), "");
+  assert.equal(normalizeCue(""), "");
 });
 
 test("sanitizeCueText flattens input so it cannot forge markdown", () => {
@@ -91,7 +94,6 @@ test("sanitizeCueText flattens input so it cannot forge markdown", () => {
   assert.equal(sanitizeCueText("- - Soft grip"), "Soft grip");
   assert.equal(sanitizeCueText("> ## Soft grip"), "Soft grip");
   assert.equal(sanitizeCueText("\n\n"), "");
-  assert.equal(sanitizeCueText(undefined), "");
 });
 
 test("appendCueBullet adds a bullet under an existing Reminders heading", () => {
@@ -212,6 +214,83 @@ test("parseReminders and appendCueBullet ignore headings inside a fence", () => 
   assert.deepEqual(parseReminders(markdown), ["real cue"]);
   const updated = appendCueBullet(markdown, "Second cue", "💡 Reminders");
   assert.match(updated, /\n- real cue\n- Second cue\n\n## Session log\n/);
+});
+
+test("the Reminders section ends at the next heading at or above its level", () => {
+  const markdown = `## 💡 Reminders
+
+- First
+
+# Journal
+
+- not a cue
+`;
+
+  // Reader and writer have to agree on where the section stops.
+  assert.deepEqual(parseReminders(markdown), ["First"]);
+  const updated = appendCueBullet(markdown, "Second", "💡 Reminders");
+  assert.match(updated, /\n- First\n- Second\n\n# Journal\n/);
+  assert.deepEqual(parseReminders(updated), ["First", "Second"]);
+});
+
+test("a Reminders heading at any level is used rather than duplicated", () => {
+  const markdown = `### 💡 Reminders
+
+- First
+
+### Next
+`;
+
+  assert.deepEqual(parseReminders(markdown), ["First"]);
+  const updated = appendCueBullet(markdown, "Second", "💡 Reminders");
+  assert.equal(updated.match(/Reminders/g).length, 1);
+  assert.deepEqual(parseReminders(updated), ["First", "Second"]);
+});
+
+test("appendCueBullet keeps a blank bullet a user wrote among real cues", () => {
+  const updated = appendCueBullet(
+    "## 💡 Reminders\n\n- A\n-\n- B\n",
+    "New",
+    "💡 Reminders",
+  );
+
+  assert.equal(updated, "## 💡 Reminders\n\n- A\n-\n- B\n- New\n");
+});
+
+test("fenced blocks only close with the delimiter that opened them", () => {
+  const markdown = `## 💡 Reminders
+
+\`\`\`atomic-cue-log
+~~~
+# No options.
+\`\`\`
+
+- real cue
+`;
+
+  assert.deepEqual(parseReminders(markdown), ["real cue"]);
+});
+
+test("every locale's Reminders heading round-trips through the scanner", () => {
+  // appendCueBullet writes `## <template.reminders>` and later has to re-find
+  // it, so a locale that drifts from the heading pattern would append a fresh
+  // section on every click.
+  for (const [language, locale] of [
+    ["en", en],
+    ["zh-Hant-en", zhHantEn],
+  ]) {
+    const label = locale["template.reminders"];
+    assert.ok(
+      isRemindersHeadingLabel(label),
+      `${language} template.reminders (${label}) is not a Reminders heading`,
+    );
+    const written = appendCueBullet("# Session\n", "Soft grip", label);
+    assert.deepEqual(parseReminders(written), ["Soft grip"]);
+    assert.deepEqual(
+      parseReminders(appendCueBullet(written, "Finish tall", label)),
+      ["Soft grip", "Finish tall"],
+    );
+  }
 });
 
 test("appendCueBullet finds the bilingual Reminders heading", () => {

@@ -203,19 +203,20 @@ export default class FitnessPlugin extends Plugin {
   }
 
   /**
-   * Register a codeblock host for refreshes. Only an earlier entry for the same
-   * host is replaced: the editor detaches and reattaches offscreen codeblocks
-   * without re-running their post-processor, so dropping detached hosts here
-   * would silently stop refreshing every other block on the note.
-   * `untrackLiveBlock` handles removal when Obsidian truly unloads a block.
+   * Register a codeblock for refreshes, replacing an earlier entry for the same
+   * host. Connectivity is deliberately not consulted here or in `refreshAll`:
+   * the editor detaches offscreen codeblocks without re-running their
+   * post-processor, so pruning detached hosts silently stopped refreshing every
+   * other block on the note. `AtomicBlockChild` owns both calls, and its
+   * `onunload` is now the only thing that bounds this list.
    */
   trackLiveBlock(block: LiveBlock) {
     this.liveBlocks = this.liveBlocks.filter((b) => b.el !== block.el);
     this.liveBlocks.push(block);
   }
 
-  untrackLiveBlock(el: HTMLElement) {
-    this.liveBlocks = this.liveBlocks.filter((b) => b.el !== el);
+  untrackLiveBlock(block: LiveBlock) {
+    this.liveBlocks = this.liveBlocks.filter((b) => b.el !== block.el);
   }
 
   scheduleRefresh() {
@@ -228,7 +229,7 @@ export default class FitnessPlugin extends Plugin {
 
   async refreshAll() {
     // renderTrackedBlock skips detached hosts, so they stay registered for the
-    // repaint that follows the editor reattaching them.
+    // repaint that follows the editor reattaching them. See trackLiveBlock.
     await Promise.all(
       this.liveBlocks.map((block) => renderTrackedBlock(this, block)),
     );

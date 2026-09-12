@@ -42,25 +42,32 @@ function frontmatterYear(
   return cache?.frontmatter?.year;
 }
 
+/**
+ * Owns one codeblock's lifecycle: it registers the block for refreshes while it
+ * is loaded and unregisters it when Obsidian unloads it. The editor detaches
+ * and reattaches offscreen codeblocks without unloading them, so this child,
+ * not element connectivity, is what decides whether a block is live.
+ */
 class AtomicBlockChild extends MarkdownRenderChild {
   private generation = 0;
 
   constructor(
     containerEl: HTMLElement,
-    private readonly startRender: () => void,
-    private readonly stopTracking: () => void,
+    private readonly plugin: FitnessPlugin,
+    private readonly block: LiveBlock,
   ) {
     super(containerEl);
   }
 
   onload(): void {
-    this.startRender();
+    this.plugin.trackLiveBlock(this.block);
+    void renderTrackedBlock(this.plugin, this.block);
     this.generation = currentBlockGeneration(this.containerEl);
   }
 
   onunload(): void {
     invalidateBlockRenderIfCurrent(this.containerEl, this.generation);
-    this.stopTracking();
+    this.plugin.untrackLiveBlock(this.block);
   }
 }
 
@@ -198,19 +205,8 @@ export function registerCodeblocks(plugin: FitnessPlugin): void {
   for (const kind of kinds) {
     plugin.registerMarkdownCodeBlockProcessor(kind, (source, el, ctx) => {
       const block = { kind, el, source, sourcePath: ctx.sourcePath };
-      plugin.trackLiveBlock(block);
       mountAtomicBlockShell(el);
-      ctx.addChild(
-        new AtomicBlockChild(
-          el,
-          () => {
-            void renderTrackedBlock(plugin, block);
-          },
-          () => {
-            plugin.untrackLiveBlock(el);
-          },
-        ),
-      );
+      ctx.addChild(new AtomicBlockChild(el, plugin, block));
     });
   }
 }

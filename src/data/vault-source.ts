@@ -1,5 +1,5 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
-import { parseReminders } from "../core";
+import { parseReminders } from "../core/cues";
 import { EMPTY_SET_ROWS, parseSetTable, type SetRow } from "../core/set-table";
 import {
   parseTimeLog,
