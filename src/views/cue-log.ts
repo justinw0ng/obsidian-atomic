@@ -8,6 +8,7 @@ import { PaintMemo, sameList } from "../util/paint-memo";
 import {
   appendCueCard,
   bindCueCardFan,
+  closeCueLightbox,
   type CueMarkdownHost,
 } from "./cue-card";
 
@@ -53,6 +54,7 @@ export async function renderAtomicCueLog(
     cues: existing,
   };
   if (cueLogPaint.shouldSkip(el, paintState)) return;
+  closeCueLightbox(true);
 
   const component = host.beginPaint();
   el.empty();

@@ -22,7 +22,7 @@ function pngSize(buffer) {
 
 test("README embeds one cue-card hero banner", () => {
   const readme = readFileSync(join(root, "README.md"), "utf8");
-  assert.match(readme, /docs\/images\/atomic-cue-hero\.png/);
+  assert.match(readme, /docs\/images\/atomic-cue-hero\.gif/);
   assert.match(readme, /## Cue cards/);
 });
 
@@ -64,6 +64,22 @@ test("cue hero capture hides scrollbars and centers the phone fan", () => {
   assert.match(src, /CUE_HERO_HEADLINE/);
   assert.match(src, /atomic-cue-card/);
   assert.match(src, /trim-hero-shot\.py/);
+  assert.match(src, /openLightbox/);
+  assert.match(src, /atomic-cue-lightbox/);
+  assert.match(src, /animate-cue-hero-gif\.py/);
+  assert.match(src, /cue_hero_desktop_lightbox/);
+  assert.match(src, /cue_hero_mobile_lightbox/);
+});
+
+test("cue hero gif script flies from hover to the centered card", () => {
+  const src = readFileSync(join(root, "scripts/animate-cue-hero-gif.py"), "utf8");
+  assert.match(src, /animate-hero-gif\.py/);
+  assert.match(src, /save_gif/);
+  assert.match(src, /compose-device-hero\.py/);
+  assert.match(src, /FLY_FRAMES/);
+  assert.match(src, /Image\.blend/);
+  assert.match(src, /--lightbox/);
+  assert.match(src, /--mobile-lightbox/);
 });
 
 test("compose-device-hero still accepts cue headline copy", () => {

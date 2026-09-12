@@ -4,7 +4,9 @@ import {
   CUE_CARD_INTERACTIVE_SELECTOR,
   cueCardEventFromInteractive,
   cueCardEventShouldToggle,
+  cueLightboxClickShouldClose,
   isCueCardToggleKey,
+  isCueLightboxDismissKey,
 } from "../src/util/cue-card-fan.ts";
 
 const card = { id: "card" };
@@ -27,6 +29,13 @@ test("isCueCardToggleKey is only Enter and Space", () => {
   assert.equal(isCueCardToggleKey("Tab"), false);
 });
 
+test("isCueLightboxDismissKey is only Escape", () => {
+  assert.equal(isCueLightboxDismissKey("Escape"), true);
+  assert.equal(isCueLightboxDismissKey("Enter"), false);
+  assert.equal(isCueLightboxDismissKey(" "), false);
+  assert.equal(isCueLightboxDismissKey("Tab"), false);
+});
+
 test("the interactive selector covers markdown links and nested controls", () => {
   assert.match(CUE_CARD_INTERACTIVE_SELECTOR, /a\[href]/);
   assert.match(CUE_CARD_INTERACTIVE_SELECTOR, /a\.internal-link/);
@@ -44,6 +53,12 @@ test("events from the card itself still toggle", () => {
   assert.equal(cueCardEventFromInteractive(target(card), card), false);
   assert.equal(cueCardEventShouldToggle(target(card), card), true);
   assert.equal(cueCardEventShouldToggle(target(null), card), true);
+});
+
+test("lightbox closes from the enlarged card or backdrop, not from a link", () => {
+  assert.equal(cueLightboxClickShouldClose(target(link), card), false);
+  assert.equal(cueLightboxClickShouldClose(target(card), card), true);
+  assert.equal(cueLightboxClickShouldClose(target(null), card), true);
 });
 
 test("text-node targets walk to a parent that can closest()", () => {

@@ -373,6 +373,23 @@ test("the cue pop works on hover, focus, and tap alike", () => {
   assert.match(calmed.body, /transition:\s*none/);
 });
 
+test("the cue lightbox is a centered larger card without overlay scrollbars", () => {
+  const lightbox = cssRule(styles, ".fitness-plugin.atomic-cue-lightbox");
+  assert.match(lightbox.body, /position:\s*fixed/);
+  assert.match(lightbox.body, /overflow:\s*hidden/);
+  assert.doesNotMatch(lightbox.body, /overflow:\s*auto/);
+  assert.doesNotMatch(lightbox.body, /mask/);
+
+  const placed = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card",
+  );
+  assert.match(placed.body, /left:\s*50%/);
+  assert.match(placed.body, /top:\s*50%/);
+  assert.match(placed.body, /translate\(-50%, -50%\)/);
+  assert.match(placed.body, /min\(var\(--atomic-cue-width\)/);
+});
+
 test("phone cue cards pop only when tapped open", () => {
   const phone = cssMedia(styles, "(max-width: 600px)");
   assert.ok(phone, "cue cards need a phone breakpoint");

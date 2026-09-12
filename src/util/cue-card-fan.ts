@@ -30,6 +30,10 @@ export function isCueCardToggleKey(key: string): boolean {
   return key === "Enter" || key === " ";
 }
 
+export function isCueLightboxDismissKey(key: string): boolean {
+  return key === "Escape";
+}
+
 function isCueCardEventTarget(node: unknown): node is CueCardEventTarget {
   return !!node && typeof node === "object";
 }
@@ -54,4 +58,15 @@ export function cueCardEventFromInteractive(target: unknown, card: unknown): boo
 /** Click / Enter / Space on the card sheet toggles; links and inputs do not. */
 export function cueCardEventShouldToggle(target: unknown, card: unknown): boolean {
   return !cueCardEventFromInteractive(target, card);
+}
+
+/**
+ * Backdrop or the enlarged card closes the lightbox. A link or other control
+ * inside the enlarged card keeps its own click.
+ */
+export function cueLightboxClickShouldClose(
+  target: unknown,
+  overlayCard: unknown,
+): boolean {
+  return cueCardEventShouldToggle(target, overlayCard);
 }

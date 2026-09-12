@@ -254,10 +254,11 @@ A cue page shows **every cue of the year as one index card** in a fanned stack, 
 repeated cue collapses onto a single card that carries a `×n` repeat badge, so there is no separate
 monthly or keepers list to read.
 
-Hover a card on desktop, or tap it on a phone, and it pops out of the fan and grows to the full cue
-with its date, focus, and repeat count. Tap again (or move the pointer away) to drop it back.
-Keyboard users can Tab to a card and press Enter or Space. With **Reduce motion** on, the card still
-reveals the cue, just without the lift.
+Hover a card on desktop to lift it and preview the cue. Click after hover — or tap on a phone — and
+the card moves to the center of the screen as a larger card, so a long or Traditional Chinese cue
+stays readable. Click outside, press Esc, or tap the large card again to put it back. Links on the
+card still open. Keyboard users can Tab to a card and press Enter or Space. With **Reduce motion**
+on, the centered card appears without the flight.
 
 ### Cue note examples
 
@@ -327,7 +328,8 @@ bullet:
 
 The cue is written as a `- ` bullet under **Reminders** on that note (extra lines stay indented so
 they belong to that one item). Cues already on the note show as the same index cards as the cue
-page. Hover or press a long card to read the full markdown. You can still type bullets by hand.
+page. Hover to preview, then click or press to read the full markdown on a larger centered card.
+You can still type bullets by hand.
 
 Older session notes: paste the fence under the note's **Reminders** heading.
 

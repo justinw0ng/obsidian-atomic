@@ -6,7 +6,12 @@ import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
 import { PaintMemo, sameList } from "../util/paint-memo";
-import { appendCueCard, bindCueCardFan, type CueMarkdownHost } from "./cue-card";
+import {
+  appendCueCard,
+  bindCueCardFan,
+  closeCueLightbox,
+  type CueMarkdownHost,
+} from "./cue-card";
 
 type CuePagePaintState = {
   kind: "missing" | "cards";
@@ -56,6 +61,7 @@ export async function renderCues(
       cards: [],
     };
     if (cuesPaint.shouldSkip(el, paintState)) return;
+    closeCueLightbox(true);
     host.beginPaint();
     el.empty();
     const root = el.createDiv({
@@ -78,6 +84,7 @@ export async function renderCues(
     cards,
   };
   if (cuesPaint.shouldSkip(el, paintState)) return;
+  closeCueLightbox(true);
   const component = host.beginPaint();
   el.empty();
   const root = el.createDiv({

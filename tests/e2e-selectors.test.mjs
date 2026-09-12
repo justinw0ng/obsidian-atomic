@@ -90,6 +90,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCard, /"aria-expanded"/);
   assert.match(cueCard, /cueCardEventShouldToggle/);
   assert.match(cueCard, /isCueCardToggleKey/);
+  assert.match(cueCard, /toggleCueLightbox/);
+  assert.match(cueCard, /closeCueLightbox/);
   assert.match(cueCard, /"atomic-cue-text"/);
   assert.match(cueCard, /"atomic-cue-repeats"/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
@@ -99,10 +101,22 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(cueCard, /createEl\("button"/);
   assert.doesNotMatch(cueCard, /innerHTML/);
 
+  const cueLightbox = src("src/views/cue-lightbox.ts");
+  assert.match(cueLightbox, /"data-testid": "atomic-cue-lightbox"/);
+  assert.match(cueLightbox, /"atomic-cue-lightbox-card"/);
+  assert.match(cueLightbox, /"atomic-cue-lightbox-backdrop"/);
+  assert.match(cueLightbox, /cloneNode\(true\)/);
+  assert.match(cueLightbox, /isCueLightboxDismissKey/);
+  assert.match(cueLightbox, /cueLightboxClickShouldClose/);
+  assert.match(cueLightbox, /role: "dialog"/);
+  assert.doesNotMatch(cueLightbox, /innerHTML/);
+
   const cueCardFan = src("src/util/cue-card-fan.ts");
   assert.match(cueCardFan, /CUE_CARD_INTERACTIVE_SELECTOR/);
   assert.match(cueCardFan, /a\[href]/);
   assert.match(cueCardFan, /\[role='button']/);
+  assert.match(cueCardFan, /isCueLightboxDismissKey/);
+  assert.match(cueCardFan, /cueLightboxClickShouldClose/);
 
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);
@@ -200,6 +214,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-dashboard-year-prev/);
   assert.match(health, /atomic-dashboard-recent-row/);
   assert.match(health, /atomic-cue-card/);
+  assert.match(health, /atomic-cue-lightbox/);
+  assert.match(health, /atomic-cue-lightbox-card/);
+  assert.match(health, /atomic-cue-lightbox-backdrop/);
   assert.match(health, /fadeOpacity/);
   assert.match(health, /maskImage/);
   assert.match(health, /atomic-cue-log-add/);
@@ -222,4 +239,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /\.atomic-cue-body::after/);
   assert.match(styles, /--atomic-cue-wash/);
   assert.match(styles, /--atomic-cue-stock/);
+  assert.match(styles, /atomic-cue-lightbox/);
+  assert.match(styles, /translate\(-50%, -50%\)/);
+  assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
 });

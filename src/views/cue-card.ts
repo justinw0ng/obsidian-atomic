@@ -6,6 +6,9 @@ import {
   cueCardEventShouldToggle,
   isCueCardToggleKey,
 } from "../util/cue-card-fan";
+import { closeCueLightbox, toggleCueLightbox } from "./cue-lightbox";
+
+export { closeCueLightbox } from "./cue-lightbox";
 
 export type CueMarkdownHost = {
   app: App;
@@ -21,15 +24,14 @@ export type CueCardPaint = {
 };
 
 export function bindCueCardFan(cards: readonly HTMLElement[]): void {
+  closeCueLightbox(true);
   const syncExpanded = (): void => {
     for (const card of cards) {
       card.setAttr("aria-expanded", card.hasClass("is-open") ? "true" : "false");
     }
   };
   const toggle = (card: HTMLElement): void => {
-    const wasOpen = card.hasClass("is-open");
-    for (const other of cards) other.removeClass("is-open");
-    if (!wasOpen) card.addClass("is-open");
+    toggleCueLightbox(card);
     syncExpanded();
   };
   for (const card of cards) {
