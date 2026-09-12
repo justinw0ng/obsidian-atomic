@@ -7,6 +7,7 @@
  * docs/images/atomic-dashboard-hero.png via compose-device-hero.py.
  * Optional: ATOMIC_DASHBOARD_PHONE_SRC=/path/to/phone.jpg for a real phone frame.
  */
+import { spawnSync } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -119,6 +120,27 @@ function assertDashboardBundle() {
       "main.js is missing the card dashboard. Run `npm run build`, recapture, then `git checkout -- main.js` if you are not shipping a release.",
     );
   }
+}
+
+function ensureCaptureBundle() {
+  const bundle = readFileSync(join(ROOT, "main.js"), "utf8");
+  if (bundle.includes("atomic-dashboard-recent") && bundle.includes("atomic-cue-log")) {
+    return false;
+  }
+  const result = spawnSync("npm", ["run", "build"], { cwd: ROOT, encoding: "utf8" });
+  if (result.status !== 0) {
+    throw new Error(`build failed: ${(result.stderr || result.stdout || "").trim()}`);
+  }
+  const next = readFileSync(join(ROOT, "main.js"), "utf8");
+  if (!next.includes("atomic-cue-log") || !next.includes("atomic-dashboard-recent")) {
+    throw new Error("main.js is still missing capture markers after build");
+  }
+  return true;
+}
+
+function restoreBundledMain(built) {
+  if (!built) return;
+  spawnSync("git", ["checkout", "--", "main.js"], { cwd: ROOT, stdio: "ignore" });
 }
 
 function bootstrapMissingGifs() {
@@ -333,6 +355,23 @@ async function scrollBlockIntoView(driver, css) {
   await sleep(200);
 }
 
+async function fillTestId(driver, testId, value) {
+  const ok = await driver.executeScript(
+    `
+    const el = document.querySelector('[data-testid="' + arguments[0] + '"]');
+    if (!el) return false;
+    el.focus();
+    el.value = arguments[1];
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    return true;
+    `,
+    testId,
+    value,
+  );
+  if (!ok) throw new Error(`Could not fill ${testId}`);
+}
+
 async function popCueCard(driver, preferIndex = 1) {
   const index = await driver.executeScript(
     `
@@ -424,16 +463,10 @@ async function captureGymLogGif(driver) {
   await scrollBlockIntoView(driver, '[data-testid="atomic-gym-log"]');
   const dir = frameDir("gym-log");
   await grabFrame(driver, dir, 0);
-  const weight = await waitCss(driver, '[data-testid="atomic-gym-log-weight"]');
-  await weight.clear();
-  await weight.sendKeys("85");
+  await fillTestId(driver, "atomic-gym-log-weight", "85");
   await grabFrame(driver, dir, 1);
-  const reps = await waitCss(driver, '[data-testid="atomic-gym-log-reps"]');
-  await reps.clear();
-  await reps.sendKeys("5");
-  const notes = await waitCss(driver, '[data-testid="atomic-gym-log-notes"]');
-  await notes.clear();
-  await notes.sendKeys("guide set");
+  await fillTestId(driver, "atomic-gym-log-reps", "5");
+  await fillTestId(driver, "atomic-gym-log-notes", "guide set");
   await grabFrame(driver, dir, 2);
   await driver.executeScript(
     `document.querySelector('[data-testid="atomic-gym-log-add"]').click()`,
@@ -554,11 +587,21 @@ async function captureActionsGif(driver) {
 
 async function captureTodayGif(driver) {
   await openPreviewNote(driver, FILES.today);
-  await waitCss(driver, ".fitness-plugin");
+  await driver.wait(async () => {
+    return driver.executeScript(
+      `return !!document.querySelector(".fitness-plugin a.fitness-link")`,
+    );
+  }, 8000);
   await prepareGuideView(driver);
   const dir = frameDir("today");
-  await grabHold(driver, dir, 0, 3, 220);
-  assembleGif(dir, OUTPUTS.today, { durationMs: 400, holdFirst: 1, holdLast: 2 });
+  await grabHold(driver, dir, 0, 2, 200);
+  await driver.executeScript(
+    `document.querySelector(".fitness-plugin a.fitness-link")?.click()`,
+  );
+  await waitCss(driver, '[data-testid="atomic-timer"], [data-testid="atomic-gym-log"]');
+  await prepareGuideView(driver);
+  await grabHold(driver, dir, 2, 2, 200);
+  assembleGif(dir, OUTPUTS.today, { durationMs: 500, holdFirst: 1, holdLast: 2 });
 }
 
 async function captureCuesHoverGif(driver) {
@@ -597,9 +640,7 @@ async function captureCueLogGif(driver) {
   await scrollBlockIntoView(driver, '[data-testid="atomic-cue-log"]');
   const dir = frameDir("cue-log");
   await grabFrame(driver, dir, 0);
-  const field = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');
-  await field.click();
-  await field.sendKeys("Hold the face square through the ball");
+  await fillTestId(driver, "atomic-cue-log-text", "Hold the face square through the ball");
   await grabFrame(driver, dir, 1);
   await driver.executeScript(
     `document.querySelector('[data-testid="atomic-cue-log-add"]').click()`,
@@ -655,31 +696,58 @@ async function main() {
   bootstrapMissingGifs();
   assembleCuePopupPreviewGif();
 
-  if (wantShot("dashboard")) assertDashboardBundle();
-  prepareUserGuideVault();
-  const launchFile = wantShot("bookShelf") ? FILES.bookShelf : FILES.dashboard;
-  const launched = await launchObsidian(USER_GUIDE_VAULT, launchFile);
-  const driver = await attachSelenium(undefined, launched.version);
+  const built = ensureCaptureBundle();
   try {
+    if (wantShot("dashboard")) assertDashboardBundle();
+    prepareUserGuideVault();
+    const launchFile = wantShot("bookShelf") ? FILES.bookShelf : FILES.dashboard;
+    const launched = await launchObsidian(USER_GUIDE_VAULT, launchFile);
+    const driver = await attachSelenium(undefined, launched.version);
+    try {
     await switchToObsidianWindow(driver);
     await waitForPlugin(driver);
     await resizeWindow(driver, 1920, 1200);
 
-    if (wantShot("bookShelf")) await captureBookShelfGif(driver);
-    if (wantShot("heatmap")) await captureHeatmapGif(driver);
-    if (wantShot("heatmapFilter")) await captureHeatmapFilterGif(driver);
-    if (wantShot("actions")) await captureActionsGif(driver);
-    if (wantShot("today")) await captureTodayGif(driver);
-    if (wantShot("cues")) await captureCuesHoverGif(driver);
-    if (wantShot("cueLog")) await captureCueLogGif(driver);
-    if (wantShot("timer")) await captureReadingTimerGif(driver);
-    if (wantShot("sessionTimer")) await captureSessionTimerGif(driver);
-    if (wantShot("gymLog")) await captureGymLogGif(driver);
-    if (wantShot("dashboard")) await captureDashboardGif(driver);
-    if (wantShot("settings")) await captureSettingsGif(driver);
-    if (wantShot("enable")) await captureEnableGif(driver);
+    const shots = [
+      ["bookShelf", captureBookShelfGif],
+      ["heatmap", captureHeatmapGif],
+      ["heatmapFilter", captureHeatmapFilterGif],
+      ["actions", captureActionsGif],
+      ["today", captureTodayGif],
+      ["cues", captureCuesHoverGif],
+      ["cueLog", captureCueLogGif],
+      ["timer", captureReadingTimerGif],
+      ["sessionTimer", captureSessionTimerGif],
+      ["gymLog", captureGymLogGif],
+      ["dashboard", captureDashboardGif],
+      ["settings", captureSettingsGif],
+      ["enable", captureEnableGif],
+    ];
+    const failures = [];
+    for (const [name, run] of shots) {
+      if (!wantShot(name)) continue;
+      try {
+        await run(driver);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`Shot ${name} failed: ${message}`);
+        failures.push(`${name}: ${message}`);
+        try {
+          await closeSettings(driver);
+        } catch {
+          // Settings may already be closed.
+        }
+        await resizeWindow(driver, 1920, 1200);
+      }
+    }
+    if (failures.length) {
+      throw new Error(`Some user-guide shots failed:\n${failures.join("\n")}`);
+    }
   } finally {
     await stopSession({ driver });
+  }
+  } finally {
+    restoreBundledMain(built);
   }
 }
 

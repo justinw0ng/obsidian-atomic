@@ -91,38 +91,22 @@ export function patchReadingItems(vault = USER_GUIDE_VAULT) {
   if (!existsSync(timerPath)) {
     throw new Error(`Missing timer item: ${timerPath}`);
   }
-  writeFileSync(
-    timerPath,
-    `---
-type: atomic-item
-domain: hobby
-activity: reading
-status: reading
-authors:
-  - ${DEMO_AUTHORS[TIMER_ITEM_TITLE]}
-description: "A field notebook on doing less, better."
-pages: 248
-cover: "${coverWikilink(TIMER_ITEM_TITLE)}"
-tags:
-  - books
-spine_color:
-total_min: 40
-timer_started_at: "2026-08-11T14:20:00.000Z"
-related_canvas:
----
-
-\`\`\`atomic-timer
-\`\`\`
-
-## Remarks
-
-Chapter 3 now.
-
-## Time log
-
-- 2026-08-10 21:00-21:40 | 40 min — ch.1-2
-`,
-  );
+  let timerMarkdown = readFileSync(timerPath, "utf8");
+  if (/^status:/m.test(timerMarkdown)) {
+    timerMarkdown = timerMarkdown.replace(/^status:.*$/m, "status: reading");
+  }
+  if (/^timer_started_at:/m.test(timerMarkdown)) {
+    timerMarkdown = timerMarkdown.replace(
+      /^timer_started_at:.*$/m,
+      'timer_started_at: "2026-08-11T14:20:00.000Z"',
+    );
+  } else {
+    timerMarkdown = timerMarkdown.replace(
+      /\n---\n/,
+      '\ntimer_started_at: "2026-08-11T14:20:00.000Z"\n---\n',
+    );
+  }
+  writeFileSync(timerPath, timerMarkdown);
 }
 
 export const BOOK_SHELF_NOTE = [

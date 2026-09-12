@@ -130,4 +130,7 @@ test("capture script continues without xdotool when setRect works", () => {
   assert.match(src, /atomic-cue-popup\.gif/);
   assert.match(src, /assembleGif/);
   assert.match(src, /bootstrapMissingGifs/);
+  assert.match(src, /ensureCaptureBundle/);
+  assert.match(src, /restoreBundledMain/);
+  assert.match(src, /atomic-cue-log/);
 });
