@@ -123,6 +123,11 @@ test("buildDashboardModel builds one card per activity with domain-specific fiel
   assert.equal(gym.volumeKg, 1800);
   assert.deepEqual(gym.monthly, [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   assert.equal(gym.lastDate, "2026-03-15");
+  assert.equal(gym.focusMonth, 3);
+  assert.equal(gym.daily.length, 31);
+  assert.equal(gym.daily[1], 1);
+  assert.equal(gym.daily[14], 1);
+  assert.equal(gym.daily.reduce((sum, value) => sum + value, 0), 2);
   assert.equal(gym.felt, null);
   assert.equal("inProgress" in gym, false);
 
@@ -135,6 +140,9 @@ test("buildDashboardModel builds one card per activity with domain-specific fiel
   assert.equal(reading.minutes, 70);
   assert.equal(reading.inProgress, 1);
   assert.deepEqual(reading.monthly, [45, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0]);
+  assert.equal(reading.focusMonth, 5);
+  assert.equal(reading.daily.length, 31);
+  assert.equal(reading.daily[0], 25);
   assert.equal("lastDate" in reading, false);
   assert.equal("felt" in reading, false);
 });
@@ -244,6 +252,43 @@ test("buildDashboardModel hides volume, muscles, and golf sections when not appl
   assert.equal(model.firstDate, null);
   assert.equal(model.recent.length, 0);
   assert.equal(model.activities[0].volumeKg, null);
+});
+
+test("activity card daily bars use the last session month", () => {
+  const dates = [
+    "2026-08-07",
+    "2026-08-16",
+    "2026-08-22",
+    "2026-09-06",
+    "2026-09-07",
+    "2026-09-11",
+  ];
+  const model = buildDashboardModel({
+    year: 2026,
+    exercise: [
+      {
+        activity: GYM,
+        sessions: dates.map((date) => ({
+          meta: session("Gym", date, { duration_min: 75 }),
+          setRows: [],
+        })),
+      },
+    ],
+    hobbies: [],
+  });
+  const gym = model.activities[0];
+  assert.equal(gym.count, 6);
+  assert.equal(gym.lastDate, "2026-09-11");
+  assert.deepEqual(gym.monthly, [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0]);
+  assert.equal(gym.focusMonth, 9);
+  assert.equal(gym.daily.length, 30);
+  assert.equal(gym.daily[5], 1);
+  assert.equal(gym.daily[6], 1);
+  assert.equal(gym.daily[10], 1);
+  assert.equal(
+    gym.daily.reduce((sum, value) => sum + value, 0),
+    3,
+  );
 });
 
 test("buildDashboardModel ignores sessions without a date for month buckets", () => {

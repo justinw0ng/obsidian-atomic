@@ -430,7 +430,7 @@
   flex: 0 0 auto;
 }
 
-/* Bars: one element, three size families (KPI spark, card month, monthly column). */
+/* Bars: one element, three size families (KPI spark, card day, monthly column). */
 
 .fitness-plugin .atomic-dash-bar {
   display: block;
@@ -551,6 +551,25 @@
   gap: 3px;
   align-items: end;
   height: 46px;
+}
+
+.fitness-plugin .atomic-dash-day-chart {
+  --atomic-dash-days: 31;
+}
+
+.fitness-plugin .atomic-dash-day-caption {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller, 12px);
+  margin-bottom: 2px;
+}
+
+.fitness-plugin .atomic-dash-bars.is-daily,
+.fitness-plugin .atomic-dash-days {
+  grid-template-columns: repeat(var(--atomic-dash-days), minmax(0, 1fr));
+}
+
+.fitness-plugin .atomic-dash-days {
+  font-size: 8px;
 }
 
 .fitness-plugin .atomic-dash-months {
