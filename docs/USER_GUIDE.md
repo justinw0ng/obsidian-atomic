@@ -21,8 +21,6 @@ Open today’s note, use the blocks on it, then look at the cue cards and book s
 2. Download **`main.js`**, **`manifest.json`**, and **`styles.css`**.
 3. Copy those three files into `<vault>/.obsidian/plugins/atomic-tracker/`. Create the folder if it does not exist.
 
-Do **not** use GitHub’s “Source code (zip)” or any `.zip` asset. Releases do not publish an `atomic-tracker-*.zip`. Obsidian needs those three files sitting in the `atomic-tracker` plugin folder; a source zip is the wrong artifact.
-
 ---
 
 ## Open today’s note
