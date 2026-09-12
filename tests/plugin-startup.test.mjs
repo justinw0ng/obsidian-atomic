@@ -33,6 +33,7 @@ test("vault listeners register after layout ready so the startup create burst is
   assert.match(layoutReady, /this\.registerVaultEvents\(\)/);
   assert.match(layoutReady, /migrateDedicatedCueHosts\(this\.data, this\.settings\)/);
   assert.match(layoutReady, /this\.scheduleRefresh\(\)/);
+  assert.match(layoutReady, /this\.ensureCuesHosts\(\)/);
   assert.match(layoutReady, /if \(this\.unloaded\) return;/);
 
   // The only other refresh trigger in onload is the metadata `resolved` handler.

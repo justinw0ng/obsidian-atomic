@@ -10,6 +10,7 @@ import {
   hobbyActivities,
   normalizeActivityType,
   resolveCueActivityType,
+  cuePathForActivity,
 } from "../src/util/activity-types.ts";
 
 const colors = ["#1", "#2", "#3", "#4"];
@@ -188,4 +189,8 @@ test("resolveCueActivityType only returns cue-capable exercise activities", () =
   assert.equal(resolveCueActivityType(activities, "badminton")?.folder, "atomics/exercise/Badminton");
   assert.equal(resolveCueActivityType(activities, "running"), undefined);
   assert.equal(resolveCueActivityType(activities, "reading"), undefined);
+  assert.equal(
+    cuePathForActivity(createExerciseActivityType("Gym")),
+    "atomics/exercise/Gym/Cues.md",
+  );
 });
