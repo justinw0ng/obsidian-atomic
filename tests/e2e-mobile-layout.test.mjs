@@ -346,7 +346,8 @@ test("the cue pop works on hover, focus, and tap alike", () => {
   // mouse attached, so the pop cannot live behind a hover media query.
   const pop = cssRule(styles, ".fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet");
   assert.match(pop.selectors, /:focus-visible \.atomic-cue-sheet/);
-  assert.match(pop.selectors, /\.is-open \.atomic-cue-sheet/);
+  assert.match(pop.selectors, /\.is-preview \.atomic-cue-sheet/);
+  assert.doesNotMatch(pop.selectors, /\.is-open/);
   assert.match(pop.body, /translateY\(-18px\)/);
 
   const wash = cssRule(styles, ".fitness-plugin .atomic-cue-body::after");
@@ -360,7 +361,8 @@ test("the cue pop works on hover, focus, and tap alike", () => {
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hideWash.selectors, /:focus-visible \.atomic-cue-body/);
-  assert.match(hideWash.selectors, /\.is-open \.atomic-cue-body/);
+  assert.match(hideWash.selectors, /\.is-preview \.atomic-cue-body/);
+  assert.doesNotMatch(hideWash.selectors, /\.is-open/);
   assert.match(hideWash.body, /--atomic-cue-wash:\s*0/);
   const sheet = cssRule(styles, ".fitness-plugin .atomic-cue-sheet");
   assert.match(sheet.body, /--atomic-cue-stock:/);
@@ -390,7 +392,7 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
   assert.match(placed.body, /min\(var\(--atomic-cue-width\)/);
 });
 
-test("phone cue cards pop only when tapped open", () => {
+test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
   const phone = cssMedia(styles, "(max-width: 600px)");
   assert.ok(phone, "cue cards need a phone breakpoint");
   const hoverSheet = cssRule(
@@ -400,11 +402,11 @@ test("phone cue cards pop only when tapped open", () => {
   assert.ok(hoverSheet, "phone CSS must reset sticky hover");
   assert.doesNotMatch(hoverSheet.selectors, /\.is-open/);
   assert.match(hoverSheet.body, /rotate\(var\(--atomic-cue-tilt\)\)/);
-  const openSheet = cssRule(
-    phone,
-    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet",
+  assert.equal(
+    cssRule(phone, ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet"),
+    null,
+    "phone tap must not keep an in-fan is-open expand",
   );
-  assert.match(openSheet.body, /translateY\(-6px\)/);
   assert.match(phone, /--atomic-cue-drop:\s*0px/);
   const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
   assert.match(body.body, /transition:\s*none/);
@@ -413,11 +415,6 @@ test("phone cue cards pop only when tapped open", () => {
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hoverBody.body, /--atomic-cue-wash:\s*1/);
-  const openBody = cssRule(
-    phone,
-    ".fitness-plugin .atomic-cue-card.is-open .atomic-cue-body",
-  );
-  assert.match(openBody.body, /--atomic-cue-wash:\s*0/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {

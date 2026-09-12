@@ -21,30 +21,25 @@ export type CueCardPaint = {
   lastSeen?: string;
 };
 
-export function bindCueCardFan(cards: readonly HTMLElement[]): void {
+/** Close a body-level cue overlay before the fan host is emptied. */
+export function resetCueFan(): void {
   closeCueLightbox();
-  const syncExpanded = (): void => {
-    for (const card of cards) {
-      card.setAttr("aria-expanded", card.hasClass("is-open") ? "true" : "false");
-    }
-  };
-  const toggle = (card: HTMLElement): void => {
-    toggleCueLightbox(card);
-    syncExpanded();
-  };
+}
+
+export function bindCueCardFan(cards: readonly HTMLElement[]): void {
+  resetCueFan();
   for (const card of cards) {
     card.addEventListener("click", (event) => {
       if (!cueCardEventShouldToggle(event.target, card)) return;
-      toggle(card);
+      toggleCueLightbox(card);
     });
     card.addEventListener("keydown", (event) => {
       if (!isCueCardToggleKey(event.key)) return;
       if (!cueCardEventShouldToggle(event.target, card)) return;
       event.preventDefault();
-      toggle(card);
+      toggleCueLightbox(card);
     });
   }
-  syncExpanded();
 }
 
 /** Same index card on the cue page and on the session-note form. */

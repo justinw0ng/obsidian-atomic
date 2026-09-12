@@ -78,8 +78,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cues, /data-testid": "atomic-cues"/);
   assert.match(cues, /appendCueCard\(/);
   assert.match(cues, /buildCueCards\(/);
+  assert.match(cues, /resetCueFan/);
   assert.match(cues, /cuesPaint\.shouldSkip/);
   assert.match(cues, /host\.beginPaint\(\)/);
+  assert.doesNotMatch(cues, /closeCueLightbox/);
   assert.doesNotMatch(cues, /view\.cues\.thisMonth|view\.cues\.keepers/);
   assert.doesNotMatch(cues, /innerHTML/);
 
@@ -91,7 +93,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCard, /cueCardEventShouldToggle/);
   assert.match(cueCard, /isCueCardToggleKey/);
   assert.match(cueCard, /toggleCueLightbox/);
+  assert.match(cueCard, /resetCueFan/);
   assert.match(cueCard, /closeCueLightbox/);
+  assert.doesNotMatch(cueCard, /syncExpanded/);
+  assert.doesNotMatch(cueCard, /is-open/);
   assert.match(cueCard, /"atomic-cue-text"/);
   assert.match(cueCard, /"atomic-cue-repeats"/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
@@ -130,7 +135,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLog, /"atomic-cue-log-add"/);
   assert.match(cueLog, /"atomic-cue-log-existing"/);
   assert.match(cueLog, /appendCueCard\(/);
+  assert.match(cueLog, /resetCueFan/);
   assert.match(cueLog, /cueLogPaint\.shouldSkip/);
+  assert.doesNotMatch(cueLog, /closeCueLightbox/);
   assert.match(cueLog, /appendCueBullet\(/);
   assert.match(cueLog, /sanitizeCueText\(/);
   assert.match(cueLog, /vault\.process\(file, \(latest\) =>/);
@@ -240,5 +247,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /--atomic-cue-stock/);
   assert.match(styles, /atomic-cue-lightbox/);
   assert.match(styles, /translate\(-50%, -50%\)/);
+  assert.match(styles, /\.is-preview/);
+  assert.doesNotMatch(styles, /\.atomic-cue-card\.is-open/);
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
 });

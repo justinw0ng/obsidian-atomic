@@ -1839,19 +1839,21 @@
 }
 
 /*
-  Popped state. Hover, keyboard focus, and the tap-driven `is-open` class share
-  one rule set so the pop is not gated behind a `(hover: hover)` query: remote
-  desktops and touch-capable laptops report no hover even with a mouse attached.
+  Preview lift. Hover and keyboard focus share one rule set so the pop is not
+  gated behind a `(hover: hover)` query: remote desktops and touch-capable
+  laptops report no hover even with a mouse attached. `.is-preview` is only
+  for capture scripts that cannot hold a real pointer over the card.
+  Click/tap opens the centered lightbox; it does not expand the fan card.
 */
 .fitness-plugin .atomic-cue-card:hover,
 .fitness-plugin .atomic-cue-card:focus-visible,
-.fitness-plugin .atomic-cue-card.is-open {
+.fitness-plugin .atomic-cue-card.is-preview {
   z-index: 5;
 }
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
   transform: rotate(0deg) translateY(-18px) scale(1.07);
   padding-right: 14px;
   box-shadow:
@@ -1861,14 +1863,14 @@
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
   max-height: none;
   --atomic-cue-wash: 0;
 }
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
   opacity: 1;
   transform: translateY(0);
 }
@@ -1918,7 +1920,7 @@
 
   /*
     Sticky :hover on touch reflows this in-flow stack while scrolling.
-    Tap toggles `.is-open`; do not also pop on hover or focus.
+    Tap opens the centered lightbox; do not also pop on hover or focus.
   */
   .fitness-plugin .atomic-cue-card:hover,
   .fitness-plugin .atomic-cue-card:focus-visible {
@@ -1926,7 +1928,8 @@
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
     transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
     padding-right: 14px;
     box-shadow:
@@ -1935,36 +1938,17 @@
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
     max-height: calc(3 * var(--atomic-cue-line));
     --atomic-cue-wash: 1;
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta {
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
     opacity: 0;
     transform: translateY(5px);
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open {
-    z-index: 5;
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
-    transform: rotate(0deg) translateY(-6px) scale(1.03);
-    box-shadow:
-      0 0 0 1px rgba(70, 60, 44, 0.08),
-      0 20px 38px rgba(38, 32, 22, 0.28);
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
-    max-height: none;
-    --atomic-cue-wash: 0;
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1977,7 +1961,7 @@
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
   .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
     transform: rotate(0deg);
   }
 }

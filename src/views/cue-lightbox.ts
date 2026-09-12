@@ -26,7 +26,6 @@ export function closeCueLightbox(restoreFocus = false): void {
   if (!current) return;
   session = null;
   current.view.removeEventListener("keydown", current.onKey, true);
-  current.source.removeClass("is-open");
   current.source.setAttr("aria-expanded", "false");
   current.overlay.detach();
   if (restoreFocus && current.source.isConnected) current.source.focus();
@@ -94,7 +93,6 @@ function openCueLightbox(source: HTMLElement): void {
     closeCueLightbox(true);
   });
 
-  source.addClass("is-open");
   source.setAttr("aria-expanded", "true");
   session = { source, overlay, card, view, onKey };
 

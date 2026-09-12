@@ -322,7 +322,7 @@ async function closeAllCues(driver) {
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     }
     document.querySelectorAll('[data-testid="atomic-cue-card"]').forEach((card) => {
-      card.classList.remove("is-open");
+      card.classList.remove("is-preview");
       card.setAttribute("aria-expanded", "false");
     });
   `);
@@ -361,8 +361,8 @@ async function popCue(driver, preferIndex) {
     const card = cards[arguments[0]];
     if (!card) throw new Error("missing cue card " + arguments[0]);
     card.scrollIntoView({ block: "center", inline: "nearest" });
-    for (const other of cards) other.classList.remove("is-open");
-    card.classList.add("is-open");
+    for (const other of cards) other.classList.remove("is-preview");
+    card.classList.add("is-preview");
     `,
     index,
   );
@@ -371,7 +371,7 @@ async function popCue(driver, preferIndex) {
       `
       const card = document.querySelectorAll('[data-testid="atomic-cue-card"]')[arguments[0]];
       const meta = card?.querySelector(".atomic-cue-meta");
-      return !!card?.classList.contains("is-open") && !!meta && Number(getComputedStyle(meta).opacity) > 0.5;
+      return !!card?.classList.contains("is-preview") && !!meta && Number(getComputedStyle(meta).opacity) > 0.5;
       `,
       index,
     );

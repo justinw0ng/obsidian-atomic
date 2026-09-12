@@ -266,11 +266,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
       `);
-      const popped = await waitForCuePop(driver, 2);
-      assert.equal(popped.isOpen, true);
-      assert.equal(popped.ariaExpanded, "true");
-      assertNoCssMask(popped, "popped cue body");
-      assert.equal(popped.fadeOpacity, 0, "an open cue drops the bottom wash");
+      const afterClick = await cueCardMetrics(driver, 2);
+      assert.equal(afterClick.isOpen, false, "click must not reuse the in-fan is-open expand");
+      assert.equal(afterClick.ariaExpanded, "true");
+      assert.ok(afterClick.clamped, "the fan card stays clipped; the lightbox shows the cue");
       const lightbox = await waitForCueLightbox(
         driver,
         "Finish tall with the belt buckle facing the target",
@@ -348,10 +347,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
       `);
-      await driver.wait(async () => {
-        const open = await cueCardMetrics(driver, 0);
-        return open && open.isOpen;
-      }, 8000);
+      const phoneSource = await cueCardMetrics(driver, 0);
+      assert.equal(phoneSource.isOpen, false, "phone tap must not expand the in-flow card");
+      assert.equal(phoneSource.ariaExpanded, "true");
       const phoneLightbox = await waitForCueLightbox(driver);
       assert.ok(phoneLightbox.width > 200, "phone lightbox is a larger card");
       assert.equal(phoneLightbox.clamped, false);
@@ -473,7 +471,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(linkToggle.afterClick.lightbox, false, "clicking a cue link must not open the lightbox");
       assert.equal(linkToggle.afterEnter.open, false, "Enter on a cue link must not toggle the card");
       assert.equal(linkToggle.afterEnter.lightbox, false);
-      assert.equal(linkToggle.afterCardClick.open, true);
+      assert.equal(linkToggle.afterCardClick.open, false, "card click opens the lightbox, not is-open");
       assert.equal(linkToggle.afterCardClick.aria, "true");
       assert.equal(linkToggle.afterCardClick.lightbox, true);
       const logLightbox = await waitForCueLightbox(driver, "前臂放鬆");

@@ -5,8 +5,12 @@ import { appendCueBullet, parseReminders, sanitizeCueText } from "../core/cues";
 import { t } from "../i18n/index.ts";
 import { isStaleBlockRender } from "../util/block-render";
 import { PaintMemo, sameList } from "../util/paint-memo";
-import { appendCueCard, bindCueCardFan, type CueMarkdownHost } from "./cue-card";
-import { closeCueLightbox } from "./cue-lightbox";
+import {
+  appendCueCard,
+  bindCueCardFan,
+  resetCueFan,
+  type CueMarkdownHost,
+} from "./cue-card";
 
 export type CueLogHost = Omit<CueMarkdownHost, "component"> & {
   beginPaint: () => CueMarkdownHost["component"];
@@ -50,7 +54,7 @@ export async function renderAtomicCueLog(
     cues: existing,
   };
   if (cueLogPaint.shouldSkip(el, paintState)) return;
-  closeCueLightbox();
+  resetCueFan();
 
   const component = host.beginPaint();
   el.empty();
