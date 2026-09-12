@@ -107,7 +107,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLightbox, /"atomic-cue-lightbox-backdrop"/);
   assert.match(cueLightbox, /cloneNode\(true\)/);
   assert.match(cueLightbox, /isCueLightboxDismissKey/);
-  assert.match(cueLightbox, /cueLightboxClickShouldClose/);
+  assert.match(cueLightbox, /cueCardEventShouldToggle/);
   assert.match(cueLightbox, /role: "dialog"/);
   assert.doesNotMatch(cueLightbox, /innerHTML/);
 
@@ -116,7 +116,6 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCardFan, /a\[href]/);
   assert.match(cueCardFan, /\[role='button']/);
   assert.match(cueCardFan, /isCueLightboxDismissKey/);
-  assert.match(cueCardFan, /cueLightboxClickShouldClose/);
 
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);

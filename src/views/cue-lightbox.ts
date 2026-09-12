@@ -1,5 +1,5 @@
 import {
-  cueLightboxClickShouldClose,
+  cueCardEventShouldToggle,
   isCueCardToggleKey,
   isCueLightboxDismissKey,
 } from "../util/cue-card-fan";
@@ -12,58 +12,36 @@ type LightboxSession = {
   card: HTMLElement;
   view: Window;
   onKey: (event: KeyboardEvent) => void;
-  closeTimer: number | null;
 };
 
 let session: LightboxSession | null = null;
-let closing: LightboxSession | null = null;
 
 export function cueLightboxIsOpen(source?: HTMLElement): boolean {
   if (!session) return false;
   return source ? session.source === source : true;
 }
 
-export function closeCueLightbox(immediate = false): void {
-  const current = session ?? closing;
+export function closeCueLightbox(restoreFocus = false): void {
+  const current = session;
   if (!current) return;
   session = null;
+  current.view.removeEventListener("keydown", current.onKey, true);
   current.source.removeClass("is-open");
   current.source.setAttr("aria-expanded", "false");
-  if (immediate || prefersReducedMotion(current.view)) {
-    finishSession(current);
-    if (!immediate && current.source.isConnected) current.source.focus();
-    return;
-  }
-  closing = current;
-  current.overlay.removeClass("is-placed");
-  if (current.closeTimer !== null) current.view.clearTimeout(current.closeTimer);
-  current.closeTimer = current.view.setTimeout(() => {
-    if (closing === current) closing = null;
-    finishSession(current);
-    if (current.source.isConnected) current.source.focus();
-  }, 200);
+  current.overlay.detach();
+  if (restoreFocus && current.source.isConnected) current.source.focus();
 }
 
 export function toggleCueLightbox(source: HTMLElement): void {
   if (cueLightboxIsOpen(source)) {
-    closeCueLightbox();
+    closeCueLightbox(true);
     return;
   }
   openCueLightbox(source);
 }
 
-function finishSession(current: LightboxSession): void {
-  if (closing === current) closing = null;
-  if (current.closeTimer !== null) {
-    current.view.clearTimeout(current.closeTimer);
-    current.closeTimer = null;
-  }
-  current.view.removeEventListener("keydown", current.onKey, true);
-  current.overlay.detach();
-}
-
 function openCueLightbox(source: HTMLElement): void {
-  closeCueLightbox(true);
+  closeCueLightbox();
   const doc = source.ownerDocument;
   const view = doc.defaultView;
   if (!view) return;
@@ -102,23 +80,23 @@ function openCueLightbox(source: HTMLElement): void {
   const onKey = (event: KeyboardEvent): void => {
     if (!isCueLightboxDismissKey(event.key)) return;
     event.preventDefault();
-    closeCueLightbox();
+    closeCueLightbox(true);
   };
   view.addEventListener("keydown", onKey, true);
   overlay.addEventListener("click", (event) => {
-    if (!cueLightboxClickShouldClose(event.target, card)) return;
-    closeCueLightbox();
+    if (!cueCardEventShouldToggle(event.target, card)) return;
+    closeCueLightbox(true);
   });
   card.addEventListener("keydown", (event) => {
     if (!isCueCardToggleKey(event.key)) return;
-    if (!cueLightboxClickShouldClose(event.target, card)) return;
+    if (!cueCardEventShouldToggle(event.target, card)) return;
     event.preventDefault();
-    closeCueLightbox();
+    closeCueLightbox(true);
   });
 
   source.addClass("is-open");
   source.setAttr("aria-expanded", "true");
-  session = { source, overlay, card, view, onKey, closeTimer: null };
+  session = { source, overlay, card, view, onKey };
 
   const place = (): void => {
     overlay.addClass("is-placed");

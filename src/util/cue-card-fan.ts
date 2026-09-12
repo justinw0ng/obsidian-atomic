@@ -59,14 +59,3 @@ export function cueCardEventFromInteractive(target: unknown, card: unknown): boo
 export function cueCardEventShouldToggle(target: unknown, card: unknown): boolean {
   return !cueCardEventFromInteractive(target, card);
 }
-
-/**
- * Backdrop or the enlarged card closes the lightbox. A link or other control
- * inside the enlarged card keeps its own click.
- */
-export function cueLightboxClickShouldClose(
-  target: unknown,
-  overlayCard: unknown,
-): boolean {
-  return cueCardEventShouldToggle(target, overlayCard);
-}

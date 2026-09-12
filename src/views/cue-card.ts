@@ -8,8 +8,6 @@ import {
 } from "../util/cue-card-fan";
 import { closeCueLightbox, toggleCueLightbox } from "./cue-lightbox";
 
-export { closeCueLightbox } from "./cue-lightbox";
-
 export type CueMarkdownHost = {
   app: App;
   component: Component;
@@ -24,7 +22,7 @@ export type CueCardPaint = {
 };
 
 export function bindCueCardFan(cards: readonly HTMLElement[]): void {
-  closeCueLightbox(true);
+  closeCueLightbox();
   const syncExpanded = (): void => {
     for (const card of cards) {
       card.setAttr("aria-expanded", card.hasClass("is-open") ? "true" : "false");

@@ -4,7 +4,6 @@ import {
   CUE_CARD_INTERACTIVE_SELECTOR,
   cueCardEventFromInteractive,
   cueCardEventShouldToggle,
-  cueLightboxClickShouldClose,
   isCueCardToggleKey,
   isCueLightboxDismissKey,
 } from "../src/util/cue-card-fan.ts";
@@ -53,12 +52,6 @@ test("events from the card itself still toggle", () => {
   assert.equal(cueCardEventFromInteractive(target(card), card), false);
   assert.equal(cueCardEventShouldToggle(target(card), card), true);
   assert.equal(cueCardEventShouldToggle(target(null), card), true);
-});
-
-test("lightbox closes from the enlarged card or backdrop, not from a link", () => {
-  assert.equal(cueLightboxClickShouldClose(target(link), card), false);
-  assert.equal(cueLightboxClickShouldClose(target(card), card), true);
-  assert.equal(cueLightboxClickShouldClose(target(null), card), true);
 });
 
 test("text-node targets walk to a parent that can closest()", () => {
