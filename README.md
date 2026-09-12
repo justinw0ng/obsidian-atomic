@@ -14,6 +14,12 @@ KPI cards, per-habit activity, a monthly chart, and recent sessions. Open `atomi
 
 ![Dashboard on desktop and phone](docs/images/atomic-dashboard-hero.png)
 
+## Cue cards
+
+Every cue of the year as a fanned stack of index cards. Hover or tap one to pop it open. Add a cue from the form on a session note.
+
+![Cue cards on desktop and phone](docs/images/atomic-cue-hero.png)
+
 Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
 
 Daily note template setup: [examples/README.md](examples/README.md#use-the-daily-note-template).
