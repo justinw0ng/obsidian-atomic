@@ -9,8 +9,7 @@ import {
   rowVolumeKg,
   parseSetTable,
   yearFromDailyPath,
-  buildKeepers,
-  cuesInCalendarMonth,
+  buildCueCards,
   parseReminders,
 } from "../src/core.ts";
 
@@ -22,8 +21,7 @@ test("exports expected helpers", () => {
   assert.equal(typeof rowVolumeKg, "function");
   assert.equal(typeof parseSetTable, "function");
   assert.equal(typeof yearFromDailyPath, "function");
-  assert.equal(typeof buildKeepers, "function");
-  assert.equal(typeof cuesInCalendarMonth, "function");
+  assert.equal(typeof buildCueCards, "function");
   assert.equal(typeof parseReminders, "function");
 });
 
@@ -103,32 +101,6 @@ test("yearFromDailyPath", () => {
 
 test("normalizeCue", () => {
   assert.equal(normalizeCue("  Keep  Lead Arm Soft "), "keep lead arm soft");
-});
-
-test("keepers require 2+ in year", () => {
-  const cues = [
-    { text: "Keep lead arm soft", date: "2026-01-02", focus: "Grip" },
-    { text: "keep  lead arm soft", date: "2026-03-01", focus: "Grip" },
-    { text: "One-off cue", date: "2026-02-01", focus: "Tempo" },
-    { text: "Old repeat", date: "2025-01-01", focus: "Tempo" },
-    { text: "Old repeat", date: "2025-02-01", focus: "Tempo" },
-  ];
-  const keepers = buildKeepers(cues, 2026);
-  assert.equal(keepers.length, 1);
-  assert.equal(keepers[0].key, "keep lead arm soft");
-  assert.equal(keepers[0].count, 2);
-  assert.equal(keepers[0].text, "keep  lead arm soft");
-  assert.equal(keepers[0].lastSeen, "2026-03-01");
-});
-
-test("cuesInCalendarMonth", () => {
-  const cues = [
-    { text: "a", date: "2026-08-01" },
-    { text: "b", date: "2026-07-31" },
-    { text: "c", date: "2026-08-15" },
-  ];
-  const m = cuesInCalendarMonth(cues, 2026, 8);
-  assert.deepEqual(m.map((x) => x.text), ["c", "a"]);
 });
 
 test("parseReminders extracts bullets under Reminders", () => {

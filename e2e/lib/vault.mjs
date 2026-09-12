@@ -29,6 +29,10 @@ export const E2E_TIMER_FENCE = `\`\`\`atomic-timer
 # No options. Start, Stop, Resume, or Discard the timer on this note.
 \`\`\``;
 
+export const E2E_CUE_LOG_FENCE = `\`\`\`atomic-cue-log
+# No options. Type a cue and add it. It is saved as a bullet under this note\u2019s Reminders heading.
+\`\`\``;
+
 export const E2E_FILES = {
   golfCues: "E2E/Golf cues.md",
   gymCues: "E2E/Gym cues.md",
@@ -154,6 +158,8 @@ ${E2E_GYM_LOG_FENCE}
 
 ## Reminders
 
+${E2E_CUE_LOG_FENCE}
+
 - Brace the core
 `;
 }
@@ -177,7 +183,12 @@ ${E2E_TIMER_FENCE}
 
 ## Reminders
 
+${E2E_CUE_LOG_FENCE}
+
 - Smooth tempo
+- Left wrist flat at the top
+- Finish tall with the belt buckle facing the target, weight on the lead side
+- Grip pressure at four out of ten, no tighter
 `;
 }
 

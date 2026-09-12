@@ -1558,3 +1558,318 @@
   border: 1px solid var(--background-modifier-border);
   flex: 0 0 auto;
 }
+
+/* ---------------------------------------------------------------------------
+   Cue cards: every cue of the year as one index card in a fanned stack.
+   Hover on a pointer device, or tap on touch, pops one card out of the fan
+   and grows it to the full cue.
+   --------------------------------------------------------------------------- */
+
+.fitness-plugin.atomic-cues {
+  --atomic-cue-width: 228px;
+  --atomic-cue-step: 186px;
+  --atomic-cue-height: 140px;
+  --atomic-cue-line: 23px;
+  --atomic-cue-pop: cubic-bezier(0.22, 1, 0.36, 1);
+  --atomic-cue-paper: #fffdf7;
+  --atomic-cue-ink: #2c2a26;
+  --atomic-cue-ink-soft: #6d675c;
+  --atomic-cue-rule: rgba(84, 106, 148, 0.22);
+  --atomic-cue-margin-rule: rgba(214, 92, 92, 0.5);
+  --atomic-cue-accent: var(--interactive-accent);
+  --atomic-cue-font: "Caveat", "Bradley Hand", "Segoe Print", "Ink Free", cursive;
+  margin: 8px 0 16px;
+  min-width: 0;
+  /* Layout only: paint containment would clip a popped card. */
+  contain: layout;
+}
+
+/* Index cards are physical paper, so they stay light in a dark theme. */
+.theme-dark .fitness-plugin.atomic-cues {
+  --atomic-cue-paper: #ebe5d7;
+  --atomic-cue-rule: rgba(60, 84, 128, 0.26);
+  --atomic-cue-margin-rule: rgba(186, 78, 78, 0.55);
+}
+
+.fitness-plugin .atomic-cues-empty {
+  margin: 4px 0;
+}
+
+.fitness-plugin .atomic-cue-fan {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--atomic-cue-step));
+  row-gap: 34px;
+  /* The last card of a row overhangs its column, so reserve the difference. */
+  padding: 14px calc(var(--atomic-cue-width) - var(--atomic-cue-step)) 24px 0;
+}
+
+.fitness-plugin .atomic-cue-card {
+  --atomic-cue-tilt: -2.4deg;
+  --atomic-cue-tint: #b7e4c0;
+  position: relative;
+  width: var(--atomic-cue-width);
+  height: var(--atomic-cue-height);
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  box-shadow: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fitness-plugin .atomic-cue-card[data-cue-stock="1"] {
+  --atomic-cue-tilt: 1.6deg;
+  --atomic-cue-tint: #bcdcf2;
+}
+
+.fitness-plugin .atomic-cue-card[data-cue-stock="2"] {
+  --atomic-cue-tilt: -1.1deg;
+  --atomic-cue-tint: #f6dcb0;
+}
+
+.fitness-plugin .atomic-cue-card[data-cue-stock="3"] {
+  --atomic-cue-tilt: 2.1deg;
+  --atomic-cue-tint: #eac7de;
+}
+
+.fitness-plugin .atomic-cue-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  /* Right padding keeps the resting cue inside the strip the next card leaves. */
+  padding: 27px calc(var(--atomic-cue-width) - var(--atomic-cue-step) + 12px) 12px 42px;
+  border-radius: 3px;
+  transform-origin: 50% 92%;
+  transform: rotate(var(--atomic-cue-tilt));
+  background-color: color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper));
+  background-image:
+    linear-gradient(
+      90deg,
+      transparent 29px,
+      var(--atomic-cue-margin-rule) 29px,
+      var(--atomic-cue-margin-rule) 30px,
+      transparent 30px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      var(--atomic-cue-rule),
+      var(--atomic-cue-rule) 1px,
+      transparent 1px,
+      transparent var(--atomic-cue-line)
+    );
+  background-position: 0 0, 0 26px;
+  box-shadow:
+    0 0 0 1px rgba(70, 60, 44, 0.07),
+    0 5px 12px rgba(38, 32, 22, 0.16);
+  transition:
+    transform 420ms var(--atomic-cue-pop),
+    box-shadow 420ms var(--atomic-cue-pop),
+    padding-right 420ms var(--atomic-cue-pop);
+}
+
+/* The punch hole that makes a rectangle read as a card. */
+.fitness-plugin .atomic-cue-sheet::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(60, 52, 40, 0.13);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+/*
+  The resting height is an exact 3-line multiple, so a clipped cue cuts on a
+  ruled line instead of mid-glyph and a one-line cue still fills a card's worth
+  of paper. The mask fades the last clipped line without hiding the rules.
+*/
+.fitness-plugin .atomic-cue-body {
+  position: relative;
+  min-height: calc(3 * var(--atomic-cue-line));
+  max-height: calc(3 * var(--atomic-cue-line));
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 15px), transparent);
+  transition: max-height 420ms var(--atomic-cue-pop);
+}
+
+.fitness-plugin .atomic-cue-text {
+  margin: 0;
+  font-family: var(--atomic-cue-font);
+  font-size: 1.35rem;
+  line-height: var(--atomic-cue-line);
+  color: var(--atomic-cue-ink);
+}
+
+.fitness-plugin .atomic-cue-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--atomic-cue-ink-soft);
+  opacity: 0;
+  transform: translateY(5px);
+  transition:
+    opacity 300ms var(--atomic-cue-pop) 90ms,
+    transform 300ms var(--atomic-cue-pop) 90ms;
+}
+
+.fitness-plugin .atomic-cue-repeats {
+  padding: 0 5px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--atomic-cue-accent) 32%, var(--atomic-cue-paper));
+  color: var(--atomic-cue-ink);
+}
+
+/* Popped: tap or keyboard activation on any device. */
+.fitness-plugin .atomic-cue-card.is-open {
+  z-index: 5;
+}
+
+.fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+  transform: rotate(0deg) translateY(-18px) scale(1.07);
+  padding-right: 14px;
+  box-shadow:
+    0 0 0 1px rgba(70, 60, 44, 0.08),
+    0 20px 38px rgba(38, 32, 22, 0.28);
+}
+
+.fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
+  max-height: calc(10 * var(--atomic-cue-line));
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Popped: hover and keyboard focus on a pointer device. */
+@media (hover: hover) and (pointer: fine) {
+  .fitness-plugin .atomic-cue-card:hover,
+  .fitness-plugin .atomic-cue-card:focus-visible {
+    z-index: 5;
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
+    transform: rotate(0deg) translateY(-18px) scale(1.07);
+    padding-right: 14px;
+    box-shadow:
+      0 0 0 1px rgba(70, 60, 44, 0.08),
+      0 20px 38px rgba(38, 32, 22, 0.28);
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
+    max-height: calc(10 * var(--atomic-cue-line));
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Phones and narrow panes: one card per row, no overlap, tap to pop. */
+@media (max-width: 600px) {
+  .fitness-plugin .atomic-cue-fan {
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+    padding-right: 0;
+  }
+
+  .fitness-plugin .atomic-cue-card {
+    --atomic-cue-tilt: -0.6deg;
+    width: 100%;
+    height: auto;
+  }
+
+  .fitness-plugin .atomic-cue-card[data-cue-stock="1"],
+  .fitness-plugin .atomic-cue-card[data-cue-stock="3"] {
+    --atomic-cue-tilt: 0.6deg;
+  }
+
+  .fitness-plugin .atomic-cue-card[data-cue-stock="2"] {
+    --atomic-cue-tilt: -0.6deg;
+  }
+
+  .fitness-plugin .atomic-cue-sheet {
+    position: relative;
+    padding-right: 14px;
+  }
+
+  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+    transform: rotate(0deg) translateY(-6px) scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fitness-plugin .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-body,
+  .fitness-plugin .atomic-cue-meta {
+    transition: none;
+  }
+
+  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-sheet {
+    transform: rotate(0deg);
+  }
+}
+
+/* Cue entry form on a session note. */
+.fitness-plugin.atomic-cue-log {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.fitness-plugin .atomic-cue-log-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+}
+
+.fitness-plugin .atomic-cue-log-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.fitness-plugin .atomic-cue-log-field label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.fitness-plugin .atomic-cue-log-existing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.fitness-plugin .atomic-cue-log-chip {
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+}

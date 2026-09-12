@@ -285,6 +285,50 @@ test("cover images apply coverObjectPosition after load", () => {
   );
 });
 
+test("cue cards fan on desktop, stack on phones, and pop without hover", () => {
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-cue-fan\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fill, var\(--atomic-cue-step\)\)/s,
+  );
+  assert.match(styles, /--atomic-cue-width:\s*228px/);
+  assert.match(styles, /--atomic-cue-step:\s*186px/);
+
+  // Tap and keyboard activation pop a card with no hover support at all.
+  const openAt = styles.indexOf(".fitness-plugin .atomic-cue-card.is-open");
+  assert.ok(openAt > 0);
+  const cueHoverAt = styles.indexOf(
+    "@media (hover: hover) and (pointer: fine)",
+    openAt,
+  );
+  assert.ok(cueHoverAt > openAt, "hover rules must not be the only pop path");
+  assert.match(
+    styles.slice(openAt, cueHoverAt),
+    /\.atomic-cue-card\.is-open \.atomic-cue-sheet\s*\{[^}]*translateY\(-18px\)/s,
+  );
+  assert.match(
+    styles.slice(cueHoverAt),
+    /\.atomic-cue-card:focus-visible \.atomic-cue-sheet/,
+  );
+
+  const phoneAt = styles.indexOf("@media (max-width: 600px)");
+  assert.ok(phoneAt > openAt);
+  assert.match(
+    styles.slice(phoneAt),
+    /\.fitness-plugin \.atomic-cue-fan\s*\{[^}]*grid-template-columns:\s*1fr/s,
+  );
+  assert.match(
+    styles.slice(phoneAt),
+    /\.fitness-plugin \.atomic-cue-sheet\s*\{[^}]*position:\s*relative/s,
+  );
+
+  const reducedAt = styles.indexOf(
+    "@media (prefers-reduced-motion: reduce)",
+    phoneAt,
+  );
+  assert.ok(reducedAt > phoneAt, "cue pop needs a reduced-motion escape hatch");
+  assert.match(styles.slice(reducedAt), /\.atomic-cue-sheet,/);
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);

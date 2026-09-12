@@ -9,6 +9,7 @@ import {
   mountAtomicBlockShell,
 } from "./util/block-render";
 import { renderActions } from "./views/actions";
+import { renderAtomicCueLog } from "./views/cue-log";
 import { renderCues, resolveCuesYear } from "./views/cues";
 import {
   renderDashboard,
@@ -148,15 +149,7 @@ export async function renderBlock(
           frontmatterYear(plugin, sourcePath),
           tz,
         );
-        await renderCues(
-          el,
-          data,
-          activityTypes,
-          year,
-          tz,
-          activity,
-          language,
-        );
+        await renderCues(el, data, activityTypes, year, activity, language);
         break;
       }
       case "atomic-actions": {
@@ -169,6 +162,10 @@ export async function renderBlock(
       }
       case "atomic-gym-log": {
         await renderAtomicGymLog(plugin, el, sourcePath);
+        break;
+      }
+      case "atomic-cue-log": {
+        await renderAtomicCueLog(plugin, el, sourcePath, ctx.generation);
         break;
       }
       case "atomic-bookshelf": {

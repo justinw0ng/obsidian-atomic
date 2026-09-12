@@ -5,8 +5,9 @@ import { extractYmdFromPath } from "./dates.ts";
 export type { SetRow } from "./core/set-table";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 export { parseSetTable } from "./core/set-table.ts";
-
-export type Cue = { text: string; date: string; focus?: string };
+export type { Cue, CueCard } from "./core/cues";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+export { appendCueBullet, buildCueCards, normalizeCue, parseReminders, sanitizeCueText } from "./core/cues.ts";
 
 export const LB_TO_KG = 0.45359237;
 
@@ -107,84 +108,3 @@ export function yearFromDailyPath(path: string, fallbackYear: number): number {
   return ymd ? Number(ymd.slice(0, 4)) : fallbackYear;
 }
 
-export function normalizeCue(text: string): string {
-  return String(text || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
-
-export function cuesInCalendarMonth(
-  cues: Cue[],
-  year: number,
-  month: number,
-): Cue[] {
-  const prefix = `${year}-${String(month).padStart(2, "0")}-`;
-  return cues
-    .filter((c) => String(c.date || "").startsWith(prefix))
-    .slice()
-    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
-}
-
-export function buildKeepers(
-  cues: Cue[],
-  year: number,
-): Array<{
-  key: string;
-  text: string;
-  focus: string;
-  count: number;
-  lastSeen: string;
-}> {
-  const prefix = `${year}-`;
-  const map = new Map<
-    string,
-    { key: string; text: string; focus: string; count: number; lastSeen: string }
-  >();
-  const yearCues = cues
-    .filter((c) => String(c.date || "").startsWith(prefix))
-    .slice()
-    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
-  for (const c of yearCues) {
-    const key = normalizeCue(c.text);
-    if (!key) continue;
-    const prev = map.get(key);
-    if (!prev) {
-      map.set(key, {
-        key,
-        text: c.text,
-        focus: c.focus || "",
-        count: 1,
-        lastSeen: c.date,
-      });
-    } else {
-      prev.count += 1;
-      prev.text = c.text;
-      prev.focus = c.focus || prev.focus;
-      prev.lastSeen = c.date;
-    }
-  }
-  return [...map.values()]
-    .filter((k) => k.count >= 2)
-    .sort(
-      (a, b) => b.count - a.count || b.lastSeen.localeCompare(a.lastSeen),
-    );
-}
-
-export function parseReminders(markdown: string): string[] {
-  const lines = String(markdown).split(/\r?\n/);
-  const out: string[] = [];
-  let inRem = false;
-  for (const line of lines) {
-    if (/^##\s+(?:\S+\s+)?Reminders(?:\s*\/\s*.+)?\s*$/i.test(line.trim())) {
-      inRem = true;
-      continue;
-    }
-    if (inRem && /^##\s+/.test(line)) break;
-    if (inRem) {
-      const m = line.match(/^\s*[-*]\s+(.+)$/);
-      if (m) out.push(m[1].trim());
-    }
-  }
-  return out;
-}

@@ -38,6 +38,23 @@ async function shot(driver, name) {
   }
 }
 
+/** Geometry of one cue card: how far it lifted and whether its cue is clipped. */
+function cueCardMetrics(driver, index) {
+  return driver.executeScript(`
+    const card = document.querySelectorAll('[data-testid="atomic-cue-card"]')[${index}];
+    if (!card) return null;
+    const sheet = card.querySelector('.atomic-cue-sheet');
+    const body = card.querySelector('.atomic-cue-body');
+    return {
+      isOpen: card.classList.contains('is-open'),
+      lift: card.getBoundingClientRect().top - sheet.getBoundingClientRect().top,
+      bodyHeight: body.clientHeight,
+      clamped: body.scrollHeight > body.clientHeight + 1,
+      metaOpacity: Number(getComputedStyle(card.querySelector('.atomic-cue-meta')).opacity),
+    };
+  `);
+}
+
 async function check(driver, name, fn) {
   try {
     await fn();
@@ -103,6 +120,108 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await waitCss(driver, '[data-testid="atomic-bookshelf"]');
       const books = await driver.findElements(By.css('[data-testid="atomic-book"]'));
       assert.equal(books.length, 2);
+    });
+  });
+
+  it("shows every cue as an index card and pops one open", async () => {
+    await check(driver, "cue-cards", async () => {
+      await openVaultFile(driver, E2E_FILES.golfCues);
+      await waitCss(driver, '[data-testid="atomic-cues"][data-activity="golf"]');
+      await waitCss(driver, '[data-testid="atomic-cue-card"]');
+
+      const cards = await driver.executeScript(`
+        return [...document.querySelectorAll('[data-testid="atomic-cue-card"]')]
+          .map((card) => card.querySelector('.atomic-cue-text')?.textContent || "");
+      `);
+      assert.deepEqual(cards, [
+        "Smooth tempo",
+        "Left wrist flat at the top",
+        "Finish tall with the belt buckle facing the target, weight on the lead side",
+        "Grip pressure at four out of ten, no tighter",
+      ]);
+
+      // The month and keeper sections are gone: cards are the only cue UI.
+      const headings = await driver.executeScript(`
+        return document.querySelector('[data-testid="atomic-cues"]').querySelectorAll('h2').length;
+      `);
+      assert.equal(headings, 0);
+
+      const before = await cueCardMetrics(driver, 2);
+      assert.ok(before.clamped, "a long cue should be clipped at rest");
+
+      await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
+      `);
+      await driver.wait(async () => {
+        const open = await cueCardMetrics(driver, 2);
+        return open.isOpen && open.lift > 8 && !open.clamped;
+      }, 8000);
+
+      const popped = await cueCardMetrics(driver, 2);
+      assert.ok(
+        popped.lift > 8,
+        `popped card should lift out of the fan, lifted ${popped.lift}px`,
+      );
+      assert.ok(popped.bodyHeight > before.bodyHeight);
+      assert.equal(popped.metaOpacity, 1);
+
+      await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
+      `);
+      await driver.wait(async () => {
+        const closed = await cueCardMetrics(driver, 2);
+        return !closed.isOpen && closed.lift < 4;
+      }, 8000);
+
+      await openVaultFile(driver, E2E_FILES.gymCues);
+      await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
+      const gymCues = await driver.executeScript(`
+        return [...document.querySelectorAll('[data-testid="atomic-cue-card"]')]
+          .map((card) => card.querySelector('.atomic-cue-text')?.textContent || "");
+      `);
+      assert.deepEqual(gymCues, ["Brace the core"]);
+    });
+  });
+
+  it("adds a cue from the in-note form and shows it as a new card", async () => {
+    await check(driver, "cue-log", async () => {
+      const gymPath = E2E_FILES.gymSession(today.slice(0, 4), today);
+      await openVaultFile(driver, gymPath);
+      await waitCss(driver, '[data-testid="atomic-cue-log"]');
+      await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
+
+      const input = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');
+      await input.clear();
+      await input.sendKeys("Knees track over the toes");
+      await driver.executeScript(
+        `document.querySelector('[data-testid="atomic-cue-log-add"]').click()`,
+      );
+      await waitForNotice(driver, "Added cue");
+
+      const markdown = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(gymPath)});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.match(String(markdown), /\n- Brace the core\n- Knees track over the toes\n/);
+      assert.doesNotMatch(String(markdown), /## Reminders[\s\S]*## Reminders/);
+
+      await driver.wait(async () => {
+        const chips = await driver.executeScript(`
+          return [...document.querySelectorAll('.atomic-cue-log-chip')].map((chip) => chip.textContent);
+        `);
+        return Array.isArray(chips) && chips.includes("Knees track over the toes");
+      }, 8000);
+
+      await openVaultFile(driver, E2E_FILES.gymCues);
+      await waitCss(driver, '[data-testid="atomic-cues"][data-activity="gym"]');
+      await driver.wait(async () => {
+        const cues = await driver.executeScript(`
+          return [...document.querySelectorAll('[data-testid="atomic-cue-card"]')]
+            .map((card) => card.querySelector('.atomic-cue-text')?.textContent || "");
+        `);
+        return Array.isArray(cues) && cues.includes("Knees track over the toes");
+      }, 8000);
     });
   });
 
