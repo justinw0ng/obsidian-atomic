@@ -1720,7 +1720,8 @@
   border-radius: 3px;
   transform-origin: 50% 92%;
   transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
-  background-color: color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper));
+  --atomic-cue-stock: color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper));
+  background-color: var(--atomic-cue-stock);
   background-image:
     linear-gradient(
       90deg,
@@ -1765,6 +1766,7 @@
   of paper. A bottom wash fades the last clipped line.
 */
 .fitness-plugin .atomic-cue-body {
+  --atomic-cue-wash: 1;
   position: relative;
   min-height: calc(3 * var(--atomic-cue-line));
   max-height: calc(3 * var(--atomic-cue-line));
@@ -1780,11 +1782,8 @@
   bottom: 0;
   height: 15px;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper))
-  );
+  opacity: var(--atomic-cue-wash);
+  background: linear-gradient(180deg, transparent, var(--atomic-cue-stock));
 }
 
 .fitness-plugin .atomic-cue-text {
@@ -1864,12 +1863,7 @@
 .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
 .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
   max-height: none;
-}
-
-.fitness-plugin .atomic-cue-card:hover .atomic-cue-body::after,
-.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body::after,
-.fitness-plugin .atomic-cue-card.is-open .atomic-cue-body::after {
-  opacity: 0;
+  --atomic-cue-wash: 0;
 }
 
 .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
@@ -1943,11 +1937,7 @@
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
   .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
     max-height: calc(3 * var(--atomic-cue-line));
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body::after,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body::after {
-    opacity: 1;
+    --atomic-cue-wash: 1;
   }
 
   .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
@@ -1969,10 +1959,7 @@
 
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body {
     max-height: none;
-  }
-
-  .fitness-plugin .atomic-cue-card.is-open .atomic-cue-body::after {
-    opacity: 0;
+    --atomic-cue-wash: 0;
   }
 
   .fitness-plugin .atomic-cue-card.is-open .atomic-cue-meta {

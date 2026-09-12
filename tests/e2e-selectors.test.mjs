@@ -220,4 +220,6 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /-webkit-mask/);
   assert.doesNotMatch(styles, /(?:^|[^a-z-])mask(?:-|\s*:)/im);
   assert.match(styles, /\.atomic-cue-body::after/);
+  assert.match(styles, /--atomic-cue-wash/);
+  assert.match(styles, /--atomic-cue-stock/);
 });
