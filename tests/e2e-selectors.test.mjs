@@ -14,6 +14,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const heatmap = src("src/views/heatmap.ts");
   assert.match(heatmap, /data-testid": "atomic-heatmap"/);
   assert.match(heatmap, /data-testid": "atomic-heatmap-invalid"/);
+  assert.match(heatmap, /"atomic-heatmap-scroll"/);
+  assert.match(heatmap, /atomic-scrollport/);
   assert.match(heatmap, /"atomic-heatmap-month"/);
   assert.match(heatmap, /appendHeatmapWeeks/);
   assert.match(heatmap, /heatmapMonthSlots/);
@@ -98,6 +100,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const shelf = src("src/views/book-shelf.ts");
   assert.match(shelf, /data-testid": "atomic-bookshelf"/);
   assert.match(shelf, /data-testid": "atomic-book"/);
+  assert.match(shelf, /"atomic-bookshelf-scroll"/);
+  assert.match(shelf, /atomic-scrollport/);
   assert.match(shelf, /"data-scale": String\(scale\)/);
   assert.match(shelf, /resolveBookShelfScale/);
 
@@ -126,6 +130,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const health = src("e2e/health-check.test.mjs");
   assert.match(health, /atomic-heatmap-month/);
+  assert.match(health, /atomic-heatmap-scroll/);
+  assert.match(health, /atomic-bookshelf-scroll/);
+  assert.match(health, /heatmap-scrollbars/);
   assert.match(health, /heatmap-month-align/);
   assert.match(health, /gym-session-timer/);
   assert.match(health, /atomic-setting-gym-import/);

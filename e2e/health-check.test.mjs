@@ -47,6 +47,34 @@ async function check(driver, name, fn) {
   }
 }
 
+async function assertHiddenScrollports(driver, selector, minCount) {
+  const reports = await driver.executeScript(
+    `
+    const selector = arguments[0];
+    return [...document.querySelectorAll(selector)].map((el) => {
+      const style = getComputedStyle(el);
+      return {
+        overflowX: style.overflowX,
+        thumb: style.getPropertyValue("--scrollbar-thumb-bg").trim(),
+        size: style.getPropertyValue("--scrollbar-size").trim(),
+        gutter: el.offsetHeight - el.clientHeight,
+      };
+    });
+    `,
+    selector,
+  );
+  assert.ok(
+    Array.isArray(reports) && reports.length >= minCount,
+    `${selector} count ${Array.isArray(reports) ? reports.length : 0}`,
+  );
+  for (const report of reports) {
+    assert.equal(report.overflowX, "auto");
+    assert.equal(report.thumb, "transparent");
+    assert.equal(report.size, "0px");
+    assert.equal(report.gutter, 0);
+  }
+}
+
 describe("Obsidian Selenium health check", { skip: skipReason || undefined }, () => {
   let driver;
   let vaultPath;
@@ -127,6 +155,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         By.css('[data-testid="atomic-heatmap"][data-activity="reading"]'),
       );
       assert.equal(readingOnGymGolf.length, 0);
+    });
+  });
+
+  it("hides heatmap and bookshelf scrollbars in stacked and grid layouts", async () => {
+    await check(driver, "heatmap-scrollbars", async () => {
+      await openVaultFile(driver, E2E_FILES.heatmapAll);
+      await waitCss(driver, '[data-testid="atomic-heatmap-scroll"]');
+      await assertHiddenScrollports(driver, '[data-testid="atomic-heatmap-scroll"]', 3);
+
+      await openVaultFile(driver, E2E_FILES.heatmapGrid);
+      await waitCss(driver, ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]");
+      await assertHiddenScrollports(
+        driver,
+        ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]",
+        3,
+      );
+
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(driver, '[data-testid="atomic-bookshelf-scroll"]');
+      await assertHiddenScrollports(driver, '[data-testid="atomic-bookshelf-scroll"]', 1);
     });
   });
 

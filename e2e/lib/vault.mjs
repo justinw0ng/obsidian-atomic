@@ -36,6 +36,7 @@ export const E2E_FILES = {
   heatmapAll: "E2E/Heatmap all.md",
   heatmapReading: "E2E/Heatmap reading.md",
   heatmapGymGolf: "E2E/Heatmap gym golf.md",
+  heatmapGrid: "E2E/Heatmap grid.md",
   bookshelfAll: "E2E/Bookshelf all.md",
   bookshelfReading: "E2E/Bookshelf reading.md",
   bookshelfScaled: "E2E/Bookshelf scaled.md",
@@ -366,6 +367,10 @@ export function seedE2eVault(options = {}) {
   write(
     join(vault, E2E_FILES.heatmapGymGolf),
     `# Heatmap gym golf\n\n\`\`\`atomic-heatmap\nactivity: gym, golf\n\`\`\`\n`,
+  );
+  write(
+    join(vault, E2E_FILES.heatmapGrid),
+    `# Heatmap grid\n\n\`\`\`atomic-heatmap\nactivity: all\ncolumns: 2\nrows: 2\n\`\`\`\n`,
   );
   write(
     join(vault, E2E_FILES.bookshelfAll),

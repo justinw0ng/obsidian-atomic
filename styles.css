@@ -46,13 +46,35 @@
   overflow: hidden;
 }
 
-.fitness-plugin .fitness-heatmap-scroll,
-.fitness-plugin .atomic-book-row-books {
+/* Hide plugin-owned scrollbars in every heatmap / shelf layout.
+   Obsidian paints overlay thumbs from these tokens; ::-webkit-scrollbar
+   alone loses that fight. */
+.fitness-plugin,
+.atomic-block-host {
+  --scrollbar-size: 0px;
+  --scrollbar-thumb-bg: transparent;
+  --scrollbar-active-thumb-bg: transparent;
+  --scrollbar-bg: transparent;
+}
+
+.markdown-preview-view pre.atomic-block-host,
+.cm-preview-code-block pre.atomic-block-host {
+  overflow-x: hidden;
+}
+
+.fitness-plugin .atomic-scrollport,
+.atomic-block-host {
   -ms-overflow-style: none;
 }
 
-.fitness-plugin .fitness-heatmap-scroll::-webkit-scrollbar,
-.fitness-plugin .atomic-book-row-books::-webkit-scrollbar {
+.fitness-plugin .atomic-scrollport::-webkit-scrollbar,
+.fitness-plugin .atomic-scrollport::-webkit-scrollbar-thumb,
+.fitness-plugin .atomic-scrollport::-webkit-scrollbar-track,
+.fitness-plugin .atomic-scrollport::-webkit-scrollbar-corner,
+.atomic-block-host::-webkit-scrollbar,
+.atomic-block-host::-webkit-scrollbar-thumb,
+.atomic-block-host::-webkit-scrollbar-track,
+.atomic-block-host::-webkit-scrollbar-corner {
   display: none;
   width: 0;
   height: 0;
