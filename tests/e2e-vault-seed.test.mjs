@@ -48,6 +48,10 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     assert.match(heatmap, /```atomic-heatmap/);
     assert.match(heatmap, /activity: reading/);
 
+    const grid = readFileSync(join(vault, E2E_FILES.heatmapGrid), "utf8");
+    assert.match(grid, /```atomic-heatmap/);
+    assert.match(grid, /columns: 2/);
+
     const bookshelf = readFileSync(join(vault, E2E_FILES.bookshelfReading), "utf8");
     assert.match(bookshelf, /status: reading/);
 
