@@ -143,7 +143,7 @@ body, html, .fitness-plugin, .atomic-block-host {
 
 function ensureCueCardBundle() {
   const bundlePath = join(ROOT, "main.js");
-  if (readFileSync(bundlePath, "utf8").includes("atomic-cue-card")) return false;
+  if (readFileSync(bundlePath, "utf8").includes("atomic-cue-fly-scale")) return false;
   const result = spawnSync("npm", ["run", "build"], { cwd: ROOT, encoding: "utf8" });
   if (result.status !== 0) {
     throw new Error(`build failed: ${(result.stderr || result.stdout || "").trim()}`);

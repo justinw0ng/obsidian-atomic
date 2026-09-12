@@ -88,6 +88,15 @@ async function waitForCuePop(driver, index) {
   return last;
 }
 
+function isCssTransparent(color) {
+  const value = String(color).trim().toLowerCase();
+  if (!value || value === "transparent") return true;
+  const match = value.match(
+    /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/,
+  );
+  return Boolean(match && match[4] !== undefined && Number(match[4]) === 0);
+}
+
 function cueLightboxMetrics(driver) {
   return driver.executeScript(`
     const overlay = document.querySelector('[data-testid="atomic-cue-lightbox"]');
@@ -95,12 +104,22 @@ function cueLightboxMetrics(driver) {
     const card = overlay.querySelector('[data-testid="atomic-cue-lightbox-card"]');
     if (!card) return { present: true, placed: overlay.classList.contains("is-placed") };
     const body = card.querySelector(".atomic-cue-body");
+    const sheet = card.querySelector(".atomic-cue-sheet");
+    const text = card.querySelector(".atomic-cue-text");
+    const backdrop = overlay.querySelector('[data-testid="atomic-cue-lightbox-backdrop"]');
+    const source = document.querySelector('[data-testid="atomic-cue-card"][aria-expanded="true"]');
+    const sourceSheet = source?.querySelector(".atomic-cue-sheet");
+    const sourceText = source?.querySelector(".atomic-cue-text");
     const bodyStyle = body ? getComputedStyle(body) : null;
     const rect = card.getBoundingClientRect();
+    const textStyle = text ? getComputedStyle(text) : null;
+    const sheetStyle = sheet ? getComputedStyle(sheet) : null;
+    const sourceTextStyle = sourceText ? getComputedStyle(sourceText) : null;
+    const sourceSheetStyle = sourceSheet ? getComputedStyle(sourceSheet) : null;
     return {
       present: true,
       placed: overlay.classList.contains("is-placed"),
-      text: card.querySelector(".atomic-cue-text")?.textContent || "",
+      text: text?.textContent || "",
       width: rect.width,
       height: rect.height,
       centerX: (rect.left + rect.right) / 2,
@@ -113,6 +132,22 @@ function cueLightboxMetrics(driver) {
       maskImage: bodyStyle ? String(bodyStyle.maskImage || "") : "",
       webkitMaskImage: bodyStyle ? String(bodyStyle.webkitMaskImage || "") : "",
       clamped: !!(body && body.scrollHeight > body.clientHeight + 1),
+      overlayBg: getComputedStyle(overlay).backgroundColor,
+      backdropBg: backdrop ? getComputedStyle(backdrop).backgroundColor : "",
+      transform: getComputedStyle(card).transform,
+      fontSize: textStyle?.fontSize || "",
+      fontFamily: textStyle?.fontFamily || "",
+      lineHeight: textStyle?.lineHeight || "",
+      paddingLeft: sheetStyle?.paddingLeft || "",
+      paddingTop: sheetStyle?.paddingTop || "",
+      sheetBg: sheetStyle?.backgroundColor || "",
+      sheetBgImage: sheetStyle?.backgroundImage || "",
+      sourceFontSize: sourceTextStyle?.fontSize || "",
+      sourceFontFamily: sourceTextStyle?.fontFamily || "",
+      sourceLineHeight: sourceTextStyle?.lineHeight || "",
+      sourcePaddingLeft: sourceSheetStyle?.paddingLeft || "",
+      sourcePaddingTop: sourceSheetStyle?.paddingTop || "",
+      sourceFlying: !!source?.classList.contains("is-flying"),
     };
   `);
 }
@@ -284,6 +319,21 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(lightbox.bodyOverflowY, "hidden");
       assertNoCssMask(lightbox, "lightbox cue body");
       assert.equal(lightbox.clamped, false, "the centered card shows the full cue");
+      assert.ok(isCssTransparent(lightbox.overlayBg), `overlay must not dim: ${lightbox.overlayBg}`);
+      assert.ok(
+        isCssTransparent(lightbox.backdropBg),
+        `backdrop must stay transparent: ${lightbox.backdropBg}`,
+      );
+      assert.match(String(lightbox.transform), /matrix/, "the card flies with a scale transform");
+      assert.equal(lightbox.sourceFlying, true, "the fan sheet hides so the same card appears to fly");
+      assert.equal(lightbox.fontSize, lightbox.sourceFontSize, "centered type matches the fan card");
+      assert.equal(lightbox.lineHeight, lightbox.sourceLineHeight);
+      assert.equal(lightbox.paddingLeft, lightbox.sourcePaddingLeft, "text stays on the same margin rule");
+      assert.equal(lightbox.paddingTop, lightbox.sourcePaddingTop);
+      assert.equal(lightbox.fontFamily, lightbox.sourceFontFamily);
+      assert.match(String(lightbox.fontFamily), /Caveat/i);
+      assert.match(String(lightbox.sheetBgImage), /linear-gradient/, "centered paper keeps the ruled card");
+      assert.notEqual(lightbox.sheetBg, "rgb(255, 255, 255)", "centered paper stays pastel, not plain white");
 
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-cue-lightbox-backdrop"]').click();
@@ -353,6 +403,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const phoneLightbox = await waitForCueLightbox(driver);
       assert.ok(phoneLightbox.width > 200, "phone lightbox is a larger card");
       assert.equal(phoneLightbox.clamped, false);
+      assert.ok(isCssTransparent(phoneLightbox.backdropBg), "phone tap must not dim the fan");
+      assert.equal(phoneLightbox.fontSize, phoneLightbox.sourceFontSize);
+      assert.equal(phoneLightbox.paddingLeft, phoneLightbox.sourcePaddingLeft);
+      assert.match(String(phoneLightbox.sheetBgImage), /linear-gradient/);
 
       try {
         await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});

@@ -379,8 +379,15 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
   const lightbox = cssRule(styles, ".fitness-plugin.atomic-cue-lightbox");
   assert.match(lightbox.body, /position:\s*fixed/);
   assert.match(lightbox.body, /overflow:\s*hidden/);
+  assert.match(lightbox.body, /background:\s*transparent/);
   assert.doesNotMatch(lightbox.body, /overflow:\s*auto/);
   assert.doesNotMatch(lightbox.body, /mask/);
+  assert.doesNotMatch(lightbox.body, /--atomic-cue-width:\s*420px/);
+  assert.doesNotMatch(lightbox.body, /--atomic-cue-line:\s*28px/);
+
+  const backdrop = cssRule(styles, ".fitness-plugin .atomic-cue-lightbox-backdrop");
+  assert.match(backdrop.body, /background:\s*transparent/);
+  assert.doesNotMatch(backdrop.body, /rgba/);
 
   const placed = cssRule(
     styles,
@@ -388,8 +395,17 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
   );
   assert.match(placed.body, /left:\s*50%/);
   assert.match(placed.body, /top:\s*50%/);
-  assert.match(placed.body, /translate\(-50%, -50%\)/);
-  assert.match(placed.body, /min\(var\(--atomic-cue-width\)/);
+  assert.match(placed.body, /translate\(-50%, -50%\) scale\(var\(--atomic-cue-fly-scale\)\)/);
+  assert.doesNotMatch(placed.body, /min\(var\(--atomic-cue-width\)/);
+
+  const sheet = cssRule(
+    styles,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet",
+  );
+  assert.match(sheet.body, /position:\s*relative/);
+  assert.doesNotMatch(sheet.body, /padding:\s*32px/);
+  assert.doesNotMatch(sheet.body, /min-height:\s*220px/);
+  assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\.atomic-cue-text[^{]*\{[^}]*1\.7rem/s);
 });
 
 test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
@@ -415,6 +431,21 @@ test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hoverBody.body, /--atomic-cue-wash:\s*1/);
+  const flySheet = cssRule(
+    phone,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet",
+  );
+  assert.match(flySheet.body, /rotate\(0deg\)/);
+  const flyBody = cssRule(
+    phone,
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body",
+  );
+  assert.match(flyBody.body, /max-height:\s*none/);
+  const flyCard = cssRule(
+    phone,
+    ".fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card",
+  );
+  assert.match(flyCard.body, /width:\s*var\(--atomic-cue-width\)/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {

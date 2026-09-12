@@ -1,5 +1,6 @@
 import {
   cueCardEventShouldToggle,
+  cueCardFlyScale,
   isCueCardToggleKey,
   isCueLightboxDismissKey,
 } from "../util/cue-card-fan";
@@ -26,6 +27,7 @@ export function closeCueLightbox(restoreFocus = false): void {
   if (!current) return;
   session = null;
   current.view.removeEventListener("keydown", current.onKey, true);
+  current.source.removeClass("is-flying");
   current.source.setAttr("aria-expanded", "false");
   current.overlay.detach();
   if (restoreFocus && current.source.isConnected) current.source.focus();
@@ -47,6 +49,8 @@ function openCueLightbox(source: HTMLElement): void {
 
   const originEl = source.querySelector(".atomic-cue-sheet") ?? source;
   const origin = originEl.getBoundingClientRect();
+  source.addClass("is-flying");
+
   const overlay = source.createDiv({
     cls: "fitness-plugin atomic-cues atomic-cue-lightbox",
     attr: {
@@ -62,7 +66,6 @@ function openCueLightbox(source: HTMLElement): void {
     attr: {
       "data-testid": "atomic-cue-lightbox-card",
       role: "dialog",
-      "aria-modal": "true",
       tabindex: "0",
       "aria-labelledby": LIGHTBOX_LABEL_ID,
     },
@@ -71,10 +74,13 @@ function openCueLightbox(source: HTMLElement): void {
   paintLightboxSheet(source, card);
   card.style.setProperty("--atomic-cue-origin-left", `${origin.left}px`);
   card.style.setProperty("--atomic-cue-origin-top", `${origin.top}px`);
-  card.style.setProperty("--atomic-cue-origin-width", `${origin.width}px`);
 
   overlay.detach();
   doc.body.appendChild(overlay);
+  card.style.setProperty(
+    "--atomic-cue-fly-scale",
+    String(cueCardFlyScale(card.getBoundingClientRect(), view)),
+  );
 
   const onKey = (event: KeyboardEvent): void => {
     if (!isCueLightboxDismissKey(event.key)) return;
@@ -130,18 +136,9 @@ function copyCuePaperVars(
 }
 
 function paintLightboxSheet(source: HTMLElement, card: HTMLElement): void {
-  const sheet = card.createDiv({ cls: "atomic-cue-sheet" });
-  const body = sheet.createDiv({ cls: "atomic-cue-body" });
-  const text = source.querySelector(".atomic-cue-text");
-  const dest = body.createDiv({
-    cls: "atomic-cue-text",
-    attr: { id: LIGHTBOX_LABEL_ID },
-  });
-  if (text) {
-    for (const child of Array.from(text.childNodes)) {
-      dest.appendChild(child.cloneNode(true));
-    }
-  }
-  const meta = source.querySelector(".atomic-cue-meta");
-  if (meta) sheet.appendChild(meta.cloneNode(true));
+  const sourceSheet = source.querySelector(".atomic-cue-sheet");
+  if (!sourceSheet) return;
+  card.appendChild(sourceSheet.cloneNode(true));
+  const dest = card.querySelector(".atomic-cue-text");
+  if (dest) dest.id = LIGHTBOX_LABEL_ID;
 }

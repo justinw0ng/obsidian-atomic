@@ -111,9 +111,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLightbox, /"atomic-cue-lightbox-card"/);
   assert.match(cueLightbox, /"atomic-cue-lightbox-backdrop"/);
   assert.match(cueLightbox, /cloneNode\(true\)/);
+  assert.match(cueLightbox, /querySelector\("\.atomic-cue-sheet"\)/);
+  assert.match(cueLightbox, /is-flying/);
+  assert.match(cueLightbox, /cueCardFlyScale/);
+  assert.match(cueLightbox, /--atomic-cue-fly-scale/);
   assert.match(cueLightbox, /isCueLightboxDismissKey/);
   assert.match(cueLightbox, /cueCardEventShouldToggle/);
   assert.match(cueLightbox, /role: "dialog"/);
+  assert.doesNotMatch(cueLightbox, /aria-modal/);
   assert.doesNotMatch(cueLightbox, /innerHTML/);
 
   const cueCardFan = src("src/util/cue-card-fan.ts");
@@ -121,6 +126,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueCardFan, /a\[href]/);
   assert.match(cueCardFan, /\[role='button']/);
   assert.match(cueCardFan, /isCueLightboxDismissKey/);
+  assert.match(cueCardFan, /cueCardFlyScale/);
 
   const codeblocks = src("src/codeblocks.ts");
   assert.match(codeblocks, /beginPaint\(\): Component/);
@@ -223,6 +229,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-cue-lightbox/);
   assert.match(health, /atomic-cue-lightbox-card/);
   assert.match(health, /atomic-cue-lightbox-backdrop/);
+  assert.match(health, /isCssTransparent/);
+  assert.match(health, /sourcePaddingLeft/);
+  assert.match(health, /sheetBgImage/);
   assert.match(health, /fadeOpacity/);
   assert.match(health, /maskImage/);
   assert.match(health, /atomic-cue-log-add/);
@@ -246,8 +255,12 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(styles, /--atomic-cue-wash/);
   assert.match(styles, /--atomic-cue-stock/);
   assert.match(styles, /atomic-cue-lightbox/);
-  assert.match(styles, /translate\(-50%, -50%\)/);
+  assert.match(styles, /translate\(-50%, -50%\) scale\(var\(--atomic-cue-fly-scale\)\)/);
   assert.match(styles, /\.is-preview/);
+  assert.match(styles, /\.is-flying/);
+  assert.doesNotMatch(styles, /--atomic-cue-width:\s*420px/);
+  assert.doesNotMatch(styles, /rgba\(\s*28,\s*24,\s*18/);
+  assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\.atomic-cue-text[^{]*\{[^}]*font-size:\s*1\.7rem/s);
   assert.doesNotMatch(styles, /\.atomic-cue-card\.is-open/);
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
 });

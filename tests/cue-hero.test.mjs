@@ -78,6 +78,7 @@ test("cue hero capture hides scrollbars and centers the phone fan", () => {
   assert.match(src, /openLightbox/);
   assert.match(src, /is-preview/);
   assert.match(src, /atomic-cue-lightbox/);
+  assert.match(src, /atomic-cue-fly-scale/);
   assert.match(src, /animate-cue-hero-gif\.py/);
   assert.match(src, /cue_hero_desktop_lightbox/);
   assert.match(src, /cue_hero_mobile_lightbox/);

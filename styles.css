@@ -1875,6 +1875,11 @@
   transform: translateY(0);
 }
 
+/* The flying clone is the card; hide the fan sheet so it looks like it left. */
+.fitness-plugin .atomic-cue-card.is-flying .atomic-cue-sheet {
+  visibility: hidden;
+}
+
 /* Phones and narrow panes: one card per row, no overlap, tap to pop. */
 @media (max-width: 600px) {
   .fitness-plugin .atomic-cue-fan {
@@ -2009,34 +2014,26 @@
 }
 
 /*
-  Centered read overlay. Lives on document.body so note overflow and the
-  fan's contain: layout cannot clip it. No masks, no overlay scrollbars.
+  Fly the same ruled index card to the center and scale it. Lives on
+  document.body so note overflow and the fan's contain: layout cannot clip
+  it. The backdrop is a transparent hit target only — no wash, no restyle.
+  No masks, no overlay scrollbars.
 */
 .fitness-plugin.atomic-cue-lightbox {
-  --atomic-cue-width: 420px;
-  --atomic-cue-step: 420px;
+  --atomic-cue-fly-scale: 1.65;
   position: fixed;
   inset: 0;
   z-index: 80;
   margin: 0;
   overflow: hidden;
   contain: none;
+  background: transparent;
 }
 
 .fitness-plugin .atomic-cue-lightbox-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(28, 24, 18, 0.38);
-  opacity: 0;
-  transition: opacity 420ms var(--atomic-cue-pop);
-}
-
-.fitness-plugin.atomic-cue-lightbox.is-placed {
-  --atomic-cue-line: 28px;
-}
-
-.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
-  opacity: 1;
+  background: transparent;
 }
 
 .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
@@ -2045,56 +2042,85 @@
   position: fixed;
   left: var(--atomic-cue-origin-left);
   top: var(--atomic-cue-origin-top);
-  width: var(--atomic-cue-origin-width);
+  width: var(--atomic-cue-width);
   height: auto;
-  max-height: calc(100vh - 48px);
   margin: 0;
   overflow: hidden;
   z-index: 1;
+  transform-origin: center center;
+  transform: none;
   transition:
     left 420ms var(--atomic-cue-pop),
     top 420ms var(--atomic-cue-pop),
-    width 420ms var(--atomic-cue-pop),
     transform 420ms var(--atomic-cue-pop);
 }
 
 .fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card {
   left: 50%;
   top: 50%;
-  width: min(var(--atomic-cue-width), calc(100vw - 48px));
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(var(--atomic-cue-fly-scale));
 }
 
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-sheet {
+/*
+  Same paper as the fan: do not change padding, line height, or type.
+  position: relative so height: auto wraps the unclamped sheet.
+  padding-right: 14px matches the hovered fan card so the full cue fits.
+*/
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-sheet {
   position: relative;
-  transform: none;
-  min-height: 220px;
-  padding: 32px 28px 20px 48px;
-  overflow: hidden;
+  transform: rotate(0deg);
+  padding-right: 14px;
+  box-shadow:
+    0 0 0 1px rgba(70, 60, 44, 0.08),
+    0 20px 38px rgba(38, 32, 22, 0.28);
 }
 
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-body {
-  max-height: calc(3 * var(--atomic-cue-line));
-  overflow: hidden;
-}
-
-.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-body {
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-body {
   max-height: none;
   --atomic-cue-wash: 0;
   overflow: hidden;
 }
 
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-text {
-  font-size: 1.7rem;
-}
-
-.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-meta {
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-meta,
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-meta {
   opacity: 1;
   transform: none;
 }
 
+@media (max-width: 600px) {
+  .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
+    width: var(--atomic-cue-width);
+    height: auto;
+  }
+
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet,
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet,
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-sheet {
+    transform: rotate(0deg);
+    padding-right: 14px;
+  }
+
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body,
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body,
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-body {
+    max-height: none;
+    --atomic-cue-wash: 0;
+  }
+
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta,
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-meta,
+  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-meta {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-backdrop,
   .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
     transition: none;
   }
