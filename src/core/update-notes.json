@@ -1,5 +1,5 @@
 {
-  "version": "1.2.1",
+  "version": "1.2.2",
   "body": {
     "en": "Performance improvements — the dashboard and notes refresh with fewer vault reads, so Atomic stays snappier on large vaults and on mobile.",
     "zh-Hant": "Atomic 用起嚟更順咗 — 開總覽同刷新筆記會快啲，手機同大筆記庫都更流暢。"
