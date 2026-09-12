@@ -167,15 +167,15 @@ test("bundled update notes catalog is bilingual", () => {
   assert.equal(UPDATE_NOTE.body.en, bodies.en);
   assert.equal(UPDATE_NOTE.body["zh-Hant"], bodies["zh-Hant"]);
   assert.match(bodies.en, /index cards/);
-  assert.match(bodies.en, /short toast/);
-  assert.match(bodies.en, /scrollbars/);
+  assert.match(bodies.en, /form/);
+  assert.match(bodies.en, /Traditional Chinese/);
   assert.doesNotMatch(
     bodies.en,
-    /What's new note once|New installs|Demo examples|Start \/ Stop|card layout|Performance improvements|fewer vault reads/,
+    /What's new note once|New installs|Demo examples|Start \/ Stop|card layout|Performance improvements|fewer vault reads|short toast|scrollbars/,
   );
   assert.match(bodies["zh-Hant"], /索引卡/);
-  assert.match(bodies["zh-Hant"], /短提示/);
-  assert.match(bodies["zh-Hant"], /捲軸/);
+  assert.match(bodies["zh-Hant"], /表格/);
+  assert.match(bodies["zh-Hant"], /繁體中文/);
   assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版|而家用卡片嚟排|效能提升|少咗讀 vault/);
 });
 
