@@ -117,7 +117,7 @@ npm run build
 
 ![Enable Atomic plugin](./images/06-enable-atomic-plugin.png)
 
-After you **update** Atomic Tracker to a new version, a **What's new** note appears once. Click **Got it** to dismiss it. It does not show again until a later version ships another note. The body follows **Settings → Language**: English when Language is English; Cantonese Traditional Chinese when Language is Traditional Chinese & English.
+After you **update** Atomic Tracker to a new version, a short **What's new** notification appears once (the same live toast Obsidian uses for other plugin messages). It dismisses on its own. It does not show again until a later version ships another note. The body follows **Settings → Language**: English when Language is English; Cantonese Traditional Chinese when Language is Traditional Chinese & English.
 
 ---
 
@@ -451,7 +451,7 @@ Reading item notes include:
 
 In Reading view, use **Start**, **Stop**, **Resume**, or **Discard**. Stop clears `timer_started_at`, increments `total_min`, and appends a time-log bullet. Timer-log minutes feed `atomic-heatmap` and the dashboard hobby section. Exercise date notes use the same block but write `duration_min` instead (see [Time an exercise session](#time-an-exercise-session)).
 
-### Open the Reading bookshelf (Bases)
+### Open reading Bases
 
 Run **Atomic Tracker: Open reading Bases**. Atomic Tracker creates `atomics/hobbies/Reading/Bookshelf.base` if missing, then opens it. The file seeds Bases Cards and Table views for Reading items.
 
@@ -538,9 +538,9 @@ Open `atomics/Dashboard.md` with **Atomic Tracker: Open dashboard**, or paste an
 
 The block is a stack of cards for that year:
 
-- **Header** — `{year} overview`, the date range and session count, a `‹ ›` year switcher, and chips that open Gym/Golf cues or the Reading bookshelf. The switcher only changes the on-screen year; it does not edit the note. A vault refresh returns to the configured year.
+- **Header** — `{year} overview`, the date range and session count, a `‹ ›` year switcher, and chips that open Gym/Golf cues or reading Bases. The switcher only changes the on-screen year; it does not edit the note. A vault refresh returns to the configured year.
 - **KPI cards** — exercise sessions and exercise time when any exercise habit is enabled (sessions include a monthly sparkline). **Volume lifted** appears when a set-table habit such as Gym has logged sets. **Habit time** appears when a timer habit such as Reading has minutes.
-- **Activity cards** — one card per enabled habit. Exercise cards show sessions, minutes, optional volume, monthly session bars, last session date, and a cues link. Golf also shows how sessions felt. Habit cards show item count, timer minutes, monthly minute bars, and Reading’s in-progress count plus bookshelf links.
+- **Activity cards** — one card per enabled habit. Exercise cards show sessions, minutes, optional volume, monthly bars sized by hours that month, last session date, and a cues link. Golf also shows how sessions felt. Habit cards show item count, timer minutes, monthly bars sized by hours, and Reading’s in-progress count plus Bases and book shelf links.
 - **Monthly** — grouped bars of sessions per month by activity. Open **Show monthly table** for the exact grid, including volume (kg) and habit minutes when those apply.
 - **Muscles / Golf focus** — shown only when the data exists: Gym set-table volume by muscle, and Golf focus tags across sessions.
 - **Recent sessions** — latest ten notes. Click a row to open that session.

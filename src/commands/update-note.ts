@@ -1,13 +1,17 @@
-import { Modal, Setting } from "obsidian";
+import { Notice } from "obsidian";
 import type FitnessPlugin from "../main";
 import {
   UPDATE_NOTE,
+  formatUpdateNoteNotice,
   updateNoteBodyForLanguage,
   updateNoteToShow,
-  type UpdateNote,
 } from "../core/update-notes";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
+
+const UPDATE_NOTE_NOTICE_MS = 8000;
+
+let activeUpdateNotice: Notice | null = null;
 
 export async function persistSeenUpdateNote(
   plugin: FitnessPlugin,
@@ -28,45 +32,19 @@ export function promptPendingUpdateNote(plugin: FitnessPlugin): void {
     void persistSeenUpdateNote(plugin);
     return;
   }
-  new UpdateNoteModal(plugin, note).open();
+  const language = plugin.settings.language;
+  const message = formatUpdateNoteNotice(
+    t("notice.updateNoteTitle", language, { version: note.version }),
+    updateNoteBodyForLanguage(note, language),
+  );
+  showUpdateNoteNotice(message);
+  void persistSeenUpdateNote(plugin);
 }
 
-class UpdateNoteModal extends Modal {
-  private resolved = false;
-
-  constructor(
-    private readonly plugin: FitnessPlugin,
-    private readonly note: UpdateNote,
-  ) {
-    super(plugin.app);
-  }
-
-  onOpen(): void {
-    const language = this.plugin.settings.language;
-    this.modalEl.setAttr("data-testid", "atomic-update-note-modal");
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h2", {
-      text: t("modal.updateNoteTitle", language, {
-        version: this.note.version,
-      }),
-    });
-    const body = contentEl.createEl("p", {
-      text: updateNoteBodyForLanguage(this.note, language),
-      cls: "atomic-update-note-body",
-    });
-    body.setAttr("data-testid", "atomic-update-note-body");
-    new Setting(contentEl).addButton((button) => {
-      button.setButtonText(t("modal.updateNoteAck", language));
-      button.setCta();
-      button.buttonEl.setAttr("data-testid", "atomic-update-note-ack");
-      button.onClick(() => this.close());
-    });
-  }
-
-  onClose(): void {
-    if (this.resolved) return;
-    this.resolved = true;
-    void persistSeenUpdateNote(this.plugin);
-  }
+function showUpdateNoteNotice(message: string): void {
+  activeUpdateNotice?.hide();
+  const notice = new Notice(message, UPDATE_NOTE_NOTICE_MS);
+  notice.noticeEl.addClass("atomic-update-note-notice");
+  notice.noticeEl.setAttr("data-testid", "atomic-update-note-notice");
+  activeUpdateNotice = notice;
 }

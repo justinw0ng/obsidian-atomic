@@ -126,12 +126,14 @@ type DashboardCardBase = {
   /** Sessions for exercise, items for hobbies. */
   count: number;
   minutes: number;
-  /** Sessions per month (exercise) or timer minutes per month (hobby). */
-  monthly: number[];
+  /** Minutes per month; drives the activity-card bars. */
+  monthlyMinutes: number[];
 };
 
 export type DashboardExerciseCard = DashboardCardBase & {
   domain: "exercise";
+  /** Session counts per month (monthly table and year sparkline). */
+  monthly: number[];
   /** Null unless the activity supports a set table. */
   volumeKg: number | null;
   lastDate: string | null;
@@ -236,6 +238,15 @@ export function averagePerSession(totalMinutes: number, sessions: number): numbe
   return sessions > 0 ? Math.round(totalMinutes / sessions) : 0;
 }
 
+/** One decimal hour, for activity-card bar labels (`75` → `1.3`). */
+export function hoursFromMinutes(minutes: number): number {
+  return Math.round((minutes / 60) * 10) / 10;
+}
+
+export function formatHours(minutes: number): string {
+  return `${hoursFromMinutes(minutes).toLocaleString("en-US")}h`;
+}
+
 /**
  * Scale a series to percentages of its max so bars can be drawn without a
  * chart lib. Zero values always map to 0; non-zero values are floored at
@@ -267,6 +278,7 @@ type ExerciseSummary = {
 
 function summarizeExercise({ activity, sessions }: DashboardExerciseInput): ExerciseSummary {
   const monthly = emptyMonths();
+  const monthlyMinutes = emptyMonths();
   const monthlyVolume = emptyMonths();
   const felt: FeltCounts = { good: 0, ok: 0, bad: 0 };
   const muscleSets = new Map<string, number>();
@@ -281,7 +293,10 @@ function summarizeExercise({ activity, sessions }: DashboardExerciseInput): Exer
   for (const { meta, setRows } of sessions) {
     const mi = monthIndexFromDate(meta.date);
     minutes += meta.duration_min;
-    if (mi >= 0) monthly[mi] += 1;
+    if (mi >= 0) {
+      monthly[mi] += 1;
+      monthlyMinutes[mi] += meta.duration_min;
+    }
 
     let sessionVolume = 0;
     if (activity.supportsSetTable) {
@@ -325,6 +340,7 @@ function summarizeExercise({ activity, sessions }: DashboardExerciseInput): Exer
       count: sessions.length,
       minutes,
       monthly,
+      monthlyMinutes,
       volumeKg: activity.supportsSetTable ? volumeKg : null,
       lastDate,
       felt: isGolf ? felt : null,
@@ -342,10 +358,10 @@ function summarizeHobby(
   { activity, items }: DashboardHobbyInput,
   year: number,
 ): { card: DashboardHobbyCard; column: DashboardMonthlyColumn } {
-  const monthly = emptyMonths();
+  const monthlyMinutes = emptyMonths();
   let inProgress = 0;
   for (const item of items) {
-    addMonths(monthly, minutesByMonthForYear(item.entries, year));
+    addMonths(monthlyMinutes, minutesByMonthForYear(item.entries, year));
     if (isInProgressStatus(item.frontmatter.status)) inProgress += 1;
   }
   return {
@@ -353,11 +369,11 @@ function summarizeHobby(
       domain: "hobby",
       activity,
       count: items.length,
-      minutes: monthly.reduce((sum, v) => sum + v, 0),
-      monthly,
+      minutes: monthlyMinutes.reduce((sum, v) => sum + v, 0),
+      monthlyMinutes,
       inProgress: activity.id === READING_ID ? inProgress : null,
     },
-    column: { activity, kind: "minutes", values: monthly },
+    column: { activity, kind: "minutes", values: monthlyMinutes },
   };
 }
 

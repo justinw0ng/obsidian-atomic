@@ -4,7 +4,7 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 **Guide:** [docs/USER_GUIDE.md](docs/USER_GUIDE.md)
 
-**Install:** Community plugins (when listed), or copy `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases/latest) into `.obsidian/plugins/atomic-tracker/`. Do not use “Source code (zip)”. After an update, Atomic shows a What's new note once. Step-by-step: [user guide](docs/USER_GUIDE.md#4-install-atomic-tracker).
+**Install:** Community plugins (when listed), or copy `main.js`, `manifest.json`, and `styles.css` from the [latest GitHub Release](https://github.com/justinw0ng/obsidian-atomic/releases/latest) into `.obsidian/plugins/atomic-tracker/`. Do not use “Source code (zip)”. After an update, Atomic shows a short What's new notification once. Step-by-step: [user guide](docs/USER_GUIDE.md#4-install-atomic-tracker).
 
 ![Atomic Tracker on desktop and mobile](docs/images/atomic-daily-hero.gif)
 
@@ -25,7 +25,7 @@ Daily note template setup: [examples/README.md](examples/README.md#use-the-daily
 - Cue log (`atomic-cue-log`): type multiline markdown (English or Traditional Chinese) on a session note and click Add cue; logged cues show as the same index cards as the cue page
 - Cue pages (`atomic-cues`, `atomic-golf-cues`, `atomic-gym-cues`): every cue of the year as an index card in a fanned stack; hover or tap pops one out and shows the full markdown
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
-- Reading items with timers, book shelf, and Bases bookshelf
+- Reading items with timers, book shelf, and Bases
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Yearly dashboard: KPI cards, per-habit activity cards, monthly chart, and recent sessions
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit` (`location` also allows Custom…)

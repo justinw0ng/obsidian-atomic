@@ -81,6 +81,34 @@ async function check(driver, name, fn) {
   }
 }
 
+async function assertHiddenScrollports(driver, selector, minCount) {
+  const reports = await driver.executeScript(
+    `
+    const selector = arguments[0];
+    return [...document.querySelectorAll(selector)].map((el) => {
+      const style = getComputedStyle(el);
+      return {
+        overflowX: style.overflowX,
+        thumb: style.getPropertyValue("--scrollbar-thumb-bg").trim(),
+        size: style.getPropertyValue("--scrollbar-size").trim(),
+        gutter: el.offsetHeight - el.clientHeight,
+      };
+    });
+    `,
+    selector,
+  );
+  assert.ok(
+    Array.isArray(reports) && reports.length >= minCount,
+    `${selector} count ${Array.isArray(reports) ? reports.length : 0}`,
+  );
+  for (const report of reports) {
+    assert.equal(report.overflowX, "auto");
+    assert.equal(report.thumb, "transparent");
+    assert.equal(report.size, "0px");
+    assert.equal(report.gutter, 0);
+  }
+}
+
 describe("Obsidian Selenium health check", { skip: skipReason || undefined }, () => {
   let driver;
   let vaultPath;
@@ -285,6 +313,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
+  it("hides heatmap and bookshelf scrollbars in stacked and grid layouts", async () => {
+    await check(driver, "heatmap-scrollbars", async () => {
+      await openVaultFile(driver, E2E_FILES.heatmapAll);
+      await waitCss(driver, '[data-testid="atomic-heatmap-scroll"]');
+      await assertHiddenScrollports(driver, '[data-testid="atomic-heatmap-scroll"]', 3);
+
+      await openVaultFile(driver, E2E_FILES.heatmapGrid);
+      await waitCss(driver, ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]");
+      await assertHiddenScrollports(
+        driver,
+        ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]",
+        3,
+      );
+
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(driver, '[data-testid="atomic-bookshelf-scroll"]');
+      await assertHiddenScrollports(driver, '[data-testid="atomic-bookshelf-scroll"]', 1);
+    });
+  });
+
   it("renders the dashboard KPIs, activity cards, and detail sections", async () => {
     await check(driver, "dashboard-cards", async () => {
       const year = today.slice(0, 4);
@@ -315,6 +363,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         ["golf", "1"],
         ["reading", "2"],
       ]);
+
+      const readingLinks = await driver.executeScript(`
+        return [...document.querySelectorAll(
+          '[data-testid="atomic-dashboard-activity"][data-activity="reading"] [data-testid="atomic-dashboard-link"]'
+        )].map((a) => [a.getAttribute("data-path"), (a.textContent || "").trim()]);
+      `);
+      assert.deepEqual(readingLinks, [
+        ["atomics/hobbies/Reading/Bookshelf.base", "Bases"],
+        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf"],
+      ]);
+      await saveScreenshot(driver, "dashboard-reading-links");
+
+      const month = String(Number(today.slice(5, 7)));
+      const gymMonthMinutes = await driver.executeScript(`
+        return document.querySelector(
+          '[data-testid="atomic-dashboard-activity"][data-activity="gym"] [data-testid="atomic-dashboard-month-bar"][data-month="${month}"]'
+        )?.getAttribute("data-minutes") || "";
+      `);
+      // Minutes, not session count (a one-session month would be "1").
+      assert.match(String(gymMonthMinutes), /^[1-9]\d+$/);
 
       await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
       const musclesText = await driver.executeScript(
@@ -664,7 +732,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
-  it("prompts the latest update note after a version change and acks it once", async () => {
+  it("shows a short What's new notice after a version change and does not nag", async () => {
     await check(driver, "update-note", async () => {
       await driver.executeScript(`
         const plugin = app.plugins.getPlugin("atomic-tracker");
@@ -672,20 +740,22 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      await waitCss(driver, '[data-testid="atomic-update-note-modal"]');
-      const englishBody = await driver.executeScript(
-        `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
+      await waitCss(driver, '[data-testid="atomic-update-note-notice"]');
+      const englishNotice = await waitForNotice(driver, "What's new in");
+      assert.match(String(englishNotice), /Performance improvements/);
+      assert.match(String(englishNotice), /fewer vault reads/);
+      const leftoverModals = await driver.findElements(
+        By.css('[data-testid="atomic-update-note-modal"]'),
       );
-      assert.match(String(englishBody), /Performance improvements/);
-      assert.match(String(englishBody), /fewer vault reads/);
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-update-note-ack"]').click();
-      `);
+      assert.equal(leftoverModals.length, 0);
+      const current = await driver.executeScript(
+        `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
+      );
       await driver.wait(async () => {
-        const leftover = await driver.findElements(
-          By.css('[data-testid="atomic-update-note-modal"]'),
+        const seen = await driver.executeScript(
+          `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
         );
-        return leftover.length === 0;
+        return seen === current;
       }, 8000);
 
       await driver.executeScript(`
@@ -694,38 +764,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      await waitCss(driver, '[data-testid="atomic-update-note-modal"]');
-      const cantoneseBody = await driver.executeScript(
-        `return document.querySelector('[data-testid="atomic-update-note-body"]')?.textContent || ""`,
-      );
-      assert.match(String(cantoneseBody), /用起嚟更順咗/);
-      assert.match(String(cantoneseBody), /大筆記庫/);
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-update-note-ack"]').click();
-      `);
-      await driver.wait(async () => {
-        const leftover = await driver.findElements(
-          By.css('[data-testid="atomic-update-note-modal"]'),
-        );
-        return leftover.length === 0;
-      }, 8000);
+      const cantoneseNotice = await waitForNotice(driver, "用起嚟更順咗");
+      assert.match(String(cantoneseNotice), /大筆記庫/);
+      assert.match(String(cantoneseNotice), /What's new in/);
 
       await driver.executeScript(`
         const plugin = app.plugins.getPlugin("atomic-tracker");
         plugin.settings.language = "en";
       `);
-      const seen = await driver.executeScript(
-        `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
-      );
-      const current = await driver.executeScript(
-        `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
-      );
-      assert.equal(seen, current);
+      await driver.wait(async () => {
+        const seen = await driver.executeScript(
+          `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+        );
+        return seen === current;
+      }, 8000);
       await driver.executeScript(`
+        document.querySelectorAll('[data-testid="atomic-update-note-notice"]').forEach((el) => el.remove());
         app.plugins.getPlugin("atomic-tracker").promptUpdateNoteIfNeeded();
       `);
       const leftover = await driver.findElements(
-        By.css('[data-testid="atomic-update-note-modal"]'),
+        By.css('[data-testid="atomic-update-note-notice"]'),
       );
       assert.equal(leftover.length, 0);
     });

@@ -54,6 +54,14 @@ test("english catalog drops the Chinese half", () => {
   assert.doesNotMatch(en["settings.timezone"], /\/|時區/);
 });
 
+test("dashboard reading Bases label is distinct from book shelf", () => {
+  assert.equal(en["view.dashboard.readingBookshelf"], "Bases");
+  assert.equal(zhHantEn["view.dashboard.readingBookshelf"], "Bases");
+  assert.equal(en["view.dashboard.bookShelf"], "Book shelf");
+  assert.doesNotMatch(en["view.dashboard.readingBookshelf"], /bookshelf/i);
+  assert.doesNotMatch(zhHantEn["view.dashboard.readingBookshelf"], /bookshelf/i);
+});
+
 test("date formatting respects language", () => {
   assert.equal(fullDateEn(2026, 1, 1), "Jan 1");
   assert.match(fullDateZh(2026, 1, 1), /1/);

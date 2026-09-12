@@ -360,6 +360,13 @@ test("the cue pop works on hover, focus, and tap alike", () => {
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);
+  assert.match(styles, /--scrollbar-thumb-bg:\s*transparent/);
+  assert.match(styles, /--scrollbar-size:\s*0px/);
+  assert.match(styles, /\.atomic-scrollport::-webkit-scrollbar/);
+  assert.match(
+    styles,
+    /pre\.atomic-block-host[\s\S]*overflow-x:\s*hidden/,
+  );
   assert.match(styles, /--atomic-heatmap-cell:\s*11px/);
   assert.match(styles, /--atomic-heatmap-week-pad:\s*1px/);
   assert.match(styles, /--atomic-heatmap-week-col:/);

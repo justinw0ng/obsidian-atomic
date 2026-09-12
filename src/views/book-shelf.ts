@@ -472,7 +472,10 @@ function paintRows(
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
     const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
-    const books = row.createDiv({ cls: "atomic-book-row-books" });
+    const books = row.createDiv({
+      cls: "atomic-book-row-books atomic-scrollport",
+      attr: { "data-testid": "atomic-bookshelf-scroll" },
+    });
     if (!rowItems.length) {
       books.createDiv({
         cls: "atomic-book-empty",

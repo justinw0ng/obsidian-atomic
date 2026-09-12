@@ -195,7 +195,10 @@ function renderOneHeatmap(
     dayLabels.createDiv({ cls: "fitness-day-label", text: d });
   }
 
-  const scroll = body.createDiv({ cls: "fitness-heatmap-scroll" });
+  const scroll = body.createDiv({
+    cls: "fitness-heatmap-scroll atomic-scrollport",
+    attr: { "data-testid": "atomic-heatmap-scroll" },
+  });
   const monthRow = scroll.createDiv({ cls: "fitness-month-row" });
   for (const slot of heatmapMonthSlots(weeks, language)) {
     appendHeatmapMonthSlot(monthRow, slot);

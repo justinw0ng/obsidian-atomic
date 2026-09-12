@@ -14,6 +14,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const heatmap = src("src/views/heatmap.ts");
   assert.match(heatmap, /data-testid": "atomic-heatmap"/);
   assert.match(heatmap, /data-testid": "atomic-heatmap-invalid"/);
+  assert.match(heatmap, /"atomic-heatmap-scroll"/);
+  assert.match(heatmap, /atomic-scrollport/);
   assert.match(heatmap, /"atomic-heatmap-month"/);
   assert.match(heatmap, /appendHeatmapWeeks/);
   assert.match(heatmap, /heatmapMonthSlots/);
@@ -63,11 +65,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(gymSetup, /atomic-gym-log-setup-confirm/);
 
   const updateNote = src("src/commands/update-note.ts");
-  assert.match(updateNote, /atomic-update-note-modal/);
-  assert.match(updateNote, /atomic-update-note-body/);
-  assert.match(updateNote, /atomic-update-note-ack/);
+  assert.match(updateNote, /atomic-update-note-notice/);
+  assert.match(updateNote, /new Notice\(/);
+  assert.match(updateNote, /formatUpdateNoteNotice/);
   assert.match(updateNote, /updateNoteBodyForLanguage/);
   assert.doesNotMatch(updateNote, /innerHTML/);
+  assert.doesNotMatch(updateNote, /Modal/);
+  assert.doesNotMatch(updateNote, /atomic-update-note-modal/);
+  assert.doesNotMatch(updateNote, /atomic-update-note-ack/);
 
   const cues = src("src/views/cues.ts");
   assert.match(cues, /data-testid": "atomic-cues"/);
@@ -111,7 +116,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(dashboard, /"atomic-dashboard-year-next"/);
   assert.match(dashboard, /"data-testid": "atomic-dashboard-kpi"/);
   assert.match(dashboard, /"data-testid": "atomic-dashboard-activity"/);
+  assert.match(dashboard, /appendMonthBars\(/);
   assert.match(dashboard, /buildDashboardModel\(/);
+  const dashboardDom = src("src/views/dashboard-dom.ts");
+  assert.match(dashboardDom, /"atomic-dashboard-activity-bars"/);
+  assert.match(dashboardDom, /"atomic-dashboard-month-bar"/);
+  assert.match(dashboardDom, /appendBars\(bars, monthBars\(/);
+  assert.match(dashboardDom, /"atomic-dashboard-link"/);
   assert.doesNotMatch(dashboard, /Math\.max\(\d+, heights/);
   assert.doesNotMatch(dashboard, /innerHTML/);
   const dashboardSections = src("src/views/dashboard-sections.ts");
@@ -125,6 +136,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const shelf = src("src/views/book-shelf.ts");
   assert.match(shelf, /data-testid": "atomic-bookshelf"/);
   assert.match(shelf, /data-testid": "atomic-book"/);
+  assert.match(shelf, /"atomic-bookshelf-scroll"/);
+  assert.match(shelf, /atomic-scrollport/);
   assert.match(shelf, /"data-scale": String\(scale\)/);
   assert.match(shelf, /resolveBookShelfScale/);
 
@@ -153,6 +166,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const health = src("e2e/health-check.test.mjs");
   assert.match(health, /atomic-heatmap-month/);
+  assert.match(health, /atomic-heatmap-scroll/);
+  assert.match(health, /atomic-bookshelf-scroll/);
+  assert.match(health, /heatmap-scrollbars/);
   assert.match(health, /heatmap-month-align/);
   assert.match(health, /gym-session-timer/);
   assert.match(health, /atomic-setting-gym-import/);
@@ -160,8 +176,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-gym-log-setup-modal/);
   assert.match(health, /atomic-gym-log-setup-later/);
   assert.match(health, /promptGymLogSetupIfPending/);
-  assert.match(health, /atomic-update-note-modal/);
-  assert.match(health, /atomic-update-note-ack/);
+  assert.match(health, /atomic-update-note-notice/);
+  assert.match(health, /waitForNotice/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
   assert.match(health, /用起嚟更順咗/);
