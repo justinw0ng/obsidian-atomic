@@ -2092,34 +2092,6 @@
   transform: none;
 }
 
-@media (max-width: 600px) {
-  .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
-    width: var(--atomic-cue-width);
-    height: auto;
-  }
-
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet,
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-sheet,
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-sheet {
-    transform: rotate(0deg);
-    padding-right: 14px;
-  }
-
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body,
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-body,
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-body {
-    max-height: none;
-    --atomic-cue-wash: 0;
-  }
-
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta,
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:hover .atomic-cue-meta,
-  .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card:focus-visible .atomic-cue-meta {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
     transition: none;
