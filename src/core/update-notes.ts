@@ -75,6 +75,11 @@ export function updateNoteBodyForLanguage(
   return note.body.en;
 }
 
+/** Title plus catalog body for the live What's new Notice. */
+export function formatUpdateNoteNotice(title: string, body: string): string {
+  return `${title}\n${body}`;
+}
+
 export function currentUpdateNote(
   note: UpdateNote,
   currentVersion: string,
