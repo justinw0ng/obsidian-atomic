@@ -30,6 +30,20 @@ export function parseSeedVault(argv, fallback = DEFAULT_DEMO_VAULT) {
   return { vault, rest };
 }
 
+/** Pull `--cue-hero` out so `parseHeroBookLimit` still rejects unknown flags. */
+export function parseCueHero(argv) {
+  const rest = [];
+  let cueHero = false;
+  for (const arg of argv) {
+    if (arg === "--cue-hero") {
+      cueHero = true;
+      continue;
+    }
+    rest.push(arg);
+  }
+  return { cueHero, rest };
+}
+
 export function parseHeroBookLimit(argv, maxBooks) {
   let raw = null;
 

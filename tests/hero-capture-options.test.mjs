@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   DEFAULT_DEMO_VAULT,
   DEFAULT_HERO_BOOK_LIMIT,
+  parseCueHero,
   parseHeroBookLimit,
   parseSeedVault,
 } from "../scripts/hero-capture-options.mjs";
@@ -64,6 +65,15 @@ test("parseSeedVault accepts --vault and --vault=", () => {
     parseSeedVault(["--vault=/tmp/other", "--book-limit", "3"]),
     { vault: "/tmp/other", rest: ["--book-limit", "3"] },
   );
+});
+
+test("parseCueHero strips --cue-hero and leaves book-limit args", () => {
+  assert.deepEqual(parseCueHero([]), { cueHero: false, rest: [] });
+  assert.deepEqual(parseCueHero(["--cue-hero"]), { cueHero: true, rest: [] });
+  assert.deepEqual(parseCueHero(["--book-limit", "3", "--cue-hero"]), {
+    cueHero: true,
+    rest: ["--book-limit", "3"],
+  });
 });
 
 test("parseSeedVault rejects a missing path", () => {

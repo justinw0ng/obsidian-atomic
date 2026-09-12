@@ -1,16 +1,31 @@
 /**
  * Seed a demo vault for README hero and user-guide screenshots.
- * Run: node scripts/seed-readme-demo-vault.mjs [--vault PATH] [--book-limit N]
+ * Run: node scripts/seed-readme-demo-vault.mjs [--vault PATH] [--book-limit N] [--cue-hero]
  */
-import { mkdirSync, writeFileSync, existsSync, readFileSync, rmSync, copyFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseHeroBookLimit, parseSeedVault } from "./hero-capture-options.mjs";
-import { E2E_GYM_LOG_FENCE } from "../e2e/lib/vault.mjs";
+import {
+  CUE_HERO_FILES,
+  focusForExtras,
+  golfShowcaseByDate,
+} from "./cue-hero-content.mjs";
+import { parseCueHero, parseHeroBookLimit, parseSeedVault } from "./hero-capture-options.mjs";
+import { E2E_CUE_LOG_FENCE, E2E_GYM_LOG_FENCE } from "../e2e/lib/vault.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const MANIFEST = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8"));
 
 const { vault: VAULT, rest: seedArgv } = parseSeedVault(process.argv.slice(2));
+const { cueHero: CUE_HERO, rest: bookArgv } = parseCueHero(seedArgv);
 const TODAY = "2026-08-11";
 const YEAR = "2026";
 
@@ -29,7 +44,7 @@ const BOOKS = [
   { title: "A Smaller Ambition", slug: "a-smaller-ambition" },
 ];
 
-const bookLimit = parseHeroBookLimit(seedArgv, BOOKS.length);
+const bookLimit = parseHeroBookLimit(bookArgv, BOOKS.length);
 const heroBooks = BOOKS.slice(0, bookLimit);
 
 const GREEN = ["#9be9a8", "#40c463", "#30a14e", "#216e39"];
@@ -110,14 +125,21 @@ ${E2E_GYM_LOG_FENCE}
 `;
 }
 
-function golfSession(date, durationMin, felt = "good") {
+function yamlFocus(focus) {
+  if (!focus.length) return "[]";
+  return `\n${focus.map((item) => `  - ${item}`).join("\n")}`;
+}
+
+function golfSession(date, durationMin, felt = "good", extras = [], focus = []) {
+  const form = CUE_HERO && date === TODAY ? `${E2E_CUE_LOG_FENCE}\n\n` : "";
+  const bullets = ["- Short game focus", ...extras.map((cue) => `- ${cue}`)];
   return `---
 type: session
 date: ${date}
 activity: golf
 duration_min: ${durationMin}
 location: Course
-focus: []
+focus: ${yamlFocus(focus)}
 club: []
 felt: ${felt}
 ---
@@ -126,7 +148,7 @@ felt: ${felt}
 
 ## Reminders
 
-- Short game focus
+${form}${bullets.join("\n")}
 `;
 }
 
@@ -169,10 +191,12 @@ function seedHeatmapSessions() {
 
   // Golf: weekends + occasional midweek
   const golfDates = activityDays({ startMonth: 1, weekdays: [0, 6, 3], stride: 1 });
+  const extrasByDate = CUE_HERO ? golfShowcaseByDate(golfDates, TODAY) : new Map();
   for (const date of golfDates) {
+    const extras = extrasByDate.get(date) ?? [];
     write(
       join(VAULT, `atomics/exercise/Golf/${YEAR}/${date}.md`),
-      golfSession(date, durationFor(date, 60, 40)),
+      golfSession(date, durationFor(date, 60, 40), "good", extras, focusForExtras(extras)),
     );
   }
 }
@@ -315,6 +339,7 @@ function seedObsidianConfig() {
     golfCuesPath: "atomics/exercise/Golf/Cues.md",
     gymCuesPath: "atomics/exercise/Gym/Cues.md",
     gymLogSetup: "complete",
+    lastSeenUpdateNoteVersion: MANIFEST.version,
     gymExercises: [
       { exercise: "Bench", muscle: "Chest" },
       { exercise: "Squat", muscle: "Quads" },
@@ -376,9 +401,16 @@ function deployPlugin() {
   const pluginDir = join(VAULT, ".obsidian/plugins/atomic-tracker");
   ensureDir(pluginDir);
   for (const file of ["main.js", "manifest.json", "styles.css"]) {
-    const src = join("/workspace", file);
+    const src = join(ROOT, file);
     if (!existsSync(src)) throw new Error(`Missing ${src}`);
     writeFileSync(join(pluginDir, file), readFileSync(src));
+  }
+  const fontsSrc = join(ROOT, "fonts");
+  if (!existsSync(fontsSrc)) return;
+  const fontsDest = join(pluginDir, "fonts");
+  ensureDir(fontsDest);
+  for (const name of readdirSync(fontsSrc)) {
+    copyFileSync(join(fontsSrc, name), join(fontsDest, name));
   }
 }
 
@@ -407,4 +439,15 @@ write(
   readFileSync(join(ROOT, "examples/dashboard/Dashboard.md"), "utf8"),
 );
 
-console.log(`Seeded demo vault at ${VAULT} with ${bookLimit} books`);
+write(
+  join(VAULT, CUE_HERO_FILES.golfCues),
+  `# Golf Cues\n\n\`\`\`atomic-golf-cues\nyear: ${YEAR}\n\`\`\`\n`,
+);
+write(
+  join(VAULT, CUE_HERO_FILES.gymCues),
+  `# Gym Cues\n\n\`\`\`atomic-gym-cues\nyear: ${YEAR}\n\`\`\`\n`,
+);
+
+console.log(
+  `Seeded demo vault at ${VAULT} with ${bookLimit} books${CUE_HERO ? " (cue hero)" : ""}`,
+);

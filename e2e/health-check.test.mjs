@@ -38,6 +38,15 @@ async function shot(driver, name) {
   }
 }
 
+function assertNoCssMask(metrics, label) {
+  assert.match(String(metrics.maskImage), /^(none)?$/, `${label} must not set mask-image`);
+  assert.match(
+    String(metrics.webkitMaskImage),
+    /^(none)?$/,
+    `${label} must not set -webkit-mask-image`,
+  );
+}
+
 /** Geometry of one cue card: how far it lifted and whether its cue is clipped. */
 function cueCardMetrics(driver, index) {
   return driver.executeScript(`
@@ -45,6 +54,8 @@ function cueCardMetrics(driver, index) {
     if (!card) return null;
     const sheet = card.querySelector('.atomic-cue-sheet');
     const body = card.querySelector('.atomic-cue-body');
+    const bodyStyle = getComputedStyle(body);
+    const wash = getComputedStyle(body, '::after');
     return {
       isOpen: card.classList.contains('is-open'),
       ariaExpanded: card.getAttribute('aria-expanded'),
@@ -52,6 +63,10 @@ function cueCardMetrics(driver, index) {
       bodyHeight: body.clientHeight,
       clamped: body.scrollHeight > body.clientHeight + 1,
       metaOpacity: Number(getComputedStyle(card.querySelector('.atomic-cue-meta')).opacity),
+      maskImage: String(bodyStyle.maskImage || ""),
+      webkitMaskImage: String(bodyStyle.webkitMaskImage || ""),
+      fadeHeight: wash.height,
+      fadeOpacity: Number(wash.opacity),
     };
   `);
 }
@@ -65,7 +80,7 @@ async function waitForCuePop(driver, index) {
   try {
     await driver.wait(async () => {
       last = await cueCardMetrics(driver, index);
-      return !last.clamped && last.lift > 8 && last.metaOpacity > 0.99;
+      return !last.clamped && last.lift > 8 && last.metaOpacity > 0.99 && last.fadeOpacity < 0.01;
     }, 8000);
   } catch {
     throw new Error(`cue card ${index} never popped: ${JSON.stringify(last)}`);
@@ -196,6 +211,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.ok(before.clamped, "a long cue should be clipped at rest");
       assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
       assert.equal(before.ariaExpanded, "false");
+      assertNoCssMask(before, "resting cue body");
+      assert.equal(before.fadeHeight, "15px");
+      assert.equal(before.fadeOpacity, 1, "resting cue keeps the bottom wash");
 
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[2].click();
@@ -203,6 +221,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       const popped = await waitForCuePop(driver, 2);
       assert.equal(popped.isOpen, true);
       assert.equal(popped.ariaExpanded, "true");
+      assertNoCssMask(popped, "popped cue body");
+      assert.equal(popped.fadeOpacity, 0, "an open cue drops the bottom wash");
       assert.ok(
         popped.bodyHeight > before.bodyHeight,
         `popped body should grow, ${before.bodyHeight} -> ${popped.bodyHeight}`,
@@ -246,6 +266,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       }, 8000);
       const phoneHover = await cueCardMetrics(driver, 0);
       assert.ok(phoneHover.clamped, "phone hover must not expand a card");
+      assertNoCssMask(phoneHover, "phone hover cue body");
+      assert.equal(phoneHover.fadeOpacity, 1, "phone hover keeps the bottom wash");
 
       await driver.executeScript(`
         document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
