@@ -26,7 +26,10 @@ import {
   collectAtomicDataRoots,
   pathAffectsAtomicRefresh,
 } from "./util/refresh-path";
-import { migrateDedicatedCueHosts } from "./util/rewrite-cue-fences";
+import {
+  dedicatedCueHostPaths,
+  rewriteDedicatedCueFences,
+} from "./util/rewrite-cue-fences";
 import { suggestItem } from "./util/suggest-item";
 
 const REFRESH_DEBOUNCE_MS = 300;
@@ -54,7 +57,9 @@ export default class FitnessPlugin extends Plugin {
       // painted during layout restore were not cached (see
       // VaultDataSource.cacheList), so one refresh converges them.
       this.registerVaultEvents();
-      void migrateDedicatedCueHosts(this.data, this.settings);
+      for (const path of dedicatedCueHostPaths(this.settings)) {
+        void this.data.processNote(path, rewriteDedicatedCueFences);
+      }
       this.scheduleRefresh();
       this.ensureCuesHosts();
       this.promptGymLogSetupIfPending();
