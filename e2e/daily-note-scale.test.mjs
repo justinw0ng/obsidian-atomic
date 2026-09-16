@@ -37,7 +37,13 @@ async function waitForDailyNoteBlocks(driver, timeoutMs = 30000) {
       return {
         heatmaps: document.querySelectorAll('[data-testid="atomic-heatmap"]').length,
         books: document.querySelectorAll('[data-testid="atomic-book"]').length,
+        pending: document.querySelectorAll('.atomic-block-pending').length,
         today: !!document.querySelector(".fitness-plugin ul"),
+        mode: document.querySelector(".markdown-preview-view")
+          ? "preview"
+          : document.querySelector(".markdown-source-view")
+            ? "source"
+            : "unknown",
       };
     `);
     if (last.heatmaps >= 3 && last.books >= 1) return last;
@@ -106,6 +112,20 @@ describe("daily note first-open scale", { skip: skipReason || undefined }, () =>
       SCALE_DAILY_NOTE,
     );
     assert.equal(opened?.ok, true, opened?.error);
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      const leaf = app.workspace.getMostRecentLeaf?.();
+      const view = leaf && leaf.view;
+      if (!view || typeof view.setState !== "function") {
+        done({ ok: false, error: "no markdown view" });
+        return;
+      }
+      const state = typeof view.getState === "function" ? view.getState() : {};
+      Promise.resolve(view.setState({ ...state, mode: "preview" }, { history: false })).then(
+        () => done({ ok: true }),
+        (err) => done({ ok: false, error: String(err) }),
+      );
+    `);
     const painted = await waitForDailyNoteBlocks(driver);
     const io = await driver.executeScript(`return window.__atomicIo`);
     const report = {
@@ -159,6 +179,20 @@ describe("daily note first-open scale", { skip: skipReason || undefined }, () =>
       SCALE_DAILY_NOTE,
     );
     assert.equal(second?.ok, true, second?.error);
+    await driver.executeAsyncScript(`
+      const done = arguments[0];
+      const leaf = app.workspace.getMostRecentLeaf?.();
+      const view = leaf && leaf.view;
+      if (!view || typeof view.setState !== "function") {
+        done({ ok: false, error: "no markdown view" });
+        return;
+      }
+      const state = typeof view.getState === "function" ? view.getState() : {};
+      Promise.resolve(view.setState({ ...state, mode: "preview" }, { history: false })).then(
+        () => done({ ok: true }),
+        (err) => done({ ok: false, error: String(err) }),
+      );
+    `);
     const paintedAgain = await waitForDailyNoteBlocks(driver);
     const ioAgain = await driver.executeScript(`return window.__atomicIo`);
     process.stdout.write(

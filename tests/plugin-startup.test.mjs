@@ -87,4 +87,6 @@ test("tracking only replaces the same host and untracks on unload", () => {
 
   const tracked = bracedBlock(codeblocks, "export function renderTrackedBlock(");
   assert.match(tracked, /if \(!plugin\.app\.workspace\.layoutReady\) return;/);
+  assert.match(tracked, /plugin\.scheduleRefresh\(\)/);
+  assert.match(tracked, /if \(!block\.el\.isConnected\)/);
 });

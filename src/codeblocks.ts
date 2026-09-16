@@ -91,7 +91,7 @@ export function renderTrackedBlock(
   block: LiveBlock,
 ): Promise<void> {
   return enqueueBlockRender(block.el, async (generation) => {
-    if (isStaleBlockRender(block.el, generation) || !block.el.isConnected) {
+    if (isStaleBlockRender(block.el, generation)) {
       return;
     }
     // Layout restore paints codeblocks before the file tree and metadata
@@ -100,6 +100,13 @@ export function renderTrackedBlock(
     // DOM paint. Keep the pending shell until then; `scheduleRefresh` is the
     // first real paint.
     if (!plugin.app.workspace.layoutReady) return;
+    if (!block.el.isConnected) {
+      // Live Preview detaches offscreen fences without unloading them.
+      // A tall book shelf pushes heatmaps below the fold, so the first
+      // paint would otherwise stay on the pending shell until a vault event.
+      plugin.scheduleRefresh();
+      return;
+    }
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
       generation,

@@ -463,6 +463,7 @@ export async function fillPrompt(driver, value) {
   await input.click();
   await input.clear();
   await input.sendKeys(value);
+  await clearNotices(driver);
   const okButtons = await modal.findElements(By.css("button.mod-cta"));
   if (okButtons.length) {
     await okButtons[0].click();
