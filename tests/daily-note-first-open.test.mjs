@@ -7,12 +7,6 @@ import { fileURLToPath } from "node:url";
 import { parseTimeLog } from "../src/core/hobby.ts";
 import { BLUE, GREEN, ORANGE } from "../src/types.ts";
 import { durationMapFromHobbyLogs, durationMapFromSessions } from "../src/util/duration-map.ts";
-import {
-  cachesAfterPass,
-  dailyNotePassIo,
-  dailyNoteStartupIo,
-  dailyNoteStartupPasses,
-} from "../src/util/first-open-work.ts";
 import { markdownFilesInFolder } from "../src/util/folder-files.ts";
 import { hobbyItemFromFileCache } from "../src/util/hobby-item-scan.ts";
 import {
@@ -277,41 +271,10 @@ test("default daily note source contracts: gym/golf metadata, reading body reads
     codeblocks,
     /if \(!plugin\.app\.workspace\.layoutReady\) return;/,
   );
-});
-
-test("first-open I/O model: reading bodies once, lists twice without the layout-ready guard", () => {
-  const withRestore = dailyNoteStartupPasses({
-    renderBeforeLayoutReady: true,
-    metadataReadyAtLayoutReady: false,
-  });
-  assert.deepEqual(withRestore, ["restore", "layout-ready", "metadata-resolved"]);
-  const wasted = dailyNoteStartupIo(SCALE, withRestore);
-  assert.equal(wasted.readingBodyReads, SCALE.readingItems);
-  assert.equal(wasted.hobbyListWalks, 6);
-  assert.equal(wasted.sessionListWalks, 6);
-
-  const deferred = dailyNoteStartupPasses({
-    renderBeforeLayoutReady: false,
-    metadataReadyAtLayoutReady: true,
-  });
-  assert.deepEqual(deferred, ["layout-ready"]);
-  const once = dailyNoteStartupIo(SCALE, deferred);
-  assert.equal(once.readingBodyReads, SCALE.readingItems);
-  assert.equal(once.hobbyListWalks, 2);
-  assert.equal(once.sessionListWalks, 2);
-  assert.equal(once.metadataLookups, SCALE.gymSessions + SCALE.golfSessions + SCALE.readingItems * 2);
-
-  const restoreIo = dailyNotePassIo(SCALE, { listCached: false, timeLogCached: false });
-  assert.equal(restoreIo.readingBodyReads, SCALE.readingItems);
-  assert.equal(restoreIo.hobbyListWalks, 2);
-  assert.deepEqual(cachesAfterPass("restore"), {
-    listCached: false,
-    timeLogCached: false,
-  });
-  assert.deepEqual(cachesAfterPass("layout-ready"), {
-    listCached: false,
-    timeLogCached: true,
-  });
+  assert.doesNotMatch(
+    codeblocks,
+    /if \(!block\.el\.isConnected\) \{\s*plugin\.scheduleRefresh/,
+  );
 });
 
 test("counting source: restore + layout-ready re-walks lists but Time logs hit cache", async () => {

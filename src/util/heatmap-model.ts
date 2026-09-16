@@ -4,7 +4,7 @@ import { durationToLevel } from "../core.ts";
 import { addDays, formatYmd, fullDateForLanguage, monthShortForLanguage, weekdaySun0 } from "../dates.ts";
 import type { Language } from "../i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types.ts";
+import { EMPTY_CELL, type ActivityType, type DayActivity, type HobbyItemMeta } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { activityPaintKey } from "./activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -95,7 +95,7 @@ export function sameHeatmapPaintState(
 }
 
 export type BookShelfPaintState = {
-  files: readonly unknown[];
+  files: readonly HobbyItemMeta[];
   activityId: string;
   hasActivity: boolean;
   scale: number;
@@ -122,31 +122,22 @@ function sameShelfAuthors(left: unknown, right: unknown): boolean {
 }
 
 function sameShelfFrontmatter(
-  left: Record<string, unknown> | undefined,
-  right: Record<string, unknown> | undefined,
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
 ): boolean {
   if (left === right) return true;
-  if (!left || !right) return false;
   for (const key of SHELF_FRONTMATTER_KEYS) {
     if (left[key] !== right[key]) return false;
   }
   return sameShelfAuthors(left.authors, right.authors);
 }
 
-function isShelfFile(
-  value: unknown,
-): value is {
-  path: unknown;
-  basename: unknown;
-  frontmatter?: Record<string, unknown>;
-} {
-  return !!value && typeof value === "object" && "path" in value && "basename" in value;
-}
-
 /** True when a rescan would paint the same books (path + shelf fields). */
-export function sameHobbyShelfFile(left: unknown, right: unknown): boolean {
+export function sameHobbyShelfFile(
+  left: HobbyItemMeta,
+  right: HobbyItemMeta,
+): boolean {
   if (left === right) return true;
-  if (!isShelfFile(left) || !isShelfFile(right)) return false;
   return (
     left.path === right.path &&
     left.basename === right.basename &&
