@@ -404,7 +404,10 @@ test("scale reading notes: disk cachedRead-equivalent is the first-open I/O", ()
     const t0 = performance.now();
     for (const path of paths) parseTimeLog(readFileSync(path, "utf8"));
     const serialMs = performance.now() - t0;
-    assert.ok(serialMs >= 0);
+    assert.ok(
+      serialMs < CPU_BUDGET_MS,
+      `150 reading notes serial read+parse ${serialMs.toFixed(1)}ms (budget ${CPU_BUDGET_MS}ms)`,
+    );
     process.stdout.write(
       `first-open disk: ${SCALE.readingItems} reading notes serial read+parse ${serialMs.toFixed(1)}ms\n`,
     );
