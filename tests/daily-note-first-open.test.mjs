@@ -1,27 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseTimeLog } from "../src/core/hobby.ts";
 import { BLUE, GREEN, ORANGE } from "../src/types.ts";
 import { durationMapFromHobbyLogs, durationMapFromSessions } from "../src/util/duration-map.ts";
-import { markdownFilesInFolder } from "../src/util/folder-files.ts";
-import { hobbyItemFromFileCache } from "../src/util/hobby-item-scan.ts";
 import {
   appendHeatmapWeeks,
   buildHeatmapWeeks,
   sameDurationMap,
   sameHeatmapPaintState,
 } from "../src/util/heatmap-model.ts";
-import { NoteParseCache } from "../src/util/note-parse-cache.ts";
 import { sessionMetaFromFile } from "../src/util/session-meta.ts";
-import { VaultListCache } from "../src/util/vault-list-cache.ts";
-import { hobbyItemsScanPrefix, sessionScanPrefix } from "../src/util/vault-path.ts";
 import {
-  golfSessionMarkdown,
-  gymSessionMarkdown,
   NODE_DAILY_NOTE_SCALE,
   readingItemMarkdown,
   ymdFromIndex,
@@ -57,9 +50,8 @@ function buildScaleNotes() {
     gym.push({
       path: `atomics/exercise/Gym/${YEAR}/${date}.md`,
       basename: date,
-      body: gymSessionMarkdown(date),
+      body: `# Gym — ${date}`,
       frontmatter: { duration_min: 45, date, activity: "gym" },
-      mtime: 1,
     });
   }
   for (let i = 0; i < SCALE.golfSessions; i++) {
@@ -67,9 +59,8 @@ function buildScaleNotes() {
     golf.push({
       path: `atomics/exercise/Golf/${YEAR}/${date}.md`,
       basename: date,
-      body: golfSessionMarkdown(date),
+      body: `# Golf — ${date}`,
       frontmatter: { duration_min: 60, date, activity: "golf" },
-      mtime: 1,
     });
   }
   for (let i = 0; i < SCALE.readingItems; i++) {
@@ -92,159 +83,9 @@ function buildScaleNotes() {
         status: i % 5 === 0 ? "reading" : "finished",
         total_min: minutes,
       },
-      mtime: 1,
     });
   }
   return { gym, golf, reading };
-}
-
-/**
- * Mirrors VaultDataSource cache rules for the daily-note blocks without Obsidian.
- */
-class CountingDailyNoteSource {
-  constructor(notes, layoutReady) {
-    this.layoutReady = layoutReady;
-    this.byPath = new Map(
-      [...notes.gym, ...notes.golf, ...notes.reading].map((note) => [note.path, note]),
-    );
-    this.gymFolder = {
-      path: `atomics/exercise/Gym/${YEAR}`,
-      children: notes.gym.map((note) => ({
-        path: note.path,
-        basename: note.basename,
-        extension: "md",
-      })),
-    };
-    this.golfFolder = {
-      path: `atomics/exercise/Golf/${YEAR}`,
-      children: notes.golf.map((note) => ({
-        path: note.path,
-        basename: note.basename,
-        extension: "md",
-      })),
-    };
-    this.readingFolder = {
-      path: "atomics/hobbies/Reading/Items",
-      children: notes.reading.map((note) => ({
-        path: note.path,
-        basename: note.basename,
-        extension: "md",
-      })),
-    };
-    this.timeLogCache = new NoteParseCache();
-    this.sessionListCache = new VaultListCache();
-    this.hobbyItemListCache = new VaultListCache();
-    this.durationMapCache = new VaultListCache();
-    this.stats = {
-      cachedRead: 0,
-      getFileCache: 0,
-      sessionWalks: 0,
-      hobbyWalks: 0,
-    };
-    this.readingActivity = {
-      id: "reading",
-      domain: "hobby",
-      folder: "atomics/hobbies/Reading",
-      noteModel: "item",
-      supportsTimer: true,
-    };
-  }
-
-  cacheList(cache, key, value, scope) {
-    if (!this.layoutReady) return;
-    cache.set(key, value, scope);
-  }
-
-  listSessions(folder) {
-    const prefix = sessionScanPrefix(folder, YEAR);
-    const cached = this.sessionListCache.get(prefix);
-    if (cached) return cached;
-    this.stats.sessionWalks += 1;
-    const tree = folder.includes("Golf") ? this.golfFolder : this.gymFolder;
-    const out = [];
-    for (const file of markdownFilesInFolder(tree)) {
-      const note = this.byPath.get(file.path);
-      this.stats.getFileCache += 1;
-      out.push(
-        sessionMetaFromFile({
-          path: file.path,
-          basename: file.basename,
-          frontmatter: note?.frontmatter,
-        }),
-      );
-    }
-    this.cacheList(this.sessionListCache, prefix, out, prefix);
-    return out;
-  }
-
-  listHobbyItems() {
-    const prefix = hobbyItemsScanPrefix(this.readingActivity.folder);
-    const cacheKey = `${this.readingActivity.id}\0${prefix}`;
-    const cached = this.hobbyItemListCache.get(cacheKey);
-    if (cached) return cached;
-    this.stats.hobbyWalks += 1;
-    const out = [];
-    for (const file of markdownFilesInFolder(this.readingFolder)) {
-      const note = this.byPath.get(file.path);
-      this.stats.getFileCache += 1;
-      const item = hobbyItemFromFileCache({
-        path: file.path,
-        basename: file.basename,
-        frontmatter: note?.frontmatter ?? null,
-        activityId: "reading",
-      });
-      if (item) out.push(item);
-    }
-    this.cacheList(this.hobbyItemListCache, cacheKey, out, prefix);
-    return out;
-  }
-
-  async getHobbyTimeLogEntries(path) {
-    const note = this.byPath.get(path);
-    if (!note) return [];
-    return this.timeLogCache.resolve(path, note.mtime, async () => {
-      this.stats.cachedRead += 1;
-      return parseTimeLog(note.body);
-    });
-  }
-
-  async getActivityDurationMap(kind) {
-    if (kind === "reading") {
-      const prefix = hobbyItemsScanPrefix(this.readingActivity.folder);
-      const cacheKey = `reading\0${prefix}\0${YEAR}`;
-      const cached = this.durationMapCache.get(cacheKey);
-      if (cached) return cached;
-      const items = this.listHobbyItems();
-      const perItem = await Promise.all(
-        items.map(async (item) => ({
-          path: item.path,
-          entries: await this.getHobbyTimeLogEntries(item.path),
-        })),
-      );
-      const map = durationMapFromHobbyLogs(perItem, YEAR);
-      this.cacheList(this.durationMapCache, cacheKey, map, prefix);
-      return map;
-    }
-    const folder =
-      kind === "golf" ? "atomics/exercise/Golf" : "atomics/exercise/Gym";
-    const prefix = sessionScanPrefix(folder, YEAR);
-    const cacheKey = `${kind}\0${prefix}\0${YEAR}`;
-    const cached = this.durationMapCache.get(cacheKey);
-    if (cached) return cached;
-    const map = durationMapFromSessions(this.listSessions(folder));
-    this.cacheList(this.durationMapCache, cacheKey, map, prefix);
-    return map;
-  }
-
-  async paintDailyNote() {
-    const maps = await Promise.all([
-      this.getActivityDurationMap("gym"),
-      this.getActivityDurationMap("golf"),
-      this.getActivityDurationMap("reading"),
-    ]);
-    this.listHobbyItems();
-    return maps;
-  }
 }
 
 test("default daily note source contracts: gym/golf metadata, reading body reads", () => {
@@ -275,38 +116,9 @@ test("default daily note source contracts: gym/golf metadata, reading body reads
     codeblocks,
     /if \(!block\.el\.isConnected\) \{\s*plugin\.scheduleRefresh/,
   );
-});
-
-test("counting source: restore + layout-ready re-walks lists but Time logs hit cache", async () => {
-  const notes = buildScaleNotes();
-  const restore = new CountingDailyNoteSource(notes, false);
-  const restoreMaps = await restore.paintDailyNote();
-  assert.equal(restore.stats.cachedRead, SCALE.readingItems);
-  assert.equal(restore.stats.hobbyWalks, 2);
-  assert.equal(restore.stats.sessionWalks, 2);
-  assert.equal(restore.stats.getFileCache, SCALE.gymSessions + SCALE.golfSessions + SCALE.readingItems * 2);
-
-  restore.layoutReady = true;
-  const readyMaps = await restore.paintDailyNote();
-  assert.equal(restore.stats.cachedRead, SCALE.readingItems, "NoteParseCache prevents a second body read");
-  assert.equal(restore.stats.hobbyWalks, 3, "second pass caches the hobby list after the first walk");
-  assert.equal(restore.stats.sessionWalks, 4);
-  assert.equal(sameDurationMap(restoreMaps[0], readyMaps[0]), true);
-  assert.equal(sameDurationMap(restoreMaps[2], readyMaps[2]), true);
-  assert.notEqual(restoreMaps[2], readyMaps[2], "uncached first pass yields a new Map");
-});
-
-test("counting source: first paint after layout ready is one list walk and one body-read pass", async () => {
-  const notes = buildScaleNotes();
-  const source = new CountingDailyNoteSource(notes, true);
-  const maps = await source.paintDailyNote();
-  assert.equal(source.stats.cachedRead, SCALE.readingItems);
-  assert.equal(source.stats.hobbyWalks, 1);
-  assert.equal(source.stats.sessionWalks, 2);
-  const again = await source.paintDailyNote();
-  assert.equal(source.stats.cachedRead, SCALE.readingItems);
-  assert.equal(source.stats.hobbyWalks, 1);
-  assert.equal(maps[2], again[2]);
+  assert.equal(existsSync(join(root, "src/util/first-open-work.ts")), false);
+  assert.doesNotMatch(vault, /CountingDailyNoteSource/);
+  assert.doesNotMatch(codeblocks, /CountingDailyNoteSource/);
 });
 
 test("heatmap paint-skip treats equal duration maps as the same paint", () => {
@@ -322,6 +134,8 @@ test("heatmap paint-skip treats equal duration maps as the same paint", () => {
     maps: [left],
   };
   assert.equal(sameHeatmapPaintState(state, { ...state, maps: [right] }), true);
+  assert.equal(sameDurationMap(left, right), true);
+  assert.notEqual(left, right);
   assert.equal(
     sameHeatmapPaintState(state, {
       ...state,

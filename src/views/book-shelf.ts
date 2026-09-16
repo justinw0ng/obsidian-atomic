@@ -11,9 +11,7 @@ import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth,
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { measureElementWidth } from "../util/element-width.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { sameBookShelfPaintState, type BookShelfPaintState } from "../util/heatmap-model.ts";
-// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { PaintMemo } from "../util/paint-memo.ts";
+import { PaintMemo, sameList } from "../util/paint-memo.ts";
 
 export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale };
 
@@ -26,6 +24,46 @@ export type BookShelfItem = {
   cover?: string;
   description?: string;
 };
+
+export type BookShelfPaintState = {
+  items: readonly BookShelfItem[];
+  activityId: string;
+  hasActivity: boolean;
+  scale: number;
+  language: Language;
+  statuses: readonly string[] | null;
+  invalidStatuses: readonly string[];
+};
+
+function sameBookShelfItem(left: BookShelfItem, right: BookShelfItem): boolean {
+  if (left === right) return true;
+  return (
+    left.path === right.path &&
+    left.title === right.title &&
+    sameList(left.authors, right.authors) &&
+    left.status === right.status &&
+    left.spineColor === right.spineColor &&
+    left.cover === right.cover &&
+    left.description === right.description
+  );
+}
+
+/** True when a rescan would paint the same books and chrome. */
+export function sameBookShelfPaintState(
+  previous: BookShelfPaintState | undefined,
+  next: BookShelfPaintState,
+): boolean {
+  if (!previous) return false;
+  return (
+    sameList(previous.items, next.items, sameBookShelfItem) &&
+    previous.activityId === next.activityId &&
+    previous.hasActivity === next.hasActivity &&
+    previous.scale === next.scale &&
+    previous.language === next.language &&
+    sameList(previous.statuses, next.statuses) &&
+    sameList(previous.invalidStatuses, next.invalidStatuses)
+  );
+}
 
 export type CoverRef =
   | { kind: "url"; src: string }
@@ -509,8 +547,11 @@ export function renderBookShelf(
   );
   const { statuses, invalidStatuses } = resolveBookShelfStatuses(options.status);
   const files = activity ? data.listHobbyItems(activity) : EMPTY_HOBBY_FILES;
+  const items = activity
+    ? buildBookShelfItems(files, activityId, statuses)
+    : [];
   const paintState: BookShelfPaintState = {
-    files,
+    items,
     activityId,
     hasActivity: Boolean(activity),
     scale,
@@ -519,9 +560,6 @@ export function renderBookShelf(
     invalidStatuses,
   };
   if (bookShelfPaint.shouldSkip(el, paintState)) return;
-  const items = activity
-    ? buildBookShelfItems(files, activityId, statuses)
-    : [];
 
   resizeObservers.get(el)?.disconnect();
   resizeObservers.delete(el);

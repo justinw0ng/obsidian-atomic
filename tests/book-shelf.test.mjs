@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { sameBookShelfPaintState } from "../src/util/heatmap-model.ts";
 import {
   bookDetailFixedPosition,
   booksPerRow,
@@ -15,6 +14,7 @@ import {
   isBookShelfUnclipStop,
   parseCoverRef,
   resolveCoverSrc,
+  sameBookShelfPaintState,
   shelfColorFor,
   shouldUnclipBookShelfAncestor,
   titleLengthClass,
@@ -334,16 +334,18 @@ test("book shelf ports hover details to document.body", () => {
   assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
 });
 
-test("sameBookShelfPaintState skips equal shelf fields even on a new array", () => {
-  const files = [
+test("sameBookShelfPaintState skips equal built items even on a new array", () => {
+  const items = [
     {
       path: "atomics/hobbies/Reading/Items/One.md",
-      basename: "One",
-      frontmatter: { type: "atomic-item", activity: "reading", title: "One", status: "reading" },
+      title: "One",
+      authors: ["Ada"],
+      status: "reading",
+      spineColor: "#8B3A2A",
     },
   ];
   const state = {
-    files,
+    items,
     activityId: "reading",
     hasActivity: true,
     scale: 1,
@@ -351,15 +353,22 @@ test("sameBookShelfPaintState skips equal shelf fields even on a new array", () 
     statuses: null,
     invalidStatuses: [],
   };
-  assert.equal(sameBookShelfPaintState(state, { ...state, files }), true);
+  assert.equal(sameBookShelfPaintState(state, { ...state, items }), true);
   assert.equal(
-    sameBookShelfPaintState(state, { ...state, files: [{ ...files[0] }] }),
+    sameBookShelfPaintState(state, { ...state, items: [{ ...items[0] }] }),
     true,
   );
   assert.equal(
     sameBookShelfPaintState(state, {
       ...state,
-      files: [{ ...files[0], frontmatter: { ...files[0].frontmatter, status: "finished" } }],
+      items: [{ ...items[0], status: "finished" }],
+    }),
+    false,
+  );
+  assert.equal(
+    sameBookShelfPaintState(state, {
+      ...state,
+      items: [{ ...items[0], authors: ["Ada", "Grace"] }],
     }),
     false,
   );
@@ -368,6 +377,52 @@ test("sameBookShelfPaintState skips equal shelf fields even on a new array", () 
     false,
   );
   assert.equal(sameBookShelfPaintState(state, { ...state, scale: 1.5 }), false);
+
+  const painted = buildBookShelfItems(
+    [
+      {
+        path: items[0].path,
+        basename: "One",
+        frontmatter: {
+          type: "atomic-item",
+          activity: "reading",
+          title: "One",
+          status: "reading",
+          authors: ["Ada"],
+          spine_color: "#8B3A2A",
+          tags: ["ignored-a"],
+        },
+      },
+    ],
+    "reading",
+    null,
+  );
+  const paintedOtherTags = buildBookShelfItems(
+    [
+      {
+        path: items[0].path,
+        basename: "One",
+        frontmatter: {
+          type: "atomic-item",
+          activity: "reading",
+          title: "One",
+          status: "reading",
+          authors: ["Ada"],
+          spine_color: "#8B3A2A",
+          tags: ["ignored-b"],
+        },
+      },
+    ],
+    "reading",
+    null,
+  );
+  assert.equal(
+    sameBookShelfPaintState(
+      { ...state, items: painted },
+      { ...state, items: paintedOtherTags },
+    ),
+    true,
+  );
 });
 
 test("book shelf skip uses cached files and throttles layout", () => {
@@ -376,10 +431,22 @@ test("book shelf skip uses cached files and throttles layout", () => {
   assert.match(source, /sameBookShelfPaintState/);
   assert.match(source, /bookShelfPaint\.shouldSkip\(el, paintState\)/);
   assert.match(source, /buildBookShelfItems\(files/);
+  assert.match(
+    source,
+    /const items = activity[\s\S]*bookShelfPaint\.shouldSkip\(el, paintState\)/,
+  );
+  assert.doesNotMatch(source, /SHELF_FRONTMATTER_KEYS/);
+  assert.doesNotMatch(source, /sameHobbyShelfFile/);
   assert.doesNotMatch(source, /bookShelfItemKey/);
   assert.doesNotMatch(source, /OPENING_CLASS/);
   assert.match(source, /requestBookShelfLayout/);
   assert.match(source, /ResizeObserver\(\(\) => \{\s*requestBookShelfLayout/s);
+  const heatmapModel = readFileSync(
+    join(repoRoot, "src/util/heatmap-model.ts"),
+    "utf8",
+  );
+  assert.doesNotMatch(heatmapModel, /BookShelfPaintState/);
+  assert.doesNotMatch(heatmapModel, /sameBookShelfPaintState/);
 });
 
 test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {

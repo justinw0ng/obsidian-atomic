@@ -4,7 +4,7 @@ import { durationToLevel } from "../core.ts";
 import { addDays, formatYmd, fullDateForLanguage, monthShortForLanguage, weekdaySun0 } from "../dates.ts";
 import type { Language } from "../i18n/types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { EMPTY_CELL, type ActivityType, type DayActivity, type HobbyItemMeta } from "../types.ts";
+import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { activityPaintKey } from "./activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -91,73 +91,6 @@ export function sameHeatmapPaintState(
     previous.activityKey === next.activityKey &&
     sameList(previous.invalidIds, next.invalidIds) &&
     sameList(previous.maps, next.maps, sameDurationMap)
-  );
-}
-
-export type BookShelfPaintState = {
-  files: readonly HobbyItemMeta[];
-  activityId: string;
-  hasActivity: boolean;
-  scale: number;
-  language: Language;
-  statuses: readonly string[] | null;
-  invalidStatuses: readonly string[];
-};
-
-const SHELF_FRONTMATTER_KEYS = [
-  "type",
-  "activity",
-  "title",
-  "status",
-  "cover",
-  "spine_color",
-  "description",
-] as const;
-
-function sameShelfAuthors(left: unknown, right: unknown): boolean {
-  if (left === right) return true;
-  const leftList = Array.isArray(left) ? left : left == null ? [] : [left];
-  const rightList = Array.isArray(right) ? right : right == null ? [] : [right];
-  return sameList(leftList, rightList, (a, b) => String(a) === String(b));
-}
-
-function sameShelfFrontmatter(
-  left: Record<string, unknown>,
-  right: Record<string, unknown>,
-): boolean {
-  if (left === right) return true;
-  for (const key of SHELF_FRONTMATTER_KEYS) {
-    if (left[key] !== right[key]) return false;
-  }
-  return sameShelfAuthors(left.authors, right.authors);
-}
-
-/** True when a rescan would paint the same books (path + shelf fields). */
-export function sameHobbyShelfFile(
-  left: HobbyItemMeta,
-  right: HobbyItemMeta,
-): boolean {
-  if (left === right) return true;
-  return (
-    left.path === right.path &&
-    left.basename === right.basename &&
-    sameShelfFrontmatter(left.frontmatter, right.frontmatter)
-  );
-}
-
-export function sameBookShelfPaintState(
-  previous: BookShelfPaintState | undefined,
-  next: BookShelfPaintState,
-): boolean {
-  if (!previous) return false;
-  return (
-    sameList(previous.files, next.files, sameHobbyShelfFile) &&
-    previous.activityId === next.activityId &&
-    previous.hasActivity === next.hasActivity &&
-    previous.scale === next.scale &&
-    previous.language === next.language &&
-    sameList(previous.statuses, next.statuses) &&
-    sameList(previous.invalidStatuses, next.invalidStatuses)
   );
 }
 
