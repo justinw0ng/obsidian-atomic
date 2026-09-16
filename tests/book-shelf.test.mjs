@@ -334,8 +334,14 @@ test("book shelf ports hover details to document.body", () => {
   assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
 });
 
-test("sameBookShelfPaintState skips on list identity and misses on language", () => {
-  const files = [{ path: "atomics/hobbies/Reading/Items/One.md" }];
+test("sameBookShelfPaintState skips equal shelf fields even on a new array", () => {
+  const files = [
+    {
+      path: "atomics/hobbies/Reading/Items/One.md",
+      basename: "One",
+      frontmatter: { type: "atomic-item", activity: "reading", title: "One", status: "reading" },
+    },
+  ];
   const state = {
     files,
     activityId: "reading",
@@ -347,7 +353,14 @@ test("sameBookShelfPaintState skips on list identity and misses on language", ()
   };
   assert.equal(sameBookShelfPaintState(state, { ...state, files }), true);
   assert.equal(
-    sameBookShelfPaintState(state, { ...state, files: [...files] }),
+    sameBookShelfPaintState(state, { ...state, files: [{ ...files[0] }] }),
+    true,
+  );
+  assert.equal(
+    sameBookShelfPaintState(state, {
+      ...state,
+      files: [{ ...files[0], frontmatter: { ...files[0].frontmatter, status: "finished" } }],
+    }),
     false,
   );
   assert.equal(

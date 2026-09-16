@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, existsSync, readFileSync, rmSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,7 @@ import {
   pluginSettings,
   seedE2eVault,
 } from "../e2e/lib/vault.mjs";
+import { SCALE_DAILY_NOTE, seedScaleNotes } from "../e2e/lib/scale-vault.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -106,6 +107,36 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
       settings.activityTypes.map((activity) => activity.id),
       pluginSettings().activityTypes.map((activity) => activity.id),
     );
+  } finally {
+    rmSync(vault, { recursive: true, force: true });
+  }
+});
+
+test("seedScaleNotes writes a default daily note plus gym, golf, and reading notes", () => {
+  const vault = mkdtempSync(join(tmpdir(), "atomic-scale-seed-"));
+  try {
+    const result = seedScaleNotes(
+      vault,
+      { gymSessions: 3, golfSessions: 2, readingItems: 4 },
+      { year: 2026, today: "2026-01-03" },
+    );
+    assert.equal(result.year, 2026);
+    assert.equal(result.dailyNotePath, SCALE_DAILY_NOTE);
+    const daily = readFileSync(join(vault, SCALE_DAILY_NOTE), "utf8");
+    assert.match(daily, /```atomic-bookshelf/);
+    assert.match(daily, /```atomic-heatmap/);
+    assert.match(daily, /activity: gym, golf, reading/);
+    assert.match(daily, /```atomic-today/);
+    assert.equal(
+      existsSync(join(vault, "atomics/exercise/Gym/2026/2026-01-03.md")),
+      true,
+    );
+    assert.equal(
+      existsSync(join(vault, "atomics/exercise/Golf/2026/2026-01-02.md")),
+      true,
+    );
+    assert.equal(existsSync(join(vault, "atomics/hobbies/Reading/Items/Scale Book 4.md")), true);
+    assert.equal(existsSync(join(vault, "E2E/Idle.md")), true);
   } finally {
     rmSync(vault, { recursive: true, force: true });
   }

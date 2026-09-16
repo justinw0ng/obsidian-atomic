@@ -62,6 +62,22 @@ export function heatmapActivityKey(activities: readonly ActivityType[]): string 
   return activities.map(activityPaintKey).join("|");
 }
 
+/** True when two duration maps would paint the same heatmap cells. */
+export function sameDurationMap(
+  left: Map<string, DayActivity>,
+  right: Map<string, DayActivity>,
+): boolean {
+  if (left === right) return true;
+  if (left.size !== right.size) return false;
+  for (const [date, entry] of left) {
+    const other = right.get(date);
+    if (!other || other.minutes !== entry.minutes || other.path !== entry.path) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function sameHeatmapPaintState(
   previous: HeatmapPaintState | undefined,
   next: HeatmapPaintState,
@@ -74,7 +90,7 @@ export function sameHeatmapPaintState(
     previous.layoutKey === next.layoutKey &&
     previous.activityKey === next.activityKey &&
     sameList(previous.invalidIds, next.invalidIds) &&
-    sameList(previous.maps, next.maps)
+    sameList(previous.maps, next.maps, sameDurationMap)
   );
 }
 
@@ -88,13 +104,63 @@ export type BookShelfPaintState = {
   invalidStatuses: readonly string[];
 };
 
+const SHELF_FRONTMATTER_KEYS = [
+  "type",
+  "activity",
+  "title",
+  "status",
+  "cover",
+  "spine_color",
+  "description",
+] as const;
+
+function sameShelfAuthors(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  const leftList = Array.isArray(left) ? left : left == null ? [] : [left];
+  const rightList = Array.isArray(right) ? right : right == null ? [] : [right];
+  return sameList(leftList, rightList, (a, b) => String(a) === String(b));
+}
+
+function sameShelfFrontmatter(
+  left: Record<string, unknown> | undefined,
+  right: Record<string, unknown> | undefined,
+): boolean {
+  if (left === right) return true;
+  if (!left || !right) return false;
+  for (const key of SHELF_FRONTMATTER_KEYS) {
+    if (left[key] !== right[key]) return false;
+  }
+  return sameShelfAuthors(left.authors, right.authors);
+}
+
+function isShelfFile(
+  value: unknown,
+): value is {
+  path: unknown;
+  basename: unknown;
+  frontmatter?: Record<string, unknown>;
+} {
+  return !!value && typeof value === "object" && "path" in value && "basename" in value;
+}
+
+/** True when a rescan would paint the same books (path + shelf fields). */
+export function sameHobbyShelfFile(left: unknown, right: unknown): boolean {
+  if (left === right) return true;
+  if (!isShelfFile(left) || !isShelfFile(right)) return false;
+  return (
+    left.path === right.path &&
+    left.basename === right.basename &&
+    sameShelfFrontmatter(left.frontmatter, right.frontmatter)
+  );
+}
+
 export function sameBookShelfPaintState(
   previous: BookShelfPaintState | undefined,
   next: BookShelfPaintState,
 ): boolean {
   if (!previous) return false;
   return (
-    previous.files === next.files &&
+    sameList(previous.files, next.files, sameHobbyShelfFile) &&
     previous.activityId === next.activityId &&
     previous.hasActivity === next.hasActivity &&
     previous.scale === next.scale &&

@@ -94,6 +94,12 @@ export function renderTrackedBlock(
     if (isStaleBlockRender(block.el, generation) || !block.el.isConnected) {
       return;
     }
+    // Layout restore paints codeblocks before the file tree and metadata
+    // index are complete. Those scans are not cached (`cacheList`), so a
+    // second pass at layout ready used to redo every vault read and heatmap
+    // DOM paint. Keep the pending shell until then; `scheduleRefresh` is the
+    // first real paint.
+    if (!plugin.app.workspace.layoutReady) return;
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
       generation,
