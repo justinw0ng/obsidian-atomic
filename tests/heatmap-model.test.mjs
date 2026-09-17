@@ -183,5 +183,14 @@ test("sameHeatmapPaintState reuses identical duration maps", () => {
     maps: [map],
   };
   assert.equal(sameHeatmapPaintState(state, { ...state, maps: [map] }), true);
-  assert.equal(sameHeatmapPaintState(state, { ...state, maps: [new Map()] }), false);
+  assert.equal(sameHeatmapPaintState(state, { ...state, maps: [new Map()] }), true);
+  const other = new Map([["2026-01-01", { minutes: 40, path: "a.md" }]]);
+  assert.equal(sameHeatmapPaintState(state, { ...state, maps: [other] }), false);
+  assert.equal(
+    sameHeatmapPaintState(
+      { ...state, maps: [other] },
+      { ...state, maps: [new Map([["2026-01-01", { minutes: 40, path: "a.md" }]])] },
+    ),
+    true,
+  );
 });

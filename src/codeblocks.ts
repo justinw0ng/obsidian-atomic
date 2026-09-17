@@ -91,9 +91,16 @@ export function renderTrackedBlock(
   block: LiveBlock,
 ): Promise<void> {
   return enqueueBlockRender(block.el, async (generation) => {
-    if (isStaleBlockRender(block.el, generation) || !block.el.isConnected) {
+    if (isStaleBlockRender(block.el, generation)) {
       return;
     }
+    // Layout restore paints codeblocks before the file tree and metadata
+    // index are complete. Those scans are not cached (`cacheList`), so a
+    // second pass at layout ready used to redo every vault read and heatmap
+    // DOM paint. Keep the pending shell until then; `scheduleRefresh` is the
+    // first real paint. Detached Live Preview hosts still paint: the editor
+    // reattaches the same node, and heatmap/shelf ResizeObservers fix width.
+    if (!plugin.app.workspace.layoutReady) return;
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,
       generation,
@@ -112,7 +119,6 @@ export async function renderBlock(
     beginPaint: () => Component;
   },
 ): Promise<void> {
-  if (!el.isConnected) return;
   const opts = parseBlockOptions(source);
   const sourcePath = ctx.sourcePath || "";
   const data = plugin.data;

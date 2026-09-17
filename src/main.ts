@@ -53,9 +53,9 @@ export default class FitnessPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() => {
       if (this.unloaded) return;
       // Vault `create` fires once per existing file during startup indexing;
-      // registering after layout ready skips that burst entirely. Blocks that
-      // painted during layout restore were not cached (see
-      // VaultDataSource.cacheList), so one refresh converges them.
+      // registering after layout ready skips that burst entirely.
+      // `renderTrackedBlock` holds the pending shell until this callback, so
+      // `scheduleRefresh` is the first real paint (and the first cached scan).
       this.registerVaultEvents();
       for (const path of dedicatedCueHostPaths(this.settings)) {
         void this.data.processNote(path, rewriteDedicatedCueFences);
@@ -258,8 +258,8 @@ export default class FitnessPlugin extends Plugin {
   }
 
   async refreshAll() {
-    // renderTrackedBlock skips detached hosts, so they stay registered for the
-    // repaint that follows the editor reattaching them. See trackLiveBlock.
+    // Detached Live Preview hosts stay registered and still paint: the editor
+    // reattaches the same node. AtomicBlockChild onload/onunload own the list.
     await Promise.all(
       this.liveBlocks.map((block) => renderTrackedBlock(this, block)),
     );

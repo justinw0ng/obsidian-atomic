@@ -62,6 +62,22 @@ export function heatmapActivityKey(activities: readonly ActivityType[]): string 
   return activities.map(activityPaintKey).join("|");
 }
 
+/** True when two duration maps would paint the same heatmap cells. */
+export function sameDurationMap(
+  left: Map<string, DayActivity>,
+  right: Map<string, DayActivity>,
+): boolean {
+  if (left === right) return true;
+  if (left.size !== right.size) return false;
+  for (const [date, entry] of left) {
+    const other = right.get(date);
+    if (!other || other.minutes !== entry.minutes || other.path !== entry.path) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function sameHeatmapPaintState(
   previous: HeatmapPaintState | undefined,
   next: HeatmapPaintState,
@@ -74,33 +90,7 @@ export function sameHeatmapPaintState(
     previous.layoutKey === next.layoutKey &&
     previous.activityKey === next.activityKey &&
     sameList(previous.invalidIds, next.invalidIds) &&
-    sameList(previous.maps, next.maps)
-  );
-}
-
-export type BookShelfPaintState = {
-  files: readonly unknown[];
-  activityId: string;
-  hasActivity: boolean;
-  scale: number;
-  language: Language;
-  statuses: readonly string[] | null;
-  invalidStatuses: readonly string[];
-};
-
-export function sameBookShelfPaintState(
-  previous: BookShelfPaintState | undefined,
-  next: BookShelfPaintState,
-): boolean {
-  if (!previous) return false;
-  return (
-    previous.files === next.files &&
-    previous.activityId === next.activityId &&
-    previous.hasActivity === next.hasActivity &&
-    previous.scale === next.scale &&
-    previous.language === next.language &&
-    sameList(previous.statuses, next.statuses) &&
-    sameList(previous.invalidStatuses, next.invalidStatuses)
+    sameList(previous.maps, next.maps, sameDurationMap)
   );
 }
 

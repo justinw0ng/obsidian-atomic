@@ -84,4 +84,11 @@ test("tracking only replaces the same host and untracks on unload", () => {
   const processor = bracedBlock(codeblocks, "export function registerCodeblocks(");
   assert.match(processor, /ctx\.addChild\(new AtomicBlockChild\(el, plugin, block\)\)/);
   assert.doesNotMatch(processor, /trackLiveBlock/);
+
+  const tracked = bracedBlock(codeblocks, "export function renderTrackedBlock(");
+  assert.match(tracked, /if \(!plugin\.app\.workspace\.layoutReady\) return;/);
+  assert.doesNotMatch(tracked, /scheduleRefresh\(\)/);
+  assert.doesNotMatch(tracked, /isConnected/);
+  const render = bracedBlock(codeblocks, "export async function renderBlock(");
+  assert.doesNotMatch(render, /isConnected/);
 });
