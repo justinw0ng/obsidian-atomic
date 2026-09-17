@@ -1,7 +1,7 @@
 {
   "version": "1.4.4",
   "body": {
-    "en": "Cues are index cards you fill in from a form — multiline markdown and Traditional Chinese included.",
-    "zh-Hant": "提示而家係一張張索引卡 — 用表格填寫就得，支援多行 markdown 同繁體中文。"
+    "en": "Performance improvements — daily notes and heatmaps open with less repeated work, so Atomic stays snappier on large vaults and on mobile.",
+    "zh-Hant": "Atomic 用起嚟更順咗 — 開每日筆記同熱圖會快啲，手機同大筆記庫都更流暢。"
   }
 }
