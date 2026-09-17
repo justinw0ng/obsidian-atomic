@@ -190,4 +190,10 @@ test("skill and AGENTS.md keep in-app update notes and optional Actions inputs",
   assert.match(cloud, /never ship with catalog behind manifest/);
   assert.doesNotMatch(release, /staged 1\.1\.9 bodies/);
   assert.doesNotMatch(release, /catalog `version` stays at the current manifest/);
+  assert.match(release, /中英夾雜/);
+  assert.match(release, /口語語法/);
+  assert.match(release, /開每日筆記同Heat Map會快啲/);
+  for (const text of [skill, agents]) {
+    assert.match(text, /中英夾雜/);
+  }
 });

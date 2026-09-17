@@ -166,17 +166,17 @@ test("bundled update notes catalog is bilingual", () => {
   assert.equal(disk.body["zh-Hant"], bodies["zh-Hant"]);
   assert.equal(UPDATE_NOTE.body.en, bodies.en);
   assert.equal(UPDATE_NOTE.body["zh-Hant"], bodies["zh-Hant"]);
-  assert.match(bodies.en, /index cards/);
-  assert.match(bodies.en, /form/);
-  assert.match(bodies.en, /Traditional Chinese/);
+  assert.match(bodies.en, /Performance improvements/);
+  assert.match(bodies.en, /daily notes/);
+  assert.match(bodies.en, /heatmaps/);
   assert.doesNotMatch(
     bodies.en,
-    /What's new note once|New installs|Demo examples|Start \/ Stop|card layout|Performance improvements|fewer vault reads|short toast|scrollbars/,
+    /What's new note once|New installs|Demo examples|Start \/ Stop|card layout|index cards|fewer vault reads|short toast|scrollbars/,
   );
-  assert.match(bodies["zh-Hant"], /索引卡/);
-  assert.match(bodies["zh-Hant"], /表格/);
-  assert.match(bodies["zh-Hant"], /繁體中文/);
-  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版|而家用卡片嚟排|效能提升|少咗讀 vault/);
+  assert.match(bodies["zh-Hant"], /用起嚟更順咗/);
+  assert.match(bodies["zh-Hant"], /每日筆記/);
+  assert.match(bodies["zh-Hant"], /Heat Map/);
+  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版|而家用卡片嚟排|效能提升|少咗讀 vault|索引卡/);
 });
 
 test("requiredUpdateNoteBodies rejects a blank or mismatched note", () => {
