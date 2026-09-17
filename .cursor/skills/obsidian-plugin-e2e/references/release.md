@@ -61,7 +61,23 @@ Optional notes when cutting Release:
 
 The GitHub Release body uses the English `release_notes` input when set (auto-generated notes are still appended). In-app uses both.
 
+### Cantonese voice (`body.zh-Hant` / `release_notes_zh_hant`)
+
+Write **Hong Kong spoken Cantonese** (口語語法): how someone would say it out loud, not Mandarin-calqued 書面語 and not an English sentence with Chinese words glued on.
+
+**中英夾雜 is expected and preferred** when that is how people talk. Keep familiar English nouns (Heat Map, notes, timer) inside Cantonese sentences instead of forcing awkward full translations. Everyday and human-friendly — not a stiff technical essay.
+
+Good (1.4.5 performance):
+
+```
+Atomic 用起嚟更順咗 — 開每日筆記同Heat Map會快啲，就算多notes 係電腦同手機都會更流暢。
+```
+
+Bad: English grammar with Chinese substitutions; or over-translated 書面語 nobody would say (效能提升、減少重複讀取 vault).
+
 ### 1.1.9 note (optional paste into Release)
+
+Historical paste. New notes follow the Cantonese voice rule above.
 
 English (`release_notes`):
 
