@@ -1244,7 +1244,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.promptUpdateNoteIfNeeded();
       `);
       const cantoneseNotice = await waitForNotice(driver, "用起嚟更順咗");
-      assert.match(String(cantoneseNotice), /大筆記庫/);
+      assert.match(String(cantoneseNotice), /Heat Map/);
       assert.match(String(cantoneseNotice), /What's new in/);
 
       await driver.executeScript(`

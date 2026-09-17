@@ -175,7 +175,7 @@ test("bundled update notes catalog is bilingual", () => {
   );
   assert.match(bodies["zh-Hant"], /用起嚟更順咗/);
   assert.match(bodies["zh-Hant"], /每日筆記/);
-  assert.match(bodies["zh-Hant"], /大筆記庫/);
+  assert.match(bodies["zh-Hant"], /Heat Map/);
   assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版|而家用卡片嚟排|效能提升|少咗讀 vault|索引卡/);
 });
 
