@@ -4,6 +4,19 @@ export function normalizeSlashes(path: string): string {
   return path.replace(/\\/g, "/").replace(/\/+/g, "/");
 }
 
+function isSafeRelativeSegments(path: string): boolean {
+  if (!path || path === "/") return false;
+  if (path.startsWith("/")) return false;
+  if (/^[a-zA-Z]:/.test(path)) return false;
+
+  const segments = path.split("/");
+  if (segments.length === 0) return false;
+  for (const seg of segments) {
+    if (!seg || seg === "." || seg === "..") return false;
+  }
+  return true;
+}
+
 /**
  * Returns true when `folder` is a non-empty vault-relative path with no
  * `.` / `..` segments and no absolute/drive prefix.
@@ -13,17 +26,20 @@ export function isSafeVaultFolder(folder: string): boolean {
   const trimmed = folder.trim();
   if (!trimmed) return false;
 
-  const normalized = normalizeSlashes(trimmed);
-  if (!normalized || normalized === "/") return false;
-  if (normalized.startsWith("/")) return false;
-  if (/^[a-zA-Z]:/.test(normalized)) return false;
+  const normalized = normalizeSlashes(trimmed).replace(/\/$/, "");
+  return isSafeRelativeSegments(normalized);
+}
 
-  const segments = normalized.replace(/\/$/, "").split("/");
-  if (segments.length === 0) return false;
-  for (const seg of segments) {
-    if (!seg || seg === "." || seg === "..") return false;
-  }
-  return true;
+/**
+ * True when `path` is a vault-relative markdown note (`.md`) with no
+ * `.` / `..` segments and no absolute/drive prefix.
+ */
+export function isSafeVaultNotePath(path: string): boolean {
+  if (typeof path !== "string") return false;
+  const normalized = normalizeSlashes(path.trim());
+  if (!normalized.endsWith(".md")) return false;
+  if (normalized.endsWith("/.md")) return false;
+  return isSafeRelativeSegments(normalized);
 }
 
 /**

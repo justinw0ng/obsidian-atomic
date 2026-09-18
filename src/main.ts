@@ -1,4 +1,8 @@
 import { Notice, Plugin } from "obsidian";
+import {
+  createDailyNoteTemplateCommand,
+  createTodaysDailyNoteCommand,
+} from "./commands/create-daily-note";
 import { createActivitySession } from "./commands/create-session";
 import { createHobbyItem, createReadingItem } from "./commands/create-reading-item";
 import { registerCodeblocks, renderTrackedBlock, type LiveBlock } from "./codeblocks";
@@ -153,6 +157,31 @@ export default class FitnessPlugin extends Plugin {
         void createCuesHostCommand(
           this.data,
           this.settings.activityTypes,
+          this.settings.language,
+        );
+      },
+    });
+
+    this.addCommand({
+      id: "create-daily-note-template",
+      name: t("command.createDailyNoteTemplate", this.settings.language),
+      callback: () => {
+        void createDailyNoteTemplateCommand(
+          this.data,
+          this.settings.activityTypes,
+          this.settings.language,
+        );
+      },
+    });
+
+    this.addCommand({
+      id: "create-todays-daily-note",
+      name: t("command.createTodaysDailyNote", this.settings.language),
+      callback: () => {
+        void createTodaysDailyNoteCommand(
+          this.data,
+          this.settings.activityTypes,
+          this.settings.timezone,
           this.settings.language,
         );
       },

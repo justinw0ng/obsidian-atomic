@@ -4,7 +4,10 @@ import { actionActivities } from "../util/action-activities";
 export function renderActions(el: HTMLElement, plugin: FitnessPlugin): void {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const wrap = root.createDiv({ cls: "fitness-actions" });
+  const wrap = root.createDiv({
+    cls: "fitness-actions",
+    attr: { "data-testid": "atomic-actions" },
+  });
 
   for (const activity of actionActivities(plugin.settings.activityTypes)) {
     const button = wrap.createEl("button", { text: activity.label });

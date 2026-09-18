@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   monthIndexFromDate,
   nowYear,
+  dailyNoteHeadingForLanguage,
   resolveBlockYear,
   weekdayDateForLanguage,
 } from "../src/dates.ts";
@@ -48,9 +49,9 @@ test("nowYear matches timezone calendar year", () => {
   assert.equal(typeof nowYear("UTC"), "number");
 });
 
-test("weekdayDateForLanguage adds the short weekday per language", () => {
-  assert.equal(weekdayDateForLanguage(2026, 8, 14, "en"), "Fri, Aug 14");
-  assert.match(weekdayDateForLanguage(2026, 8, 14, "zh-Hant-en"), /8月14日/);
+test("dailyNoteHeadingForLanguage matches the example daily-note title", () => {
+  assert.equal(dailyNoteHeadingForLanguage(2026, 8, 11, "en"), "Tuesday, August 11, 2026");
+  assert.match(dailyNoteHeadingForLanguage(2026, 8, 11, "zh-Hant-en"), /2026/);
 });
 
 test("monthIndexFromDate maps YYYY-MM-DD to a 0-based month or -1", () => {

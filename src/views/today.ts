@@ -29,7 +29,7 @@ export function renderTodaySessions(
 ): void {
   el.empty();
   const root = el.createDiv({ cls: "fitness-plugin" });
-  const box = root.createDiv();
+  const box = root.createDiv({ attr: { "data-testid": "atomic-today" } });
   box.createEl("strong", { text: t("view.today.title", language) });
   const ul = box.createEl("ul");
   const year = Number(dateStr.slice(0, 4));

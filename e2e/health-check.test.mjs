@@ -882,6 +882,89 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
     });
   });
 
+  it("creates the daily note template and today's daily note without overwriting", async () => {
+    await check(driver, "daily-note-template", async () => {
+      const templatePath = "Templates/Atomic daily note.md";
+      const todayPath = await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        const tz = plugin.settings.timezone || "UTC";
+        const ymd = new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date());
+        return "Daily notes/" + ymd + ".md";
+      `);
+
+      await runCommandViaPalette(driver, "Create daily note template");
+      await waitForNotice(driver, "Created daily note template");
+
+      const templateCreated = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(templatePath)});
+        if (!file) { done({ missing: true }); return; }
+        app.vault.read(file).then(
+          (md) => done({ markdown: md }),
+          (err) => done({ error: String(err) }),
+        );
+      `);
+      assert.equal(templateCreated.missing, undefined, String(templateCreated.error || "template missing"));
+      const templateMd = String(templateCreated.markdown);
+      assert.match(templateMd, /```atomic-bookshelf/);
+      assert.match(templateMd, /```atomic-actions/);
+      assert.match(templateMd, /```atomic-heatmap/);
+      assert.match(templateMd, /```atomic-today/);
+      assert.match(templateMd, /\{\{date:dddd, MMMM D, YYYY\}\}/);
+      assert.doesNotMatch(templateMd, /^year:\s*\d{4}/m);
+
+      const kept = "# keep daily template\n";
+      await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(templatePath)});
+        app.vault.modify(file, ${JSON.stringify(kept)}).then(
+          () => done(true),
+          (err) => done(String(err)),
+        );
+      `);
+
+      await runCommandViaPalette(driver, "Create daily note template");
+      await waitForNotice(driver, "Daily note template already exists");
+      const afterSecond = await driver.executeAsyncScript(`
+        const done = arguments[0];
+        const file = app.vault.getAbstractFileByPath(${JSON.stringify(templatePath)});
+        app.vault.read(file).then((md) => done(md), (err) => done(String(err)));
+      `);
+      assert.equal(String(afterSecond), kept, "Create daily note template must not overwrite");
+
+      await runCommandViaPalette(driver, "Create today's daily note");
+      await waitForNotice(driver, "Created today's daily note");
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === todayPath;
+      }, 10000);
+
+      await waitCss(driver, '[data-testid="atomic-bookshelf"]');
+      await waitCss(driver, '[data-testid="atomic-actions"]');
+      await waitCss(driver, '[data-testid="atomic-heatmap"]');
+      await waitCss(driver, '[data-testid="atomic-today"]');
+
+      const buttons = await driver.executeScript(`
+        return [...document.querySelectorAll('[data-testid="atomic-actions"] button')]
+          .map((button) => button.textContent.trim());
+      `);
+      assert.ok(Array.isArray(buttons) && buttons.includes("Gym"), String(buttons));
+      assert.ok(buttons.includes("Golf"));
+      assert.ok(buttons.includes("Reading"));
+
+      await runCommandViaPalette(driver, "Create today's daily note");
+      await waitForNotice(driver, "Opened existing daily note");
+      await saveScreenshot(driver, "daily-note-template");
+    });
+  });
+
   it("switches the dashboard year in place", async () => {
     await check(driver, "dashboard-year", async () => {
       const year = today.slice(0, 4);

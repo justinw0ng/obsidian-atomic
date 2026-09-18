@@ -22,7 +22,7 @@ Every cue of the year as a fanned stack of index cards. Hover to preview, then c
 
 Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
 
-Daily note template setup: [examples/README.md](examples/README.md#use-the-daily-note-template).
+Command palette: **Create today's daily note** (`Daily notes/YYYY-MM-DD.md`) and **Create daily note template** (`Templates/Atomic daily note.md`). Daily notes wiring: [examples/README.md](examples/README.md#use-the-daily-note-template).
 
 ## What it does
 
