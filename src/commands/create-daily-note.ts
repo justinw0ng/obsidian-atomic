@@ -1,6 +1,6 @@
 import type { VaultDataSource } from "../data/vault-source";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { dailyNoteTemplateMarkdown, dailyNoteTemplatePath, todaysDailyNoteMarkdown, todaysDailyNotePath } from "../core/daily-note.ts";
+import { DAILY_NOTE_TEMPLATE_PATH, dailyNoteTemplateMarkdown, todaysDailyNoteMarkdown, todaysDailyNotePath } from "../core/daily-note.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { ymdInZone } from "../dates.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -18,17 +18,28 @@ function noticeErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+async function createNoteIfMissing(
+  data: VaultDataSource,
+  path: string,
+  content: string,
+): Promise<DailyNoteCreateResult> {
+  if (data.exists(path)) {
+    return { path, created: false };
+  }
+  await data.createNote(path, content);
+  return { path, created: true };
+}
+
 export async function createDailyNoteTemplateFile(
   data: VaultDataSource,
   activityTypes: readonly ActivityType[],
   language: Language = "en",
 ): Promise<DailyNoteCreateResult> {
-  const path = dailyNoteTemplatePath();
-  if (data.exists(path)) {
-    return { path, created: false };
-  }
-  await data.createNote(path, dailyNoteTemplateMarkdown(language, activityTypes));
-  return { path, created: true };
+  return createNoteIfMissing(
+    data,
+    DAILY_NOTE_TEMPLATE_PATH,
+    dailyNoteTemplateMarkdown(language, activityTypes),
+  );
 }
 
 export async function createTodaysDailyNoteFile(
@@ -39,12 +50,11 @@ export async function createTodaysDailyNoteFile(
   now: Date = new Date(),
 ): Promise<DailyNoteCreateResult> {
   const date = ymdInZone(now, timezone);
-  const path = todaysDailyNotePath(date);
-  if (data.exists(path)) {
-    return { path, created: false };
-  }
-  await data.createNote(path, todaysDailyNoteMarkdown(language, activityTypes, date));
-  return { path, created: true };
+  return createNoteIfMissing(
+    data,
+    todaysDailyNotePath(date),
+    todaysDailyNoteMarkdown(language, activityTypes, date),
+  );
 }
 
 export async function createDailyNoteTemplateCommand(
@@ -73,7 +83,6 @@ export async function createTodaysDailyNoteCommand(
   activityTypes: readonly ActivityType[],
   timezone: string,
   language: Language,
-  now: Date = new Date(),
 ): Promise<void> {
   try {
     const result = await createTodaysDailyNoteFile(
@@ -81,7 +90,6 @@ export async function createTodaysDailyNoteCommand(
       activityTypes,
       timezone,
       language,
-      now,
     );
     await data.openPath(result.path);
     showNotice(

@@ -4,15 +4,12 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  DAILY_NOTE_TEMPLATE_FILENAME,
-  DAILY_NOTE_TEMPLATE_FOLDER,
   DAILY_NOTE_TEMPLATE_PATH,
   DAILY_NOTES_FOLDER,
   OBSIDIAN_DAILY_NOTE_DATE_TOKEN,
   dailyNoteBookshelfActivityId,
   dailyNoteHeatmapActivityOption,
   dailyNoteTemplateMarkdown,
-  dailyNoteTemplatePath,
   todaysDailyNoteMarkdown,
   todaysDailyNotePath,
 } from "../src/core/daily-note.ts";
@@ -53,11 +50,6 @@ function mockData(existing = {}) {
 
 test("daily note template path is the core Templates example location", () => {
   assert.equal(DAILY_NOTE_TEMPLATE_PATH, "Templates/Atomic daily note.md");
-  assert.equal(
-    DAILY_NOTE_TEMPLATE_PATH,
-    `${DAILY_NOTE_TEMPLATE_FOLDER}/${DAILY_NOTE_TEMPLATE_FILENAME}`,
-  );
-  assert.equal(dailyNoteTemplatePath(), DAILY_NOTE_TEMPLATE_PATH);
   assert.equal(DAILY_NOTES_FOLDER, "Daily notes");
   assert.equal(todaysDailyNotePath("2026-08-11"), "Daily notes/2026-08-11.md");
 });

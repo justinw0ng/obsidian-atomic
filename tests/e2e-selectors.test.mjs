@@ -67,6 +67,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(dailyNote, /atomic-heatmap/);
   assert.match(dailyNote, /atomic-today/);
   assert.doesNotMatch(dailyNote, /innerHTML/);
+  assert.doesNotMatch(dailyNote, /DailyNoteHeadingKind/);
 
   const dailyNoteCmd = src("src/commands/create-daily-note.ts");
   assert.match(dailyNoteCmd, /createDailyNoteTemplateFile/);
