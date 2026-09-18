@@ -54,6 +54,11 @@ test("dailyNoteHeadingForLanguage matches the example daily-note title", () => {
   assert.match(dailyNoteHeadingForLanguage(2026, 8, 11, "zh-Hant-en"), /2026/);
 });
 
+test("weekdayDateForLanguage adds the short weekday per language", () => {
+  assert.equal(weekdayDateForLanguage(2026, 8, 14, "en"), "Fri, Aug 14");
+  assert.match(weekdayDateForLanguage(2026, 8, 14, "zh-Hant-en"), /8月14日/);
+});
+
 test("monthIndexFromDate maps YYYY-MM-DD to a 0-based month or -1", () => {
   assert.equal(monthIndexFromDate("2026-08-14"), 7);
   assert.equal(monthIndexFromDate("2026-13-01"), -1);

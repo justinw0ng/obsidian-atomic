@@ -32,6 +32,13 @@ test("isSafeVaultFolder rejects absolute-style paths", () => {
   assert.equal(isSafeVaultFolder("c:\\Gym"), false);
 });
 
+test("isSafeVaultFolder accepts vault-relative folders", () => {
+  assert.equal(isSafeVaultFolder("Gym"), true);
+  assert.equal(isSafeVaultFolder("Golf"), true);
+  assert.equal(isSafeVaultFolder("Fitness/Gym"), true);
+  assert.equal(isSafeVaultFolder("My Gym"), true);
+});
+
 test("isSafeVaultNotePath accepts vault-relative markdown notes", () => {
   assert.equal(isSafeVaultNotePath("Templates/Atomic daily note.md"), true);
   assert.equal(isSafeVaultNotePath("Daily notes/2026-08-11.md"), true);
