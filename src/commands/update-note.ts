@@ -44,7 +44,7 @@ export function promptPendingUpdateNote(plugin: FitnessPlugin): void {
 function showUpdateNoteNotice(message: string): void {
   activeUpdateNotice?.hide();
   const notice = new Notice(message, UPDATE_NOTE_NOTICE_MS);
-  notice.noticeEl.addClass("atomic-update-note-notice");
-  notice.noticeEl.setAttr("data-testid", "atomic-update-note-notice");
+  notice.messageEl.addClass("atomic-update-note-notice");
+  notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
   activeUpdateNotice = notice;
 }

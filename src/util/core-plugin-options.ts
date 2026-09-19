@@ -75,7 +75,7 @@ function readDailyNotesFormat(instance: unknown, options: unknown): string {
   const getFormat = instance.getFormat;
   if (typeof getFormat !== "function") return DEFAULT_DAILY_NOTE_FORMAT;
   try {
-    const format = getFormat.call(instance);
+    const format = (getFormat as (this: object) => unknown).call(instance);
     return typeof format === "string" && format.trim()
       ? format.trim()
       : DEFAULT_DAILY_NOTE_FORMAT;
