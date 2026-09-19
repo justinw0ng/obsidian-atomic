@@ -78,6 +78,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(dailyNoteCmd, /readDailyNotesCoreSettings/);
   assert.match(dailyNoteCmd, /readTemplatesCoreSettings/);
   assert.doesNotMatch(dailyNoteCmd, /innerHTML/);
+  assert.doesNotMatch(dailyNoteCmd, /globalThis/);
+  assert.match(dailyNoteCmd, /activeWindow/);
   assert.doesNotMatch(dailyNoteCmd, /Templates\/Atomic daily note/);
   assert.doesNotMatch(dailyNoteCmd, /Daily notes/);
 
@@ -87,6 +89,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(corePluginOptions, /getEnabledPluginById/);
   assert.match(corePluginOptions, /getPluginById/);
   assert.match(corePluginOptions, /getFormat/);
+  assert.match(corePluginOptions, /\(getFormat as \(this: object\) => unknown\)\.call\(instance\)/);
 
   const actions = src("src/views/actions.ts");
   assert.match(actions, /data-testid": "atomic-actions"/);
@@ -106,6 +109,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(updateNote, /new Notice\(/);
   assert.match(updateNote, /formatUpdateNoteNotice/);
   assert.match(updateNote, /updateNoteBodyForLanguage/);
+  assert.match(updateNote, /messageEl/);
+  assert.doesNotMatch(updateNote, /noticeEl/);
   assert.doesNotMatch(updateNote, /innerHTML/);
   assert.doesNotMatch(updateNote, /Modal/);
   assert.doesNotMatch(updateNote, /atomic-update-note-modal/);

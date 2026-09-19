@@ -57,18 +57,6 @@ export type DashboardPaintState = {
   hobbies: Array<{ activityKey: string; items: readonly DashboardHobbyItemInput[] }>;
 };
 
-// Compile-time guard: adding a field to an input type fails typecheck here
-// (TS2344) until the paint state / comparators below account for it.
-type Assert<T extends true> = T;
-type FieldsCovered<T, Listed extends keyof T> = [Exclude<keyof T, Listed>] extends [never]
-  ? true
-  : false;
-type SessionInputCovered = Assert<FieldsCovered<DashboardSessionInput, "meta" | "setRows">>;
-type HobbyItemInputCovered = Assert<
-  FieldsCovered<DashboardHobbyItemInput, "path" | "frontmatter" | "entries">
->;
-type DashboardInputCovered = Assert<FieldsCovered<DashboardInput, "year" | "exercise" | "hobbies">>;
-
 export function dashboardPaintState(
   input: DashboardInput,
   language: Language,

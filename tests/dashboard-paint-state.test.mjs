@@ -192,3 +192,8 @@ test("dashboard view skips identical repaints before touching the DOM", () => {
   assert.match(view, /EMPTY_SET_ROWS/);
   assert.doesNotMatch(view, /NO_SET_ROWS/);
 });
+
+test("dashboard model does not keep unused field-coverage type aliases", () => {
+  const model = readFileSync(join(root, "src/core/dashboard.ts"), "utf8");
+  assert.doesNotMatch(model, /SessionInputCovered|HobbyItemInputCovered|DashboardInputCovered/);
+});

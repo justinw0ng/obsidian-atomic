@@ -32,8 +32,12 @@ function requireSafeVaultNotePath(path: string): string {
   return normalized;
 }
 
-function readGlobalMoment(): MomentLike | null {
-  const moment = (globalThis as { moment?: MomentLike }).moment;
+function readActiveWindowMoment(): MomentLike | null {
+  const host =
+    typeof activeWindow === "undefined"
+      ? undefined
+      : (activeWindow as typeof activeWindow & { moment?: MomentLike });
+  const moment = host?.moment;
   return typeof moment === "function" ? moment : null;
 }
 
@@ -43,7 +47,7 @@ export function dailyNoteFilenameStem(ymd: string, format: string): string {
   }
   const fmt = format.trim() || DEFAULT_DAILY_NOTE_FORMAT;
   if (fmt === DEFAULT_DAILY_NOTE_FORMAT) return ymd;
-  const moment = readGlobalMoment();
+  const moment = readActiveWindowMoment();
   if (!moment) {
     throw new Error("Daily note format requires moment");
   }

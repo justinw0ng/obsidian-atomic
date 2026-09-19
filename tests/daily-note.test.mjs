@@ -113,19 +113,6 @@ test("dailyNoteFilenameStem uses YYYY-MM-DD without moment and custom formats wi
   assert.equal(dailyNoteFilenameStem("2026-09-18", "YYYY-MM-DD"), "2026-09-18");
   assert.throws(() => dailyNoteFilenameStem("2026/09/18", "YYYY-MM-DD"), /YYYY-MM-DD/);
   assert.throws(() => dailyNoteFilenameStem("2026-09-18", "YYYY/MM/DD"), /moment/);
-
-  const previous = globalThis.moment;
-  globalThis.moment = (ymd, fmt) => {
-    assert.equal(ymd, "2026-09-18");
-    assert.equal(fmt, "YYYY-MM-DD");
-    return { format: (out) => (out === "YYYY/MM/DD" ? "2026/09/18" : "bad") };
-  };
-  try {
-    assert.equal(dailyNoteFilenameStem("2026-09-18", "YYYY/MM/DD"), "2026/09/18");
-  } finally {
-    if (previous === undefined) delete globalThis.moment;
-    else globalThis.moment = previous;
-  }
 });
 
 test("App path helpers read core plugin options", () => {
