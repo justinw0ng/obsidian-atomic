@@ -1,7 +1,7 @@
 {
-  "version": "1.4.5",
+  "version": "1.4.6",
   "body": {
-    "en": "Performance improvements — daily notes and heatmaps open with less repeated work, so Atomic stays snappier on large vaults and on mobile.",
-    "zh-Hant": "Atomic 用起嚟更順咗 — 開每日筆記同Heat Map會快啲，就算多notes 係電腦同手機都會更流暢。"
+    "en": "You can create daily notes or templates from the command palette.",
+    "zh-Hant": "而家可以用 command palette create daily note 或者 template。"
   }
 }
