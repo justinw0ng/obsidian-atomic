@@ -1222,7 +1222,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       await waitCss(driver, '[data-testid="atomic-update-note-notice"]');
       const englishNotice = await waitForNotice(driver, "What's new in");
       assert.match(String(englishNotice), /command palette/i);
-      assert.match(String(englishNotice), /daily note template/);
+      assert.match(String(englishNotice), /daily notes/);
       const leftoverModals = await driver.findElements(
         By.css('[data-testid="atomic-update-note-modal"]'),
       );
@@ -1243,8 +1243,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      const cantoneseNotice = await waitForNotice(driver, "寫死 folder");
-      assert.match(String(cantoneseNotice), /Daily Notes/);
+      const cantoneseNotice = await waitForNotice(driver, "整 daily note");
+      assert.match(String(cantoneseNotice), /command palette/);
       assert.match(String(cantoneseNotice), /What's new in/);
 
       await driver.executeScript(`

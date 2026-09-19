@@ -1,7 +1,7 @@
 {
   "version": "1.4.6",
   "body": {
-    "en": "Command palette can create a daily note template and today's daily note, using your Daily Notes and Templates paths — not hardcoded folders.",
-    "zh-Hant": "Command palette 而家可以整每日筆記 template 同今日嘅 daily note，path 跟你 Daily Notes / Templates 設定，唔係寫死 folder。"
+    "en": "You can create daily notes or templates from the command palette.",
+    "zh-Hant": "而家可以用 command palette 整 daily note 或者 template。"
   }
 }
