@@ -43,6 +43,18 @@ export function isSafeVaultNotePath(path: string): boolean {
 }
 
 /**
+ * Join a vault folder (empty = vault root) with a markdown note path.
+ * Returns null when the folder or the result is not a safe vault note.
+ */
+export function joinVaultNotePath(folder: string, notePath: string): string | null {
+  const leaf = normalizeSlashes(notePath.trim()).replace(/^\/+/, "");
+  const base = normalizeSlashes(folder.trim()).replace(/\/+$/, "");
+  if (base && !isSafeVaultFolder(base)) return null;
+  const path = base ? `${base}/${leaf}` : leaf;
+  return isSafeVaultNotePath(path) ? path : null;
+}
+
+/**
  * Boundary-safe scan prefix `{folder}/{year}/`, or null if folder is unsafe.
  * Trailing slash prevents matching sibling path prefixes.
  */

@@ -11,12 +11,17 @@ import { hobbyActivities } from "../util/activity-types.ts";
 import { actionActivities } from "../util/action-activities.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { joinVaultNotePath, normalizeSlashes } from "../util/vault-path.ts";
 
 /** Core Templates token used as the daily-note H1. */
 export const OBSIDIAN_DAILY_NOTE_DATE_TOKEN = "{{date:dddd, MMMM D, YYYY}}";
 
-export const DAILY_NOTE_TEMPLATE_PATH = "Templates/Atomic daily note.md";
-export const DAILY_NOTES_FOLDER = "Daily notes";
+/** Daily Notes core default when Settings → Date format is empty. */
+export const DEFAULT_DAILY_NOTE_FORMAT = "YYYY-MM-DD";
+
+/** Filename written when Daily Notes has no template path of its own. */
+export const DEFAULT_DAILY_NOTE_TEMPLATE_BASENAME = "Atomic daily note.md";
 
 export function dailyNoteHeatmapActivityOption(
   activityTypes: readonly ActivityType[],
@@ -83,9 +88,39 @@ export function todaysDailyNoteMarkdown(
   );
 }
 
-export function todaysDailyNotePath(date: string): string {
-  if (!parseYmd(date)) {
-    throw new Error("Daily note date must be YYYY-MM-DD");
+export type DailyNoteTemplateSettings = {
+  dailyNotesTemplate: string;
+  templatesFolder: string;
+};
+
+function withMarkdownExtension(path: string): string {
+  const normalized = normalizeSlashes(path.trim());
+  return normalized.endsWith(".md") ? normalized : `${normalized}.md`;
+}
+
+/**
+ * Daily Notes template file if set; otherwise `Atomic daily note.md` in the
+ * Templates folder (empty folder = vault root, the core default).
+ */
+export function resolveDailyNoteTemplatePath(
+  settings: DailyNoteTemplateSettings,
+): string | null {
+  const configured = normalizeSlashes(settings.dailyNotesTemplate.trim());
+  if (configured) {
+    const path = withMarkdownExtension(configured);
+    return joinVaultNotePath("", path);
   }
-  return `${DAILY_NOTES_FOLDER}/${date}.md`;
+  return joinVaultNotePath(settings.templatesFolder, DEFAULT_DAILY_NOTE_TEMPLATE_BASENAME);
+}
+
+/**
+ * Daily Notes new-file location + formatted stem (empty folder = vault root).
+ */
+export function resolveTodaysDailyNotePath(
+  folder: string,
+  stem: string,
+): string | null {
+  const trimmed = normalizeSlashes(stem.trim()).replace(/\.md$/i, "");
+  if (!trimmed) return null;
+  return joinVaultNotePath(folder, `${trimmed}.md`);
 }

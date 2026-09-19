@@ -4,18 +4,22 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  DAILY_NOTE_TEMPLATE_PATH,
-  DAILY_NOTES_FOLDER,
+  DEFAULT_DAILY_NOTE_FORMAT,
+  DEFAULT_DAILY_NOTE_TEMPLATE_BASENAME,
   OBSIDIAN_DAILY_NOTE_DATE_TOKEN,
   dailyNoteBookshelfActivityId,
   dailyNoteHeatmapActivityOption,
   dailyNoteTemplateMarkdown,
+  resolveDailyNoteTemplatePath,
+  resolveTodaysDailyNotePath,
   todaysDailyNoteMarkdown,
-  todaysDailyNotePath,
 } from "../src/core/daily-note.ts";
 import {
   createDailyNoteTemplateFile,
   createTodaysDailyNoteFile,
+  dailyNoteFilenameStem,
+  dailyNoteTemplatePathFromApp,
+  todaysDailyNoteTargetFromApp,
 } from "../src/commands/create-daily-note.ts";
 import { dailyNoteHeadingForLanguage } from "../src/dates.ts";
 import { defaultAtomicBlockFence } from "../src/util/codeblock-defaults.ts";
@@ -48,16 +52,104 @@ function mockData(existing = {}) {
   };
 }
 
-test("daily note template path is the core Templates example location", () => {
-  assert.equal(DAILY_NOTE_TEMPLATE_PATH, "Templates/Atomic daily note.md");
-  assert.equal(DAILY_NOTES_FOLDER, "Daily notes");
-  assert.equal(todaysDailyNotePath("2026-08-11"), "Daily notes/2026-08-11.md");
+function mockDailyNotesApp({
+  folder = "",
+  format = DEFAULT_DAILY_NOTE_FORMAT,
+  template = "",
+  templatesFolder = "",
+} = {}) {
+  return {
+    internalPlugins: {
+      getEnabledPluginById: (id) => {
+        if (id === "daily-notes") return { options: { folder, format, template } };
+        if (id === "templates") return { options: { folder: templatesFolder } };
+        return null;
+      },
+    },
+  };
+}
+
+test("daily note paths follow Daily Notes / Templates settings or vault-root defaults", () => {
+  assert.equal(DEFAULT_DAILY_NOTE_FORMAT, "YYYY-MM-DD");
+  assert.equal(DEFAULT_DAILY_NOTE_TEMPLATE_BASENAME, "Atomic daily note.md");
+  assert.equal(
+    resolveDailyNoteTemplatePath({ dailyNotesTemplate: "", templatesFolder: "" }),
+    "Atomic daily note.md",
+  );
+  assert.equal(
+    resolveDailyNoteTemplatePath({
+      dailyNotesTemplate: "",
+      templatesFolder: "Snippets",
+    }),
+    "Snippets/Atomic daily note.md",
+  );
+  assert.equal(
+    resolveDailyNoteTemplatePath({
+      dailyNotesTemplate: "Journal/Host",
+      templatesFolder: "Snippets",
+    }),
+    "Journal/Host.md",
+  );
+  assert.equal(
+    resolveDailyNoteTemplatePath({
+      dailyNotesTemplate: "Journal/Host.md",
+      templatesFolder: "Snippets",
+    }),
+    "Journal/Host.md",
+  );
+  assert.equal(resolveTodaysDailyNotePath("", "2026-08-11"), "2026-08-11.md");
+  assert.equal(resolveTodaysDailyNotePath("Journal", "2026-08-11"), "Journal/2026-08-11.md");
+  assert.equal(resolveTodaysDailyNotePath("Journal", "2026/08/11"), "Journal/2026/08/11.md");
+  assert.equal(resolveDailyNoteTemplatePath({
+    dailyNotesTemplate: "../evil",
+    templatesFolder: "",
+  }), null);
+  assert.equal(resolveTodaysDailyNotePath("..", "2026-08-11"), null);
+  assert.equal(resolveTodaysDailyNotePath("Journal", ""), null);
 });
 
-test("todaysDailyNotePath rejects non-YMD dates", () => {
-  assert.throws(() => todaysDailyNotePath("../evil"), /YYYY-MM-DD/);
-  assert.throws(() => todaysDailyNotePath("2026/08/11"), /YYYY-MM-DD/);
-  assert.throws(() => todaysDailyNotePath(""), /YYYY-MM-DD/);
+test("dailyNoteFilenameStem uses YYYY-MM-DD without moment and custom formats with it", () => {
+  assert.equal(dailyNoteFilenameStem("2026-09-18", ""), "2026-09-18");
+  assert.equal(dailyNoteFilenameStem("2026-09-18", "YYYY-MM-DD"), "2026-09-18");
+  assert.throws(() => dailyNoteFilenameStem("2026/09/18", "YYYY-MM-DD"), /YYYY-MM-DD/);
+  assert.throws(() => dailyNoteFilenameStem("2026-09-18", "YYYY/MM/DD"), /moment/);
+
+  const previous = globalThis.moment;
+  globalThis.moment = (ymd, fmt) => {
+    assert.equal(ymd, "2026-09-18");
+    assert.equal(fmt, "YYYY-MM-DD");
+    return { format: (out) => (out === "YYYY/MM/DD" ? "2026/09/18" : "bad") };
+  };
+  try {
+    assert.equal(dailyNoteFilenameStem("2026-09-18", "YYYY/MM/DD"), "2026/09/18");
+  } finally {
+    if (previous === undefined) delete globalThis.moment;
+    else globalThis.moment = previous;
+  }
+});
+
+test("App path helpers read core plugin options", () => {
+  assert.equal(dailyNoteTemplatePathFromApp({}), "Atomic daily note.md");
+  assert.equal(
+    dailyNoteTemplatePathFromApp(mockDailyNotesApp({ templatesFolder: "Snippets" })),
+    "Snippets/Atomic daily note.md",
+  );
+  assert.equal(
+    dailyNoteTemplatePathFromApp(
+      mockDailyNotesApp({ template: "Journal/Host", templatesFolder: "Snippets" }),
+    ),
+    "Journal/Host.md",
+  );
+
+  const now = new Date("2026-09-18T15:00:00Z");
+  assert.deepEqual(todaysDailyNoteTargetFromApp({}, "UTC", now), {
+    path: "2026-09-18.md",
+    date: "2026-09-18",
+  });
+  assert.deepEqual(
+    todaysDailyNoteTargetFromApp(mockDailyNotesApp({ folder: "Journal" }), "UTC", now),
+    { path: "Journal/2026-09-18.md", date: "2026-09-18" },
+  );
 });
 
 test("heatmap and bookshelf options follow enabled habits", () => {
@@ -120,51 +212,66 @@ test("daily note omits the book shelf when no item habit is enabled", () => {
 });
 
 test("createDailyNoteTemplateFile writes once and leaves an existing note", async () => {
+  const path = "Snippets/Atomic daily note.md";
   const data = mockData();
-  const created = await createDailyNoteTemplateFile(data, DEFAULT_ACTIVITY_TYPES, "en");
-  assert.deepEqual(created, { path: DAILY_NOTE_TEMPLATE_PATH, created: true });
+  const created = await createDailyNoteTemplateFile(data, DEFAULT_ACTIVITY_TYPES, path, "en");
+  assert.deepEqual(created, { path, created: true });
   assert.equal(
-    data.files.get(DAILY_NOTE_TEMPLATE_PATH),
+    data.files.get(path),
     dailyNoteTemplateMarkdown("en", DEFAULT_ACTIVITY_TYPES),
   );
 
   const kept = "# keep me\n";
-  const existing = mockData({ [DAILY_NOTE_TEMPLATE_PATH]: kept });
+  const existing = mockData({ [path]: kept });
   const skipped = await createDailyNoteTemplateFile(
     existing,
     DEFAULT_ACTIVITY_TYPES,
+    path,
     "en",
   );
-  assert.deepEqual(skipped, { path: DAILY_NOTE_TEMPLATE_PATH, created: false });
-  assert.equal(existing.files.get(DAILY_NOTE_TEMPLATE_PATH), kept);
+  assert.deepEqual(skipped, { path, created: false });
+  assert.equal(existing.files.get(path), kept);
   assert.deepEqual(existing.created, []);
 });
 
-test("createTodaysDailyNoteFile uses timezone today and skips existing notes", async () => {
-  const now = new Date("2026-09-18T15:00:00Z");
+test("createTodaysDailyNoteFile uses the resolved path and skips existing notes", async () => {
+  const path = "Journal/2026-09-18.md";
   const data = mockData();
   const created = await createTodaysDailyNoteFile(
     data,
     DEFAULT_ACTIVITY_TYPES,
-    "UTC",
+    path,
+    "2026-09-18",
     "en",
-    now,
   );
-  assert.deepEqual(created, { path: "Daily notes/2026-09-18.md", created: true });
+  assert.deepEqual(created, { path, created: true });
   assert.equal(
-    data.files.get("Daily notes/2026-09-18.md"),
+    data.files.get(path),
     todaysDailyNoteMarkdown("en", DEFAULT_ACTIVITY_TYPES, "2026-09-18"),
   );
 
   const skipped = await createTodaysDailyNoteFile(
     data,
     DEFAULT_ACTIVITY_TYPES,
-    "UTC",
+    path,
+    "2026-09-18",
     "en",
-    now,
   );
-  assert.deepEqual(skipped, { path: "Daily notes/2026-09-18.md", created: false });
-  assert.deepEqual(data.created, ["Daily notes/2026-09-18.md"]);
+  assert.deepEqual(skipped, { path, created: false });
+  assert.deepEqual(data.created, [path]);
+});
+
+test("create helpers refuse unsafe vault paths", async () => {
+  const data = mockData();
+  await assert.rejects(
+    () => createDailyNoteTemplateFile(data, DEFAULT_ACTIVITY_TYPES, "../evil.md", "en"),
+    /safe vault-relative/,
+  );
+  await assert.rejects(
+    () => createTodaysDailyNoteFile(data, DEFAULT_ACTIVITY_TYPES, "/tmp/x.md", "2026-09-18", "en"),
+    /safe vault-relative/,
+  );
+  assert.deepEqual(data.created, []);
 });
 
 test("create command sources notice created, existing, and failed paths", () => {
@@ -178,12 +285,15 @@ test("create command sources notice created, existing, and failed paths", () => 
   assert.match(source, /if \(data\.exists\(path\)\)/);
   assert.doesNotMatch(source, /writeNote/);
   assert.match(source, /openPath\(result\.path\)/);
+  assert.match(source, /dailyNoteTemplatePathFromApp/);
+  assert.match(source, /todaysDailyNoteTargetFromApp/);
 
   const main = readFileSync(join(root, "src/main.ts"), "utf8");
   assert.match(main, /id: "create-daily-note-template"/);
   assert.match(main, /id: "create-todays-daily-note"/);
   assert.match(main, /createDailyNoteTemplateCommand/);
   assert.match(main, /createTodaysDailyNoteCommand/);
+  assert.match(main, /this\.app/);
   assert.doesNotMatch(main, /addRibbonIcon/);
 });
 

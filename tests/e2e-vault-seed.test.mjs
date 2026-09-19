@@ -6,7 +6,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   assertSafeE2eVaultPath,
+  E2E_DAILY_NOTES_FOLDER,
+  E2E_DAILY_NOTE_TEMPLATE,
   E2E_FILES,
+  E2E_TEMPLATES_FOLDER,
   pluginSettings,
   seedE2eVault,
 } from "../e2e/lib/vault.mjs";
@@ -84,6 +87,21 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     );
     assert.equal(core.bases, true);
     assert.equal(core["command-palette"], true);
+    assert.equal(core["daily-notes"], true);
+    assert.equal(core.templates, true);
+
+    const dailyNotes = JSON.parse(
+      readFileSync(join(vault, ".obsidian/daily-notes.json"), "utf8"),
+    );
+    assert.equal(dailyNotes.folder, E2E_DAILY_NOTES_FOLDER);
+    assert.equal(dailyNotes.template, E2E_DAILY_NOTE_TEMPLATE.replace(/\.md$/, ""));
+    assert.notEqual(dailyNotes.folder, "Daily notes");
+
+    const templates = JSON.parse(
+      readFileSync(join(vault, ".obsidian/templates.json"), "utf8"),
+    );
+    assert.equal(templates.folder, E2E_TEMPLATES_FOLDER);
+    assert.notEqual(templates.folder, "Templates");
 
     const gym = readFileSync(join(vault, E2E_FILES.gymSession(year, today)), "utf8");
     assert.match(gym, /```atomic-timer/);

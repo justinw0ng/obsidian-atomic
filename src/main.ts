@@ -167,6 +167,7 @@ export default class FitnessPlugin extends Plugin {
       name: t("command.createDailyNoteTemplate", this.settings.language),
       callback: () => {
         void createDailyNoteTemplateCommand(
+          this.app,
           this.data,
           this.settings.activityTypes,
           this.settings.language,
@@ -179,6 +180,7 @@ export default class FitnessPlugin extends Plugin {
       name: t("command.createTodaysDailyNote", this.settings.language),
       callback: () => {
         void createTodaysDailyNoteCommand(
+          this.app,
           this.data,
           this.settings.activityTypes,
           this.settings.timezone,

@@ -8,7 +8,13 @@
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { By, Key } from "selenium-webdriver";
-import { E2E_FILES, seedE2eVault } from "./lib/vault.mjs";
+import {
+  E2E_DAILY_NOTES_FOLDER,
+  E2E_DAILY_NOTE_TEMPLATE,
+  E2E_FILES,
+  E2E_TEMPLATES_FOLDER,
+  seedE2eVault,
+} from "./lib/vault.mjs";
 import {
   ARTIFACT_DIR,
   attachSelenium,
@@ -884,7 +890,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
 
   it("creates the daily note template and today's daily note without overwriting", async () => {
     await check(driver, "daily-note-template", async () => {
-      const templatePath = "Templates/Atomic daily note.md";
+      const templatePath = E2E_DAILY_NOTE_TEMPLATE;
       const todayPath = await driver.executeScript(`
         const plugin = app.plugins.getPlugin("atomic-tracker");
         const tz = plugin.settings.timezone || "UTC";
@@ -894,8 +900,28 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           month: "2-digit",
           day: "2-digit",
         }).format(new Date());
-        return "Daily notes/" + ymd + ".md";
+        return ${JSON.stringify(E2E_DAILY_NOTES_FOLDER + "/")} + ymd + ".md";
       `);
+      assert.notEqual(templatePath.split("/")[0], "Templates");
+      assert.notEqual(String(todayPath).split("/")[0], "Daily notes");
+
+      const corePaths = await driver.executeScript(`
+        const daily = app.internalPlugins.getPluginById("daily-notes");
+        const templates = app.internalPlugins.getPluginById("templates");
+        const dailyOpts = daily?.instance?.options || daily?.options || {};
+        const templateOpts = templates?.instance?.options || templates?.options || {};
+        return {
+          folder: dailyOpts.folder || "",
+          template: dailyOpts.template || "",
+          templatesFolder: templateOpts.folder || "",
+        };
+      `);
+      assert.equal(corePaths.folder, E2E_DAILY_NOTES_FOLDER);
+      assert.equal(corePaths.templatesFolder, E2E_TEMPLATES_FOLDER);
+      assert.equal(
+        String(corePaths.template).replace(/\.md$/, ""),
+        E2E_DAILY_NOTE_TEMPLATE.replace(/\.md$/, ""),
+      );
 
       await runCommandViaPalette(driver, "Create daily note template");
       await waitForNotice(driver, "Created daily note template");

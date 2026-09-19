@@ -14,16 +14,13 @@ The blocks read session and hobby notes already in the vault. Empty heatmaps and
 
 ## Use the daily note template
 
-1. Command palette → **Create daily note template**. Atomic writes `Templates/Atomic daily note.md` and does not overwrite it if the file already exists.
-2. Settings → Core plugins: turn on **Templates** and **Daily notes**.
-3. Settings → Templates: set **Template folder location** to `Templates`.
-4. Settings → Daily notes:
-   - Date format: `YYYY-MM-DD`
-   - New file location: `Daily notes`
-   - Template file location: `Templates/Atomic daily note`
+1. Settings → Core plugins: turn on **Templates** and **Daily notes** if you use them.
+2. Settings → Daily notes: set **Date format**, **New file location**, and **Template file location**, or leave them empty for Obsidian defaults (`YYYY-MM-DD`, vault root, no template).
+3. Settings → Templates: set **Template folder location** if you use core Templates (empty = vault root).
+4. Command palette → **Create daily note template**. Atomic writes the Daily Notes template path if set; otherwise `Atomic daily note.md` in the Templates folder, or the vault root. It does not overwrite an existing note.
 5. Open today’s daily note (ribbon calendar, **Open today's daily note**, or Atomic’s **Create today's daily note**).
 
-**Create today's daily note** writes `Daily notes/YYYY-MM-DD.md` with the same blocks and a resolved heading, then opens it. Timer, gym set log, and cues live on the session notes those habit buttons create — not on the daily note itself.
+**Create today's daily note** writes today’s note at the Daily Notes new-file location using that date format, then opens it. Timer, gym set log, and cues live on the session notes those habit buttons create — not on the daily note itself.
 
 The heading becomes something like `Tuesday, August 11, 2026`. Bookshelf, actions, heatmaps, and today render from whatever Atomic notes you already have.
 
