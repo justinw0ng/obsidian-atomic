@@ -58,6 +58,8 @@ Do not use lookbehind regexes if `isDesktopOnly` is false.
 
 Register events with `this.registerEvent` so disable/unload drops them.
 
+Window APIs, Notice DOM, core-plugin `any`, and unused `*Covered` aliases: [obsidian-api-hygiene.md](obsidian-api-hygiene.md) (1.4.7 / #101).
+
 ## Encode each ban as a test
 
 `tests/e2e-selectors.test.mjs` is the checklist:
@@ -67,6 +69,8 @@ Register events with `this.registerEvent` so disable/unload drops them.
 - `setWarning` / `setDestructive` / recursive `display()` absent from settings
 - `getSettingDefinitions` present
 - `:has(`, `!important`, `scrollbar-width`, `mask` / `-webkit-mask` absent from `styles.css`
+- `globalThis` / `noticeEl` absent from `src/**`; `activeWindow` / `messageEl` / typed `getFormat` at the cited call sites
+- unused `*Covered` aliases absent from `src/core/dashboard.ts` (`tests/dashboard-paint-state.test.mjs`)
 
 When review invents a new ban, add a `doesNotMatch` (or a `match` for the replacement) in that file in the same PR as the fix.
 

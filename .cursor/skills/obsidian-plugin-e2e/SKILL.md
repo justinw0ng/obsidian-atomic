@@ -18,6 +18,7 @@ Read this file first, then the reference for the phase you are in. Do not skip p
 | Layering, vault data, codeblocks | [references/architecture.md](references/architecture.md) |
 | Unit tests, typecheck, build, Selenium, docs screenshots | [references/verify.md](references/verify.md) |
 | Directory review lint that actually failed here | [references/plugin-review.md](references/plugin-review.md) |
+| Window / Notice / typed `any` / unused types | [references/obsidian-api-hygiene.md](references/obsidian-api-hygiene.md) |
 | Version, GitHub Release, community directory | [references/release.md](references/release.md) |
 | Cloud VM, Obsidian install, `AGENTS.md` | [references/cloud.md](references/cloud.md) |
 | Thermo-Nuclear PR gate | This file, section 5 |
@@ -44,6 +45,7 @@ Stop and fix before the next phase if any of these fail.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
 8. Release tag is `v1.2.3` or assets omit `main.js` / `manifest.json`.
 9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear has not run on the diff vs the default branch, or REQUEST CHANGES / risk items are still open with no fix or written rationale.
+10. Plugin source uses `globalThis`, Notice `noticeEl`, raw core-plugin `any`, or unused `*Covered` aliases. Follow [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md).
 
 Computer-use is not the health check. `npm run test:e2e` is. Use computer-use only after Selenium fails and you have screenshots under the e2e artifact dir.
 
@@ -104,6 +106,7 @@ Rules:
 - Feature-detect APIs newer than `minAppVersion`. Atomic keeps `minAppVersion` at `1.5.0`, implements `display()` and `getSettingDefinitions()`, and does not call `setWarning` / `setDestructive`.
 - DOM type checks: use Obsidian's `node.instanceOf(Element)` (or `HTMLElement`, `HTMLInputElement`, …). Do not use `instanceof Element` — it fails across windows/iframes.
 - Do not add TypeScript assertions that do not change the type (`@typescript-eslint/no-unnecessary-type-assertion`). If `includes` already accepts `string`, drop `as readonly string[]`.
+- Window APIs, Notice DOM, core-plugin `any`, unused type aliases: [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md). Use `activeWindow` (not `globalThis`), Notice `messageEl` (not `noticeEl`), the typed-cast pattern in `src/util/core-plugin-options.ts`, and delete unused `*Covered` aliases.
 
 UI copy is sentence case. No default command hotkeys. No `console.log` in shipped code.
 
@@ -133,7 +136,7 @@ Details, selectors, vault seeding, skip rules, and docs/hero screenshots: [verif
 
 ## 4. Keep the review linter green
 
-Directory review is an automated gate, not a later cleanup. Encode the rules as tests the way Atomic does in `tests/e2e-selectors.test.mjs` (hooks present, `innerHTML` absent, CSS bans). See [plugin-review.md](references/plugin-review.md).
+Directory review is an automated gate, not a later cleanup. Encode the rules as tests the way Atomic does in `tests/e2e-selectors.test.mjs` (hooks present, `innerHTML` absent, CSS bans, `globalThis` / `noticeEl` absent from `src/`). See [plugin-review.md](references/plugin-review.md) and [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md).
 
 Re-read [Plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines) when a review comment appears. Fix the root cause, bump a patch, cut a new GitHub release. Editing the listing description does not re-run asset checks.
 
@@ -184,7 +187,7 @@ A change is done when:
 | Bundle | `esbuild.config.mjs` |
 | Unit tests | `tests/*.mjs` |
 | Selenium | `e2e/health-check.test.mjs`, `e2e/lib/obsidian.mjs`, `e2e/lib/vault.mjs` |
-| Hook / CSS bans | `tests/e2e-selectors.test.mjs` |
+| Hook / CSS / API-hygiene bans | `tests/e2e-selectors.test.mjs`, `tests/dashboard-paint-state.test.mjs` |
 | CI / release | `.github/workflows/ci.yml`, `.github/workflows/release.yml` |
 | Version bump | `scripts/bump-version.mjs` |
 | In-app update notes | `src/core/update-notes.json`, `src/core/update-notes.ts`, `scripts/set-update-note.mjs` |
