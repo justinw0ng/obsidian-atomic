@@ -59,6 +59,43 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   // The cue form replaced the bare markdown bullet the template used to leave.
   assert.doesNotMatch(sessionNote, /\n- \n/);
 
+  const dailyNote = src("src/core/daily-note.ts");
+  assert.match(dailyNote, /DEFAULT_DAILY_NOTE_TEMPLATE_BASENAME/);
+  assert.match(dailyNote, /resolveDailyNoteTemplatePath/);
+  assert.match(dailyNote, /resolveTodaysDailyNotePath/);
+  assert.match(dailyNote, /atomic-bookshelf/);
+  assert.match(dailyNote, /atomic-actions/);
+  assert.match(dailyNote, /atomic-heatmap/);
+  assert.match(dailyNote, /atomic-today/);
+  assert.doesNotMatch(dailyNote, /innerHTML/);
+  assert.doesNotMatch(dailyNote, /DailyNoteHeadingKind/);
+  assert.doesNotMatch(dailyNote, /Templates\/Atomic daily note/);
+  assert.doesNotMatch(dailyNote, /Daily notes/);
+
+  const dailyNoteCmd = src("src/commands/create-daily-note.ts");
+  assert.match(dailyNoteCmd, /createDailyNoteTemplateFile/);
+  assert.match(dailyNoteCmd, /createTodaysDailyNoteFile/);
+  assert.match(dailyNoteCmd, /readDailyNotesCoreSettings/);
+  assert.match(dailyNoteCmd, /readTemplatesCoreSettings/);
+  assert.doesNotMatch(dailyNoteCmd, /innerHTML/);
+  assert.doesNotMatch(dailyNoteCmd, /Templates\/Atomic daily note/);
+  assert.doesNotMatch(dailyNoteCmd, /Daily notes/);
+
+  const corePluginOptions = src("src/util/core-plugin-options.ts");
+  assert.match(corePluginOptions, /"daily-notes"/);
+  assert.match(corePluginOptions, /"templates"/);
+  assert.match(corePluginOptions, /getEnabledPluginById/);
+  assert.match(corePluginOptions, /getPluginById/);
+  assert.match(corePluginOptions, /getFormat/);
+
+  const actions = src("src/views/actions.ts");
+  assert.match(actions, /data-testid": "atomic-actions"/);
+  assert.doesNotMatch(actions, /innerHTML/);
+
+  const today = src("src/views/today.ts");
+  assert.match(today, /"data-testid": "atomic-today"/);
+  assert.doesNotMatch(today, /innerHTML/);
+
   const gymSetup = src("src/commands/gym-log-setup.ts");
   assert.match(gymSetup, /atomic-gym-log-setup-modal/);
   assert.match(gymSetup, /atomic-gym-log-setup-later/);
@@ -252,6 +289,22 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /前臂放鬆/);
   assert.match(health, /aria-expanded/);
   assert.match(health, /example\.com\/atomic-e2e/);
+  assert.match(health, /Create daily note template/);
+  assert.match(health, /Create today's daily note/);
+  assert.match(health, /E2E_DAILY_NOTE_TEMPLATE/);
+  assert.match(health, /E2E_DAILY_NOTES_FOLDER/);
+  assert.match(health, /E2E_TEMPLATES_FOLDER/);
+  assert.doesNotMatch(health, /Templates\/Atomic daily note\.md/);
+  assert.match(health, /atomic-actions/);
+  assert.match(health, /atomic-today/);
+
+  const e2eVault = src("e2e/lib/vault.mjs");
+  assert.match(e2eVault, /E2E_DAILY_NOTES_FOLDER = "Journal"/);
+  assert.match(e2eVault, /E2E_TEMPLATES_FOLDER = "Snippets"/);
+  assert.match(e2eVault, /"daily-notes": true/);
+  assert.match(e2eVault, /templates: true/);
+  assert.match(e2eVault, /daily-notes\.json/);
+  assert.match(e2eVault, /templates\.json/);
 
   const styles = src("styles.css");
   assert.match(styles, /fonts\/caveat-latin-400\.woff2/);

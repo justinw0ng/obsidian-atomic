@@ -34,6 +34,11 @@ export const E2E_CUE_LOG_FENCE = `\`\`\`atomic-cue-log
 # No options. Type a cue and add it. It is saved as a bullet under this note\u2019s Reminders heading.
 \`\`\``;
 
+/** Non-default Daily Notes / Templates paths so e2e proves we do not hardcode. */
+export const E2E_DAILY_NOTES_FOLDER = "Journal";
+export const E2E_TEMPLATES_FOLDER = "Snippets";
+export const E2E_DAILY_NOTE_TEMPLATE = "Snippets/Atomic daily note.md";
+
 export const E2E_FILES = {
   golfCues: "E2E/Golf cues.md",
   gymCues: "E2E/Gym cues.md",
@@ -288,6 +293,24 @@ function seedObsidianConfig(vault) {
   );
 
   write(
+    join(obsidianDir, "daily-notes.json"),
+    JSON.stringify(
+      {
+        format: "YYYY-MM-DD",
+        folder: E2E_DAILY_NOTES_FOLDER,
+        template: E2E_DAILY_NOTE_TEMPLATE.replace(/\.md$/, ""),
+      },
+      null,
+      2,
+    ),
+  );
+
+  write(
+    join(obsidianDir, "templates.json"),
+    JSON.stringify({ folder: E2E_TEMPLATES_FOLDER }, null, 2),
+  );
+
+  write(
     join(obsidianDir, "core-plugins.json"),
     JSON.stringify(
       {
@@ -300,8 +323,8 @@ function seedObsidianConfig(vault) {
         "outgoing-link": false,
         "tag-pane": false,
         "page-preview": true,
-        "daily-notes": false,
-        templates: false,
+        "daily-notes": true,
+        templates: true,
         "note-composer": true,
         "command-palette": true,
         "slash-command": false,

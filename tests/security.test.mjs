@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   hobbyItemsScanPrefix,
   isSafeVaultFolder,
+  isSafeVaultNotePath,
+  joinVaultNotePath,
   pathTouchesScope,
   readingItemsFolder,
   sessionScanPrefix,
@@ -36,6 +38,34 @@ test("isSafeVaultFolder accepts vault-relative folders", () => {
   assert.equal(isSafeVaultFolder("Golf"), true);
   assert.equal(isSafeVaultFolder("Fitness/Gym"), true);
   assert.equal(isSafeVaultFolder("My Gym"), true);
+});
+
+test("isSafeVaultNotePath accepts vault-relative markdown notes", () => {
+  assert.equal(isSafeVaultNotePath("Templates/Atomic daily note.md"), true);
+  assert.equal(isSafeVaultNotePath("Daily notes/2026-08-11.md"), true);
+  assert.equal(isSafeVaultNotePath("Journal/2026-08-11.md"), true);
+  assert.equal(isSafeVaultNotePath("note.md"), true);
+});
+
+test("joinVaultNotePath treats an empty folder as the vault root", () => {
+  assert.equal(joinVaultNotePath("", "Atomic daily note.md"), "Atomic daily note.md");
+  assert.equal(joinVaultNotePath("  ", "2026-08-11.md"), "2026-08-11.md");
+  assert.equal(joinVaultNotePath("Journal", "2026-08-11.md"), "Journal/2026-08-11.md");
+  assert.equal(joinVaultNotePath("Journal/", "2026/08/11.md"), "Journal/2026/08/11.md");
+  assert.equal(joinVaultNotePath("..", "x.md"), null);
+  assert.equal(joinVaultNotePath("Journal", "../x.md"), null);
+  assert.equal(joinVaultNotePath("", "note.txt"), null);
+});
+
+test("isSafeVaultNotePath rejects traversal, absolute paths, and non-markdown", () => {
+  assert.equal(isSafeVaultNotePath(""), false);
+  assert.equal(isSafeVaultNotePath("Templates/"), false);
+  assert.equal(isSafeVaultNotePath("../Atomic daily note.md"), false);
+  assert.equal(isSafeVaultNotePath("Templates/../x.md"), false);
+  assert.equal(isSafeVaultNotePath("/Templates/x.md"), false);
+  assert.equal(isSafeVaultNotePath("C:/Templates/x.md"), false);
+  assert.equal(isSafeVaultNotePath("Templates/Atomic daily note.txt"), false);
+  assert.equal(isSafeVaultNotePath("Templates/.md"), false);
 });
 
 test("sessionScanPrefix rejects unsafe folders and adds year boundary", () => {

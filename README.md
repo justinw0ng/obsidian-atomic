@@ -22,7 +22,7 @@ Every cue of the year as a fanned stack of index cards. Hover to preview, then c
 
 Copy-paste notes: [examples/daily-notes](examples/daily-notes) · [examples/templates](examples/templates) · [examples/dashboard](examples/dashboard)
 
-Daily note template setup: [examples/README.md](examples/README.md#use-the-daily-note-template).
+Command palette: **Create today's daily note** and **Create daily note template**. Paths follow Daily Notes / Templates core settings (Obsidian defaults when unset). Wiring: [examples/README.md](examples/README.md#use-the-daily-note-template).
 
 ## What it does
 

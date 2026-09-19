@@ -25,7 +25,9 @@ Open today’s note, use the blocks on it, then look at the cue cards and book s
 
 ## Open today’s note
 
-Copy the example daily note [`examples/daily-notes/2026-08-11.md`](../examples/daily-notes/2026-08-11.md) into your vault (or use the [daily note template](../examples/templates/Atomic%20daily%20note.md) — setup is in [examples/README.md](../examples/README.md#use-the-daily-note-template)).
+Command palette → **Create today's daily note**. Atomic writes today’s note at the Daily Notes **New file location** (vault root if unset), using the Daily Notes date format (`YYYY-MM-DD` if unset). The note has the book shelf, habit buttons, heatmaps, and today’s sessions. Atomic then opens it.
+
+To reuse that layout every day, run **Create daily note template**. That writes the Daily Notes **Template file location** if set; otherwise `Atomic daily note.md` in the Templates folder, or the vault root when that folder is unset (Obsidian `{{date}}` tokens). Setup is in [examples/README.md](../examples/README.md#use-the-daily-note-template). You can still copy [`examples/daily-notes/2026-08-11.md`](../examples/daily-notes/2026-08-11.md) if you want a filled sample.
 
 Open **today’s daily note**. You should see a book shelf, buttons for each habit, a year of heatmaps, and today’s sessions.
 

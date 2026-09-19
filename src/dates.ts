@@ -31,6 +31,20 @@ const utcWeekdayDateEn = new Intl.DateTimeFormat("en", {
   day: "numeric",
   timeZone: "UTC",
 });
+const utcDailyHeadingEn = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
+const utcDailyHeadingZh = new Intl.DateTimeFormat("zh-HK", {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
 const ymdFormatters = new Map<string, Intl.DateTimeFormat>();
 
 function utcNoon(y: number, m: number, d: number): Date {
@@ -151,6 +165,25 @@ export function weekdayDateForLanguage(
 ): string {
   const formatter = language === "en" ? utcWeekdayDateEn : utcWeekdayDateZh;
   return formatter.format(utcNoon(y, m, d));
+}
+
+/** `Tuesday, August 11, 2026` (en) or the zh-HK equivalent. */
+export function dailyNoteHeadingForLanguage(
+  y: number,
+  m: number,
+  d: number,
+  language: Language,
+): string {
+  switch (language) {
+    case "en":
+      return utcDailyHeadingEn.format(utcNoon(y, m, d));
+    case "zh-Hant-en":
+      return utcDailyHeadingZh.format(utcNoon(y, m, d));
+    default: {
+      const _exhaustive: never = language;
+      return _exhaustive;
+    }
+  }
 }
 
 export function extractYmdFromPath(path: string): string | null {
