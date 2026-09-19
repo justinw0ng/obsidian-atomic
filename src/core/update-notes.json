@@ -1,7 +1,7 @@
 {
   "version": "1.4.6",
   "body": {
-    "en": "Click a cue card to enlarge it in the center — it grows with the writing and scrolls if it's tall. Track the day from today's daily note and heatmaps.",
-    "zh-Hant": "撳 cue card 會喺中間彈大張卡 — 跟住字變大，太長就會 scroll。每日 tracking 就喺每日筆記同 Heat Map。"
+    "en": "Command palette can create a daily note template and today's daily note, using your Daily Notes and Templates paths — not hardcoded folders.",
+    "zh-Hant": "Command palette 而家可以整每日筆記 template 同今日嘅 daily note，path 跟你 Daily Notes / Templates 設定，唔係寫死 folder。"
   }
 }
