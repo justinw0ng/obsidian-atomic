@@ -1,22 +1,13 @@
 import type { VaultDataSource } from "../data/vault-source";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import {
-  DEFAULT_DAILY_NOTE_FORMAT,
-  dailyNoteTemplateMarkdown,
-  resolveDailyNoteTemplatePath,
-  resolveTodaysDailyNotePath,
-  todaysDailyNoteMarkdown,
-} from "../core/daily-note.ts";
+import { DEFAULT_DAILY_NOTE_FORMAT, dailyNoteTemplateMarkdown, resolveDailyNoteTemplatePath, resolveTodaysDailyNotePath, todaysDailyNoteMarkdown } from "../core/daily-note.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { parseYmd, ymdInZone } from "../dates.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import {
-  readDailyNotesCoreSettings,
-  readTemplatesCoreSettings,
-} from "../util/core-plugin-options.ts";
+import { readDailyNotesCoreSettings, readTemplatesCoreSettings } from "../util/core-plugin-options.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { showNotice } from "../util/notice.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
