@@ -74,6 +74,8 @@ test("obsidian-plugin-e2e skill names files that still exist", () => {
     "src/data/vault-source.ts",
     "src/util/vault-path.ts",
     "src/settings.ts",
+    "src/util/core-plugin-options.ts",
+    "src/core/dashboard.ts",
     "e2e/health-check.test.mjs",
     "e2e/lib/obsidian.mjs",
     "e2e/lib/vault.mjs",
@@ -126,6 +128,28 @@ test("skill and AGENTS.md ban instanceof Element and redundant type assertions",
     assert.match(text, /instanceof Element/);
     assert.match(text, /no-unnecessary-type-assertion/);
   }
+});
+
+test("skill and AGENTS.md document Obsidian API hygiene from 1.4.7 review", () => {
+  const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
+  const hygiene = read(".cursor/skills/obsidian-plugin-e2e/references/obsidian-api-hygiene.md");
+  const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
+  const agents = read("AGENTS.md");
+  assert.match(skill, /obsidian-api-hygiene\.md/);
+  assert.match(review, /obsidian-api-hygiene\.md/);
+  assert.match(agents, /obsidian-api-hygiene\.md/);
+  for (const text of [skill, hygiene, agents]) {
+    assert.match(text, /activeWindow/);
+    assert.match(text, /globalThis/);
+    assert.match(text, /messageEl/);
+    assert.match(text, /\*Covered/);
+  }
+  assert.match(skill, /noticeEl/);
+  assert.match(hygiene, /noticeEl/);
+  assert.match(hygiene, /no-unsafe-assignment/);
+  assert.match(hygiene, /core-plugin-options\.ts/);
+  assert.match(hygiene, /\(this: object\) => unknown/);
+  assert.match(hygiene, /e2e-selectors\.test\.mjs/);
 });
 
 test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", () => {

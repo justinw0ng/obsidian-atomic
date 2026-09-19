@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +8,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 function src(rel) {
   return readFileSync(join(root, rel), "utf8");
+}
+
+function pluginTsFiles(dir = join(root, "src")) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...pluginTsFiles(path));
+    else if (entry.name.endsWith(".ts")) out.push(path);
+  }
+  return out;
 }
 
 test("plugin UI keeps stable Selenium data-testid hooks", () => {
@@ -346,4 +356,12 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\.atomic-cue-text[^{]*\{[^}]*font-size:\s*1\.7rem/s);
   assert.doesNotMatch(styles, /\.atomic-cue-card\.is-open/);
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
+});
+
+test("plugin source bans globalThis and deprecated Notice noticeEl", () => {
+  for (const file of pluginTsFiles()) {
+    const text = readFileSync(file, "utf8");
+    assert.doesNotMatch(text, /\bglobalThis\b/, `${file} uses globalThis`);
+    assert.doesNotMatch(text, /\bnoticeEl\b/, `${file} uses noticeEl`);
+  }
 });

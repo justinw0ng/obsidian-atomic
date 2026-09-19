@@ -16,6 +16,7 @@ Obsidian community plugin (TypeScript, bundled with esbuild) for Atomic Tracker 
 - Domain logic is intentionally Obsidian-free in `src/core.ts` and `src/core/hobby.ts`, which the test suite exercises. Put pure parsing, timer, and model-building logic there or in similarly pure modules so it stays unit-testable without Obsidian.
 - DOM type checks: `node.instanceOf(Element)` (Obsidian cross-window helper), not `instanceof Element`.
 - Do not add type assertions that do not change the type (`@typescript-eslint/no-unnecessary-type-assertion`).
+- Obsidian API hygiene (`activeWindow` not `globalThis`, Notice `messageEl`, typed core-plugin options, no unused `*Covered` aliases): `.cursor/skills/obsidian-plugin-e2e/references/obsidian-api-hygiene.md`.
 - `main.js` is a committed build artifact. Both `npm run build` and `npm run dev` overwrite it in the repo root. After building/watching, `git checkout -- main.js` if you don't intend to commit the regenerated bundle.
 - The test runner relies on Node's `--experimental-strip-types` to import `src/core.ts` directly, so Node 22+ is required (the VM ships Node 22).
 - `npm run build`/`dev` also try to deploy the bundle into `../obsidian-lab/.obsidian/plugins/atomic-tracker/` or `$OBSIDIAN_PLUGIN_OUT` if that path exists. In Cloud VMs you can also deploy into a local demo vault (e.g. `/workspace/obsidian-demo/.obsidian/plugins/atomic-tracker/`).
