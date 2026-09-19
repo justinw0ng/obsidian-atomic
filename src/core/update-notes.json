@@ -2,6 +2,6 @@
   "version": "1.4.6",
   "body": {
     "en": "You can create daily notes or templates from the command palette.",
-    "zh-Hant": "而家可以用 command palette 整 daily note 或者 template。"
+    "zh-Hant": "而家可以用 command palette create daily note 或者 template。"
   }
 }

@@ -1243,7 +1243,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      const cantoneseNotice = await waitForNotice(driver, "整 daily note");
+      const cantoneseNotice = await waitForNotice(driver, "而家可以用");
       assert.match(String(cantoneseNotice), /command palette/);
       assert.match(String(cantoneseNotice), /What's new in/);
 
