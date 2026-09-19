@@ -1,7 +1,7 @@
 {
-  "version": "1.4.5",
+  "version": "1.4.6",
   "body": {
-    "en": "Performance improvements — daily notes and heatmaps open with less repeated work, so Atomic stays snappier on large vaults and on mobile.",
-    "zh-Hant": "Atomic 用起嚟更順咗 — 開每日筆記同Heat Map會快啲，就算多notes 係電腦同手機都會更流暢。"
+    "en": "Click a cue card to enlarge it in the center — it grows with the writing and scrolls if it's tall. Track the day from today's daily note and heatmaps.",
+    "zh-Hant": "撳 cue card 會喺中間彈大張卡 — 跟住字變大，太長就會 scroll。每日 tracking 就喺每日筆記同 Heat Map。"
   }
 }
