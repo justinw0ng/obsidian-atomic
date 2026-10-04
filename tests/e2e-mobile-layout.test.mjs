@@ -293,21 +293,29 @@ test("cover images fill the book face from the center", () => {
 });
 
 test("an open cover is a flat face and the reading ribbon hangs out at rest", () => {
-  const face = cssRule(
+  const shelf = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
+  assert.match(shelf, /button\.classList\.add\("has-cover"\)/);
+  const plain = cssRule(
     styles,
-    ".fitness-plugin .atomic-book.is-cover-open .atomic-book-face",
+    ".fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-face",
   );
-  assert.match(face.body, /background:\s*#fff/);
+  assert.match(plain.body, /background:\s*#fff/);
   const dark = cssRule(
     styles,
-    ".theme-dark .fitness-plugin .atomic-book.is-cover-open .atomic-book-face",
+    ".theme-dark .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-face",
   );
   assert.match(dark.body, /background:\s*#000/);
   const hidden = cssRule(
     styles,
-    ".fitness-plugin .atomic-book.is-cover-open .atomic-book-cover",
+    ".fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-cover",
   );
   assert.match(hidden.body, /opacity:\s*0/);
+  const image = cssRule(
+    styles,
+    ".fitness-plugin .atomic-book.has-cover.is-cover-open img.atomic-book-cover",
+  );
+  assert.match(image.body, /filter:\s*invert\(1\) blur\(6px\)/);
+  assert.match(image.body, /opacity:\s*1/);
   const ribbon = cssRule(styles, ".fitness-plugin .atomic-book-ribbon");
   assert.match(ribbon.body, /z-index:\s*3/);
   assert.match(ribbon.body, /top:\s*calc\(100% - 4px\)/);

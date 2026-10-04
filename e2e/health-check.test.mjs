@@ -1867,14 +1867,17 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         );
         const face = book?.querySelector(".atomic-book-face");
         const cover = book?.querySelector(".atomic-book-cover");
+        const image = book?.querySelector("img.atomic-book-cover");
         const dark = document.body.classList.contains("theme-dark");
         return {
           cover: book?.classList.contains("is-cover-open") === true,
+          hasCover: book?.classList.contains("has-cover") === true,
           className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
           dark,
           face: face ? getComputedStyle(face).backgroundColor : "",
           coverOpacity: cover ? getComputedStyle(cover).opacity : "",
+          filter: image ? getComputedStyle(image).filter : "",
         };
       `);
       assert.equal(
@@ -1882,12 +1885,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
       );
-      assert.equal(
-        opened.face,
-        opened.dark ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)",
-        `an open cover is a flat face ${JSON.stringify(opened)}`,
-      );
-      assert.equal(opened.coverOpacity, "0", "an open cover hides the artwork");
+      if (opened.hasCover) {
+        assert.match(String(opened.filter), /invert\(/, `opened artwork should invert ${JSON.stringify(opened)}`);
+        assert.match(String(opened.filter), /blur\(/, `opened artwork should blur ${JSON.stringify(opened)}`);
+        assert.equal(opened.coverOpacity, "1", "an opened cover image stays visible");
+      } else {
+        assert.equal(
+          opened.face,
+          opened.dark ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)",
+          `a book with no cover image uses a flat face ${JSON.stringify(opened)}`,
+        );
+        assert.equal(opened.coverOpacity, "0", "a plain open cover hides the title");
+      }
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {

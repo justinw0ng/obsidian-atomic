@@ -1907,15 +1907,27 @@
 
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
     transform: perspective(900px) rotateY(-112deg);
+  }
+
+  /* No artwork: the inside of the cover is a flat sheet. */
+  .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-face {
     background: #fff;
   }
 
-  .theme-dark .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
+  .theme-dark .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-face {
     background: #000;
   }
 
-  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
+  .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-cover {
     opacity: 0;
+  }
+
+  /* A real cover stays on the inside of the board, inverted and soft. */
+  .fitness-plugin .atomic-book.has-cover.is-cover-open img.atomic-book-cover {
+    opacity: 1;
+    filter: invert(1) blur(6px);
+    transform: scale(1.12);
+    transform-origin: center;
   }
 
   .fitness-plugin .atomic-book.is-cover-open::before,
@@ -2603,12 +2615,18 @@
     transform: none;
   }
 
-  .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
+  .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-face,
+  .theme-dark .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-face {
     background: var(--atomic-fill-2);
   }
 
-  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
+  .fitness-plugin .atomic-book.is-cover-open:not(.has-cover) .atomic-book-cover {
     opacity: 1;
+  }
+
+  .fitness-plugin .atomic-book.has-cover.is-cover-open img.atomic-book-cover {
+    filter: none;
+    transform: none;
   }
 
   .fitness-plugin .atomic-book::after {
