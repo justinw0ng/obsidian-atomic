@@ -1894,7 +1894,7 @@
   box-sizing: border-box;
 }
 
-/* Same well as a gym set: paper field, label inside, ink button on the row. */
+/* Same well as a gym set: paper field, ink button on the row. */
 .fitness-plugin .atomic-cue-log-compose {
   width: 100%;
   box-sizing: border-box;

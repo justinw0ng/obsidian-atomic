@@ -3016,15 +3016,14 @@ async function renderAtomicCueLog(plugin, el, host, generation) {
   }
   const compose = root.createDiv({ cls: "atomic-well atomic-cue-log-compose" });
   const fields = compose.createDiv({ cls: "atomic-cue-log-fields" });
-  const field = fields.createEl("label", { cls: "atomic-field atomic-cue-log-field" });
-  const caption = field.createSpan({ cls: "atomic-field-label atomic-caption" });
-  caption.setText(t("view.cueLog.cue", language));
+  const field = fields.createDiv({ cls: "atomic-field atomic-cue-log-field" });
   const input = field.createEl("textarea", {
     cls: "atomic-field-value atomic-cue-log-text",
     attr: {
       rows: "3",
       "data-testid": "atomic-cue-log-text",
-      placeholder: t("view.cueLog.placeholder", language)
+      placeholder: t("view.cueLog.placeholder", language),
+      "aria-label": t("view.cueLog.cue", language)
     }
   });
   const addButton = fields.createEl("button", {

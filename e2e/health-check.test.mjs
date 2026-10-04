@@ -525,7 +525,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       `);
       assert.ok(cueLayout, "cue field and add button should be measurable");
       assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
-      assert.match(String(cueLayout.label), /Cue/);
+      assert.equal(cueLayout.label, "", "the reminder field has no title; Add cue names it");
       assert.equal(cueLayout.well, true);
 
       await waitCss(driver, '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]');

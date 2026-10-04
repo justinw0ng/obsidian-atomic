@@ -209,6 +209,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(cueLog, /atomic-well atomic-cue-log-compose/);
   assert.match(cueLog, /atomic-field atomic-cue-log-field/);
   assert.match(cueLog, /createEl\("textarea"/);
+  assert.doesNotMatch(cueLog, /atomic-field-label/);
   assert.doesNotMatch(cueLog, /addEventListener\("input"/);
   assert.match(cueLog, /"atomic-cue-log-add"/);
   assert.match(cueLog, /"atomic-cue-log-existing"/);
