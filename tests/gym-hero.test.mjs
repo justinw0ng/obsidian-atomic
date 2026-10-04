@@ -49,7 +49,12 @@ test("gym hero capture uses the shared device chrome and stacked live wells", ()
   assert.match(src, /Your sets\. One gym note\./);
   assert.match(src, /atomic-timer/);
   assert.match(src, /atomic-gym-log/);
+  assert.match(src, /atomic-cue-log/);
+  assert.match(src, /fitPhoneWindowToNote/);
   assert.match(src, /E2E_TIMER_FENCE/);
+  assert.match(src, /E2E_CUE_LOG_FENCE/);
+  assert.match(src, /Brace before the first plate moves/);
+  assert.match(src, /Knees track over the toes/);
   assert.doesNotMatch(src, /cover-top/);
   assert.doesNotMatch(src, /cropChrome: true/);
   assert.doesNotMatch(src, /\/cursor\/stores\//);
@@ -115,6 +120,51 @@ image.save("${src}")
     );
     assert.equal(size.status, 0, size.stderr);
     assert.equal(size.stdout.trim(), "80 50 200 0 0 0 0 200");
+
+    const tall = join(dir, "tall.png");
+    const tallOut = join(dir, "tall-padded.png");
+    const tallDrawn = spawnSync(
+      "python3",
+      [
+        "-c",
+        `
+from PIL import Image
+image = Image.new("RGB", (20, 80), (255, 255, 255))
+image.putpixel((1, 4), (200, 0, 0))
+image.putpixel((18, 4), (0, 0, 200))
+image.save("${tall}")
+`,
+      ],
+      { encoding: "utf8" },
+    );
+    assert.equal(tallDrawn.status, 0, tallDrawn.stderr);
+    const tallPadded = spawnSync(
+      "python3",
+      [
+        join(root, "scripts/pad-hero-content.py"),
+        "--src",
+        tall,
+        "--out",
+        tallOut,
+        "--aspect-width",
+        "50",
+        "--aspect-height",
+        "80",
+      ],
+      { encoding: "utf8" },
+    );
+    assert.equal(tallPadded.status, 0, tallPadded.stderr || tallPadded.stdout);
+    const tallSize = spawnSync(
+      "python3",
+      [
+        "-c",
+        "import sys; from PIL import Image; image = Image.open(sys.argv[1]); print(image.size[0], image.size[1], *image.getpixel((16, 4)), *image.getpixel((33, 4)))",
+        tallOut,
+      ],
+      { encoding: "utf8" },
+    );
+    assert.equal(tallSize.status, 0, tallSize.stderr);
+    assert.equal(tallSize.stdout.trim(), "50 80 200 0 0 0 0 200");
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

@@ -20,7 +20,7 @@ import {
 } from "./docs-capture.mjs";
 import { capturePreviewCrop, frameHeroContent, heroHoleSize, padHeroContent } from "./hero-frames.mjs";
 import { DEFAULT_DEMO_VAULT } from "./hero-capture-options.mjs";
-import { E2E_TIMER_FENCE } from "../e2e/lib/vault.mjs";
+import { E2E_CUE_LOG_FENCE, E2E_TIMER_FENCE } from "../e2e/lib/vault.mjs";
 import {
   ARTIFACT_DIR,
   attachSelenium,
@@ -42,6 +42,11 @@ const WALKTHROUGH_DIR = "/opt/cursor/artifacts";
 const HERO_OUT = join(ROOT, "docs/images/atomic-gym-hero.png");
 const GYM_NOTE = "atomics/exercise/Gym/2026/2026-08-11.md";
 const GYM_HERO_HEADLINE = "Your sets. One gym note.";
+const GYM_HERO_CUES = [
+  "Brace before the first plate moves",
+  "Knees track over the toes",
+  "Finish the lockout, then breathe",
+];
 
 const DESKTOP = heroHoleSize("daily", "desktop");
 const MOBILE = heroHoleSize("daily", "phone");
@@ -104,10 +109,16 @@ body, html, .fitness-plugin, .atomic-block-host {
   overflow: hidden !important;
 }
 
+.fitness-plugin .atomic-cue-fan,
+.fitness-plugin .atomic-cue-log {
+  overflow: hidden !important;
+}
+
 @media (max-width: 600px) {
   .markdown-preview-sizer,
   .fitness-plugin.atomic-timer,
-  .fitness-plugin.atomic-gym-log {
+  .fitness-plugin.atomic-gym-log,
+  .fitness-plugin.atomic-cue-log {
     margin-left: auto !important;
     margin-right: auto !important;
   }
@@ -130,11 +141,24 @@ function runSeed() {
       /# Gym — 2026-08-11\n\n/,
       `# Gym — 2026-08-11\n\n${E2E_TIMER_FENCE}\n\n`,
     );
-    if (!markdown.includes("```atomic-timer")) {
-      throw new Error(`Could not add the session timer to ${GYM_NOTE}`);
-    }
-    writeFileSync(notePath, markdown);
   }
+  const reminders = `## Reminders
+
+${E2E_CUE_LOG_FENCE}
+
+${GYM_HERO_CUES.map((cue) => `- ${cue}`).join("\n")}
+`;
+  if (!/## Reminders/.test(markdown)) {
+    throw new Error(`Missing Reminders heading in ${GYM_NOTE}`);
+  }
+  markdown = markdown.replace(/## Reminders\n[\s\S]*$/, reminders);
+  if (!markdown.includes("```atomic-timer") || !markdown.includes("```atomic-cue-log")) {
+    throw new Error(`Could not stage the gym hero note at ${GYM_NOTE}`);
+  }
+  for (const cue of GYM_HERO_CUES) {
+    if (!markdown.includes(cue)) throw new Error(`Missing gym hero cue: ${cue}`);
+  }
+  writeFileSync(notePath, markdown);
 }
 
 function installCaptureTheme() {
@@ -193,12 +217,36 @@ function trimShotWhitespace(path) {
   }
 }
 
+async function fitPhoneWindowToNote(driver) {
+  await resizeWindow(driver, MOBILE.width, MOBILE.height);
+  await openGymNote(driver);
+  const needed = await driver.executeScript(`
+    const sizer = document.querySelector(".markdown-preview-sizer");
+    if (!sizer) return 0;
+    return Math.ceil(Math.max(sizer.scrollHeight || 0, sizer.getBoundingClientRect().height));
+  `);
+  const height = Math.min(2200, Math.max(MOBILE.height, Number(needed) + 220));
+  if (height > MOBILE.height) {
+    await resizeWindow(driver, MOBILE.width, height);
+    await openGymNote(driver);
+  }
+}
+
 async function openGymNote(driver) {
   await openPreviewNote(driver, GYM_NOTE);
   await hideNoteProperties(driver);
   await hideCaptureScrollbars(driver, GYM_HERO_CSS);
   await waitCss(driver, '[data-testid="atomic-timer"]');
   await waitCss(driver, '[data-testid="atomic-gym-log"]');
+  await waitCss(driver, '[data-testid="atomic-cue-log"]');
+  await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
+  await driver.wait(async () => {
+    const count = await driver.executeScript(
+      `return document.querySelectorAll('[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]').length`,
+    );
+    return count >= GYM_HERO_CUES.length;
+  }, 20000);
+  await driver.executeScript(`return document.fonts.ready`);
   await driver.executeScript(`
     document.querySelector('[data-testid="atomic-timer"]')
       ?.scrollIntoView({ block: "start", inline: "nearest" });
@@ -222,11 +270,18 @@ function composeGymHero(desktopPath, mobilePath) {
   const framedDesktop = join(SHOT_DIR, "gym-framed-desktop.png");
   const framedMobile = join(SHOT_DIR, "gym-framed-phone.png");
   const paddedDesktop = join(SHOT_DIR, "gym-padded-desktop.png");
+  const paddedMobile = join(SHOT_DIR, "gym-padded-phone.png");
   padHeroContent({
     scene: "daily",
     kind: "desktop",
     content: desktopPath,
     out: paddedDesktop,
+  });
+  padHeroContent({
+    scene: "daily",
+    kind: "phone",
+    content: mobilePath,
+    out: paddedMobile,
   });
   frameHeroContent({
     scene: "daily",
@@ -237,7 +292,7 @@ function composeGymHero(desktopPath, mobilePath) {
   frameHeroContent({
     scene: "daily",
     kind: "phone",
-    content: mobilePath,
+    content: paddedMobile,
     out: framedMobile,
   });
   return composeDeviceHero({
@@ -263,7 +318,7 @@ function publishStills(paths) {
 async function main() {
   const skip = e2eSkipReason();
   if (skip) throw new Error(`Cannot capture gym hero: ${skip}`);
-  const built = ensureDocsBundle(["atomic-gym-log", "atomic-timer"]);
+  const built = ensureDocsBundle(["atomic-gym-log", "atomic-timer", "atomic-cue-log"]);
   try {
     runSeed();
     installCaptureTheme();
@@ -277,8 +332,7 @@ async function main() {
       await resizeWindow(driver, DESKTOP.width, DESKTOP.height);
       await openGymNote(driver);
       const desktop = await captureNamed(driver, "gym_hero_desktop");
-      await resizeWindow(driver, MOBILE.width, MOBILE.height);
-      await openGymNote(driver);
+      await fitPhoneWindowToNote(driver);
       const mobile = await captureNamed(driver, "gym_hero_mobile");
       const hero = composeGymHero(desktop, mobile);
       publishStills({

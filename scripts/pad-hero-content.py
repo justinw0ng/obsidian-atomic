@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Pad a hero content shot so cover-top does not crop the sides.
+"""Pad a hero content shot so cover-top keeps the full note.
 
-Wide, short gym wells need extra height. Content stays at the top. Left
-and right stay equal.
+A wide shot gets extra height. A tall shot gets equal left and right
+margins. Content stays at the top.
 """
 from __future__ import annotations
 
@@ -22,11 +22,16 @@ def pad_to_aspect(image: Image.Image, aspect: float, background: str) -> Image.I
         raise ValueError(f"aspect must be positive, got {aspect}")
     rgb = image.convert("RGB")
     current = rgb.width / max(1, rgb.height)
-    if current <= aspect + 0.01:
+    if abs(current - aspect) <= 0.01:
         return rgb
-    height = max(rgb.height, round(rgb.width / aspect))
-    canvas = Image.new("RGB", (rgb.width, height), background)
-    canvas.paste(rgb, (0, 0))
+    if current > aspect:
+        height = max(rgb.height, round(rgb.width / aspect))
+        canvas = Image.new("RGB", (rgb.width, height), background)
+        canvas.paste(rgb, (0, 0))
+        return canvas
+    width = max(rgb.width, round(rgb.height * aspect))
+    canvas = Image.new("RGB", (width, rgb.height), background)
+    canvas.paste(rgb, ((width - rgb.width) // 2, 0))
     return canvas
 
 
