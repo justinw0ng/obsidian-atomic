@@ -48,7 +48,16 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(timer, /stopSessionTimer/);
   assert.match(timer, /isStaleBlockRender/);
   assert.match(timer, /vault\.process\(file, \(current\) =>/);
+  assert.match(timer, /appendRoll\(/);
+  assert.match(timer, /setRoll\(/);
   assert.doesNotMatch(timer, /scheduleRefresh/);
+
+  const digitRoll = src("src/views/digit-roll.ts");
+  assert.match(digitRoll, /"atomic-roll"/);
+  assert.match(digitRoll, /data-testid": "atomic-roll"/);
+  assert.match(digitRoll, /createSpan\(/);
+  assert.doesNotMatch(digitRoll, /innerHTML/);
+  assert.doesNotMatch(digitRoll, /globalThis/);
 
   const gymLog = src("src/views/gym-log.ts");
   assert.match(gymLog, /data-testid": "atomic-gym-log"/);
@@ -108,6 +117,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const today = src("src/views/today.ts");
   assert.match(today, /"data-testid": "atomic-today"/);
   assert.match(today, /"data-testid": "atomic-today-row"/);
+  assert.match(today, /appendRoll\(/);
   assert.match(today, /"data-path": session\.path/);
   assert.match(today, /data\.openPath\(path\)/);
   assert.doesNotMatch(today, /href:\s*"#"/);
@@ -235,6 +245,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(dashboard, /appendMonthBars\(/);
   assert.doesNotMatch(dashboard, /appendLedgerEnd\(/);
   assert.match(dashboard, /buildDashboardModel\(/);
+  assert.match(dashboard, /appendRoll\(/);
+  assert.match(dashboard, /playRolls\(/);
   const dashboardDom = src("src/views/dashboard-dom.ts");
   assert.match(dashboardDom, /"atomic-dashboard-activity-bars"/);
   assert.match(dashboardDom, /"atomic-dashboard-month-bar"/);

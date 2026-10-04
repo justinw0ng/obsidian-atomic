@@ -37,6 +37,7 @@ import {
   renderDashboardMonthly,
   renderDashboardRecent,
 } from "./dashboard-sections";
+import { appendRoll, playRolls, prefersReducedMotion } from "./digit-roll";
 import { PaintMemo } from "../util/paint-memo";
 
 /** Bumped per host element so an older year switch cannot paint over a newer one. */
@@ -104,7 +105,8 @@ function renderHeader(
     button.addEventListener("click", () => onYear(target));
   };
   yearButton("‹", "view.dashboard.prevYear", "atomic-dashboard-year-prev", model.year - 1);
-  switcher.createSpan({ cls: "atomic-stepper-value", text: String(model.year) });
+  const yearValue = switcher.createSpan({ cls: "atomic-stepper-value" });
+  appendRoll(yearValue, String(model.year));
   yearButton("›", "view.dashboard.nextYear", "atomic-dashboard-year-next", model.year + 1);
 
   const range = top.createDiv({ cls: "atomic-readout atomic-dash-range" });
@@ -155,12 +157,12 @@ function appendHoursMinutes(
 ): void {
   const { hours, minutes } = splitHoursMinutes(totalMinutes);
   const unit = tight ? "atomic-unit is-tight" : "atomic-unit";
-  target.appendText(formatCount(hours));
+  appendRoll(target, formatCount(hours));
   target.createSpan({
     cls: unit,
     text: t("view.dashboard.hourUnitShort", ctx.language),
   });
-  target.appendText(String(minutes).padStart(2, "0"));
+  appendRoll(target, String(minutes).padStart(2, "0"));
   target.createSpan({
     cls: unit,
     text: t("view.dashboard.minuteUnitShort", ctx.language),
@@ -188,7 +190,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
 
   if (exercise.length) {
     const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
-    sessions.value.setText(formatCount(model.totalSessions));
+    appendRoll(sessions.value, formatCount(model.totalSessions));
     appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
 
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
@@ -203,7 +205,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
 
   if (model.totalVolumeKg != null) {
     const volume = appendKpiCard(grid, "volume", t("view.dashboard.kpiVolume", ctx.language));
-    volume.value.appendText(formatKg(model.totalVolumeKg));
+    appendRoll(volume.value, formatKg(model.totalVolumeKg));
     volume.value.createSpan({
       cls: "atomic-unit",
       text: t("view.dashboard.kgUnit", ctx.language),
@@ -229,7 +231,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
 }
 
 function appendStat(parent: HTMLElement, value: string, unit: string): void {
-  parent.appendText(value);
+  appendRoll(parent, value);
   parent.createSpan({ cls: "atomic-unit", text: unit });
 }
 
@@ -401,6 +403,7 @@ export async function renderDashboard(
   year: number,
   language: Language,
   timezone: string,
+  animateRolls = false,
 ): Promise<void> {
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
@@ -417,7 +420,7 @@ export async function renderDashboard(
   });
   const ctx: DashboardRenderContext = { data, language, timezone, year };
   const onYear = (nextYear: number) => {
-    void renderDashboard(el, data, activityTypes, nextYear, language, timezone);
+    void renderDashboard(el, data, activityTypes, nextYear, language, timezone, true);
   };
 
   renderHeader(root, model, ctx, onYear);
@@ -426,4 +429,8 @@ export async function renderDashboard(
   renderDashboardMonthly(root, model, ctx);
   renderDashboardDetails(root, model, ctx);
   renderDashboardRecent(root, model, ctx);
+  if (!animateRolls || prefersReducedMotion(root)) return;
+  const view = root.ownerDocument.defaultView;
+  if (view?.requestAnimationFrame) view.requestAnimationFrame(() => playRolls(root));
+  else playRolls(root);
 }

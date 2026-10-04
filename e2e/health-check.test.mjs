@@ -983,7 +983,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         ["sessions", "exercise-time", "volume", "habit-time"],
       );
       const sessionsKpi = await driver.executeScript(
-        `return document.querySelector('[data-testid="atomic-dashboard-kpi"][data-kpi="sessions"] .atomic-dash-kpi-value')?.textContent || ""`,
+        `return document.querySelector('[data-testid="atomic-dashboard-kpi"][data-kpi="sessions"] [data-testid="atomic-roll"]')?.getAttribute("aria-label") || ""`,
       );
       assert.equal(String(sessionsKpi).trim(), "2");
 
@@ -1410,6 +1410,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         driver,
         `[data-testid="atomic-dashboard"][data-year="${Number(year) - 1}"] [data-testid="atomic-dashboard-activity"][data-activity="gym"][data-count="0"]`,
       );
+      const yearLabel = await driver.executeScript(
+        `return document.querySelector('[data-testid="atomic-dashboard"] .atomic-stepper-value [data-testid="atomic-roll"]')?.getAttribute("aria-label") || ""`,
+      );
+      assert.equal(String(yearLabel), String(Number(year) - 1));
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-dashboard-year-next"]').click()`,
       );
@@ -1977,6 +1981,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         By.css('[data-testid="atomic-prompt-modal"]'),
       );
       assert.equal(promptModals.length, 0);
+      await waitCss(driver, '[data-testid="atomic-timer"] .atomic-timer-clock [data-testid="atomic-roll"]');
+      const gymTotal = await driver.executeScript(
+        `return document.querySelector('[data-testid="atomic-timer"] .atomic-timer-clock [data-testid="atomic-roll"]')?.getAttribute("aria-label") || ""`,
+      );
+      assert.equal(Number(gymTotal), duration);
 
       await openVaultFile(driver, E2E_FILES.heatmapGymGolf);
       await driver.wait(async () => {
@@ -2282,6 +2291,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       );
       await fillPrompt(driver, "selenium session");
       await waitForNotice(driver, "Logged");
+      await waitCss(driver, '[data-testid="atomic-timer"] .atomic-timer-clock [data-testid="atomic-roll"]');
 
       await openVaultFile(driver, E2E_FILES.heatmapReading);
       await driver.wait(async () => {

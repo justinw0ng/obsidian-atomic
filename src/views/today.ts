@@ -12,6 +12,7 @@ import { exerciseActivities } from "../util/activity-types";
 import { labelForLanguage } from "../util/bilingual-label";
 import { isStaleBlockRender } from "../util/block-render";
 import { appendCatalogLabel, appendInlineCatalog } from "./catalog-label";
+import { appendRoll } from "./digit-roll";
 
 export function resolveTodayDate(
   opts: Record<string, string>,
@@ -127,7 +128,8 @@ export async function renderTodaySessions(
     name.createSpan({ text: labelForLanguage(activity.label, language) });
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     if (session) {
-      sum.createEl("strong", { text: String(session.minutes) });
+      const minutes = sum.createEl("strong");
+      appendRoll(minutes, String(session.minutes));
       sum.appendText(" ");
       appendInlineCatalog(sum, t("view.dashboard.minuteWord", language));
     } else {
