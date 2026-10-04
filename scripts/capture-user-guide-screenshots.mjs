@@ -7,7 +7,7 @@
  * docs/images/atomic-dashboard-hero.png in the shared desktop + phone chrome.
  * Optional: ATOMIC_CUE_POPUP_STILLS=/path/to/png-dir to rebuild atomic-cue-popup.gif.
  */
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -260,6 +260,38 @@ async function scrollBlockIntoView(driver, css) {
   await sleep(200);
 }
 
+/** The good reading-timer frame is the short window: title, properties, timer card. */
+const READING_TIMER_WINDOW = { width: 1920, height: 782 };
+
+async function focusReadingTimerCard(driver) {
+  await showNoteProperties(driver);
+  await hideCaptureScrollbars(driver);
+  await driver.executeScript(`
+    const timer = document.querySelector('[data-testid="atomic-timer"]');
+    if (!timer) return;
+    const root = timer.closest(".markdown-preview-sizer, .cm-content, .cm-editor") || document.body;
+    const nodes = root.querySelectorAll(".cm-line, .el-p, .el-ul, .el-h1, .el-h2, .el-h3, h1, h2, h3, ul, ol, p");
+    let hide = false;
+    for (const el of nodes) {
+      if (el.contains(timer) || timer.contains(el)) break;
+      const text = (el.innerText || "").trim();
+      if (/^(remarks|time log)$/i.test(text)) hide = true;
+      if (hide) el.style.setProperty("display", "none", "important");
+    }
+    const scroller = timer.closest(".cm-scroller, .markdown-preview-view, .view-content");
+    if (!scroller) {
+      timer.scrollIntoView({ block: "center", inline: "nearest" });
+      return;
+    }
+    const rect = timer.getBoundingClientRect();
+    const bounds = scroller.getBoundingClientRect();
+    if (rect.top < bounds.top || rect.bottom > bounds.bottom) {
+      timer.scrollIntoView({ block: "center", inline: "nearest" });
+    }
+  `);
+  await sleep(200);
+}
+
 async function fillTestId(driver, testId, value) {
   const ok = await driver.executeScript(
     `
@@ -316,10 +348,27 @@ async function captureBookShelfGif(driver) {
   assembleGif(dir, OUTPUTS.bookShelf, { durationMs: 280, holdFirst: 1, holdLast: 2 });
 }
 
+function stageReadingTimerDemo() {
+  const path = join(USER_GUIDE_VAULT, FILES.timerItem);
+  let markdown = readFileSync(path, "utf8");
+  const startedAt = new Date(Date.now() - (12 * 60 + 48) * 1000).toISOString();
+  const next = markdown
+    .replace(/^total_min:.*$/m, "total_min: 40")
+    .replace(/^timer_started_at:.*$/m, `timer_started_at: "${startedAt}"`)
+    .replace(/## Time log\n\n[\s\S]*?(?=```atomic-timer)/, "## Time log\n\n- 2026-08-11 | 40 min\n\n");
+  if (next === markdown || !next.includes("total_min: 40") || !next.includes(startedAt)) {
+    throw new Error("Could not stage the reading timer demo clock");
+  }
+  writeFileSync(path, next);
+}
+
 async function captureReadingTimerGif(driver) {
+  stageReadingTimerDemo();
+  await resizeWindow(driver, READING_TIMER_WINDOW.width, READING_TIMER_WINDOW.height);
   await openPreviewNote(driver, FILES.timerItem);
   await waitCss(driver, '[data-testid="atomic-timer-stop"]');
-  await prepareGuideView(driver);
+  await focusReadingTimerCard(driver);
+  await parkMouse(driver);
   const dir = frameDir("reading-timer");
   await grabHold(driver, dir, 0, 2, 220);
   await driver.executeScript(
@@ -328,9 +377,11 @@ async function captureReadingTimerGif(driver) {
   await fillPrompt(driver, "ch.3 — field notes");
   await waitForNotice(driver, "Logged");
   await waitCss(driver, '[data-testid="atomic-timer-start"]');
-  await prepareGuideView(driver);
+  await focusReadingTimerCard(driver);
+  await parkMouse(driver);
   await grabHold(driver, dir, 2, 2, 200);
   assembleGif(dir, OUTPUTS.timer, { durationMs: 420, holdFirst: 1, holdLast: 2 });
+  await resizeWindow(driver, 1920, 1200);
 }
 
 async function captureSessionTimerGif(driver) {
@@ -439,6 +490,29 @@ async function captureDashboardGif(driver) {
   await resizeWindow(driver, 1920, 1200);
 }
 
+async function recaptureDashboardHero(driver) {
+  await resizeWindow(driver, DASHBOARD_DESKTOP.width, DASHBOARD_DESKTOP.height);
+  await openPreviewNote(driver, FILES.dashboard);
+  await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+  await hideNoteProperties(driver);
+  await hideCaptureScrollbars(driver);
+  await parkMouse(driver);
+  await sleep(500);
+  const desktopPreview = join("/tmp/atomic-dashboard-hero-frames", "desktop-content.png");
+  await capturePreviewCrop(driver, desktopPreview);
+  await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
+  await openPreviewNote(driver, FILES.dashboard);
+  await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+  await hideNoteProperties(driver);
+  await hideCaptureScrollbars(driver);
+  await parkMouse(driver);
+  await sleep(600);
+  const mobilePreview = join("/tmp/atomic-dashboard-hero-frames", "phone-content.png");
+  await capturePreviewCrop(driver, mobilePreview);
+  await composeDashboardHero(desktopPreview, mobilePreview);
+  await resizeWindow(driver, 1920, 1200);
+}
+
 async function captureHeatmapGif(driver) {
   await openPreviewNote(driver, FILES.heatmap);
   await waitCss(driver, '[data-testid="atomic-heatmap"]');
@@ -491,9 +565,11 @@ async function captureActionsGif(driver) {
 }
 
 async function captureTodayGif(driver) {
+  await resizeWindow(driver, 1920, 653);
   await openPreviewNote(driver, FILES.today);
   await waitCss(driver, '[data-testid="atomic-today-row"]');
   await prepareGuideView(driver);
+  await scrollBlockIntoView(driver, '[data-testid="atomic-today"]');
   const dir = frameDir("today");
   await grabHold(driver, dir, 0, 2, 200);
   await driver.executeScript(
@@ -501,8 +577,10 @@ async function captureTodayGif(driver) {
   );
   await waitCss(driver, '[data-testid="atomic-timer"], [data-testid="atomic-gym-log"]');
   await prepareGuideView(driver);
+  await scrollBlockIntoView(driver, '[data-testid="atomic-timer"], [data-testid="atomic-gym-log"]');
   await grabHold(driver, dir, 2, 2, 200);
   assembleGif(dir, OUTPUTS.today, { durationMs: 500, holdFirst: 1, holdLast: 2 });
+  await resizeWindow(driver, 1920, 1200);
 }
 
 async function captureCuesHoverGif(driver) {
@@ -733,6 +811,7 @@ async function main() {
       ["sessionTimer", captureSessionTimerGif],
       ["gymLog", captureGymLogGif],
       ["dashboard", captureDashboardGif],
+      ["dashboardHero", recaptureDashboardHero],
       ["settings", captureSettingsGif],
       ["enable", captureEnableGif],
     ];

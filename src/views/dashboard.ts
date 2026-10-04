@@ -20,7 +20,7 @@ import { nowYear, resolveBlockYear } from "../dates";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 import { exerciseActivities, hobbyActivities } from "../util/activity-types";
-import { labelForLanguage } from "../util/bilingual-label";
+import { labelForLanguage, ledgerActivityName } from "../util/bilingual-label";
 import { appendCatalogLabel } from "./catalog-label";
 import {
   activityLinks,
@@ -151,16 +151,18 @@ function appendHoursMinutes(
   target: HTMLElement,
   totalMinutes: number,
   ctx: DashboardRenderContext,
+  tight: boolean,
 ): void {
   const { hours, minutes } = splitHoursMinutes(totalMinutes);
+  const unit = tight ? "atomic-unit is-tight" : "atomic-unit";
   target.appendText(formatCount(hours));
   target.createSpan({
-    cls: "atomic-unit is-tight",
+    cls: unit,
     text: t("view.dashboard.hourUnitShort", ctx.language),
   });
   target.appendText(String(minutes).padStart(2, "0"));
   target.createSpan({
-    cls: "atomic-unit",
+    cls: unit,
     text: t("view.dashboard.minuteUnitShort", ctx.language),
   });
 }
@@ -190,7 +192,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
     appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
 
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
-    appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx);
+    appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx, false);
     time.hint.createSpan({
       text: t("view.dashboard.avgPerSession", ctx.language, {
         minutes: formatCount(model.totalExerciseMinutes),
@@ -218,7 +220,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
 
   if (model.totalHabitMinutes != null) {
     const habit = appendKpiCard(grid, "habit-time", t("view.dashboard.kpiHabitTime", ctx.language));
-    appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx);
+    appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx, false);
     appendCatalogLabel(
       habit.hint,
       `${splitText(hobbies, ctx.language, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`,
@@ -253,20 +255,31 @@ function renderLedgerHead(ledger: HTMLElement, ctx: DashboardRenderContext): voi
   appendCatalogLabel(last, t("view.dashboard.colLast", ctx.language));
 }
 
-function appendLedgerEnd(
+/** Last column: the latest session in this year. The arrow opens that note. */
+function appendLastSession(
   row: HTMLElement,
-  data: DashboardActivityCard,
+  card: DashboardActivityCard,
   ctx: DashboardRenderContext,
-  meta: string | null,
 ): void {
   const end = row.createDiv({ cls: "atomic-ledger-end" });
-  if (meta) {
-    const readout = end.createSpan({ cls: "atomic-readout" });
-    appendCatalogLabel(readout, meta);
-  }
-  for (const link of activityLinks(data, ctx)) {
-    appendActivityLink(end, link, "atomic-link");
-  }
+  const date = card.lastDate;
+  const path = card.lastPath;
+  if (!date || !path) return;
+  const link = end.createEl("a", {
+    cls: "atomic-link",
+    attr: {
+      href: "#",
+      "data-testid": "atomic-dashboard-last",
+      "data-path": path,
+    },
+  });
+  link.appendText(shortDate(date, ctx));
+  link.createSpan({ cls: "atomic-link-arrow", text: "→" });
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void ctx.data.openPath(path);
+  });
 }
 
 function renderExerciseRow(
@@ -277,7 +290,7 @@ function renderExerciseRow(
   const count = row.createDiv({ cls: "atomic-ledger-count atomic-stat" });
   appendStat(count, formatCount(data.count), t("view.dashboard.unitSessions", ctx.language));
   const time = row.createDiv({ cls: "atomic-ledger-time atomic-stat" });
-  appendHoursMinutes(time, data.minutes, ctx);
+  appendHoursMinutes(time, data.minutes, ctx, true);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.volumeKg != null) {
     appendDetail(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgLifted", ctx.language));
@@ -293,7 +306,7 @@ function renderExerciseRow(
     t("view.dashboard.barsHours", ctx.language),
     ctx,
   );
-  appendLedgerEnd(row, data, ctx, data.lastDate ? shortDate(data.lastDate, ctx) : null);
+  appendLastSession(row, data, ctx);
 }
 
 function renderHobbyRow(
@@ -304,11 +317,11 @@ function renderHobbyRow(
   const count = row.createDiv({ cls: "atomic-ledger-count atomic-stat" });
   appendStat(count, formatCount(data.count), t("view.dashboard.unitItems", ctx.language));
   const time = row.createDiv({ cls: "atomic-ledger-time atomic-stat" });
-  appendHoursMinutes(time, data.minutes, ctx);
+  appendHoursMinutes(time, data.minutes, ctx, true);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
-  if (data.inProgress != null) {
-    appendDetail(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
-  }
+  const detailKey =
+    data.activity.id === "reading" ? "view.dashboard.readingNow" : "view.dashboard.inProgress";
+  appendDetail(detail, formatCount(data.inProgress), t(detailKey, ctx.language));
   const bars = row.createDiv({ cls: "atomic-ledger-bars" });
   bars.style.setProperty("--atomic-c", data.activity.colors[2]);
   appendMonthBars(
@@ -318,7 +331,7 @@ function renderHobbyRow(
     t("view.dashboard.barsHours", ctx.language),
     ctx,
   );
-  appendLedgerEnd(row, data, ctx, null);
+  appendLastSession(row, data, ctx);
 }
 
 function renderActivityRow(
@@ -340,7 +353,16 @@ function renderActivityRow(
   const name = row.createDiv({ cls: "atomic-ledger-name" });
   const title = name.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: labelForLanguage(activity.label, ctx.language) });
+  const shown = ledgerActivityName(activity.label);
+  const label = title.createSpan();
+  label.appendText(shown.name);
+  if (shown.zh) {
+    label.createSpan({
+      cls: "atomic-inline-zh",
+      text: shown.zh,
+      attr: { lang: "zh-Hant-HK" },
+    });
+  }
   const kind = name.createDiv({ cls: "atomic-caption" });
 
   switch (card.domain) {
@@ -366,6 +388,7 @@ function renderActivities(root: HTMLElement, model: DashboardModel, ctx: Dashboa
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language),
   );
+  section.setAttr("data-testid", "atomic-dashboard-activities");
   const ledger = section.createDiv({ cls: "atomic-ledger" });
   renderLedgerHead(ledger, ctx);
   for (const card of model.activities) renderActivityRow(ledger, card, ctx);

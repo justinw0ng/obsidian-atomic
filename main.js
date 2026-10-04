@@ -397,7 +397,7 @@ var en = {
   "view.dashboard.avgPerSession": "{minutes} min \xB7 avg {avg} min / session",
   "view.dashboard.setTableRows": "Set-table rows",
   "view.dashboard.activities": "Activities",
-  "view.dashboard.activitiesMeta": "Enabled habits only \xB7 colors from Settings",
+  "view.dashboard.activitiesMeta": "Bars \xB7 hours per month",
   "view.dashboard.domainExercise": "exercise",
   "view.dashboard.domainHabit": "habit",
   "view.dashboard.unitSessions": "sessions",
@@ -411,6 +411,7 @@ var en = {
   "view.dashboard.kgLifted": "kg lifted",
   "view.dashboard.feltGoodCount": "felt good",
   "view.dashboard.readingNow": "reading now",
+  "view.dashboard.inProgress": "in progress",
   "view.dashboard.barsHours": "Hours per month",
   "view.dashboard.lastSession": "last session: {date}",
   "view.dashboard.feltTitle": "How sessions felt",
@@ -715,7 +716,7 @@ var zhHantEn = {
   "view.dashboard.avgPerSession": "{minutes} \u5206\u9418 \xB7 \u5E73\u5747 {avg} \u5206\u9418",
   "view.dashboard.setTableRows": "\u7D44\u6578\u8868",
   "view.dashboard.activities": "\u6D3B\u52D5",
-  "view.dashboard.activitiesMeta": "\u53EA\u986F\u793A\u5DF2\u555F\u7528",
+  "view.dashboard.activitiesMeta": "\u6BCF\u6708\u6642\u6578",
   "view.dashboard.domainExercise": "\u904B\u52D5",
   "view.dashboard.domainHabit": "\u7FD2\u6163",
   "view.dashboard.unitSessions": "\u6B21",
@@ -729,6 +730,7 @@ var zhHantEn = {
   "view.dashboard.kgLifted": "\u8A13\u7DF4\u91CF",
   "view.dashboard.feltGoodCount": "\u611F\u89BA\u597D",
   "view.dashboard.readingNow": "\u5728\u8B80",
+  "view.dashboard.inProgress": "\u9032\u884C\u4E2D",
   "view.dashboard.barsHours": "\u6BCF\u6708\u6642\u6578",
   "view.dashboard.lastSession": "\u6700\u8FD1\u8A13\u7DF4: {date}",
   "view.dashboard.feltTitle": "\u611F\u89BA",
@@ -1953,6 +1955,12 @@ function splitCatalogLabel(text) {
     return { primary: text, secondary: null };
   }
   return { primary: match[1] ?? text, secondary };
+}
+function ledgerActivityName(text) {
+  const { primary, secondary } = splitCatalogLabel(text);
+  const stripped = primary.replace(LEADING_EMOJI, "").trim();
+  const zh = secondary?.trim() ?? "";
+  return { name: stripped || primary.trim(), zh: zh || null };
 }
 function labelForLanguage(text, language) {
   const { primary, secondary } = splitCatalogLabel(text);
@@ -3564,7 +3572,6 @@ function sameDashboardPaintState(previous, next) {
 var FELT_ORDER = ["good", "ok", "bad"];
 var RECENT_LIMIT = 10;
 var GOLF_ID = "golf";
-var READING_ID = "reading";
 function emptyMonths() {
   return Array(12).fill(0);
 }
@@ -3573,6 +3580,10 @@ function addMonths(target, source) {
 }
 function bump(map, key, by) {
   map.set(key, (map.get(key) || 0) + by);
+}
+function rememberLatest(current, date, path) {
+  if (!current || date > current.date) return { date, path };
+  return current;
 }
 function formatKg(n) {
   return (Math.round(n * 10) / 10).toLocaleString("en-US");
@@ -3618,7 +3629,7 @@ function summarizeExercise({ activity, sessions }) {
   const isGolf = activity.id === GOLF_ID;
   let minutes = 0;
   let volumeKg = 0;
-  let lastDate = null;
+  let latest = null;
   for (const { meta, setRows } of sessions) {
     const mi = monthIndexFromDate(meta.date);
     minutes += meta.duration_min;
@@ -3643,7 +3654,7 @@ function summarizeExercise({ activity, sessions }) {
       for (const focus of meta.focus) bump(focusCounts, focus, 1);
     }
     if (meta.date) {
-      if (!lastDate || meta.date > lastDate) lastDate = meta.date;
+      latest = rememberLatest(latest, meta.date, meta.path);
       recent.push({
         date: meta.date,
         activity,
@@ -3667,7 +3678,8 @@ function summarizeExercise({ activity, sessions }) {
       monthly,
       monthlyMinutes,
       volumeKg: activity.supportsSetTable ? volumeKg : null,
-      lastDate,
+      lastDate: latest?.date ?? null,
+      lastPath: latest?.path ?? null,
       felt: isGolf ? felt : null
     },
     columns,
@@ -3681,9 +3693,15 @@ function summarizeExercise({ activity, sessions }) {
 function summarizeHobby({ activity, items }, year) {
   const monthlyMinutes = emptyMonths();
   let inProgress = 0;
+  let latest = null;
+  const yearPrefix = `${year}-`;
   for (const item of items) {
     addMonths(monthlyMinutes, minutesByMonthForYear(item.entries, year));
     if (isInProgressStatus(item.frontmatter.status)) inProgress += 1;
+    for (const entry of item.entries) {
+      if (!entry.date.startsWith(yearPrefix)) continue;
+      latest = rememberLatest(latest, entry.date, item.path);
+    }
   }
   return {
     card: {
@@ -3692,7 +3710,9 @@ function summarizeHobby({ activity, items }, year) {
       count: items.length,
       minutes: monthlyMinutes.reduce((sum, v) => sum + v, 0),
       monthlyMinutes,
-      inProgress: activity.id === READING_ID ? inProgress : null
+      inProgress,
+      lastDate: latest?.date ?? null,
+      lastPath: latest?.path ?? null
     },
     column: { activity, kind: "minutes", values: monthlyMinutes }
   };
@@ -4599,16 +4619,17 @@ function appendKpiCard(grid, id, label) {
   const hint = card.createDiv({ cls: "atomic-hint" });
   return { value, hint };
 }
-function appendHoursMinutes(target, totalMinutes, ctx) {
+function appendHoursMinutes(target, totalMinutes, ctx, tight) {
   const { hours, minutes } = splitHoursMinutes(totalMinutes);
+  const unit = tight ? "atomic-unit is-tight" : "atomic-unit";
   target.appendText(formatCount(hours));
   target.createSpan({
-    cls: "atomic-unit is-tight",
+    cls: unit,
     text: t("view.dashboard.hourUnitShort", ctx.language)
   });
   target.appendText(String(minutes).padStart(2, "0"));
   target.createSpan({
-    cls: "atomic-unit",
+    cls: unit,
     text: t("view.dashboard.minuteUnitShort", ctx.language)
   });
 }
@@ -4628,7 +4649,7 @@ function renderKpis(root, model, ctx) {
     sessions.value.setText(formatCount(model.totalSessions));
     appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
-    appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx);
+    appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx, false);
     time.hint.createSpan({
       text: t("view.dashboard.avgPerSession", ctx.language, {
         minutes: formatCount(model.totalExerciseMinutes),
@@ -4651,7 +4672,7 @@ function renderKpis(root, model, ctx) {
   }
   if (model.totalHabitMinutes != null) {
     const habit = appendKpiCard(grid, "habit-time", t("view.dashboard.kpiHabitTime", ctx.language));
-    appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx);
+    appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx, false);
     appendCatalogLabel(
       habit.hint,
       `${splitText(hobbies, ctx.language, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`
@@ -4682,21 +4703,32 @@ function renderLedgerHead(ledger, ctx) {
   const last = head.createDiv({ cls: "atomic-caption atomic-ledger-end" });
   appendCatalogLabel(last, t("view.dashboard.colLast", ctx.language));
 }
-function appendLedgerEnd(row, data, ctx, meta) {
+function appendLastSession(row, card, ctx) {
   const end = row.createDiv({ cls: "atomic-ledger-end" });
-  if (meta) {
-    const readout = end.createSpan({ cls: "atomic-readout" });
-    appendCatalogLabel(readout, meta);
-  }
-  for (const link of activityLinks(data, ctx)) {
-    appendActivityLink(end, link, "atomic-link");
-  }
+  const date = card.lastDate;
+  const path = card.lastPath;
+  if (!date || !path) return;
+  const link = end.createEl("a", {
+    cls: "atomic-link",
+    attr: {
+      href: "#",
+      "data-testid": "atomic-dashboard-last",
+      "data-path": path
+    }
+  });
+  link.appendText(shortDate(date, ctx));
+  link.createSpan({ cls: "atomic-link-arrow", text: "\u2192" });
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void ctx.data.openPath(path);
+  });
 }
 function renderExerciseRow(row, data, ctx) {
   const count = row.createDiv({ cls: "atomic-ledger-count atomic-stat" });
   appendStat(count, formatCount(data.count), t("view.dashboard.unitSessions", ctx.language));
   const time = row.createDiv({ cls: "atomic-ledger-time atomic-stat" });
-  appendHoursMinutes(time, data.minutes, ctx);
+  appendHoursMinutes(time, data.minutes, ctx, true);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.volumeKg != null) {
     appendDetail(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgLifted", ctx.language));
@@ -4712,17 +4744,16 @@ function renderExerciseRow(row, data, ctx) {
     t("view.dashboard.barsHours", ctx.language),
     ctx
   );
-  appendLedgerEnd(row, data, ctx, data.lastDate ? shortDate(data.lastDate, ctx) : null);
+  appendLastSession(row, data, ctx);
 }
 function renderHobbyRow(row, data, ctx) {
   const count = row.createDiv({ cls: "atomic-ledger-count atomic-stat" });
   appendStat(count, formatCount(data.count), t("view.dashboard.unitItems", ctx.language));
   const time = row.createDiv({ cls: "atomic-ledger-time atomic-stat" });
-  appendHoursMinutes(time, data.minutes, ctx);
+  appendHoursMinutes(time, data.minutes, ctx, true);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
-  if (data.inProgress != null) {
-    appendDetail(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
-  }
+  const detailKey = data.activity.id === "reading" ? "view.dashboard.readingNow" : "view.dashboard.inProgress";
+  appendDetail(detail, formatCount(data.inProgress), t(detailKey, ctx.language));
   const bars = row.createDiv({ cls: "atomic-ledger-bars" });
   bars.style.setProperty("--atomic-c", data.activity.colors[2]);
   appendMonthBars(
@@ -4732,7 +4763,7 @@ function renderHobbyRow(row, data, ctx) {
     t("view.dashboard.barsHours", ctx.language),
     ctx
   );
-  appendLedgerEnd(row, data, ctx, null);
+  appendLastSession(row, data, ctx);
 }
 function renderActivityRow(grid, card, ctx) {
   const { activity } = card;
@@ -4748,7 +4779,16 @@ function renderActivityRow(grid, card, ctx) {
   const name = row.createDiv({ cls: "atomic-ledger-name" });
   const title = name.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: labelForLanguage(activity.label, ctx.language) });
+  const shown = ledgerActivityName(activity.label);
+  const label = title.createSpan();
+  label.appendText(shown.name);
+  if (shown.zh) {
+    label.createSpan({
+      cls: "atomic-inline-zh",
+      text: shown.zh,
+      attr: { lang: "zh-Hant-HK" }
+    });
+  }
   const kind = name.createDiv({ cls: "atomic-caption" });
   switch (card.domain) {
     case "exercise":
@@ -4772,6 +4812,7 @@ function renderActivities(root, model, ctx) {
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language)
   );
+  section.setAttr("data-testid", "atomic-dashboard-activities");
   const ledger = section.createDiv({ cls: "atomic-ledger" });
   renderLedgerHead(ledger, ctx);
   for (const card of model.activities) renderActivityRow(ledger, card, ctx);
