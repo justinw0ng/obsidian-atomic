@@ -258,37 +258,6 @@ export function resolveCoverSrc(
   return data.resolveResourcePath(ref.path, sourcePath);
 }
 
-/**
- * The book face is about 2:3. A user cover is often a different width.
- * object-fit:cover scales that image until it fills the face. The crop
- * stays centered so the art sits in the book, not on one edge.
- */
-export function coverObjectPosition(
-  naturalWidth: number,
-  naturalHeight: number,
-): string {
-  if (
-    !Number.isFinite(naturalWidth) ||
-    !Number.isFinite(naturalHeight) ||
-    naturalWidth <= 0 ||
-    naturalHeight <= 0
-  ) {
-    return "center";
-  }
-  return "center";
-}
-
-function bindCoverObjectPosition(img: HTMLImageElement): void {
-  const apply = (): void => {
-    img.setCssProps({
-      "--atomic-cover-position": coverObjectPosition(img.naturalWidth, img.naturalHeight),
-    });
-  };
-  if (img.complete) apply();
-  else img.addEventListener("load", apply, { once: true });
-}
-
-const LIFTED_CLASS = "is-lifted";
 const COVER_OPEN_CLASS = "is-cover-open";
 
 export function hoverFinePointer(
@@ -322,12 +291,6 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function closeLiftedBooks(root: ParentNode): void {
-  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
-    el.classList.remove(LIFTED_CLASS);
-  });
-}
-
 function closeOpenCovers(root: ParentNode): void {
   root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
     el.classList.remove(COVER_OPEN_CLASS);
@@ -349,6 +312,7 @@ function showBookReadout(
   item: BookShelfItem,
   language: Language,
   mode: "preview" | "again",
+  hoverFine = false,
 ): void {
   readout.empty();
   readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
@@ -358,7 +322,7 @@ function showBookReadout(
   const hint = readout.createDiv({ cls: again ? "atomic-readout is-live" : "atomic-readout" });
   const key = !again
     ? "view.bookShelf.clickToOpen"
-    : hoverFinePointer(hoverFineMedia())
+    : hoverFine
       ? "view.bookShelf.clickAgain"
       : "view.bookShelf.tapAgain";
   hint.setText(t(key, language));
@@ -404,11 +368,10 @@ function createBook(
   const face = button.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = face.createEl("img", {
+    face.createEl("img", {
       cls: "atomic-book-cover",
       attr: { src: coverSrc, alt: "", draggable: "false" },
     });
-    bindCoverObjectPosition(img);
   } else {
     face.createDiv({
       cls: ["atomic-book-cover", "atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
@@ -446,23 +409,18 @@ function createBook(
     event.preventDefault();
     event.stopPropagation();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = hoverFine
-      ? button.classList.contains(COVER_OPEN_CLASS)
-      : button.classList.contains(LIFTED_CLASS);
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
     if (!bookClickOpensNote({
       hoverFine,
       coverOpen,
       reducedMotion: prefersReducedMotion(),
     })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeLiftedBooks(shelf);
       closeOpenCovers(shelf);
-      if (hoverFine) button.classList.add(COVER_OPEN_CLASS);
-      else button.classList.add(LIFTED_CLASS);
-      showBookReadout(readout, item, language, "again");
+      button.classList.add(COVER_OPEN_CLASS);
+      showBookReadout(readout, item, language, "again", hoverFine);
       return;
     }
-    button.classList.remove(LIFTED_CLASS);
     button.classList.remove(COVER_OPEN_CLASS);
     void data.openPath(item.path);
   });

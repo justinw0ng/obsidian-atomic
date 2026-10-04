@@ -7,7 +7,6 @@ import {
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
-  coverObjectPosition,
   bookClickOpensNote,
   hoverFinePointer,
   isBookShelfUnclipStop,
@@ -222,15 +221,6 @@ test("hoverFinePointer follows the hover+fine media query", () => {
   assert.equal(hoverFinePointer(null), false);
   assert.equal(hoverFinePointer({ matches: false }), false);
   assert.equal(hoverFinePointer({ matches: true }), true);
-});
-
-test("coverObjectPosition centers a user cover when its width does not match the book", () => {
-  assert.equal(coverObjectPosition(400, 600), "center");
-  assert.equal(coverObjectPosition(80, 124), "center");
-  assert.equal(coverObjectPosition(1600, 900), "center");
-  assert.equal(coverObjectPosition(200, 600), "center");
-  assert.equal(coverObjectPosition(0, 600), "center");
-  assert.equal(coverObjectPosition(400, 0), "center");
 });
 
 test("titleLengthClass shrinks type for long book titles", () => {

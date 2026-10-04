@@ -4984,22 +4984,6 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
-function coverObjectPosition(naturalWidth, naturalHeight) {
-  if (!Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight) || naturalWidth <= 0 || naturalHeight <= 0) {
-    return "center";
-  }
-  return "center";
-}
-function bindCoverObjectPosition(img) {
-  const apply = () => {
-    img.setCssProps({
-      "--atomic-cover-position": coverObjectPosition(img.naturalWidth, img.naturalHeight)
-    });
-  };
-  if (img.complete) apply();
-  else img.addEventListener("load", apply, { once: true });
-}
-var LIFTED_CLASS = "is-lifted";
 var COVER_OPEN_CLASS = "is-cover-open";
 function hoverFinePointer(media) {
   return Boolean(media?.matches);
@@ -5016,11 +5000,6 @@ function prefersReducedMotion2() {
   if (typeof window.matchMedia !== "function") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
-function closeLiftedBooks(root) {
-  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
-    el.classList.remove(LIFTED_CLASS);
-  });
-}
 function closeOpenCovers(root) {
   root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
     el.classList.remove(COVER_OPEN_CLASS);
@@ -5035,14 +5014,14 @@ function shelfSummary(items, language) {
     finished
   });
 }
-function showBookReadout(readout, item, language, mode) {
+function showBookReadout(readout, item, language, mode, hoverFine = false) {
   readout.empty();
   readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
   const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
   readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" \xB7 ") });
   const again = mode === "again";
   const hint = readout.createDiv({ cls: again ? "atomic-readout is-live" : "atomic-readout" });
-  const key = !again ? "view.bookShelf.clickToOpen" : hoverFinePointer(hoverFineMedia()) ? "view.bookShelf.clickAgain" : "view.bookShelf.tapAgain";
+  const key = !again ? "view.bookShelf.clickToOpen" : hoverFine ? "view.bookShelf.clickAgain" : "view.bookShelf.tapAgain";
   hint.setText(t(key, language));
 }
 function titleLengthClass(title) {
@@ -5074,11 +5053,10 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
   const face = button.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = face.createEl("img", {
+    face.createEl("img", {
       cls: "atomic-book-cover",
       attr: { src: coverSrc, alt: "", draggable: "false" }
     });
-    bindCoverObjectPosition(img);
   } else {
     face.createDiv({
       cls: ["atomic-book-cover", "atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
@@ -5114,21 +5092,18 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     event.preventDefault();
     event.stopPropagation();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = hoverFine ? button.classList.contains(COVER_OPEN_CLASS) : button.classList.contains(LIFTED_CLASS);
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
     if (!bookClickOpensNote({
       hoverFine,
       coverOpen,
       reducedMotion: prefersReducedMotion2()
     })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeLiftedBooks(shelf);
       closeOpenCovers(shelf);
-      if (hoverFine) button.classList.add(COVER_OPEN_CLASS);
-      else button.classList.add(LIFTED_CLASS);
-      showBookReadout(readout, item, language, "again");
+      button.classList.add(COVER_OPEN_CLASS);
+      showBookReadout(readout, item, language, "again", hoverFine);
       return;
     }
-    button.classList.remove(LIFTED_CLASS);
     button.classList.remove(COVER_OPEN_CLASS);
     void data.openPath(item.path);
   });

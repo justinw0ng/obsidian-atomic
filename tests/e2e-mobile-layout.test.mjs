@@ -226,7 +226,10 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /border-width:\s*0 4px 6px/);
   assert.doesNotMatch(styles, /clip-path\s*:/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
-  assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.match(
+    styles,
+    /@media \(hover: none\) and \(pointer: coarse\)\s*\{[^}]*\.atomic-book\.is-cover-open\s*\{[^}]*translateY\(-10px\)/s,
+  );
   assert.match(
     styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*position:\s*absolute/s,
@@ -259,25 +262,24 @@ test("fine pointers pop a book, then open the cover on click", () => {
   assert.match(hover, /rotateY\(calc\(var\(--px\)/);
   assert.match(hover, /\.atomic-book\.is-cover-open \.atomic-book-face/);
   assert.match(hover, /rotateY\(-112deg\)/);
-  assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.doesNotMatch(styles, /\.atomic-book\.is-lifted/);
   assert.match(styles, /min-width:\s*100%/);
   assert.match(styles, /min-height:\s*100%/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
   assert.doesNotMatch(styles, /atomic-book-spine/);
 });
 
-test("cover images apply coverObjectPosition after load", () => {
+test("cover images fill the book face from the center", () => {
   const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
-  assert.match(src, /bindCoverObjectPosition\(img\)/);
-  assert.match(
-    src,
-    /function bindCoverObjectPosition[\s\S]*?addEventListener\("load", apply, \{ once: true \}/,
-  );
-  assert.match(src, /"--atomic-cover-position":\s*coverObjectPosition/);
-  assert.doesNotMatch(src, /"object-position"\s*:/);
+  assert.doesNotMatch(src, /coverObjectPosition/);
+  assert.doesNotMatch(src, /--atomic-cover-position/);
   assert.match(
     styles,
-    /object-position:\s*var\(--atomic-cover-position,\s*center\)/,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-position:\s*center/s,
   );
 });
 

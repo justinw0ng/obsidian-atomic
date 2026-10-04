@@ -1787,7 +1787,7 @@
   max-width: none;
   max-height: none;
   object-fit: cover;
-  object-position: var(--atomic-cover-position, center);
+  object-position: center;
   border-radius: inherit;
   pointer-events: none;
 }
@@ -1885,13 +1885,15 @@
   opacity: 1;
 }
 
-/* Touch: first tap lifts and reads out, second tap opens. */
-.fitness-plugin .atomic-book.is-lifted {
-  z-index: 3;
-  transform: translateY(-10px);
-  box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.06),
-    0 20px 18px -12px rgba(0, 0, 0, 0.45);
+/* Touch: the same armed class lifts. A fine pointer swings the cover instead. */
+@media (hover: none) and (pointer: coarse) {
+  .fitness-plugin .atomic-book.is-cover-open {
+    z-index: 3;
+    transform: translateY(-10px);
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.06),
+      0 20px 18px -12px rgba(0, 0, 0, 0.45);
+  }
 }
 
 /* Reading: a ribbon tail hangs out of the book over the plank's edge.
@@ -2545,7 +2547,6 @@
 
   .fitness-plugin .atomic-book:hover,
   .fitness-plugin .atomic-book.is-preview,
-  .fitness-plugin .atomic-book.is-lifted,
   .fitness-plugin .atomic-book.is-cover-open,
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
     transform: none;

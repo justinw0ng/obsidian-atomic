@@ -1760,7 +1760,6 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         );
         return {
           cover: book?.classList.contains("is-cover-open") === true,
-          lifted: book?.classList.contains("is-lifted") === true,
           className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
         };
