@@ -10,7 +10,7 @@ import {
   stopTimer,
   updateTimerFrontmatter,
 } from "../core/hobby";
-import { shouldCommitBlockPaint } from "../util/block-render";
+import { isStaleBlockRender } from "../util/block-render";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { promptText } from "../util/prompt-text.ts";
 
@@ -73,7 +73,7 @@ export async function renderAtomicTimer(
   generation?: number,
 ): Promise<void> {
   const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
-  if (!shouldCommitBlockPaint(el, generation)) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
 

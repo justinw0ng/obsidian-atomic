@@ -3,7 +3,7 @@ import type FitnessPlugin from "../main";
 import { appendCueBullet, parseReminders, sanitizeCueText } from "../core/cues";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
-import { shouldCommitBlockPaint } from "../util/block-render";
+import { isStaleBlockRender } from "../util/block-render";
 import { PaintMemo, sameList } from "../util/paint-memo";
 import {
   appendCueCard,
@@ -39,7 +39,7 @@ export async function renderAtomicCueLog(
   generation?: number,
 ): Promise<void> {
   const markdown = host.sourcePath ? await plugin.data.readCachedBody(host.sourcePath) : "";
-  if (!shouldCommitBlockPaint(el, generation)) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
 

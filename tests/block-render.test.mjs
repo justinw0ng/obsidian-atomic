@@ -12,7 +12,6 @@ import {
   invalidateBlockRenderIfCurrent,
   isStaleBlockRender,
   mountAtomicBlockShell,
-  shouldCommitBlockPaint,
 } from "../src/util/block-render.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -69,13 +68,52 @@ test("beginBlockRender increments and isStaleBlockRender detects superseded rend
   assert.equal(isStaleBlockRender(el, second), false);
 });
 
-test("shouldCommitBlockPaint keeps a detached reading-view host paintable", () => {
-  const detached = { isConnected: false };
-  const generation = beginBlockRender(detached);
-  assert.equal(shouldCommitBlockPaint(detached, generation), true);
-  assert.equal(shouldCommitBlockPaint(detached), true);
-  beginBlockRender(detached);
-  assert.equal(shouldCommitBlockPaint(detached, generation), false);
+test("reading mode does not keep the pending bar on a detached host", () => {
+  const host = createHost();
+  host.isConnected = false;
+  mountAtomicBlockShell(host);
+  assert.equal(host.children[0]?.cls, ATOMIC_BLOCK_PENDING_CLASS);
+
+  const generation = beginBlockRender(host);
+  if (isStaleBlockRender(host, generation)) return;
+  host.empty();
+  host.createDiv({ cls: "fitness-plugin atomic-timer atomic-well" });
+
+  assert.equal(
+    host.children.some((child) => child.cls === ATOMIC_BLOCK_PENDING_CLASS),
+    false,
+    "pending placeholder must be replaced after the first paint commit",
+  );
+  assert.equal(host.children.length, 1);
+  assert.match(host.children[0].cls, /atomic-timer/);
+  assert.equal(host.isConnected, false);
+  assert.equal(isStaleBlockRender(host), false);
+  beginBlockRender(host);
+  assert.equal(isStaleBlockRender(host, generation), true);
+});
+
+test("async session widgets commit paint without an isConnected gate", () => {
+  const timer = readFileSync(join(root, "src/views/timer.ts"), "utf8");
+  const cueLog = readFileSync(join(root, "src/views/cue-log.ts"), "utf8");
+  const dashboard = readFileSync(join(root, "src/views/dashboard.ts"), "utf8");
+  const today = readFileSync(join(root, "src/views/today.ts"), "utf8");
+  for (const source of [timer, cueLog, today]) {
+    assert.match(source, /isStaleBlockRender\(el, generation\)/);
+  }
+  assert.doesNotMatch(timer, /!el\.isConnected/);
+  assert.doesNotMatch(cueLog, /!el\.isConnected/);
+  assert.doesNotMatch(dashboard, /!el\.isConnected/);
+});
+
+test("render paths do not rewrite stored bilingual session headings", () => {
+  const timer = readFileSync(join(root, "src/views/timer.ts"), "utf8");
+  const cueLog = readFileSync(join(root, "src/views/cue-log.ts"), "utf8");
+  const codeblocks = readFileSync(join(root, "src/codeblocks.ts"), "utf8");
+  for (const source of [timer, cueLog, codeblocks]) {
+    assert.doesNotMatch(source, /labelForLanguage\(/);
+    assert.doesNotMatch(source, /Golf \/ 高爾夫/);
+    assert.doesNotMatch(source, /Reminders \/ 提醒/);
+  }
 });
 
 test("enqueueBlockRender skips a stale queued render", async () => {

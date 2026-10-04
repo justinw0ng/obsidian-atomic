@@ -46,7 +46,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(timer, /data-testid": "atomic-timer-start"/);
   assert.match(timer, /data-testid": "atomic-timer-stop"/);
   assert.match(timer, /stopSessionTimer/);
-  assert.match(timer, /shouldCommitBlockPaint/);
+  assert.match(timer, /isStaleBlockRender/);
   assert.match(timer, /vault\.process\(file, \(current\) =>/);
   assert.doesNotMatch(timer, /scheduleRefresh/);
 

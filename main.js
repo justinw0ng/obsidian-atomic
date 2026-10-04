@@ -2384,10 +2384,7 @@ function beginBlockRender(el) {
   return next;
 }
 function isStaleBlockRender(el, generation) {
-  return generations.get(el) !== generation;
-}
-function shouldCommitBlockPaint(el, generation) {
-  return generation === void 0 || !isStaleBlockRender(el, generation);
+  return generation !== void 0 && generations.get(el) !== generation;
 }
 function currentBlockGeneration(el) {
   return generations.get(el) ?? 0;
@@ -3005,7 +3002,7 @@ var cueLogPaint = new PaintMemo(
 );
 async function renderAtomicCueLog(plugin, el, host, generation) {
   const markdown = host.sourcePath ? await plugin.data.readCachedBody(host.sourcePath) : "";
-  if (!shouldCommitBlockPaint(el, generation)) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
   const language = plugin.settings.language;
@@ -6489,7 +6486,7 @@ function paintTimer(plugin, el, sourcePath) {
 }
 async function renderAtomicTimer(plugin, el, sourcePath, generation) {
   const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
-  if (!shouldCommitBlockPaint(el, generation)) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
   stopTimerClock(el);
@@ -6669,7 +6666,7 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
   const maps = await Promise.all(
     activities.map((activity) => data.getActivityDurationMap(activity, year))
   );
-  if (generation !== void 0 && isStaleBlockRender(el, generation)) return;
+  if (isStaleBlockRender(el, generation)) return;
   el.empty();
   const rows = activities.map((activity, index) => ({
     activity,
