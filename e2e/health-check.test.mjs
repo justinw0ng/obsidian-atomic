@@ -78,6 +78,88 @@ async function restoreDesktopPointer(driver, viewport) {
   }
 }
 
+function setMarkdownMode(driver, mode) {
+  return driver.executeAsyncScript(
+    `
+    const done = arguments[1];
+    const mode = arguments[0];
+    const view = app.workspace.getMostRecentLeaf?.()?.view;
+    if (!view || typeof view.setState !== "function") {
+      done({ ok: false, error: "no markdown view" });
+      return;
+    }
+    const state = typeof view.getState === "function" ? view.getState() : {};
+    Promise.resolve(view.setState({ ...state, mode }, { history: false })).then(
+      () => done({ ok: true, mode }),
+      (err) => done({ ok: false, error: String(err) }),
+    );
+    `,
+    mode,
+  );
+}
+
+function measureShelfRow(driver, scale) {
+  return driver.executeScript(
+    `
+    const frame = document.querySelector(
+      '[data-testid="atomic-bookshelf"][data-scale="' + arguments[0] + '"] .atomic-book-shelf-frame',
+    );
+    if (!frame) return null;
+    const style = getComputedStyle(frame);
+    const bookWidth = Number.parseFloat(style.getPropertyValue("--atomic-book-width"));
+    const bookHeight = Number.parseFloat(style.getPropertyValue("--atomic-book-height"));
+    const padding = 28;
+    const gap = 12;
+    const perRow = 3;
+    return {
+      bookWidth,
+      bookHeight,
+      frameWidth: frame.clientWidth,
+      used: padding + perRow * bookWidth + (perRow - 1) * gap,
+      perRow,
+    };
+    `,
+    scale,
+  );
+}
+
+function measureCoverInset(driver) {
+  return driver.executeScript(`
+    const book = document.querySelector(
+      '[data-testid="atomic-book"][data-title="Currently Reading"]',
+    );
+    const img = book?.querySelector("img.atomic-book-cover");
+    if (!book || !img) return { img: false };
+    const bookBox = book.getBoundingClientRect();
+    const imgBox = img.getBoundingClientRect();
+    const face = book.querySelector(".atomic-book-face");
+    return {
+      img: true,
+      preview: Boolean(book.closest(".markdown-preview-view")),
+      filter: face ? getComputedStyle(face).filter : "",
+      objectFit: getComputedStyle(img).objectFit,
+      inset: {
+        left: imgBox.left - bookBox.left,
+        right: bookBox.right - imgBox.right,
+        top: imgBox.top - bookBox.top,
+        bottom: bookBox.bottom - imgBox.bottom,
+      },
+    };
+  `);
+}
+
+function assertCoverFillsBook(cover, mode) {
+  assert.ok(cover?.img, `${mode} mode should paint a cover image`);
+  assert.equal(cover.objectFit, "cover", `${mode} cover should use object-fit: cover`);
+  assert.doesNotMatch(String(cover.filter), /invert\(/, `${mode} cover keeps its colors`);
+  for (const side of ["left", "right", "top", "bottom"]) {
+    assert.ok(
+      Math.abs(cover.inset[side]) <= 2,
+      `${mode} cover should reach the ${side} edge ${JSON.stringify(cover.inset)}`,
+    );
+  }
+}
+
 function assertNoCssMask(metrics, label) {
   assert.match(String(metrics.maskImage), /^(none)?$/, `${label} must not set mask-image`);
   assert.match(
@@ -2118,13 +2200,35 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
 
       await openVaultFile(driver, E2E_FILES.bookshelfScaled);
       await waitCss(driver, '[data-testid="atomic-bookshelf"][data-scale="1.5"]');
-      const scaledWidth = await driver.executeScript(`
-        const frame = document.querySelector(
-          '[data-testid="atomic-bookshelf"][data-scale="1.5"] .atomic-book-shelf-frame',
-        );
-        return frame && getComputedStyle(frame).getPropertyValue('--atomic-book-width').trim();
-      `);
-      assert.equal(scaledWidth, "144px");
+      const scaled = await measureShelfRow(driver, "1.5");
+      assert.ok(scaled, "scaled shelf should report a row");
+      assert.equal(scaled.perRow, 3);
+      assert.ok(
+        scaled.bookWidth > 144,
+        `three books grow past the 144px scale cap to fill the row ${JSON.stringify(scaled)}`,
+      );
+      assert.ok(
+        scaled.frameWidth - scaled.used < 3,
+        `a row of three should fill the shelf ${JSON.stringify(scaled)}`,
+      );
+      assert.ok(
+        Math.abs(scaled.bookHeight / scaled.bookWidth - 150 / 96) < 0.02,
+        `cover aspect ratio stays 96:150 ${JSON.stringify(scaled)}`,
+      );
+
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(driver, 'img.atomic-book-cover');
+      const editCover = await measureCoverInset(driver);
+      assert.ok(editCover?.img, "edit mode should paint a cover image");
+      assertCoverFillsBook(editCover, "edit");
+
+      await setMarkdownMode(driver, "preview");
+      await waitCss(driver, ".markdown-preview-view img.atomic-book-cover");
+      const readingCover = await measureCoverInset(driver);
+      assert.equal(readingCover?.preview, true);
+      assertCoverFillsBook(readingCover, "reading");
+      await shot(driver, "shelf-reading-mode");
+      await setMarkdownMode(driver, "source");
     });
   });
 

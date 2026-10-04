@@ -7,7 +7,7 @@ import { DEFAULT_READING_STATUS, matchesBookShelfStatus, resolveBookShelfStatuse
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { hobbyActivities } from "../util/activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale, scaledBookSize } from "../util/book-shelf-layout.ts";
+import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, MIN_BOOKS_PER_ROW, ROW_PADDING_PX, bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale, scaledBookSize } from "../util/book-shelf-layout.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { measureElementWidth } from "../util/element-width.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -558,7 +558,9 @@ export function renderBookShelf(
       minWidth,
       maxWidth,
     );
-    const perRow = booksPerRow(width, bookWidth);
+    // The width above is for exactly three books. Keep that count so a
+    // wide pane grows the row instead of adding a fourth book and a gap.
+    const perRow = MIN_BOOKS_PER_ROW;
     const key = `${bookWidth}:${perRow}`;
     if (key === lastKey && frame.childElementCount > 0) return;
     lastKey = key;

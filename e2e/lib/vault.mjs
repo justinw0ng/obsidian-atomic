@@ -109,7 +109,13 @@ export function assertSafeE2eVaultPath(vaultPath) {
   }
 }
 
-function readingItem({ title, status, totalMin, timeLog }) {
+/** 60×90 cover with a red edge so reading-mode layout can measure the image box. */
+const E2E_COVER_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAADwAAABaCAIAAABrM6JiAAAAaklEQVR42u3bQREAIAgAQeIQ0WDEIYwVfCruzAXYAhed+VwBDX2IXtXXBg0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ39F9pjCz0AvQEVxwrKcFv7WwAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+function readingItem({ title, status, totalMin, timeLog, cover = "" }) {
   return `---
 type: atomic-item
 domain: hobby
@@ -119,7 +125,7 @@ authors:
   - ""
 description: ""
 pages:
-cover: ""
+cover: "${cover}"
 tags:
   - books
 spine_color:
@@ -432,6 +438,9 @@ export function seedE2eVault(options = {}) {
   write(join(vault, "atomics/exercise/Golf/Cues.md"), "# Golf Cues\n");
   write(join(vault, "atomics/exercise/Gym/Cues.md"), "# Gym Cues\n");
 
+  const coverPath = "atomics/hobbies/Reading/Covers/current.png";
+  ensureDir(dirname(join(vault, coverPath)));
+  writeFileSync(join(vault, coverPath), E2E_COVER_PNG);
   write(
     join(vault, E2E_FILES.readingCurrent),
     readingItem({
@@ -439,6 +448,7 @@ export function seedE2eVault(options = {}) {
       status: "reading",
       totalMin: 25,
       timeLog: `- ${today} | 25 min | seeded`,
+      cover: coverPath,
     }),
   );
   write(

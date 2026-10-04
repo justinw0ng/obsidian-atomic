@@ -3,9 +3,10 @@
 export const DEFAULT_BOOK_WIDTH_PX = 96;
 export const DEFAULT_BOOK_HEIGHT_PX = 150;
 export const MIN_BOOK_WIDTH_PX = 56;
-export const BOOK_GAP_PX = 6;
-/** Frame 4*2 + row 2*2 + books 4*2. */
-export const ROW_PADDING_PX = 20;
+/** Matches `--atomic-shelf-gap` on `.atomic-shelf-row`. */
+export const BOOK_GAP_PX = 12;
+/** Matches `.atomic-shelf-row` padding (14px on each side). */
+export const ROW_PADDING_PX = 28;
 export const MIN_BOOKS_PER_ROW = 3;
 export const DEFAULT_BOOK_SHELF_SCALE = 1;
 export const MIN_BOOK_SHELF_SCALE = 0.25;
@@ -42,8 +43,11 @@ export function bookHeightForWidth(width: number): number {
 }
 
 /**
- * Shrink toward MIN_BOOK_WIDTH_PX so three books can sit on a narrow pane.
- * Never grow past DEFAULT_BOOK_WIDTH_PX.
+ * Width of one book so a row of three fills the container.
+ * Grows past the preferred size when three books would leave a gap.
+ * Shrinks on a narrow pane, even below `minWidth`, so the row still
+ * shows three books instead of scrolling down to one or two.
+ * `maxWidth` is only the size used before the pane has been measured.
  */
 export function bookWidthForContainer(
   containerWidth: number,
@@ -52,18 +56,20 @@ export function bookWidthForContainer(
   minWidth = MIN_BOOK_WIDTH_PX,
   maxWidth = DEFAULT_BOOK_WIDTH_PX,
 ): number {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return maxWidth;
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
+    return Math.max(1, maxWidth);
+  }
   const available = Math.max(0, containerWidth - padding);
-  const widthForMinCount =
-    (available - (MIN_BOOKS_PER_ROW - 1) * gap) / MIN_BOOKS_PER_ROW;
-  if (widthForMinCount >= maxWidth) return maxWidth;
-  if (widthForMinCount >= minWidth) return Math.floor(widthForMinCount);
-  return minWidth;
+  const gaps = (MIN_BOOKS_PER_ROW - 1) * gap;
+  const fill = (available - gaps) / MIN_BOOKS_PER_ROW;
+  if (!Number.isFinite(fill) || fill < 1) return Math.max(1, minWidth);
+  return Math.max(1, Math.floor(fill));
 }
 
 /**
- * How many upright books sit on one plank.
- * Never wraps below MIN_BOOKS_PER_ROW — overflow scrolls horizontally instead.
+ * How many upright books sit on one plank at a fixed book width.
+ * Never wraps below MIN_BOOKS_PER_ROW. The shelf view sizes the book so
+ * this stays at three and the row fills the pane.
  */
 export function booksPerRow(
   containerWidth: number,

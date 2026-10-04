@@ -1910,11 +1910,10 @@
 
 /*
   Obsidian's img max-width is more specific than the rule above in the
-  editor and the preview. Repeat the fill here so a custom cover paints
-  edge to edge.
+  editor. Repeat the fill here so a custom cover paints edge to edge.
+  Reading mode is a separate rule: its button and img defaults inset the art.
 */
 .markdown-source-view.mod-cm6 .fitness-plugin img.atomic-book-cover,
-.markdown-preview-view .fitness-plugin img.atomic-book-cover,
 .markdown-rendered .fitness-plugin img.atomic-book-cover,
 .workspace-leaf-content .fitness-plugin img.atomic-book-cover {
   position: absolute;
@@ -1930,6 +1929,49 @@
   object-fit: cover;
   object-position: center;
   image-rendering: auto;
+}
+
+/*
+  Reading view only. Obsidian's button is an inline flex item with padding,
+  and preview images keep a content height, so the cover sits inside the
+  book. Stretch the face to the same edges the editor already paints.
+  Do not copy this onto the editor rule.
+*/
+.markdown-preview-view .fitness-plugin button.atomic-book {
+  display: block;
+  align-items: stretch;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  width: var(--atomic-book-w);
+  height: var(--atomic-book-h);
+  min-height: var(--atomic-book-h);
+  max-width: var(--atomic-book-w);
+  padding: 0;
+  white-space: normal;
+}
+
+.markdown-preview-view .fitness-plugin .atomic-book-face,
+.markdown-preview-view .fitness-plugin button.atomic-book img.atomic-book-cover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
+  vertical-align: top;
 }
 
 /*
@@ -2105,19 +2147,6 @@
 }
 
 @container (max-width: 600px) {
-  .fitness-plugin .atomic-shelf-scroll {
-    --atomic-book-w: 84px;
-    --atomic-book-h: 132px;
-    --atomic-shelf-gap: 10px;
-    scroll-snap-type: x mandatory;
-    /* One gap, so a snapped book's neighbour is fully off the edge, not a sliver. */
-    scroll-padding: 0 var(--atomic-shelf-gap);
-  }
-
-  .fitness-plugin .atomic-book {
-    scroll-snap-align: start;
-  }
-
   .fitness-plugin .atomic-shelf-readout {
     flex-wrap: wrap;
     row-gap: 2px;
