@@ -165,41 +165,6 @@
 
 .fitness-plugin .fitness-cell {
   border: none;
-  background: var(--atomic-empty);
-  transition: transform var(--atomic-t-press) var(--atomic-ease);
-}
-
-.fitness-plugin .fitness-cell.is-future {
-  background: var(--atomic-future);
-}
-
-.fitness-plugin .fitness-cell[data-l="1"] {
-  background: color-mix(in oklab, var(--atomic-c) 28%, var(--atomic-paper));
-}
-
-.fitness-plugin .fitness-cell[data-l="2"] {
-  background: color-mix(in oklab, var(--atomic-c) 52%, var(--atomic-paper));
-}
-
-.fitness-plugin .fitness-cell[data-l="3"] {
-  background: color-mix(in oklab, var(--atomic-c) 78%, var(--atomic-paper));
-}
-
-.fitness-plugin .fitness-cell[data-l="4"] {
-  background: var(--atomic-c);
-}
-
-/* Ring sits on the cell (same outer size) using the page and ink tokens. */
-.fitness-plugin .fitness-cell.is-today {
-  box-shadow:
-    0 0 0 1.5px var(--atomic-paper),
-    0 0 0 2.75px var(--atomic-ink);
-}
-
-.theme-dark .fitness-plugin .fitness-cell.is-today {
-  box-shadow:
-    0 0 0 1.5px var(--atomic-paper),
-    0 0 0 2.75px var(--atomic-ink);
 }
 
 .fitness-plugin .fitness-cell.is-faded {
@@ -210,9 +175,6 @@
   cursor: pointer;
 }
 
-.fitness-plugin .fitness-cell.is-link:hover {
-  transform: scale(1.35);
-}
 
 .fitness-plugin .fitness-month-row {
   display: flex;
@@ -1420,9 +1382,10 @@
   gap: var(--atomic-heat-gap);
 }
 
-.fitness-plugin .atomic-heat-cell {
-  width: var(--atomic-heat-cell);
-  height: var(--atomic-heat-cell);
+.fitness-plugin .atomic-heat-cell,
+.fitness-plugin .fitness-cell {
+  width: var(--atomic-heat-cell, var(--atomic-heatmap-cell));
+  height: var(--atomic-heat-cell, var(--atomic-heatmap-cell));
   border-radius: 50%;
   background: var(--atomic-empty);
   transition: transform var(--atomic-t-press) var(--atomic-ease);
@@ -1432,35 +1395,48 @@
   visibility: hidden;
 }
 
-.fitness-plugin .atomic-heat-cell.is-future {
+.fitness-plugin .atomic-heat-cell.is-future,
+.fitness-plugin .fitness-cell.is-future {
   background: var(--atomic-future);
 }
 
 /* Levels mix toward the page, so "least" is always closest to the paper. */
-.fitness-plugin .atomic-heat-cell[data-l="1"] {
+.fitness-plugin .atomic-heat-cell[data-l="1"],
+.fitness-plugin .fitness-cell[data-l="1"] {
   background: color-mix(in oklab, var(--atomic-c) 28%, var(--atomic-paper));
 }
 
-.fitness-plugin .atomic-heat-cell[data-l="2"] {
+.fitness-plugin .atomic-heat-cell[data-l="2"],
+.fitness-plugin .fitness-cell[data-l="2"] {
   background: color-mix(in oklab, var(--atomic-c) 52%, var(--atomic-paper));
 }
 
-.fitness-plugin .atomic-heat-cell[data-l="3"] {
+.fitness-plugin .atomic-heat-cell[data-l="3"],
+.fitness-plugin .fitness-cell[data-l="3"] {
   background: color-mix(in oklab, var(--atomic-c) 78%, var(--atomic-paper));
 }
 
-.fitness-plugin .atomic-heat-cell[data-l="4"] {
+.fitness-plugin .atomic-heat-cell[data-l="4"],
+.fitness-plugin .fitness-cell[data-l="4"] {
   background: var(--atomic-c);
 }
 
-.fitness-plugin .atomic-heat-cell.is-today {
+.fitness-plugin .atomic-heat-cell.is-today,
+.fitness-plugin .fitness-cell.is-today {
+  box-shadow:
+    0 0 0 1.5px var(--atomic-paper),
+    0 0 0 2.75px var(--atomic-ink);
+}
+
+.theme-dark .fitness-plugin .fitness-cell.is-today {
   box-shadow:
     0 0 0 1.5px var(--atomic-paper),
     0 0 0 2.75px var(--atomic-ink);
 }
 
 .fitness-plugin .atomic-heat-cell:hover,
-.fitness-plugin .atomic-heat-cell.is-preview {
+.fitness-plugin .atomic-heat-cell.is-preview,
+.fitness-plugin .fitness-cell.is-link:hover {
   transform: scale(1.35);
 }
 
@@ -2415,7 +2391,8 @@
   }
 
   .fitness-plugin .atomic-btn:active,
-  .fitness-plugin .atomic-heat-cell:hover {
+  .fitness-plugin .atomic-heat-cell:hover,
+  .fitness-plugin .fitness-cell.is-link:hover {
     transform: none;
   }
 
