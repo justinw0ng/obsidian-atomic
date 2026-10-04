@@ -230,6 +230,11 @@ export function appendMonthBars(
   });
   bars.style.setProperty("--atomic-c", color);
   appendBars(bars, monthBars(values, color, ctx), "month");
+  appendMonthInitials(parent, ctx);
+}
+
+/** J F M … under the ledger, with the current month marked. */
+export function appendMonthInitials(parent: HTMLElement, ctx: DashboardRenderContext): void {
   const today = calendarMonth(ctx.timezone);
   const labels = parent.createDiv({ cls: "atomic-month-initials atomic-caption" });
   for (let i = 0; i < 12; i++) {

@@ -403,6 +403,12 @@ var en = {
   "view.dashboard.unitMinutes": "minutes",
   "view.dashboard.unitItems": "items",
   "view.dashboard.unitVolume": "kg volume",
+  "view.dashboard.colCount": "Count",
+  "view.dashboard.colTime": "Time",
+  "view.dashboard.colDetail": "Detail",
+  "view.dashboard.colLast": "Last",
+  "view.dashboard.kgLifted": "kg lifted",
+  "view.dashboard.feltGoodCount": "felt good",
   "view.dashboard.readingNow": "reading now",
   "view.dashboard.barsHours": "Hours per month",
   "view.dashboard.lastSession": "last session: {date}",
@@ -713,6 +719,12 @@ var zhHantEn = {
   "view.dashboard.unitMinutes": "minutes / \u5206\u9418",
   "view.dashboard.unitItems": "items / \u9805\u76EE",
   "view.dashboard.unitVolume": "kg volume / \u8A13\u7DF4\u91CF",
+  "view.dashboard.colCount": "Count / \u6578\u91CF",
+  "view.dashboard.colTime": "Time / \u6642\u9577",
+  "view.dashboard.colDetail": "Detail / \u8A73\u60C5",
+  "view.dashboard.colLast": "Last / \u6700\u8FD1",
+  "view.dashboard.kgLifted": "kg lifted / \u8A13\u7DF4\u91CF",
+  "view.dashboard.feltGoodCount": "felt good / \u611F\u89BA\u597D",
   "view.dashboard.readingNow": "reading now / \u5728\u8B80",
   "view.dashboard.barsHours": "Hours per month / \u6BCF\u6708\u6642\u6578",
   "view.dashboard.lastSession": "last session / \u6700\u8FD1\u8A13\u7DF4: {date}",
@@ -4092,6 +4104,9 @@ function appendMonthBars(parent, values, color, title, ctx) {
   });
   bars.style.setProperty("--atomic-c", color);
   appendBars(bars, monthBars(values, color, ctx), "month");
+  appendMonthInitials(parent, ctx);
+}
+function appendMonthInitials(parent, ctx) {
   const today = calendarMonth(ctx.timezone);
   const labels = parent.createDiv({ cls: "atomic-month-initials atomic-caption" });
   for (let i = 0; i < 12; i++) {
@@ -4533,6 +4548,26 @@ function appendStat(parent, value, unit) {
   parent.appendText(value);
   parent.createSpan({ cls: "atomic-unit", text: unit });
 }
+function appendDetail(parent, value, unit) {
+  parent.createEl("strong", { text: value });
+  parent.appendText(" ");
+  appendCatalogLabel(parent, unit);
+}
+function renderLedgerHead(ledger, ctx) {
+  const head = ledger.createDiv({ cls: "atomic-ledger-head" });
+  head.createSpan({ attr: { "aria-hidden": "true" } });
+  for (const key of [
+    "view.dashboard.colCount",
+    "view.dashboard.colTime",
+    "view.dashboard.colDetail"
+  ]) {
+    const cell = head.createDiv({ cls: "atomic-caption" });
+    appendCatalogLabel(cell, t(key, ctx.language));
+  }
+  appendMonthInitials(head, ctx);
+  const last = head.createDiv({ cls: "atomic-caption atomic-ledger-end" });
+  appendCatalogLabel(last, t("view.dashboard.colLast", ctx.language));
+}
 function appendLedgerEnd(row, data, ctx, meta) {
   const end = row.createDiv({ cls: "atomic-ledger-end" });
   if (meta) {
@@ -4550,7 +4585,9 @@ function renderExerciseRow(row, data, ctx) {
   appendHoursMinutes(time, data.minutes, ctx);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.volumeKg != null) {
-    appendStat(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgUnit", ctx.language));
+    appendDetail(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgLifted", ctx.language));
+  } else if (data.felt) {
+    appendDetail(detail, formatCount(data.felt.good), t("view.dashboard.feltGoodCount", ctx.language));
   }
   const bars = row.createDiv({ cls: "atomic-ledger-bars" });
   bars.style.setProperty("--atomic-c", data.activity.colors[2]);
@@ -4570,7 +4607,7 @@ function renderHobbyRow(row, data, ctx) {
   appendHoursMinutes(time, data.minutes, ctx);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.inProgress != null) {
-    appendStat(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
+    appendDetail(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
   }
   const bars = row.createDiv({ cls: "atomic-ledger-bars" });
   bars.style.setProperty("--atomic-c", data.activity.colors[2]);
@@ -4622,6 +4659,7 @@ function renderActivities(root, model, ctx) {
     t("view.dashboard.activitiesMeta", ctx.language)
   );
   const ledger = section.createDiv({ cls: "atomic-ledger" });
+  renderLedgerHead(ledger, ctx);
   for (const card of model.activities) renderActivityRow(ledger, card, ctx);
 }
 async function renderDashboard(el, data, activityTypes, year, language, timezone) {

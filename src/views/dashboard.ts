@@ -25,6 +25,7 @@ import {
   activityLinks,
   appendActivityLink,
   appendMonthBars,
+  appendMonthInitials,
   appendSectionTitle,
   formatCount,
   shortDate,
@@ -226,6 +227,28 @@ function appendStat(parent: HTMLElement, value: string, unit: string): void {
   parent.createSpan({ cls: "atomic-unit", text: unit });
 }
 
+function appendDetail(parent: HTMLElement, value: string, unit: string): void {
+  parent.createEl("strong", { text: value });
+  parent.appendText(" ");
+  appendCatalogLabel(parent, unit);
+}
+
+function renderLedgerHead(ledger: HTMLElement, ctx: DashboardRenderContext): void {
+  const head = ledger.createDiv({ cls: "atomic-ledger-head" });
+  head.createSpan({ attr: { "aria-hidden": "true" } });
+  for (const key of [
+    "view.dashboard.colCount",
+    "view.dashboard.colTime",
+    "view.dashboard.colDetail",
+  ] as const) {
+    const cell = head.createDiv({ cls: "atomic-caption" });
+    appendCatalogLabel(cell, t(key, ctx.language));
+  }
+  appendMonthInitials(head, ctx);
+  const last = head.createDiv({ cls: "atomic-caption atomic-ledger-end" });
+  appendCatalogLabel(last, t("view.dashboard.colLast", ctx.language));
+}
+
 function appendLedgerEnd(
   row: HTMLElement,
   data: DashboardActivityCard,
@@ -253,7 +276,9 @@ function renderExerciseRow(
   appendHoursMinutes(time, data.minutes, ctx);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.volumeKg != null) {
-    appendStat(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgUnit", ctx.language));
+    appendDetail(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgLifted", ctx.language));
+  } else if (data.felt) {
+    appendDetail(detail, formatCount(data.felt.good), t("view.dashboard.feltGoodCount", ctx.language));
   }
   const bars = row.createDiv({ cls: "atomic-ledger-bars" });
   bars.style.setProperty("--atomic-c", data.activity.colors[2]);
@@ -278,7 +303,7 @@ function renderHobbyRow(
   appendHoursMinutes(time, data.minutes, ctx);
   const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.inProgress != null) {
-    appendStat(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
+    appendDetail(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
   }
   const bars = row.createDiv({ cls: "atomic-ledger-bars" });
   bars.style.setProperty("--atomic-c", data.activity.colors[2]);
@@ -338,6 +363,7 @@ function renderActivities(root: HTMLElement, model: DashboardModel, ctx: Dashboa
     t("view.dashboard.activitiesMeta", ctx.language),
   );
   const ledger = section.createDiv({ cls: "atomic-ledger" });
+  renderLedgerHead(ledger, ctx);
   for (const card of model.activities) renderActivityRow(ledger, card, ctx);
 }
 
