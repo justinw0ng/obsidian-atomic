@@ -557,28 +557,40 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const br = button.getBoundingClientRect();
         const overlap = fr.left < br.right - 1 && fr.right > br.left + 1
           && fr.top < br.bottom - 1 && fr.bottom > br.top + 1;
-        const cue = field.closest(".atomic-cue-log");
+        const compose = field.closest(".atomic-cue-log-compose");
         const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+        const gymFields = gym?.querySelector(".atomic-gym-log-fields");
+        const exercise = gymFields?.firstElementChild;
         const note = field.closest(".cm-sizer, .markdown-preview-sizer");
-        const cueBox = cue?.getBoundingClientRect();
+        const composeBox = compose?.getBoundingClientRect();
         const gymBox = gym?.getBoundingClientRect();
+        const exerciseBox = exercise?.getBoundingClientRect();
         return {
           overlap,
           label: field.querySelector(".atomic-field-label")?.textContent || "",
           well: !!field.closest(".atomic-well"),
           noteW: note?.clientWidth || 0,
-          cueRight: cueBox ? cueBox.right : 0,
-          gymRight: gymBox ? gymBox.right : 0,
+          composeW: composeBox ? composeBox.width : 0,
+          gymW: gymBox ? gymBox.width : 0,
+          exerciseW: exerciseBox ? exerciseBox.width : 0,
         };
       `);
       assert.ok(cueLayout, "cue field and add button should be measurable");
       assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
       assert.equal(cueLayout.label, "", "the reminder field has no title; Add cue names it");
       assert.equal(cueLayout.well, true);
-      if (cueLayout.noteW >= 1280 && cueLayout.gymRight > 0) {
+      if (cueLayout.noteW >= 1280 && cueLayout.gymW > 0) {
         assert.ok(
-          cueLayout.cueRight <= cueLayout.gymRight + 2,
-          `reminder field should end with the gym log: ${JSON.stringify(cueLayout)}`,
+          Math.abs(cueLayout.composeW - cueLayout.gymW) <= 8,
+          `reminder composer should match the gym set row: ${JSON.stringify(cueLayout)}`,
+        );
+        assert.ok(
+          cueLayout.composeW < cueLayout.noteW * 0.7,
+          `reminder composer must not span the note: ${JSON.stringify(cueLayout)}`,
+        );
+        assert.ok(
+          cueLayout.composeW > cueLayout.exerciseW + 48,
+          `reminder composer should match the whole gym row, not one field: ${JSON.stringify(cueLayout)}`,
         );
       }
 
@@ -1590,14 +1602,41 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const cols = getComputedStyle(fields).gridTemplateColumns.split(" ").filter(Boolean);
         const gymBox = gym.getBoundingClientRect();
         const timerBox = timer.getBoundingClientRect();
+        const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+        let exerciseFits = false;
+        if (select) {
+          const previous = select.value;
+          const probe = document.createElement("option");
+          probe.value = "__layout_probe__";
+          probe.text = "Cable front raise · Shoulder";
+          select.add(probe);
+          select.value = probe.value;
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          ctx.font = getComputedStyle(select).font;
+          const textW = ctx.measureText(probe.text).width;
+          exerciseFits = select.getBoundingClientRect().width + 1 >= textW;
+          select.value = previous;
+          probe.remove();
+        }
         return {
           gymW: gym.clientWidth,
+          timerW: timerBox.width,
+          timerH: timerBox.height,
+          gymH: gymBox.height,
+          gap: gymBox.left - timerBox.right,
           cols: cols.length,
           noteW: note?.clientWidth || 0,
           sameRow: Math.abs(gymBox.top - timerBox.top) < 48,
+          exerciseFits,
         };
       `);
       assert.ok(sessionLayout, "timer and gym log should be measurable");
+      assert.equal(
+        sessionLayout.exerciseFits,
+        true,
+        `exercise name should stay fully visible: ${JSON.stringify(sessionLayout)}`,
+      );
       if (sessionLayout.gymW > 560) {
         assert.ok(
           sessionLayout.cols >= 4,
@@ -1609,6 +1648,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           sessionLayout.sameRow,
           true,
           `timer and gym log should share a row on a wide note: ${JSON.stringify(sessionLayout)}`,
+        );
+        assert.ok(
+          Math.abs(sessionLayout.timerH - sessionLayout.gymH) <= 1,
+          `gym set row should match the timer height: ${JSON.stringify(sessionLayout)}`,
+        );
+        assert.ok(
+          sessionLayout.gap >= 0 && sessionLayout.gap <= 20,
+          `timer and gym set row should sit close: ${JSON.stringify(sessionLayout)}`,
+        );
+        assert.ok(
+          sessionLayout.timerW > 560,
+          `timer should grow into the wide note: ${JSON.stringify(sessionLayout)}`,
         );
       }
 

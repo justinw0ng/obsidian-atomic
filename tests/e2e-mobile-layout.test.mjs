@@ -524,7 +524,23 @@ test("reminder and gym controls share a well and wrap with the note", () => {
   );
   assert.match(
     styles,
-    /atomic-note-paired \.fitness-plugin\.atomic-cue-log\s*\{[^}]*width:\s*calc\(100% - \(2 \* var\(--atomic-pair-gap\)\)\)/s,
+    /atomic-note-paired \.fitness-plugin\.atomic-cue-log \.atomic-cue-log-compose\s*\{[^}]*width:\s*calc\(50% - var\(--atomic-pair-gap\)\)/s,
+  );
+  assert.match(
+    styles,
+    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log\s*\{[^}]*max-width:\s*none/s,
+  );
+  assert.match(
+    styles,
+    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log\s*\{[^}]*height:\s*var\(--atomic-session-card-height\)/s,
+  );
+  assert.match(
+    styles,
+    /\.atomic-gym-log-fields > \.atomic-field:first-child select\.atomic-field-value\s*\{[^}]*text-overflow:\s*clip/s,
+  );
+  assert.match(
+    styles,
+    /\.atomic-gym-log-fields > \.atomic-field:first-child select\.atomic-field-value\s*\{[^}]*white-space:\s*nowrap/s,
   );
   assert.match(
     styles,

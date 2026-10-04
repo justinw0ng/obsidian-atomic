@@ -1557,9 +1557,29 @@
 
 .fitness-plugin .atomic-gym-log-fields {
   display: grid;
-  grid-template-columns: minmax(150px, 1.6fr) minmax(104px, 0.9fr) auto minmax(110px, 1.3fr) auto;
+  grid-template-columns: max-content minmax(72px, 0.9fr) auto minmax(72px, 1.3fr) auto;
   gap: 6px;
   align-items: center;
+}
+
+/* The exercise name stays one full line at every width. */
+.fitness-plugin .atomic-gym-log-fields > .atomic-field:first-child {
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  justify-self: start;
+}
+
+.fitness-plugin .atomic-gym-log-fields > .atomic-field:first-child select.atomic-field-value {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  field-sizing: content;
 }
 
 .fitness-plugin.atomic-gym-log .atomic-stepper {
@@ -1587,7 +1607,10 @@
 .atomic-note-column {
   container-type: inline-size;
   container-name: atomic-note;
-  --atomic-pair-gap: 12px;
+  /* One gap shared by the timer slot and the gym slot. */
+  --atomic-pair-gap: 8px;
+  /* Timer well: vertical padding, caption, row gap, and the 34px clock. */
+  --atomic-session-card-height: calc(14px + 16px + 6px + (34px * 1.15) + 14px);
 }
 
 @container atomic-timer-host (max-width: 420px) {
@@ -1610,17 +1633,50 @@
     display: inline-block;
     width: calc(50% - var(--atomic-pair-gap));
     vertical-align: top;
+    margin-left: 0;
+    padding: 0;
+  }
+
+  .atomic-note-paired .atomic-embed-slot-timer {
+    margin-right: var(--atomic-pair-gap);
   }
 
   .atomic-note-paired .atomic-embed-gap {
     display: none;
   }
 
-  /* The reminder field ends on the gym log, not past it. */
-  .atomic-note-paired .fitness-plugin.atomic-cue-log {
-    width: calc(100% - (2 * var(--atomic-pair-gap)));
-    max-width: calc(100% - (2 * var(--atomic-pair-gap)));
+  .atomic-note-paired .fitness-plugin.atomic-timer,
+  .atomic-note-paired .fitness-plugin.atomic-gym-log {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    height: var(--atomic-session-card-height);
+    margin: 12px 0 16px;
+    padding: 14px 10px;
   }
+
+  .atomic-note-paired .fitness-plugin.atomic-gym-log {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .atomic-note-paired .fitness-plugin.atomic-gym-log .atomic-gym-log-fields {
+    width: 100%;
+  }
+
+  /* The composer matches the gym set row, not the full note. */
+  .atomic-note-paired .fitness-plugin.atomic-cue-log .atomic-cue-log-compose {
+    box-sizing: border-box;
+    width: calc(50% - var(--atomic-pair-gap));
+    max-width: calc(50% - var(--atomic-pair-gap));
+    padding: 14px 10px;
+  }
+}
+
+.markdown-preview-view pre.atomic-block-host.atomic-gym-log-host,
+.cm-preview-code-block pre.atomic-block-host.atomic-gym-log-host {
+  overflow-x: visible;
 }
 
 @container (max-width: 560px) {
