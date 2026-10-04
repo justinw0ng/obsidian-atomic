@@ -4,8 +4,7 @@
  * Run: node scripts/capture-user-guide-screenshots.mjs
  * Optional: ATOMIC_DOCS_SHOTS=dashboard (comma-separated shot names, or `all`).
  * Dashboard still writes docs/images/atomic-dashboard.png and composes
- * docs/images/atomic-dashboard-hero.png via compose-device-hero.py.
- * Optional: ATOMIC_DASHBOARD_PHONE_SRC=/path/to/phone.jpg for a real phone frame.
+ * docs/images/atomic-dashboard-hero.png in the shared desktop + phone chrome.
  * Optional: ATOMIC_CUE_POPUP_STILLS=/path/to/png-dir to rebuild atomic-cue-popup.gif.
  */
 import { copyFileSync, existsSync, mkdirSync } from "node:fs";
@@ -51,6 +50,7 @@ import {
   TIMER_ITEM_TITLE,
   USER_GUIDE_VAULT,
 } from "./prepare-user-guide-vault.mjs";
+import { capturePreviewCrop, frameHeroContent } from "./hero-frames.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const IMAGES = join(ROOT, "docs/images");
@@ -93,15 +93,6 @@ const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
 /** Wide enough for 2-column KPIs (minmax 170px) so the phone frame shows more UI. */
 const DASHBOARD_MOBILE = { width: 480, height: 1040 };
 const DASHBOARD_HERO_HEADLINE = "Your year. One dashboard.";
-const DASHBOARD_PHONE_CANDIDATES = [
-  process.env.ATOMIC_DASHBOARD_PHONE_SRC,
-  join(ROOT, "hero-mobile/owner-dashboard-phone.jpg"),
-  join(ROOT, "hero-mobile/owner-dashboard-phone.jpeg"),
-  join(ROOT, "hero-mobile/owner-dashboard-phone.png"),
-];
-const DASHBOARD_PHONE_SRC = DASHBOARD_PHONE_CANDIDATES.map((p) => (p || "").trim())
-  .filter(Boolean)
-  .find((p) => existsSync(p)) || "";
 
 const REQUESTED_SHOTS = new Set(
   (process.env.ATOMIC_DOCS_SHOTS || "all")
@@ -162,47 +153,30 @@ async function prepareGuideView(driver) {
   await parkMouse(driver);
 }
 
-function composeDashboardHero(desktopPath, mobilePath, mobileKind = "window") {
+function composeDashboardHero(desktopPath, mobilePath) {
+  const framedDir = "/tmp/atomic-dashboard-hero-frames";
+  mkdirSync(framedDir, { recursive: true });
+  const framedDesktop = join(framedDir, "desktop.png");
+  const framedMobile = join(framedDir, "phone.png");
+  frameHeroContent({
+    scene: "dashboard",
+    kind: "desktop",
+    content: desktopPath,
+    out: framedDesktop,
+  });
+  frameHeroContent({
+    scene: "dashboard",
+    kind: "phone",
+    content: mobilePath,
+    out: framedMobile,
+  });
   return composeDeviceHero({
-    desktop: desktopPath,
-    mobile: mobilePath,
+    desktop: framedDesktop,
+    mobile: framedMobile,
     out: join(IMAGES, OUTPUTS.dashboardHero),
     headline: DASHBOARD_HERO_HEADLINE,
-    cropChrome: true,
-    desktopFit: "contain",
-    phoneFit: "contain",
-    mobileKind,
-    phonePad: 22,
-    scrubScrollbars: true,
+    preframed: true,
   });
-}
-
-async function prepareDashboardPhoneView(driver) {
-  await hideNoteProperties(driver);
-  await driver.executeScript(`
-    const hide = [
-      ".workspace-ribbon",
-      ".view-header",
-      ".workspace-tab-header-container",
-      ".status-bar",
-      ".inline-title",
-      ".mod-header .inline-title",
-      ".metadata-container",
-    ];
-    for (const sel of hide) {
-      for (const el of document.querySelectorAll(sel)) {
-        el.style.setProperty("display", "none", "important");
-      }
-    }
-    const preview = document.querySelector(".markdown-preview-view, .markdown-reading-view");
-    if (preview) {
-      preview.style.setProperty("padding-top", "20px", "important");
-      preview.style.setProperty("padding-left", "20px", "important");
-      preview.style.setProperty("padding-right", "20px", "important");
-      preview.style.setProperty("overflow", "hidden", "important");
-    }
-  `);
-  await hideCaptureScrollbars(driver);
 }
 
 async function captureStill(driver, name, destName) {
@@ -417,7 +391,7 @@ async function captureDashboardGif(driver) {
   await hideCaptureScrollbars(driver);
   await parkMouse(driver);
   await sleep(500);
-  const desktopSrc = await captureStill(driver, "user-guide-dashboard", OUTPUTS.dashboardStill);
+  await captureStill(driver, "user-guide-dashboard", OUTPUTS.dashboardStill);
   const dir = frameDir("dashboard");
   await grabFrame(driver, dir, 0);
   await driver.executeScript(
@@ -441,21 +415,21 @@ async function captureDashboardGif(driver) {
     DASHBOARD_DESKTOP.width,
   );
 
-  if (DASHBOARD_PHONE_SRC) {
-    await composeDashboardHero(desktopSrc, DASHBOARD_PHONE_SRC, "phone");
-  } else {
-    await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
-    await openPreviewNote(driver, FILES.dashboard);
-    await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
-    await prepareDashboardPhoneView(driver);
-    await parkMouse(driver);
-    await sleep(600);
-    await driver.executeScript(
-      `document.querySelectorAll(".tooltip").forEach((el) => el.remove());`,
-    );
-    const mobileSrc = await saveScreenshot(driver, "readme-dashboard-mobile");
-    await composeDashboardHero(desktopSrc, mobileSrc);
-  }
+  const desktopPreview = join("/tmp/atomic-dashboard-hero-frames", "desktop-content.png");
+  await capturePreviewCrop(driver, desktopPreview);
+  await resizeWindow(driver, DASHBOARD_MOBILE.width, DASHBOARD_MOBILE.height);
+  await openPreviewNote(driver, FILES.dashboard);
+  await waitCss(driver, '[data-testid="atomic-dashboard-recent"]');
+  await hideNoteProperties(driver);
+  await hideCaptureScrollbars(driver);
+  await parkMouse(driver);
+  await sleep(600);
+  await driver.executeScript(
+    `document.querySelectorAll(".tooltip").forEach((el) => el.remove());`,
+  );
+  const mobilePreview = join("/tmp/atomic-dashboard-hero-frames", "phone-content.png");
+  await capturePreviewCrop(driver, mobilePreview);
+  await composeDashboardHero(desktopPreview, mobilePreview);
   await captureFullPageProof(
     driver,
     '[data-testid="atomic-dashboard"]',
@@ -518,16 +492,12 @@ async function captureActionsGif(driver) {
 
 async function captureTodayGif(driver) {
   await openPreviewNote(driver, FILES.today);
-  await driver.wait(async () => {
-    return driver.executeScript(
-      `return !!document.querySelector(".fitness-plugin a.fitness-link")`,
-    );
-  }, 8000);
+  await waitCss(driver, '[data-testid="atomic-today-row"]');
   await prepareGuideView(driver);
   const dir = frameDir("today");
   await grabHold(driver, dir, 0, 2, 200);
   await driver.executeScript(
-    `document.querySelector(".fitness-plugin a.fitness-link")?.click()`,
+    `document.querySelector('[data-testid="atomic-today-row"]')?.click()`,
   );
   await waitCss(driver, '[data-testid="atomic-timer"], [data-testid="atomic-gym-log"]');
   await prepareGuideView(driver);
@@ -562,6 +532,43 @@ async function captureCuesHoverGif(driver) {
   await sleep(200);
   await grabHold(driver, dir, 6, 2, 180);
   assembleGif(dir, OUTPUTS.cues, { durationMs: 140, holdFirst: 2, holdLast: 3 });
+}
+
+async function captureCuePopupGif(driver) {
+  if ((process.env.ATOMIC_CUE_POPUP_STILLS || "").trim()) return;
+  await openPreviewNote(driver, FILES.golfCues);
+  await waitCss(driver, '[data-testid="atomic-cues"]');
+  await driver.wait(async () => {
+    const count = await driver.executeScript(
+      `return document.querySelectorAll('[data-testid="atomic-cue-card"]').length`,
+    );
+    return count >= 4;
+  }, 20000);
+  await prepareGuideView(driver);
+  await hideCaptureScrollbars(driver);
+  const dir = frameDir("cue-popup");
+  await grabFrame(driver, dir, 0);
+  await popCueCard(driver, 1);
+  await sleep(220);
+  await grabFrame(driver, dir, 1);
+  await driver.executeScript(`
+    const cards = [...document.querySelectorAll('[data-testid="atomic-cue-card"]')];
+    const visible = cards.filter((card) => card.getBoundingClientRect().width > 40);
+    const card = visible[Math.min(1, visible.length - 1)] || cards[0];
+    card?.click();
+  `);
+  await driver.wait(async () => {
+    return driver.executeScript(`
+      const overlay = document.querySelector('[data-testid="atomic-cue-lightbox"]');
+      return !!overlay?.classList.contains("is-placed");
+    `);
+  }, 8000);
+  await sleep(280);
+  await grabHold(driver, dir, 2, 2, 180);
+  assembleGif(dir, OUTPUTS.cuePopup, { durationMs: 420, holdFirst: 1, holdLast: 2 });
+  await driver.executeScript(`
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  `);
 }
 
 async function waitForSessionPropertySelects(driver) {
@@ -719,6 +726,7 @@ async function main() {
       ["actions", captureActionsGif],
       ["today", captureTodayGif],
       ["cues", captureCuesHoverGif],
+      ["cuePopup", captureCuePopupGif],
       ["cueLog", captureCueLogGif],
       ["properties", capturePropertySelectGif],
       ["timer", captureReadingTimerGif],
