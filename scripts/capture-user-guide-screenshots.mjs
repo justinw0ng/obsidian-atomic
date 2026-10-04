@@ -7,7 +7,7 @@
  * docs/images/atomic-dashboard-hero.png in the shared desktop + phone chrome.
  * Optional: ATOMIC_CUE_POPUP_STILLS=/path/to/png-dir to rebuild atomic-cue-popup.gif.
  */
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -348,7 +348,22 @@ async function captureBookShelfGif(driver) {
   assembleGif(dir, OUTPUTS.bookShelf, { durationMs: 280, holdFirst: 1, holdLast: 2 });
 }
 
+function stageReadingTimerDemo() {
+  const path = join(USER_GUIDE_VAULT, FILES.timerItem);
+  let markdown = readFileSync(path, "utf8");
+  const startedAt = new Date(Date.now() - (12 * 60 + 48) * 1000).toISOString();
+  const next = markdown
+    .replace(/^total_min:.*$/m, "total_min: 40")
+    .replace(/^timer_started_at:.*$/m, `timer_started_at: "${startedAt}"`)
+    .replace(/## Time log\n\n[\s\S]*?(?=```atomic-timer)/, "## Time log\n\n- 2026-08-11 | 40 min\n\n");
+  if (next === markdown || !next.includes("total_min: 40") || !next.includes(startedAt)) {
+    throw new Error("Could not stage the reading timer demo clock");
+  }
+  writeFileSync(path, next);
+}
+
 async function captureReadingTimerGif(driver) {
+  stageReadingTimerDemo();
   await resizeWindow(driver, READING_TIMER_WINDOW.width, READING_TIMER_WINDOW.height);
   await openPreviewNote(driver, FILES.timerItem);
   await waitCss(driver, '[data-testid="atomic-timer-stop"]');
