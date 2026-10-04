@@ -55,16 +55,11 @@ test("resolveBookShelfScale reads scale or ratio and clamps", () => {
   assert.deepEqual(scaledBookSize(0.5), { maxWidth: 48, minWidth: 28 });
 });
 
-test("bookWidthForContainer grows three books to fill a wide pane", () => {
+test("bookWidthForContainer keeps a small ratio and lets the row hold more than three", () => {
   const width = bookWidthForContainer(900);
-  assert.ok(width > DEFAULT_BOOK_WIDTH_PX);
-  const needed = ROW_PADDING_PX + 3 * width + 2 * BOOK_GAP_PX;
-  assert.ok(needed <= 900);
-  assert.ok(900 - needed < 3, `leftover beside three books is ${900 - needed}px`);
-  assert.equal(
-    bookHeightForWidth(width),
-    Math.round((width * DEFAULT_BOOK_HEIGHT_PX) / DEFAULT_BOOK_WIDTH_PX),
-  );
+  assert.equal(width, DEFAULT_BOOK_WIDTH_PX);
+  assert.ok(booksPerRow(900, width) > MIN_BOOKS_PER_ROW);
+  assert.equal(bookHeightForWidth(width), DEFAULT_BOOK_HEIGHT_PX);
 });
 
 test("bookWidthForContainer shrinks so three books fit on a phone pane", () => {
@@ -86,13 +81,26 @@ test("bookWidthForContainer keeps three books on a tiny pane", () => {
   assert.equal(rowNeedsHorizontalScroll(120, width), false);
 });
 
-test("bookWidthForContainer fills a wide row past the scaled preferred size", () => {
-  const { maxWidth, minWidth } = scaledBookSize(1.5);
-  assert.equal(bookWidthForContainer(0, undefined, undefined, minWidth, maxWidth), 144);
+test("bookWidthForContainer caps a large ratio so three books stay on the row", () => {
+  const { maxWidth, minWidth } = scaledBookSize(4);
+  assert.equal(maxWidth, 384);
   const width = bookWidthForContainer(900, undefined, undefined, minWidth, maxWidth);
-  assert.ok(width > maxWidth);
+  assert.ok(width < maxWidth);
   const needed = ROW_PADDING_PX + 3 * width + 2 * BOOK_GAP_PX;
-  assert.ok(900 - needed < 3);
+  assert.ok(needed <= 900, `three ${width}px books need ${needed}px`);
+  assert.equal(booksPerRow(900, width), MIN_BOOKS_PER_ROW);
+  assert.equal(rowNeedsHorizontalScroll(900, width), false);
+
+  const scaled = scaledBookSize(1.5);
+  assert.equal(
+    bookWidthForContainer(0, undefined, undefined, scaled.minWidth, scaled.maxWidth),
+    144,
+  );
+  assert.equal(
+    bookWidthForContainer(900, undefined, undefined, scaled.minWidth, scaled.maxWidth),
+    144,
+  );
+  assert.ok(booksPerRow(900, 144) > MIN_BOOKS_PER_ROW);
   assert.equal(bookHeightForWidth(144), 225);
 });
 

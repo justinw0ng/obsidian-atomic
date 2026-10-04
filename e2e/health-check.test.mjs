@@ -110,13 +110,17 @@ function measureShelfRow(driver, scale) {
     const bookHeight = Number.parseFloat(style.getPropertyValue("--atomic-book-height"));
     const padding = 28;
     const gap = 12;
-    const perRow = 3;
+    const frameWidth = frame.clientWidth;
+    const available = Math.max(0, frameWidth - padding);
+    const fitted = Math.floor((available + gap) / (bookWidth + gap));
+    const perRow = Math.max(3, fitted);
+    const threeNeeded = padding + 3 * bookWidth + 2 * gap;
     return {
       bookWidth,
       bookHeight,
-      frameWidth: frame.clientWidth,
-      used: padding + perRow * bookWidth + (perRow - 1) * gap,
+      frameWidth,
       perRow,
+      threeNeeded,
     };
     `,
     scale,
@@ -2215,15 +2219,23 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await waitCss(driver, '[data-testid="atomic-bookshelf"][data-scale="1.5"]');
       const scaled = await measureShelfRow(driver, "1.5");
       assert.ok(scaled, "scaled shelf should report a row");
-      assert.equal(scaled.perRow, 3);
+      assert.ok(scaled.perRow >= 3, `a row keeps at least three books ${JSON.stringify(scaled)}`);
       assert.ok(
-        scaled.bookWidth > 144,
-        `three books grow past the 144px scale cap to fill the row ${JSON.stringify(scaled)}`,
+        scaled.bookWidth <= 144,
+        `scale 1.5 does not grow past 144px ${JSON.stringify(scaled)}`,
       );
       assert.ok(
-        scaled.frameWidth - scaled.used < 3,
-        `a row of three should fill the shelf ${JSON.stringify(scaled)}`,
+        scaled.threeNeeded <= scaled.frameWidth,
+        `three books stay on the row ${JSON.stringify(scaled)}`,
       );
+      const fourAtScale = 28 + 4 * 144 + 3 * 12;
+      if (scaled.frameWidth >= fourAtScale) {
+        assert.equal(scaled.bookWidth, 144);
+        assert.ok(
+          scaled.perRow > 3,
+          `a wide pane shows more than three books at scale 1.5 ${JSON.stringify(scaled)}`,
+        );
+      }
       assert.ok(
         Math.abs(scaled.bookHeight / scaled.bookWidth - 150 / 96) < 0.02,
         `cover aspect ratio stays 96:150 ${JSON.stringify(scaled)}`,

@@ -4869,15 +4869,22 @@ function bookHeightForWidth(width) {
   if (!Number.isFinite(width) || width <= 0) return DEFAULT_BOOK_HEIGHT_PX;
   return Math.round(width * DEFAULT_BOOK_HEIGHT_PX / DEFAULT_BOOK_WIDTH_PX);
 }
-function bookWidthForContainer(containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX, minWidth = MIN_BOOK_WIDTH_PX, maxWidth = DEFAULT_BOOK_WIDTH_PX) {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
-    return Math.max(1, maxWidth);
-  }
+function bookWidthForContainer(containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX, _minWidth = MIN_BOOK_WIDTH_PX, maxWidth = DEFAULT_BOOK_WIDTH_PX) {
+  const preferred = Math.max(1, maxWidth);
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return preferred;
   const available = Math.max(0, containerWidth - padding);
   const gaps = (MIN_BOOKS_PER_ROW - 1) * gap;
-  const fill = (available - gaps) / MIN_BOOKS_PER_ROW;
-  if (!Number.isFinite(fill) || fill < 1) return Math.max(1, minWidth);
-  return Math.max(1, Math.floor(fill));
+  const fitThree = (available - gaps) / MIN_BOOKS_PER_ROW;
+  if (!Number.isFinite(fitThree) || fitThree >= preferred) return preferred;
+  return Math.max(1, Math.floor(fitThree));
+}
+function booksPerRow(containerWidth, bookWidth = DEFAULT_BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
+    return MIN_BOOKS_PER_ROW;
+  }
+  const available = Math.max(0, containerWidth - padding);
+  const fitted = Math.floor((available + gap) / (bookWidth + gap));
+  return Math.max(MIN_BOOKS_PER_ROW, fitted);
 }
 function chunkItems(items, size) {
   const rowSize = Math.max(1, Math.floor(size));
@@ -5262,7 +5269,7 @@ function renderBookShelf(el, data, activityTypes, options, language) {
       minWidth,
       maxWidth
     );
-    const perRow = MIN_BOOKS_PER_ROW;
+    const perRow = booksPerRow(width, bookWidth);
     const key = `${bookWidth}:${perRow}`;
     if (key === lastKey && frame.childElementCount > 0) return;
     lastKey = key;

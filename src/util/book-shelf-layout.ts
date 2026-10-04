@@ -43,33 +43,33 @@ export function bookHeightForWidth(width: number): number {
 }
 
 /**
- * Width of one book so a row of three fills the container.
- * Grows past the preferred size when three books would leave a gap.
- * Shrinks on a narrow pane, even below `minWidth`, so the row still
- * shows three books instead of scrolling down to one or two.
- * `maxWidth` is only the size used before the pane has been measured.
+ * Book width for one shelf row.
+ * `maxWidth` is the requested scale. Use it when three books fit, so a
+ * small ratio can leave a gap and the row shows more than three books.
+ * When the ratio or the pane would fit fewer than three, shrink the book
+ * so three still fit. `minWidth` is not a floor: using it would drop the
+ * row to one or two books.
  */
 export function bookWidthForContainer(
   containerWidth: number,
   gap = BOOK_GAP_PX,
   padding = ROW_PADDING_PX,
-  minWidth = MIN_BOOK_WIDTH_PX,
+  _minWidth = MIN_BOOK_WIDTH_PX,
   maxWidth = DEFAULT_BOOK_WIDTH_PX,
 ): number {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
-    return Math.max(1, maxWidth);
-  }
+  const preferred = Math.max(1, maxWidth);
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return preferred;
   const available = Math.max(0, containerWidth - padding);
   const gaps = (MIN_BOOKS_PER_ROW - 1) * gap;
-  const fill = (available - gaps) / MIN_BOOKS_PER_ROW;
-  if (!Number.isFinite(fill) || fill < 1) return Math.max(1, minWidth);
-  return Math.max(1, Math.floor(fill));
+  const fitThree = (available - gaps) / MIN_BOOKS_PER_ROW;
+  if (!Number.isFinite(fitThree) || fitThree >= preferred) return preferred;
+  return Math.max(1, Math.floor(fitThree));
 }
 
 /**
  * How many upright books sit on one plank at a fixed book width.
- * Never wraps below MIN_BOOKS_PER_ROW. The shelf view sizes the book so
- * this stays at three and the row fills the pane.
+ * Never wraps below MIN_BOOKS_PER_ROW. A small ratio on a wide pane
+ * returns more than three.
  */
 export function booksPerRow(
   containerWidth: number,
