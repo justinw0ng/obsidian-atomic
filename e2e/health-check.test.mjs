@@ -1663,6 +1663,80 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         );
       }
 
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      try {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 900,
+            height: 900,
+            deviceScaleFactor: 1,
+            mobile: false,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(900, 900)`);
+        }
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+        `);
+        await driver.wait(async () => {
+          const width = await driver.executeScript(`
+            const timer = document.querySelector('[data-testid="atomic-timer"]');
+            const note = timer?.closest(".cm-sizer, .markdown-preview-sizer");
+            return note?.clientWidth || 0;
+          `);
+          return width > 0 && width < 1280;
+        }, 8000);
+        const stacked = await driver.executeScript(`
+          const timer = document.querySelector('[data-testid="atomic-timer"]');
+          const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+          const compose = document.querySelector(".atomic-cue-log-compose");
+          const content = timer?.closest(".cm-content, .markdown-preview-section");
+          if (!timer || !gym || !content) return null;
+          const timerBox = timer.getBoundingClientRect();
+          const gymBox = gym.getBoundingClientRect();
+          const contentBox = content.getBoundingClientRect();
+          const composeBox = compose?.getBoundingClientRect();
+          return {
+            timerW: timerBox.width,
+            gymW: gymBox.width,
+            timerLeft: timerBox.left,
+            gymLeft: gymBox.left,
+            timerRight: timerBox.right,
+            gymRight: gymBox.right,
+            contentLeft: contentBox.left,
+            contentRight: contentBox.right,
+            contentW: contentBox.width,
+            composeW: composeBox ? composeBox.width : 0,
+            sameRow: Math.abs(gymBox.top - timerBox.top) < 48,
+          };
+        `);
+        assert.ok(stacked, "stacked timer and gym log should be measurable");
+        assert.equal(stacked.sameRow, false, `timer and gym should stack: ${JSON.stringify(stacked)}`);
+        assert.ok(
+          Math.abs(stacked.timerW - stacked.gymW) <= 2,
+          `stacked timer and gym row should share a width: ${JSON.stringify(stacked)}`,
+        );
+        assert.ok(
+          Math.abs(stacked.timerLeft - stacked.gymLeft) <= 2 &&
+            Math.abs(stacked.timerRight - stacked.gymRight) <= 2,
+          `stacked timer and gym row should share left and right edges: ${JSON.stringify(stacked)}`,
+        );
+        assert.ok(
+          Math.abs(stacked.timerLeft - stacked.contentLeft) <= 12 &&
+            Math.abs(stacked.timerRight - stacked.contentRight) <= 12,
+          `stacked cards should fill the note width: ${JSON.stringify(stacked)}`,
+        );
+        assert.ok(
+          Math.abs(stacked.composeW - stacked.gymW) <= 8,
+          `stacked reminder composer should match the gym row: ${JSON.stringify(stacked)}`,
+        );
+      } finally {
+        await restoreDesktopPointer(driver, desktopViewport);
+      }
+
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-timer-start"]').click()`,
       );

@@ -1604,6 +1604,15 @@
   container-name: atomic-timer-host;
 }
 
+.atomic-note-paired .atomic-embed-slot-timer .cm-embed-block,
+.atomic-note-paired .atomic-embed-slot-gym .cm-embed-block,
+.atomic-note-paired .atomic-embed-slot-timer .atomic-embed-stretch,
+.atomic-note-paired .atomic-embed-slot-gym .atomic-embed-stretch {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .atomic-note-column {
   container-type: inline-size;
   container-name: atomic-note;
@@ -1671,6 +1680,39 @@
     width: calc(50% - var(--atomic-pair-gap));
     max-width: calc(50% - var(--atomic-pair-gap));
     padding: 14px 10px;
+  }
+}
+
+/* Stacked notes: the timer, gym row, and reminder composer share the full column. */
+@container atomic-note (max-width: 1279px) {
+  .atomic-note-paired .atomic-embed-slot-timer,
+  .atomic-note-paired .atomic-embed-slot-gym {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin-right: 0;
+    padding: 0;
+  }
+
+  .atomic-note-paired .atomic-embed-slot-timer :is(.cm-embed-block, .atomic-embed-stretch),
+  .atomic-note-paired .atomic-embed-slot-gym :is(.cm-embed-block, .atomic-embed-stretch) {
+    display: block;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .atomic-note-paired .fitness-plugin.atomic-timer,
+  .atomic-note-paired .fitness-plugin.atomic-gym-log,
+  .atomic-note-paired .fitness-plugin.atomic-cue-log,
+  .atomic-note-paired .fitness-plugin.atomic-cue-log .atomic-cue-log-compose {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .atomic-note-paired .fitness-plugin.atomic-gym-log .atomic-gym-log-fields {
+    width: 100%;
   }
 }
 
