@@ -1031,6 +1031,50 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
+  it("opens today's gym and golf notes from the today rows", async () => {
+    await check(driver, "today-open-session", async () => {
+      const gymPath = E2E_FILES.gymSession(today.slice(0, 4), today);
+      const golfPath = E2E_FILES.golfSession(today.slice(0, 4), today);
+      const todayPath = await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        const tz = plugin.settings.timezone || "UTC";
+        const ymd = new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date());
+        return ${JSON.stringify(E2E_DAILY_NOTES_FOLDER + "/")} + ymd + ".md";
+      `);
+      await openVaultFile(driver, String(todayPath));
+      await waitCss(driver, `[data-testid="atomic-today-row"][data-path="${gymPath}"]`);
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-today-row"][data-path=${JSON.stringify(gymPath)}]'
+        ).click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === gymPath;
+      }, 8000);
+      await openVaultFile(driver, String(todayPath));
+      await waitCss(driver, `[data-testid="atomic-today-row"][data-path="${golfPath}"]`);
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-today-row"][data-path=${JSON.stringify(golfPath)}]'
+        ).click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === golfPath;
+      }, 8000);
+    });
+  });
+
   it("switches the dashboard year in place", async () => {
     await check(driver, "dashboard-year", async () => {
       const year = today.slice(0, 4);

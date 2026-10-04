@@ -32,6 +32,24 @@ function sessionFromMap(
   return { minutes: entry.minutes, path: entry.path ?? "" };
 }
 
+/** Session notes live at `{folder}/{year}/{date}.md`. */
+function conventionalSessionPath(activity: ActivityType, dateStr: string): string {
+  return `${activity.folder}/${dateStr.slice(0, 4)}/${dateStr}.md`;
+}
+
+function sessionForToday(
+  data: VaultDataSource,
+  activity: ActivityType,
+  map: Map<string, DayActivity> | undefined,
+  dateStr: string,
+): { minutes: number; path: string } | null {
+  const mapped = sessionFromMap(map, dateStr);
+  const conventional = conventionalSessionPath(activity, dateStr);
+  const path = mapped?.path || (data.exists(conventional) ? conventional : "");
+  if (!mapped && !path) return null;
+  return { minutes: mapped?.minutes ?? 0, path };
+}
+
 export async function renderTodaySessions(
   el: HTMLElement,
   data: VaultDataSource,
@@ -50,7 +68,7 @@ export async function renderTodaySessions(
   el.empty();
   const rows = activities.map((activity, index) => ({
     activity,
-    session: sessionFromMap(maps[index], dateStr),
+    session: sessionForToday(data, activity, maps[index], dateStr),
   }));
   const done = rows.filter((row) => row.session).length;
   const parsed = parseYmd(dateStr);
@@ -78,24 +96,34 @@ export async function renderTodaySessions(
 
   for (const { activity, session } of rows) {
     const line = root.createDiv({
-      cls: session ? "atomic-recent-row atomic-today-row" : "atomic-recent-row atomic-today-row is-empty",
+      cls: session?.path
+        ? "atomic-recent-row atomic-today-row"
+        : "atomic-recent-row atomic-today-row is-empty",
+      attr: session?.path
+        ? {
+            "data-testid": "atomic-today-row",
+            "data-path": session.path,
+            role: "link",
+            tabindex: "0",
+          }
+        : undefined,
     });
     line.setCssProps({ "--atomic-c": activity.colors[2] });
+    if (session?.path) {
+      const path = session.path;
+      const open = (event: Event): void => {
+        event.preventDefault();
+        void data.openPath(path);
+      };
+      line.addEventListener("click", open);
+      line.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        open(event);
+      });
+    }
     const name = line.createSpan({ cls: "atomic-name" });
     name.createSpan({ cls: "atomic-dot" });
-    if (session?.path) {
-      const link = name.createEl("a", {
-        cls: "atomic-link",
-        text: activity.label,
-        attr: { href: "#" },
-      });
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
-        void data.openPath(session.path);
-      });
-    } else {
-      name.createSpan({ text: activity.label });
-    }
+    name.createSpan({ text: activity.label });
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     if (session) {
       sum.createEl("strong", { text: String(session.minutes) });
