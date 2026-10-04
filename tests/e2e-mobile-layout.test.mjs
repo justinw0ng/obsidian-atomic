@@ -231,11 +231,16 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /border-width:\s*0 4px 6px/);
   assert.doesNotMatch(styles, /clip-path\s*:/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
+  assert.doesNotMatch(styles, /rotateY\(-112deg\)/);
   assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
   assert.match(
     styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
   );
+  assert.match(styles, /\.atomic-book-ribbon\s*\{[^}]*visibility:\s*visible/s);
+  assert.match(styles, /\.theme-dark \.fitness-plugin \.atomic-book\.is-cover-open/);
+  assert.match(styles, /background:\s*#fff/);
+  assert.match(styles, /background:\s*#000/);
 });
 
 test("fine pointers tilt a book; touch uses a lift instead of a cover flip", () => {

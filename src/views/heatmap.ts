@@ -6,6 +6,7 @@ import type { ActivityType, DayActivity } from "../types";
 import { resolveHeatmapActivities } from "../util/heatmap-activities";
 import {
   effectiveHeatmapColumns,
+  heatmapWeekdayMarks,
   resolveHeatmapLayout,
   type HeatmapLayout,
 } from "../util/heatmap-layout";
@@ -41,11 +42,6 @@ function cleanupHeatmapObservers(container: HTMLElement): void {
   registry.grid?.disconnect();
   heatmapObserverRegistry.delete(container);
 }
-
-const DAY_NAMES: Record<Language, string[]> = {
-  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  "zh-Hant-en": ["日", "一", "二", "三", "四", "五", "六"],
-};
 
 function wireHeatmapScroll(
   scrollEl: HTMLElement,
@@ -187,9 +183,13 @@ function renderOneHeatmap(
   });
 
   const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
-  const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES[language]) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  const dayLabels = body.createDiv({ cls: "fitness-day-labels atomic-heat-days" });
+  for (const mark of heatmapWeekdayMarks(language)) {
+    dayLabels.createSpan({
+      cls: "fitness-day-label",
+      text: mark,
+      attr: { "data-testid": "atomic-heatmap-dow" },
+    });
   }
 
   const scroll = body.createDiv({

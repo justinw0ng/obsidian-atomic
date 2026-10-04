@@ -116,15 +116,18 @@
 
 .fitness-plugin .fitness-heatmap-grid {
   display: grid;
-  gap: 12px;
+  gap: 32px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   contain: layout;
 }
 
-.fitness-plugin .fitness-heatmap-grid .fitness-heatmap {
+.fitness-plugin .fitness-heatmap-grid > .fitness-heatmap,
+.fitness-plugin .fitness-heatmap-grid > .atomic-heatmap {
+  margin-top: 0;
   margin-bottom: 0;
+  padding-bottom: 8px;
   min-width: 0;
   max-width: 100%;
 }
@@ -213,21 +216,33 @@
   padding: 2px 4px 3px 0;
 }
 
-.fitness-plugin .fitness-day-labels {
-  display: flex;
-  flex-direction: column;
-  gap: var(--atomic-heatmap-gap);
+.fitness-plugin .fitness-day-labels,
+.fitness-plugin .atomic-heat-days {
+  display: grid;
+  grid-template-rows: repeat(7, var(--atomic-heatmap-cell));
+  row-gap: var(--atomic-heatmap-gap);
   width: var(--atomic-heatmap-day-label);
   flex-shrink: 0;
-  align-self: flex-end;
+  align-self: end;
+  justify-items: end;
+  height: calc(
+    7 * var(--atomic-heatmap-cell) + 6 * var(--atomic-heatmap-gap)
+  );
+  margin-top: 0;
   padding-bottom: 3px;
+  box-sizing: content-box;
 }
 
-.fitness-plugin .fitness-day-label {
+.fitness-plugin .fitness-day-label,
+.fitness-plugin .atomic-heat-days > span {
+  display: block;
   font-size: 8px;
   text-align: right;
+  width: 100%;
   height: var(--atomic-heatmap-cell);
   line-height: var(--atomic-heatmap-cell);
+  margin: 0;
+  padding: 0;
   color: var(--text-muted);
 }
 
@@ -1361,17 +1376,7 @@
   grid-column: var(--w) / span 4;
 }
 
-/* margin-top clears the months row (16px + 4px). */
-.fitness-plugin .atomic-heat-days {
-  display: grid;
-  grid-template-rows: repeat(7, var(--atomic-heat-cell));
-  row-gap: var(--atomic-heat-gap);
-  margin-top: 20px;
-}
-
-.fitness-plugin .atomic-heat-days > span {
-  line-height: var(--atomic-heat-cell);
-}
+/* Day marks share the cell track. They sit on the week rows, not the month labels. */
 
 .fitness-plugin .atomic-heat-cells {
   display: grid;
@@ -1653,7 +1658,7 @@
 .fitness-plugin .atomic-shelf-scroll {
   overflow-x: auto;
   overflow-y: visible;
-  padding: 22px 0 0;
+  padding: 22px 0 16px;
 }
 
 .fitness-plugin .atomic-shelf-scroll::-webkit-scrollbar {
@@ -1674,6 +1679,7 @@
 /* The plank: the only furniture. Top face, front edge, soft drop. */
 .fitness-plugin .atomic-plank {
   position: relative;
+  z-index: 0;
   height: 15px;
   border-radius: 1px 1px 3px 3px;
   background:
@@ -1704,6 +1710,7 @@
   border: 0;
   border-radius: 2px 3px 3px 2px;
   background: var(--atomic-fill-2);
+  overflow: visible;
   box-shadow:
     0 1px 0 rgba(0, 0, 0, 0.08),
     0 7px 6px -6px rgba(0, 0, 0, 0.45);
@@ -1716,12 +1723,33 @@
   z-index: 1;
 }
 
+.fitness-plugin .atomic-book-face {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  overflow: hidden;
+  background: var(--atomic-fill-2);
+}
+
+.fitness-plugin button.atomic-book img.atomic-book-cover,
 .fitness-plugin .atomic-book-cover {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
   object-fit: cover;
+  object-position: center center;
   border-radius: inherit;
+  pointer-events: none;
+  user-select: none;
 }
 
 /*
@@ -1732,6 +1760,7 @@
 .fitness-plugin .atomic-book::before {
   content: "";
   position: absolute;
+  z-index: 3;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -1753,6 +1782,7 @@
 .fitness-plugin .atomic-book::after {
   content: "";
   position: absolute;
+  z-index: 4;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -1786,6 +1816,13 @@
   .fitness-plugin .atomic-book:hover::after {
     opacity: 1;
   }
+
+  .fitness-plugin .atomic-book.is-cover-open,
+  .fitness-plugin .atomic-book.is-cover-open:hover,
+  .fitness-plugin .atomic-book.is-lifted,
+  .fitness-plugin .atomic-book.is-lifted:hover {
+    transform: translateY(-8px);
+  }
 }
 
 .fitness-plugin .atomic-book.is-preview {
@@ -1809,6 +1846,37 @@
     0 20px 18px -12px rgba(0, 0, 0, 0.45);
 }
 
+/* Opened page is a flat face. Light mode is white; dark mode is black. */
+.fitness-plugin .atomic-book.is-cover-open,
+.fitness-plugin .atomic-book.is-lifted {
+  background: #fff;
+}
+
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-face,
+.fitness-plugin .atomic-book.is-lifted .atomic-book-face {
+  transform: none;
+  background: #fff;
+}
+
+.theme-dark .fitness-plugin .atomic-book.is-cover-open,
+.theme-dark .fitness-plugin .atomic-book.is-lifted,
+.theme-dark .fitness-plugin .atomic-book.is-cover-open .atomic-book-face,
+.theme-dark .fitness-plugin .atomic-book.is-lifted .atomic-book-face {
+  background: #000;
+}
+
+.fitness-plugin .atomic-book.is-cover-open .atomic-book-face > *,
+.fitness-plugin .atomic-book.is-lifted .atomic-book-face > * {
+  visibility: hidden;
+}
+
+.fitness-plugin .atomic-book.is-cover-open::before,
+.fitness-plugin .atomic-book.is-cover-open::after,
+.fitness-plugin .atomic-book.is-lifted::before,
+.fitness-plugin .atomic-book.is-lifted::after {
+  opacity: 0;
+}
+
 /* Reading: a ribbon tail hangs out of the book over the plank's edge.
    Swallowtail is a border notch: solid shaft, transparent bottom border. */
 .fitness-plugin .atomic-book-ribbon {
@@ -1816,10 +1884,13 @@
   right: 16%;
   bottom: -20px;
   width: 8px;
-  height: 24px;
-  z-index: -1;
+  height: 28px;
+  z-index: 1;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: none;
   filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
-  background: linear-gradient(var(--atomic-c), var(--atomic-c)) 0 0 / 100% 18px no-repeat;
+  background: linear-gradient(var(--atomic-c), var(--atomic-c)) 0 0 / 100% 22px no-repeat;
 }
 
 .fitness-plugin .atomic-book-ribbon::before {

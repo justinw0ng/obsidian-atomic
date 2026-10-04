@@ -715,6 +715,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await waitCss(driver, '[data-testid="atomic-heatmap"][data-activity="golf"]');
       const gymGolf = await driver.findElements(By.css('[data-testid="atomic-heatmap"]'));
       assert.equal(gymGolf.length, 2);
+      const dow = await driver.findElements(
+        By.css('[data-testid="atomic-heatmap"][data-activity="gym"] [data-testid="atomic-heatmap-dow"]'),
+      );
+      assert.equal(dow.length, 7);
       const readingOnGymGolf = await driver.findElements(
         By.css('[data-testid="atomic-heatmap"][data-activity="reading"]'),
       );

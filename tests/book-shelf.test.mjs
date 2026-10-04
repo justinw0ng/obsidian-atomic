@@ -207,8 +207,8 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
   );
 });
 
-test("bookClickOpensNote waits for a second tap on coarse pointers", () => {
-  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), true);
+test("bookClickOpensNote opens a flat page before the note", () => {
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), false);
   assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: true }), true);
   assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: false }), false);
   assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: true }), true);

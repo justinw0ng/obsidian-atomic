@@ -294,6 +294,7 @@ function bindCoverObjectPosition(img: HTMLImageElement): void {
 }
 
 const LIFTED_CLASS = "is-lifted";
+const COVER_OPEN_CLASS = "is-cover-open";
 
 export function hoverFinePointer(
   media: Pick<MediaQueryList, "matches"> | null | undefined,
@@ -301,12 +302,15 @@ export function hoverFinePointer(
   return Boolean(media?.matches);
 }
 
-/** Coarse pointers peek the cover first; a second tap opens the note. */
+/**
+ * The first click opens a flat page. The next click opens the note.
+ * `hoverFine` still drives the closed-book tilt; it does not skip the page.
+ */
 export function bookClickOpensNote(options: {
   hoverFine: boolean;
   coverOpen: boolean;
 }): boolean {
-  return options.hoverFine || options.coverOpen;
+  return options.coverOpen;
 }
 
 function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
@@ -315,8 +319,8 @@ function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
 }
 
 function closeLiftedBooks(root: ParentNode): void {
-  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
-    el.classList.remove(LIFTED_CLASS);
+  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}, .atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(LIFTED_CLASS, COVER_OPEN_CLASS);
   });
 }
 
@@ -375,15 +379,16 @@ function createBook(
   button.style.setProperty("--atomic-book-color", item.spineColor);
 
   const titleClass = titleLengthClass(item.title);
+  const face = button.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = button.createEl("img", {
+    const img = face.createEl("img", {
       cls: "atomic-book-cover",
       attr: { src: coverSrc, alt: "", draggable: "false" },
     });
     bindCoverObjectPosition(img);
   } else {
-    button.createDiv({
+    face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
       text: item.title,
     });
@@ -412,15 +417,16 @@ function createBook(
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(LIFTED_CLASS);
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
     if (!bookClickOpensNote({ hoverFine, coverOpen })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeLiftedBooks(shelf);
-      button.classList.add(LIFTED_CLASS);
+      button.classList.add(COVER_OPEN_CLASS);
+      if (!hoverFine) button.classList.add(LIFTED_CLASS);
       showBookReadout(readout, item, language, true);
       return;
     }
-    button.classList.remove(LIFTED_CLASS);
+    button.classList.remove(LIFTED_CLASS, COVER_OPEN_CLASS);
     void data.openPath(item.path);
   });
 }
