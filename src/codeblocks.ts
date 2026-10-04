@@ -99,8 +99,9 @@ export function renderTrackedBlock(
     // index are complete. Those scans are not cached (`cacheList`), so a
     // second pass at layout ready used to redo every vault read and heatmap
     // DOM paint. Keep the pending shell until then; `scheduleRefresh` is the
-    // first real paint. Detached Live Preview hosts still paint: the editor
-    // reattaches the same node, and heatmap/shelf ResizeObservers fix width.
+    // first real paint. Detached Live Preview and reading-view hosts still
+    // paint: the editor reattaches the same node, and heatmap/shelf
+    // ResizeObservers fix width.
     if (!plugin.app.workspace.layoutReady) return;
     await renderBlock(plugin, block.kind, block.source, block.el, {
       sourcePath: block.sourcePath,

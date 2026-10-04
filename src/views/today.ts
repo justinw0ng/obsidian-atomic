@@ -64,7 +64,7 @@ export async function renderTodaySessions(
   const maps = await Promise.all(
     activities.map((activity) => data.getActivityDurationMap(activity, year)),
   );
-  if (generation !== undefined && isStaleBlockRender(el, generation)) return;
+  if (isStaleBlockRender(el, generation)) return;
 
   el.empty();
   const rows = activities.map((activity, index) => ({
