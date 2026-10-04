@@ -188,7 +188,7 @@ A change is done when:
 | Unit tests | `tests/*.mjs` |
 | Selenium | `e2e/health-check.test.mjs`, `e2e/lib/obsidian.mjs`, `e2e/lib/vault.mjs` |
 | Hook / CSS / API-hygiene bans | `tests/e2e-selectors.test.mjs`, `tests/dashboard-paint-state.test.mjs` |
-| CI / release | `.github/workflows/ci.yml`, `.github/workflows/release.yml` |
+| CI / release | `.github/workflows/ci.yml`, `.github/workflows/e2e.yml`, `.github/workflows/release.yml` |
 | Version bump | `scripts/bump-version.mjs` |
 | In-app update notes | `src/core/update-notes.json`, `src/core/update-notes.ts`, `scripts/set-update-note.mjs` |
 | Cloud rules | `AGENTS.md` |

@@ -83,6 +83,7 @@ test("obsidian-plugin-e2e skill names files that still exist", () => {
     "tests/security.test.mjs",
     "tests/ci-paths.test.mjs",
     ".github/workflows/ci.yml",
+    ".github/workflows/e2e.yml",
     ".github/workflows/release.yml",
     ".github/plugin-source-paths.txt",
     "scripts/bump-version.mjs",
