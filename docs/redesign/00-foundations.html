@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic redesign — Foundations</title>
+  <style>
+    :root {
+      --bg: #f6f5f1;
+      --panel: #fffcf7;
+      --ink: #1f1d19;
+      --muted: #5c584f;
+      --faint: #8a8478;
+      --line: #d8d2c6;
+      --accent: #3d6b4f;
+      --accent-ink: #f4fff6;
+      --soft: #e7efe8;
+      --warn: #8a4b1f;
+      --warn-bg: #f8eee4;
+      --rail-on: #3d6b4f;
+      --rail-off: #b7b1a6;
+      --shadow: 0 10px 28px rgba(40, 34, 24, 0.08);
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --radius: 10px;
+      --target: 44px;
+      --measure: 62ch;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.5 var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      padding: var(--space-5);
+    }
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { font-size: 1.6rem; margin: 0 0 var(--space-2); }
+    h2 { font-size: 1.1rem; margin: var(--space-5) 0 var(--space-2); }
+    p { max-width: var(--measure); }
+    .lead { color: var(--muted); margin: 0 0 var(--space-5); }
+    .thesis {
+      max-width: 40rem;
+      padding: var(--space-4);
+      background: var(--soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    .swatches, .type, .scale { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+    .chip {
+      min-width: 120px;
+      padding: var(--space-3);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+    }
+    .chip b { display: block; font-size: 0.78rem; color: var(--muted); }
+    .swatch {
+      height: 36px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      margin-bottom: var(--space-2);
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-width: 120px;
+    }
+    .field span { font-size: 12px; color: var(--muted); }
+    .field input, .field button {
+      min-height: var(--target);
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      font: inherit;
+      background: #fff;
+    }
+    .field button.warn { background: var(--warn-bg); color: var(--warn); }
+    table { border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 6px 10px 6px 0; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    code { font-size: 0.88em; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>Foundations</h1>
+  <p class="lead">Elevate the live Obsidian + Atomic token set. Do not invent a second brand.</p>
+  <p class="thesis"><strong>Thesis.</strong> A habit in Settings is a labeled card. You can see what each control does without hovering.</p>
+
+  <h2>Color</h2>
+  <p>Light mockups (repo screenshot policy). Plugin CSS maps these to Obsidian variables so dark theme follows. Contrast vs <code>--panel</code> / <code>--bg</code> is stated on each chip.</p>
+  <div class="swatches">
+    <div class="chip"><div class="swatch" style="background:#1f1d19"></div><b>Ink</b>#1f1d19 · 14.8:1 on panel</div>
+    <div class="chip"><div class="swatch" style="background:#5c584f"></div><b>Muted</b>#5c584f · 6.1:1 on panel (labels)</div>
+    <div class="chip"><div class="swatch" style="background:#3d6b4f"></div><b>Accent / rail on</b>#3d6b4f · 5.4:1 on panel</div>
+    <div class="chip"><div class="swatch" style="background:#b7b1a6"></div><b>Rail off</b>#b7b1a6 · shape + “Enabled” toggle, not color alone</div>
+    <div class="chip"><div class="swatch" style="background:#8a4b1f"></div><b>Warn</b>#8a4b1f · 6.3:1 on warn-bg</div>
+    <div class="chip"><div class="swatch" style="background:#e7efe8"></div><b>Soft</b>card wash / thesis</div>
+  </div>
+
+  <h2>Type</h2>
+  <p>System UI, matching <code>.fitness-plugin</code>. No display face. Habit name 16px / 600. Field labels 12px muted. Body 16px / 1.5. Tabular nums are unused here (no timers on this screen).</p>
+  <div class="type">
+    <div class="chip"><b>UI</b>Segoe UI / system-ui</div>
+    <div class="chip"><b>Measure</b>45–62ch on docs; phone column is the settings pane</div>
+  </div>
+
+  <h2>Space / radius / motion</h2>
+  <div class="scale">
+    <div class="chip"><b>4 / 8 / 12 / 16 / 24</b>field gap, card pad, section</div>
+    <div class="chip"><b>10px radius</b>habit card (dashboard already uses 12)</div>
+    <div class="chip"><b>Motion</b>none on this screen. Reduced-motion: no new animation to disable.</div>
+    <div class="chip"><b>Target</b>label + control stack ≥44px tall. Native Obsidian toggles stay native.</div>
+  </div>
+
+  <h2>Component: labeled field</h2>
+  <p>One component, reused for Enabled, Label, Folder, Cues. Same idea as gym-log and cue-log fields. Delete is the same stack with a spacer caption so the button lines up.</p>
+  <div class="scale">
+    <label class="field"><span>Enabled</span><input type="checkbox" checked /></label>
+    <label class="field"><span>Label</span><input value="Gym" readonly /></label>
+    <label class="field"><span>Folder</span><input value="atomics/exercise/Gym" readonly /></label>
+    <div class="field"><span>&nbsp;</span><button class="warn" type="button">Delete</button></div>
+  </div>
+
+  <h2>Immutable core (do not redesign away)</h2>
+  <table>
+    <tr><th>Keep</th><td>Vault notes as store; enable / path / color / delete; four generated shades; no telemetry.</td></tr>
+    <tr><th>Change</th><td>Shell only: labels, card grouping, enabled rail.</td></tr>
+  </table>
+</body>
+</html>
