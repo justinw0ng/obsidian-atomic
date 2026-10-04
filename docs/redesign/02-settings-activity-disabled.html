@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic redesign — Settings habit card (disabled)</title>
+  <style>
+    :root {
+      --bg: #f6f5f1;
+      --panel: #fffcf7;
+      --ink: #1f1d19;
+      --muted: #5c584f;
+      --faint: #8a8478;
+      --line: #d8d2c6;
+      --accent: #3d6b4f;
+      --accent-ink: #f4fff6;
+      --soft: #e7efe8;
+      --warn: #8a4b1f;
+      --warn-bg: #f8eee4;
+      --rail-on: #3d6b4f;
+      --rail-off: #b7b1a6;
+      --shadow: 0 10px 28px rgba(40, 34, 24, 0.08);
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --radius: 10px;
+      --target: 44px;
+      --measure: 62ch;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.5 var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      padding: var(--space-5);
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 var(--space-2); }
+    .lead { color: var(--muted); max-width: var(--measure); margin: 0 0 var(--space-5); }
+    .rack { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-start; }
+    .phone {
+      width: 290px;
+      height: 600px;
+      border-radius: 28px;
+      border: 10px solid #2a2620;
+      background: #ece8df;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .status {
+      flex: 0 0 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .pane {
+      flex: 1;
+      overflow: auto;
+      background: var(--panel);
+      padding: 12px 14px 20px;
+    }
+    .crumb { font-size: 12px; color: var(--muted); }
+    h2 { font-size: 1.15rem; margin: 2px 0 10px; }
+    .heading {
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 16px 0 8px;
+    }
+    .card {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: inset 3px 0 0 var(--rail-off);
+      padding: 10px 12px 12px;
+    }
+    .card h3 { margin: 0; font-size: 1rem; }
+    .id { color: var(--muted); font-size: 12px; margin: 2px 0 10px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px 12px; }
+    .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .field span { font-size: 12px; line-height: 1.2; color: var(--muted); }
+    .field input[type="text"] {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 8px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+    .toggle {
+      width: 40px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--rail-off);
+      position: relative;
+    }
+    .toggle i {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+    }
+    .delete {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid #e2c4a8;
+      border-radius: 6px;
+      background: var(--warn-bg);
+      color: var(--warn);
+      font: inherit;
+    }
+    .shades { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .swatch { width: 16px; height: 16px; border-radius: 3px; border: 1px solid var(--line); }
+    .notes { max-width: 34rem; }
+    .notes h2 { font-size: 1rem; margin: 0 0 8px; }
+    .notes li { margin: 0 0 10px; }
+    .matrix { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    .matrix th, .matrix td { text-align: left; padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .matrix th { color: var(--muted); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>Settings · habit card (disabled)</h1>
+  <p class="lead">Reading turned off. Fields stay editable and readable. Heatmaps hide this habit until Enabled is on again.</p>
+  <div class="rack">
+    <div class="phone" aria-label="Phone frame of a disabled Reading habit">
+      <div class="status"><span>9:41</span><span>Atomic</span></div>
+      <div class="pane">
+        <div class="crumb">Settings</div>
+        <h2>Atomic Tracker</h2>
+        <div class="heading">General habits</div>
+        <div class="card">
+          <h3>Reading</h3>
+          <div class="id">Activity id: reading</div>
+          <div class="controls">
+            <label class="field"><span>Enabled</span><span class="toggle" role="img" aria-label="Enabled, off"><i></i></span></label>
+            <label class="field" style="flex:1 1 120px"><span>Label</span><input type="text" value="Reading" readonly /></label>
+            <label class="field" style="flex:1 1 160px"><span>Folder</span><input type="text" value="atomics/hobbies/Reading" readonly /></label>
+            <div class="field"><span style="visibility:hidden">.</span><button class="delete" type="button">Delete</button></div>
+          </div>
+          <div class="shades">
+            <span class="field"><span>Heatmap shades</span></span>
+            <i class="swatch" style="background:#f3e6c8"></i>
+            <i class="swatch" style="background:#d2b36a"></i>
+            <i class="swatch" style="background:#8a6a24"></i>
+            <i class="swatch" style="background:#4a3810"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">
+      <h2>Rationale</h2>
+      <ul>
+        <li><strong>Norman · Gulf of Evaluation.</strong> Off is the unchecked Enabled toggle plus a faint rail. The card is not greyed out, so you can still read Label and Folder.</li>
+        <li><strong>Assumption #6.</strong> No opacity. Disabled means “leave this habit out of heatmaps,” not “lock the form.”</li>
+        <li><strong>Cooper · no shame.</strong> Copy does not say you broke a streak. Reading can be turned back on.</li>
+        <li><strong>No Cues field.</strong> General habits never grew a cues toggle. The mockup must not invent one.</li>
+      </ul>
+      <h2>State matrix (this screen)</h2>
+      <table class="matrix">
+        <tr><th>State</th><th>Treatment</th><th>One-line why</th></tr>
+        <tr><td>Default / enabled</td><td>Accent rail, Enabled on. See 01.</td><td>Happy path; knowledge in the world.</td></tr>
+        <tr><td>Disabled</td><td>This frame. Faint rail, fields live.</td><td>Evaluation without crushing contrast.</td></tr>
+        <tr><td>Empty add</td><td>Unchanged Add row + Notice if name blank.</td><td>Out of this card; keep current recovery.</td></tr>
+        <tr><td>Unsafe folder</td><td>Existing Notice; value not saved.</td><td>Behavior unchanged.</td></tr>
+        <tr><td>Delete confirm</td><td>Existing modal: notes are not deleted.</td><td>Lidwell Confirmation; already shipped.</td></tr>
+        <tr><td>Reduced motion / a11y</td><td>No animation. Labels + toggle position.</td><td>State outside color and motion.</td></tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

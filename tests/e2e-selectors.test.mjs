@@ -243,10 +243,19 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const settings = src("src/settings.ts");
   assert.match(settings, /atomic-setting-activity/);
+  assert.match(settings, /atomic-setting-enabled/);
+  assert.match(settings, /atomic-setting-label/);
+  assert.match(settings, /atomic-setting-folder/);
+  assert.match(settings, /atomic-setting-cues/);
+  assert.match(settings, /atomic-setting-delete/);
+  assert.match(settings, /atomic-setting-shades-label/);
   assert.match(settings, /atomic-setting-add-hobby/);
   assert.match(settings, /atomic-setting-gym-import/);
   assert.match(settings, /atomic-setting-gym-exercises/);
   assert.match(settings, /atomic-color-swatch/);
+  assert.match(settings, /wrapLastSettingControl/);
+  assert.match(settings, /createDiv\(/);
+  assert.doesNotMatch(settings, /createEl\("label"/);
   assert.match(settings, /getSettingDefinitions\(/);
   assert.match(settings, /settingsRows\(\)/);
   assert.doesNotMatch(settings, /setWarning\(/);
@@ -273,6 +282,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /gym-session-timer/);
   assert.match(health, /atomic-setting-gym-import/);
   assert.match(health, /atomic-setting-gym-exercises/);
+  assert.match(health, /atomic-setting-enabled-label/);
+  assert.match(health, /atomic-setting-folder-label/);
+  assert.match(health, /atomic-setting-shades-label/);
   assert.match(health, /atomic-gym-log-setup-modal/);
   assert.match(health, /atomic-gym-log-setup-later/);
   assert.match(health, /promptGymLogSetupIfPending/);
@@ -322,6 +334,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(e2eVault, /templates\.json/);
 
   const styles = src("styles.css");
+  assert.match(styles, /atomic-setting-field-label/);
   assert.match(styles, /fonts\/caveat-latin-400\.woff2/);
   assert.match(styles, /Atomic Cue CJK/);
   assert.match(styles, /DFKai-SB/);

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Atomic redesign — index</title>
+  <style>
+    :root {
+      --bg: #f6f5f1;
+      --panel: #fffcf7;
+      --ink: #1f1d19;
+      --muted: #5c584f;
+      --line: #d8d2c6;
+      --accent: #3d6b4f;
+      --soft: #e7efe8;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+      --space-2: 8px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --radius: 10px;
+      --measure: 62ch;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.5 var(--font);
+      color: var(--ink);
+      background: var(--bg);
+      padding: var(--space-5);
+    }
+    h1 { margin: 0 0 var(--space-2); font-size: 1.5rem; }
+    .lead, li { max-width: var(--measure); }
+    .lead { color: var(--muted); }
+    a { color: var(--accent); }
+    .cards { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: var(--space-5) 0; }
+    .card {
+      flex: 1 1 220px;
+      max-width: 280px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: var(--space-4);
+    }
+    .card strong { display: block; margin-bottom: 6px; }
+    .thumb {
+      height: 72px;
+      border-radius: 8px;
+      background: var(--soft);
+      box-shadow: inset 3px 0 0 var(--accent);
+      margin-bottom: 10px;
+    }
+    .thumb.off { box-shadow: inset 3px 0 0 #b7b1a6; }
+  </style>
+</head>
+<body>
+  <h1>Atomic redesign</h1>
+  <p class="lead">Thesis: a habit in Settings is a labeled card. You can see what each control does without hovering.</p>
+  <p class="lead">Immutable core: vault notes are the store; enable / path / color / delete stay; no telemetry.</p>
+  <div class="cards">
+    <a class="card" href="./00-foundations.html">
+      <div class="thumb" aria-hidden="true"></div>
+      <strong>00 Foundations</strong>
+      Tokens, labeled-field component, contrast notes.
+    </a>
+    <a class="card" href="./01-settings-activity.html">
+      <div class="thumb" aria-hidden="true"></div>
+      <strong>01 Habit card · default</strong>
+      Enabled Gym with Cues and heatmap shades.
+    </a>
+    <a class="card" href="./02-settings-activity-disabled.html">
+      <div class="thumb off" aria-hidden="true"></div>
+      <strong>02 Habit card · disabled</strong>
+      Reading off, fields still editable; state matrix.
+    </a>
+  </div>
+  <ul>
+    <li><a href="./ASSUMPTIONS.md">Assumptions</a> — forks and conservative picks</li>
+    <li><a href="./README.md">Map</a> — screens, commands, views, modals</li>
+    <li><a href="./decisions/ADR-0001-settings-activity-labels.md">ADR-0001</a></li>
+  </ul>
+  <p class="lead">Skill stack: redesign-director (Orient → Map → Foundations → Mockups → States → ADRs). Deep-research skipped. ux-principles-skill and artifact-design are cited by name; they are not vendored in this repo.</p>
+</body>
+</html>
