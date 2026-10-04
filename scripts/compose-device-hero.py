@@ -254,11 +254,11 @@ def compose_preframed(
         desktop_radius,
         42,
     ).convert("RGB")
-    # Same overlap on every banner: the phone covers the window's right corner
-    # and the empty gap between the two frames closes.
-    phone_overlap = 28
-    phone_x = desktop_x + desktop_image.width - phone_overlap
-    phone_x = min(phone_x, WIDTH - 20 - phone_image.width)
+    # Same rule on every banner: the beige on the phone's left equals the beige
+    # on its right. The desktop stays put, and the phone does not cover it.
+    desktop_right = desktop_x + desktop_image.width
+    side = max(0, (WIDTH - desktop_right - phone_image.width) // 2)
+    phone_x = desktop_right + side
     canvas = paste_framed(
         canvas,
         phone_image,
