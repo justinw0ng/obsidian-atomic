@@ -190,6 +190,80 @@ def fit_frame(
     raise ValueError(f"unknown fit mode: {mode}")
 
 
+def fit_inside(image: Image.Image, max_w: int, max_h: int) -> Image.Image:
+    image = image.convert("RGBA")
+    scale = min(max_w / image.width, max_h / image.height)
+    size = (
+        max(1, round(image.width * scale)),
+        max(1, round(image.height * scale)),
+    )
+    return image.resize(size, Image.Resampling.LANCZOS)
+
+
+def paste_framed(
+    canvas: Image.Image,
+    image: Image.Image,
+    origin: tuple[int, int],
+    radius: int,
+    shadow_alpha: int,
+) -> Image.Image:
+    x, y = origin
+    shadow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    shadow_draw = ImageDraw.Draw(shadow)
+    shadow_draw.rounded_rectangle(
+        (x - 6, y + 10, x + image.width + 10, y + image.height + 22),
+        radius=max(8, radius),
+        fill=(23, 29, 38, shadow_alpha),
+    )
+    shadow = shadow.filter(ImageFilter.GaussianBlur(16))
+    base = Image.alpha_composite(canvas.convert("RGBA"), shadow)
+    mask = rounded_mask(image.size, radius)
+    base.paste(image, origin, mask)
+    return base
+
+
+def compose_preframed(
+    desktop: Image.Image,
+    mobile: Image.Image,
+    copy: HeroCopy | None = None,
+) -> Image.Image:
+    """Place mockup window and phone chrome on the landing banner.
+
+    The screenshots already include the redesign frames, so this does not
+    draw a second bezel.
+    """
+    text = copy or HeroCopy()
+    canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
+    draw = ImageDraw.Draw(canvas)
+    draw.text((80, 36), text.kicker, fill=TEXT, font=font(24, jersey=True))
+    draw.text((80, 68), text.headline, fill=TEXT, font=font(56, jersey=True))
+    right_label = text.label
+    right_box = draw.textbbox((0, 0), right_label, font=font(15))
+    right_width = right_box[2] - right_box[0]
+    draw.text((1520 - right_width, 56), right_label, fill=MUTED, font=font(15))
+
+    desktop_image = fit_inside(desktop, 1248, 700)
+    phone_image = fit_inside(mobile, 360, 676)
+    desktop_radius = max(8, round(desktop_image.width * 0.008))
+    phone_radius = max(28, round(phone_image.width * 64 / 412))
+    canvas = paste_framed(
+        canvas,
+        desktop_image,
+        (36, 162),
+        desktop_radius,
+        42,
+    ).convert("RGB")
+    phone_x = min(1236, WIDTH - 28 - phone_image.width)
+    canvas = paste_framed(
+        canvas,
+        phone_image,
+        (phone_x, 198),
+        phone_radius,
+        78,
+    )
+    return canvas.convert("RGB")
+
+
 def compose(
     desktop: Image.Image,
     mobile: Image.Image,
@@ -331,23 +405,34 @@ def main() -> None:
         action="store_true",
         help="Trim a thin right-edge scrollbar gutter from window shots",
     )
+    parser.add_argument(
+        "--preframed",
+        action="store_true",
+        help="Screenshots already include redesign window and phone chrome",
+    )
     args = parser.parse_args()
 
     for value in (args.desktop, args.mobile):
         if not Path(value).is_file():
             parser.error(f"missing screenshot: {value}")
 
-    out = compose(
-        Image.open(args.desktop),
-        Image.open(args.mobile),
-        HeroCopy(kicker=args.kicker, headline=args.headline, label=args.label),
-        crop_chrome=args.crop_chrome,
-        desktop_fit=args.desktop_fit,
-        phone_fit=args.phone_fit,
-        mobile_kind=args.mobile_kind,
-        phone_pad=max(0, args.phone_pad),
-        scrub_scrollbars=args.scrub_scrollbars,
-    )
+    opened_desktop = Image.open(args.desktop)
+    opened_mobile = Image.open(args.mobile)
+    hero_copy = HeroCopy(kicker=args.kicker, headline=args.headline, label=args.label)
+    if args.preframed:
+        out = compose_preframed(opened_desktop, opened_mobile, hero_copy)
+    else:
+        out = compose(
+            opened_desktop,
+            opened_mobile,
+            hero_copy,
+            crop_chrome=args.crop_chrome,
+            desktop_fit=args.desktop_fit,
+            phone_fit=args.phone_fit,
+            mobile_kind=args.mobile_kind,
+            phone_pad=max(0, args.phone_pad),
+            scrub_scrollbars=args.scrub_scrollbars,
+        )
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     out.save(args.out, "PNG", optimize=True)
     print(f"wrote {args.out} {out.size} {out.mode}")
