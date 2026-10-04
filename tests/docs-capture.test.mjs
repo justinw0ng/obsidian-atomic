@@ -64,6 +64,18 @@ test("buildDeviceHeroArgs adds crop-chrome for the dashboard hero", () => {
   assert.equal(args.at(-1) === "--crop-chrome" || args.includes("--crop-chrome"), true);
 });
 
+test("buildDeviceHeroArgs adds preframed when the shots already include device chrome", () => {
+  const args = buildDeviceHeroArgs({
+    desktop: "/tmp/desk.png",
+    mobile: "/tmp/phone.png",
+    out: "/tmp/out.png",
+    headline: "Your cues. One index card.",
+    preframed: true,
+  });
+  assert.equal(args.includes("--preframed"), true);
+  assert.equal(args.includes("--crop-chrome"), false);
+});
+
 test("ensureDocsBundle is a no-op when markers are already in main.js", () => {
   assert.equal(ensureDocsBundle([]), false);
   assert.equal(ensureDocsBundle(["atomic-heatmap"]), false);

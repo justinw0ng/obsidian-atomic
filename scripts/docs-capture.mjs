@@ -174,6 +174,7 @@ export function buildDeviceHeroArgs({
   mobileKind = "window",
   phonePad = 0,
   scrubScrollbars = false,
+  preframed = false,
 }) {
   const args = [
     join(ROOT, "scripts/compose-device-hero.py"),
@@ -196,6 +197,7 @@ export function buildDeviceHeroArgs({
   ];
   if (cropChrome) args.push("--crop-chrome");
   if (scrubScrollbars) args.push("--scrub-scrollbars");
+  if (preframed) args.push("--preframed");
   return args;
 }
 

@@ -451,11 +451,28 @@ if pgrep -x obsidian >/dev/null 2>&1; then
   exit 1
 fi
 
+node /workspace/scripts/capture-hero-shells.mjs
+read_hole_size() {
+  python3 - "$1" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+name = sys.argv[1]
+manifest = json.loads(Path("/tmp/atomic-hero-shells/manifest.json").read_text())
+entry = manifest["shells"][name]
+print(max(320, round(entry["holeCssWidth"])), max(480, round(entry["holeCssHeight"])))
+PY
+}
+
+read -r DESKTOP_W DESKTOP_H <<<"$(read_hole_size daily-desktop)"
+read -r MOBILE_W MOBILE_H <<<"$(read_hole_size daily-phone)"
+
 node /workspace/scripts/seed-readme-demo-vault.mjs
 install_minimal_theme
 write_note_only_snippet
 patch_capture_appearance
-capture_daily_note 1600 900 "$DESKTOP_SHOT" 20 0 8
+capture_daily_note "$DESKTOP_W" "$DESKTOP_H" "$DESKTOP_SHOT" 20 0 8
 echo "Saved desktop $(wc -c < "$DESKTOP_SHOT") bytes"
 verify_shelf_covers "$DESKTOP_SHOT" 8
 
@@ -463,20 +480,32 @@ node /workspace/scripts/seed-readme-demo-vault.mjs --book-limit 3
 install_minimal_theme
 write_note_only_snippet
 patch_capture_appearance
-capture_daily_note 390 844 "$MOBILE_SHOT" 12 0 2
+capture_daily_note "$MOBILE_W" "$MOBILE_H" "$MOBILE_SHOT" 12 0 2
 echo "Saved mobile $(wc -c < "$MOBILE_SHOT") bytes"
 verify_shelf_covers "$MOBILE_SHOT" 2
 
+FRAMED_DIR="${SHOT_DIR}/framed"
+mkdir -p "$FRAMED_DIR"
+python3 /workspace/scripts/frame-hero-content.py \
+  --scene daily \
+  --kind desktop \
+  --content "$DESKTOP_SHOT" \
+  --out "${FRAMED_DIR}/desktop.png"
+python3 /workspace/scripts/frame-hero-content.py \
+  --scene daily \
+  --kind phone \
+  --content "$MOBILE_SHOT" \
+  --out "${FRAMED_DIR}/phone.png"
 python3 /workspace/scripts/compose-device-hero.py \
-  --desktop "$DESKTOP_SHOT" \
-  --mobile "$MOBILE_SHOT" \
+  --preframed \
+  --desktop "${FRAMED_DIR}/desktop.png" \
+  --mobile "${FRAMED_DIR}/phone.png" \
   --out "$OUT"
 
 echo "Saved $OUT ($(wc -c < "$OUT") bytes)"
 
 GIF_OUT="/workspace/docs/images/atomic-daily-hero.gif"
 python3 /workspace/scripts/animate-hero-gif.py \
-  --desktop "$DESKTOP_SHOT" \
-  --mobile "$MOBILE_SHOT" \
+  --hero "$OUT" \
   --out "$GIF_OUT"
 echo "Saved $GIF_OUT ($(wc -c < "$GIF_OUT") bytes)"

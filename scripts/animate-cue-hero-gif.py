@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 try:
@@ -44,18 +47,42 @@ def load_hero_gif():
     return load_module("animate_hero_gif", REPO / "scripts/animate-hero-gif.py")
 
 
-def compose_banner(compose, desktop: Path, mobile: Path, headline: str) -> Image.Image:
-    return compose.compose(
-        Image.open(desktop).convert("RGB"),
-        Image.open(mobile).convert("RGB"),
-        copy=compose.HeroCopy(headline=headline),
-        crop_chrome=False,
-        desktop_fit="contain",
-        phone_fit="contain",
-        mobile_kind="window",
-        phone_pad=22,
-        scrub_scrollbars=True,
+def frame_still(content: Path, kind: str, dest: Path) -> Path:
+    subprocess.run(
+        [
+            "python3",
+            str(REPO / "scripts/frame-hero-content.py"),
+            "--scene",
+            "cues",
+            "--kind",
+            kind,
+            "--content",
+            str(content),
+            "--out",
+            str(dest),
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
     )
+    return dest
+
+
+def compose_banner(compose, desktop: Path, mobile: Path, headline: str) -> Image.Image:
+    tmp = Path(tempfile.mkdtemp(prefix="atomic-cue-frame-"))
+    try:
+        framed_desktop = frame_still(desktop, "desktop", tmp / "desktop.png")
+        framed_phone = frame_still(mobile, "phone", tmp / "phone.png")
+        desktop_image = Image.open(framed_desktop).convert("RGB")
+        phone_image = Image.open(framed_phone).convert("RGB")
+        desktop_image.load()
+        phone_image.load()
+        return compose.compose_preframed(
+            desktop_image,
+            phone_image,
+            copy=compose.HeroCopy(headline=headline),
+        )
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def blend_frames(start: Image.Image, end: Image.Image, count: int) -> list[Image.Image]:
