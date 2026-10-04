@@ -1215,6 +1215,120 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
+  it("keeps bilingual heatmap captions on one line in a narrow pane", async () => {
+    await check(driver, "heatmap-foot-narrow", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      try {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 480,
+            height: 900,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(480, 900)`);
+        }
+        await openVaultFile(driver, E2E_FILES.heatmapReading);
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "zh-Hant-en";
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+          return plugin.refreshAll();
+        `);
+        let ready = {};
+        try {
+          await driver.wait(async () => {
+            ready = await driver.executeScript(`
+              const nodes = [...document.querySelectorAll('[data-testid="atomic-heatmap"]')];
+              const heatmap = nodes.sort(
+                (a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width,
+              )[0];
+              const caption = heatmap?.querySelector(".atomic-heat-foot > .atomic-caption");
+              const scroll = heatmap?.querySelector('[data-testid="atomic-heatmap-scroll"]');
+              return {
+                text: caption ? caption.textContent : "",
+                width: heatmap ? Math.round(heatmap.getBoundingClientRect().width) : 0,
+                scrollLeft: scroll ? scroll.scrollLeft : 0,
+                count: nodes.length,
+              };
+            `);
+            return String(ready.text).includes("按時長") && ready.width >= 280 && ready.width <= 520 && ready.scrollLeft > 0;
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(ready)}`);
+        }
+        await saveScreenshot(driver, "heatmap-foot-narrow-live");
+        const report = await driver.executeScript(`
+          const nodes = [...document.querySelectorAll('[data-testid="atomic-heatmap"]')];
+          const heatmap = nodes.sort(
+            (a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width,
+          )[0];
+          const foot = heatmap.querySelector(".atomic-heat-foot");
+          const captions = [...foot.querySelectorAll(".atomic-caption")];
+          const scroll = heatmap.querySelector('[data-testid="atomic-heatmap-scroll"]');
+          const today = heatmap.querySelector('[data-testid="atomic-heatmap-today"]');
+          const footBox = foot.getBoundingClientRect();
+          const legend = foot.querySelector(".atomic-heat-legend").getBoundingClientRect();
+          const duration = captions[0].getBoundingClientRect();
+          const ring = 2.75;
+          const scrollBox = scroll.getBoundingClientRect();
+          const todayBox = today.getBoundingClientRect();
+          return {
+            heatWidth: Math.round(heatmap.getBoundingClientRect().width),
+            overflow: Math.round(foot.scrollWidth - foot.clientWidth),
+            fontSize: Number.parseFloat(getComputedStyle(captions[0]).fontSize),
+            whiteSpace: getComputedStyle(captions[0]).whiteSpace,
+            heights: captions.map((node) => Math.round(node.getBoundingClientRect().height)),
+            overlap: duration.right > legend.left + 1,
+            durationClipped: duration.left < footBox.left - 1 || duration.right > footBox.right + 1,
+            legendClipped: legend.right > footBox.right + 1 || legend.left < footBox.left - 1,
+            ringLeft: todayBox.left - ring - scrollBox.left,
+            ringRight: scrollBox.right - (todayBox.right + ring),
+            ringTop: todayBox.top - ring - scrollBox.top,
+            ringBottom: scrollBox.bottom - (todayBox.bottom + ring),
+          };
+        `);
+        assert.ok(
+          report.heatWidth >= 280 && report.heatWidth <= 520,
+          `heatmap should be a phone pane, was ${report.heatWidth}px ${JSON.stringify(report)}`,
+        );
+        assert.equal(report.whiteSpace, "nowrap");
+        assert.ok(
+          report.fontSize < 12,
+          `narrow caption font should shrink, was ${report.fontSize}px ${JSON.stringify(report)}`,
+        );
+        assert.ok(report.overflow <= 1, `footer overflow ${JSON.stringify(report)}`);
+        assert.ok(report.heights.every((height) => height <= 16), `caption wrapped: ${report.heights}`);
+        assert.equal(report.overlap, false);
+        assert.equal(report.durationClipped, false);
+        assert.equal(report.legendClipped, false);
+        assert.ok(report.ringLeft >= -0.5, `today ring clipped on the left (${report.ringLeft})`);
+        assert.ok(report.ringRight >= -0.5, `today ring clipped on the right (${report.ringRight})`);
+        assert.ok(report.ringTop >= -0.5, `today ring clipped on the top (${report.ringTop})`);
+        assert.ok(report.ringBottom >= -0.5, `today ring clipped on the bottom (${report.ringBottom})`);
+      } finally {
+        try {
+          await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
+        } catch {
+          await driver.executeScript(
+            `window.resizeTo(arguments[0], arguments[1])`,
+            desktopViewport.width,
+            desktopViewport.height,
+          );
+        }
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "en";
+          return plugin.refreshAll();
+        `);
+      }
+    });
+  });
+
   it("shows property dropdowns on reading, golf, and gym notes", async () => {
     await check(driver, "property-dropdowns", async () => {
       await openVaultFile(driver, E2E_FILES.readingCurrent);

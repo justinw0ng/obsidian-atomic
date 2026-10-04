@@ -5411,6 +5411,7 @@ function cellClass(day) {
 var HEATMAP_CELL_PX = 10;
 var HEATMAP_GAP_PX = 3;
 var HEATMAP_PITCH_PX = HEATMAP_CELL_PX + HEATMAP_GAP_PX;
+var HEATMAP_TODAY_RING_PX = 4;
 
 // src/util/heatmap-scroll.ts
 function heatmapRevealOffsets(todayColumn, monthColumns) {
@@ -5427,7 +5428,7 @@ function scrollLeftToRevealToday(params) {
     return 0;
   }
   if (scrollWidth <= clientWidth) return 0;
-  const minLeft = todayLeft + todayWidth + 2 * pitch - clientWidth;
+  const minLeft = todayLeft + todayWidth + HEATMAP_TODAY_RING_PX + 2 * pitch - clientWidth;
   const start = monthStarts.find((value) => Number.isFinite(value) && value >= minLeft);
   const desired = start ?? minLeft;
   const maxScrollLeft = scrollWidth - clientWidth;

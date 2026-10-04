@@ -1201,6 +1201,8 @@
   --atomic-heat-label: 16px;
   --atomic-heat-label-gap: 6px;
   margin: 0 0 28px;
+  container-type: inline-size;
+  container-name: atomic-heat;
 }
 
 .fitness-plugin .atomic-heat-head {
@@ -1233,6 +1235,8 @@
 
 .fitness-plugin .atomic-heat-grid {
   width: max-content;
+  /* The today ring paints outside the cell. This gutter stays inside the scrollport. */
+  padding: 4px 4px 4px 0;
 }
 
 .fitness-plugin .atomic-heat-months {
@@ -1325,6 +1329,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
   margin-top: 10px;
   padding-left: calc(var(--atomic-heat-label) + var(--atomic-heat-label-gap));
   width: calc(
@@ -1335,6 +1341,10 @@
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+}
+
+.fitness-plugin .atomic-heat-foot .atomic-caption {
+  white-space: nowrap;
 }
 
 .fitness-plugin .atomic-heat-legend {
@@ -1354,6 +1364,54 @@
 
 .fitness-plugin .atomic-heat-legend .atomic-caption:last-child {
   margin-left: 4px;
+}
+
+/*
+  Bilingual captions ("Less / 少", "by duration / 按時長") wrap mid-phrase
+  on a phone. Shrink the type instead of letting it break.
+*/
+@container atomic-heat (max-width: 520px) {
+  .fitness-plugin .atomic-heat-foot .atomic-caption {
+    font-size: 10px;
+    line-height: 13px;
+    letter-spacing: 0;
+  }
+}
+
+@container atomic-heat (max-width: 400px) {
+  .fitness-plugin .atomic-heat-foot .atomic-caption {
+    font-size: 9px;
+    line-height: 12px;
+  }
+
+  .fitness-plugin .atomic-heat-legend {
+    gap: 2px;
+  }
+
+  .fitness-plugin .atomic-heat-legend .atomic-heat-cell {
+    width: 7px;
+    height: 7px;
+  }
+
+  .fitness-plugin .atomic-heat-legend .atomic-caption:first-child {
+    margin-right: 2px;
+  }
+
+  .fitness-plugin .atomic-heat-legend .atomic-caption:last-child {
+    margin-left: 2px;
+  }
+}
+
+@container atomic-heat (max-width: 320px) {
+  .fitness-plugin .atomic-heat-foot .atomic-caption {
+    font-size: 8px;
+    line-height: 11px;
+  }
+
+  .fitness-plugin .atomic-heat-legend .atomic-heat-cell {
+    width: 6px;
+    height: 6px;
+  }
 }
 
 /* -------------------------------------------------------------- actions */

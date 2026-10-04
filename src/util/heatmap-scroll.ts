@@ -1,5 +1,5 @@
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { HEATMAP_CELL_PX, HEATMAP_PITCH_PX } from "./heatmap-metrics.ts";
+import { HEATMAP_CELL_PX, HEATMAP_PITCH_PX, HEATMAP_TODAY_RING_PX } from "./heatmap-metrics.ts";
 
 /** Column offsets for the scrollport. `todayColumn` and `monthColumns` are 0-based. */
 export function heatmapRevealOffsets(
@@ -16,7 +16,8 @@ export function heatmapRevealOffsets(
 
 /**
  * Narrow panes open on today, with the left edge on a month label so the
- * first visible month is not cut. Wide panes stay at 0.
+ * first visible month is not cut, and enough room past today for its ring.
+ * Wide panes stay at 0.
  */
 export function scrollLeftToRevealToday(params: {
   scrollWidth: number;
@@ -41,7 +42,8 @@ export function scrollLeftToRevealToday(params: {
   }
   if (scrollWidth <= clientWidth) return 0;
 
-  const minLeft = todayLeft + todayWidth + 2 * pitch - clientWidth;
+  const minLeft =
+    todayLeft + todayWidth + HEATMAP_TODAY_RING_PX + 2 * pitch - clientWidth;
   const start = monthStarts.find((value) => Number.isFinite(value) && value >= minLeft);
   const desired = start ?? minLeft;
   const maxScrollLeft = scrollWidth - clientWidth;

@@ -8,6 +8,12 @@ export const HEATMAP_LABEL_GAP_PX = 6;
 /** Distance from one week column to the next. */
 export const HEATMAP_PITCH_PX = HEATMAP_CELL_PX + HEATMAP_GAP_PX;
 
+/**
+ * Today's ring paints 2.75px outside the cell. Reserve 4px so the scrollport
+ * can show the whole ring. Keep in sync with `.atomic-heat-cell.is-today`.
+ */
+export const HEATMAP_TODAY_RING_PX = 4;
+
 /** Year strip width: cells plus the gap between columns. */
 export function heatmapTrackWidth(weekCount: number): number {
   if (!Number.isFinite(weekCount) || weekCount <= 0) return 0;

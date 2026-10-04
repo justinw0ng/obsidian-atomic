@@ -545,6 +545,27 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
   );
   assert.match(styles, /\.theme-dark[^{]*\.atomic-heat-cell\.is-today/);
   assert.match(styles, /\.atomic-heat-cell\.is-today[^}]*box-shadow/s);
+  assert.match(styles, /container-name:\s*atomic-heat/);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-heat-foot \.atomic-caption\s*\{[^}]*white-space:\s*nowrap/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-heat \(max-width:\s*520px\)\s*\{[^}]*font-size:\s*10px/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-heat \(max-width:\s*400px\)\s*\{[^}]*font-size:\s*9px/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-heat \(max-width:\s*320px\)\s*\{[^}]*font-size:\s*8px/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-heat-grid\s*\{[^}]*padding:\s*4px 4px 4px 0/s,
+  );
   assert.doesNotMatch(styles, /\.fitness-weeks-end-pad\s*\{/);
   assert.match(
     styles,

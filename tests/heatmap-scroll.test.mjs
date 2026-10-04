@@ -52,8 +52,24 @@ test("scrollLeftToRevealToday uses minLeft when no later month start exists", ()
       pitch: 13,
       monthStarts: [0, 100],
     }),
-    256,
+    260,
   );
+});
+
+test("scrollLeftToRevealToday keeps the today ring inside the pane", () => {
+  const clientWidth = 280;
+  const todayLeft = 520;
+  const todayWidth = 10;
+  const scrollLeft = scrollLeftToRevealToday({
+    scrollWidth: 900,
+    clientWidth,
+    todayLeft,
+    todayWidth,
+    pitch: 13,
+    monthStarts: [0, 100],
+  });
+  const visibleRight = scrollLeft + clientWidth;
+  assert.ok(visibleRight >= todayLeft + todayWidth + 4);
 });
 
 test("scrollLeftToRevealToday returns 0 for bad inputs", () => {
