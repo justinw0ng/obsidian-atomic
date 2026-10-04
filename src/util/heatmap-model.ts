@@ -23,9 +23,12 @@ export type HeatmapDayCell = {
   d: number;
 };
 
-export type HeatmapMonthSlot =
-  | { kind: "label"; text: string; month: number }
-  | { kind: "spacer"; month: number | null };
+export type HeatmapMonthPlacement = {
+  month: number;
+  text: string;
+  /** 1-based week column, matching `grid-column: var(--w)`. */
+  week: number;
+};
 
 export type HeatmapPaintState = {
   year: number;
@@ -137,30 +140,32 @@ export function buildHeatmapWeeks(params: {
   return weeks;
 }
 
-/** One slot per week so month headers stay on the same column as the grid. */
-export function heatmapMonthSlots(
-  weeks: Array<Array<{ y: number; m: number; d: number }>>,
+/**
+ * One label per month, on the week column that contains that month's first
+ * day. `--w` is 1-based so `grid-column: var(--w) / span 4` lines up with
+ * the cell grid.
+ */
+export function heatmapMonthPlacements(
+  weeks: HeatmapDayCell[][],
   language: Language,
-): HeatmapMonthSlot[] {
-  const slots: HeatmapMonthSlot[] = [];
-  let lastName = "";
-  let lastMonth: number | null = null;
+): HeatmapMonthPlacement[] {
+  const placements: HeatmapMonthPlacement[] = [];
+  const seen = new Set<number>();
+  let index = 0;
   for (const week of weeks) {
-    if (!week.length) {
-      slots.push({ kind: "spacer", month: lastMonth });
-      continue;
-    }
-    const first = week[0];
-    const name = monthShortForLanguage(first.y, first.m, first.d, language);
-    if (name !== lastName && first.d <= 7) {
-      slots.push({ kind: "label", text: name, month: first.m });
-      lastName = name;
-      lastMonth = first.m;
-    } else {
-      slots.push({ kind: "spacer", month: lastMonth });
+    for (const day of week) {
+      if (day.isCurrentYear && !seen.has(day.m)) {
+        seen.add(day.m);
+        placements.push({
+          month: day.m,
+          text: monthShortForLanguage(day.y, day.m, day.d, language),
+          week: Math.floor(index / 7) + 1,
+        });
+      }
+      index += 1;
     }
   }
-  return slots;
+  return placements;
 }
 
 export type HeatmapPaintHost = {
@@ -179,10 +184,6 @@ export function appendHeatmapWeeks(
 ): void {
   void colors;
   for (const week of weeks) {
-    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
-    const weekEl = parent.createDiv({
-      cls: isTodayWeek ? "fitness-week is-today-week" : "fitness-week",
-    });
     for (const day of week) {
       const attr: Record<string, string> = {
         "data-minutes": String(day.minutes),
@@ -195,19 +196,18 @@ export function appendHeatmapWeeks(
         ),
       };
       if (day.isToday) attr["data-testid"] = "atomic-heatmap-today";
-      if (day.path) attr["data-path"] = day.path;
-      attr["data-l"] = String(day.isCurrentYear ? day.level : 0);
-      weekEl.createDiv({ cls: cellClass(day), attr });
+      if (day.path && day.isCurrentYear && !day.isFuture) attr["data-path"] = day.path;
+      if (day.isCurrentYear && !day.isFuture) attr["data-l"] = String(day.level);
+      parent.createDiv({ cls: cellClass(day), attr });
     }
   }
-  parent.createDiv({ cls: "fitness-weeks-end-pad" });
 }
 
 function cellClass(day: HeatmapDayCell): string {
-  let cls = "fitness-cell";
-  if (day.isToday) cls += " is-today";
-  if (!day.isCurrentYear) cls += " is-faded";
-  else if (day.isFuture) cls += " is-future";
-  if (day.path) cls += " is-link";
-  return cls;
+  if (!day.isCurrentYear) return "atomic-heat-cell is-pad";
+  const parts = ["atomic-heat-cell"];
+  if (day.isToday) parts.push("is-today");
+  if (day.isFuture) parts.push("is-future");
+  if (day.path && !day.isFuture) parts.push("is-link");
+  return parts.join(" ");
 }

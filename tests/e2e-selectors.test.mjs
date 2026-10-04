@@ -28,7 +28,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(heatmap, /atomic-scrollport/);
   assert.match(heatmap, /"atomic-heatmap-month"/);
   assert.match(heatmap, /appendHeatmapWeeks/);
-  assert.match(heatmap, /heatmapMonthSlots/);
+  assert.match(heatmap, /heatmapMonthPlacements/);
   assert.match(heatmap, /wrap\.detach\(\)/);
   assert.doesNotMatch(heatmap, /innerHTML/);
 
@@ -37,7 +37,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(heatmapModel, /"atomic-heatmap-cell"/);
   assert.match(heatmapModel, /"data-ymd"/);
   assert.match(heatmapModel, /appendHeatmapWeeks/);
-  assert.match(heatmapModel, /export function heatmapMonthSlots/);
+  assert.match(heatmapModel, /export function heatmapMonthPlacements/);
   assert.match(heatmapModel, /createDiv\(/);
   assert.doesNotMatch(heatmapModel, /createElement\(/);
   assert.doesNotMatch(heatmapModel, /createDocumentFragment\(/);
@@ -107,6 +107,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const today = src("src/views/today.ts");
   assert.match(today, /"data-testid": "atomic-today"/);
+  assert.match(today, /"data-testid": "atomic-today-row"/);
+  assert.match(today, /"data-path": session\.path/);
+  assert.match(today, /data\.openPath\(path\)/);
+  assert.doesNotMatch(today, /href:\s*"#"/);
   assert.doesNotMatch(today, /innerHTML/);
 
   const gymSetup = src("src/commands/gym-log-setup.ts");
@@ -201,7 +205,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const cueLog = src("src/views/cue-log.ts");
   assert.match(cueLog, /data-testid": "atomic-cue-log"/);
   assert.match(cueLog, /"atomic-cue-log-text"/);
+  assert.match(cueLog, /atomic-cue-log-fields/);
+  assert.match(cueLog, /atomic-well atomic-cue-log-compose/);
+  assert.match(cueLog, /atomic-field atomic-cue-log-field/);
   assert.match(cueLog, /createEl\("textarea"/);
+  assert.doesNotMatch(cueLog, /atomic-field-label/);
   assert.doesNotMatch(cueLog, /addEventListener\("input"/);
   assert.match(cueLog, /"atomic-cue-log-add"/);
   assert.match(cueLog, /"atomic-cue-log-existing"/);
@@ -247,6 +255,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(shelf, /atomic-scrollport/);
   assert.match(shelf, /"data-scale": String\(scale\)/);
   assert.match(shelf, /resolveBookShelfScale/);
+  assert.match(shelf, /atomic-shelf-readout-title/);
+  assert.match(shelf, /view\.bookShelf\.clickToOpen/);
+  assert.doesNotMatch(shelf, /aria-label/);
+  assert.doesNotMatch(shelf, /view\.bookShelf\.open/);
 
   const settings = src("src/settings.ts");
   assert.match(settings, /atomic-setting-activity/);

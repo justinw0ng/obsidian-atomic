@@ -98,6 +98,7 @@ body, html, .fitness-plugin, .atomic-block-host {
 
 .fitness-plugin .atomic-book-row-books,
 .fitness-plugin .fitness-heatmap-scroll,
+.fitness-plugin .atomic-heat-scroll,
 .fitness-plugin .atomic-book-shelf-row,
 .fitness-plugin .atomic-scrollport,
 .atomic-block-host,

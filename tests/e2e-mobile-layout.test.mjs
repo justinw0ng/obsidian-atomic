@@ -23,13 +23,11 @@ import {
   HEATMAP_CELL_PX,
   HEATMAP_DAY_LABEL_PX,
   HEATMAP_GAP_PX,
-  HEATMAP_SCROLL_PAD_PX,
-  HEATMAP_WEEK_PAD_PX,
+  HEATMAP_LABEL_GAP_PX,
+  HEATMAP_PITCH_PX,
   heatmapBodyMinWidth,
   heatmapNeedsHorizontalScroll,
   heatmapTrackWidth,
-  heatmapWeekColumnPx,
-  heatmapWeeksWidth,
 } from "../src/util/heatmap-metrics.ts";
 import { hobbyItemFromFileCache } from "../src/util/hobby-item-scan.ts";
 import { parseCoverRef } from "../src/views/book-shelf.ts";
@@ -122,25 +120,22 @@ test("measureElementWidth walks parents when the frame is 0 (iOS first paint)", 
   assert.equal(measureElementWidth(null, 0), 0);
 });
 
-test("heatmap year grid is narrower than the old 16px cells", () => {
+test("heatmap year grid uses 10px cells and a 3px gap", () => {
   const weeks = 53;
-  const width = heatmapWeeksWidth(weeks);
+  const width = heatmapTrackWidth(weeks);
   const oldWidth = weeks * 16 + (weeks - 1) * 2;
   assert.ok(width < oldWidth);
-  assert.equal(HEATMAP_CELL_PX, 11);
-  assert.equal(HEATMAP_GAP_PX, 1);
-  assert.equal(HEATMAP_WEEK_PAD_PX, 1);
-  assert.equal(heatmapWeekColumnPx(), HEATMAP_CELL_PX + 2 * HEATMAP_WEEK_PAD_PX);
+  assert.equal(HEATMAP_CELL_PX, 10);
+  assert.equal(HEATMAP_GAP_PX, 3);
+  assert.equal(HEATMAP_PITCH_PX, 13);
+  assert.equal(HEATMAP_DAY_LABEL_PX, 16);
+  assert.equal(HEATMAP_LABEL_GAP_PX, 6);
+  assert.equal(width, weeks * 10 + (weeks - 1) * 3);
   assert.equal(
-    heatmapTrackWidth(weeks),
-    weeks * heatmapWeekColumnPx() + (weeks - 1) * HEATMAP_GAP_PX,
+    heatmapBodyMinWidth(weeks),
+    HEATMAP_DAY_LABEL_PX + HEATMAP_LABEL_GAP_PX + width,
   );
   assert.ok(heatmapNeedsHorizontalScroll(IPHONE_SE, weeks));
-  assert.ok(
-    heatmapBodyMinWidth(weeks) ===
-      HEATMAP_DAY_LABEL_PX + heatmapWeeksWidth(weeks),
-  );
-  assert.ok(HEATMAP_SCROLL_PAD_PX >= 3);
 });
 
 test("hobbyItemFromFileCache includes files before metadata is ready", () => {
@@ -234,8 +229,26 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
   assert.match(
     styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*position:\s*absolute/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*inset:\s*0/s,
+  );
+  assert.match(
+    styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
   );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book\s*\{[^}]*flex:\s*0 0 var\(--atomic-book-w\)/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover-title\s*\{[^}]*overflow-wrap:\s*anywhere/s,
+  );
+  assert.match(styles, /\.atomic-book-cover-title\.is-title-sm/);
+  assert.match(styles, /\.atomic-book-cover-title\.is-title-xs/);
 });
 
 test("fine pointers tilt a book; touch uses a lift instead of a cover flip", () => {
@@ -468,6 +481,38 @@ test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
   assert.match(flyCard.body, /height:\s*auto/);
 });
 
+test("reminder and gym controls share a well and wrap with the note", () => {
+  assert.match(styles, /\.fitness-plugin \.atomic-cue-log-compose/);
+  assert.match(styles, /\.atomic-well/);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-cue-log-fields\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin textarea\.atomic-cue-log-text\s*\{[^}]*white-space:\s*pre-wrap/s,
+  );
+  assert.match(styles, /\.fitness-plugin\.atomic-gym-log\s*\{[^}]*width:\s*100%/s);
+  assert.match(styles, /\.fitness-plugin\.atomic-timer\s*\{[^}]*max-width:\s*560px/s);
+  assert.match(styles, /container-name:\s*atomic-note/);
+  assert.match(
+    styles,
+    /@container atomic-note \(min-width:\s*1280px\)\s*\{[^}]*atomic-embed-slot-timer/s,
+  );
+  assert.match(
+    styles,
+    /atomic-note-paired \.fitness-plugin\.atomic-cue-log\s*\{[^}]*width:\s*calc\(100% - \(2 \* var\(--atomic-pair-gap\)\)\)/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-timer-host \(max-width:\s*420px\)\s*\{[^}]*grid-template-areas:\s*"head"\s*"clock"\s*"actions"/s,
+  );
+  assert.match(
+    styles,
+    /@container \(max-width:\s*560px\)\s*\{[^}]*\.atomic-cue-log-fields/s,
+  );
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);
@@ -478,37 +523,50 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
     styles,
     /pre\.atomic-block-host[\s\S]*overflow-x:\s*hidden/,
   );
-  assert.match(styles, /--atomic-heatmap-cell:\s*10px/);
-  assert.match(styles, /--atomic-heatmap-week-pad:\s*0px/);
-  assert.match(styles, /--atomic-heatmap-week-col:/);
+  assert.match(styles, /--atomic-heat-cell:\s*10px/);
+  assert.match(styles, /--atomic-heat-gap:\s*3px/);
+  assert.match(styles, /--atomic-heat-weeks/);
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-month-row\s*\{[^}]*gap:\s*var\(--atomic-heatmap-gap\)/s,
+    /\.fitness-plugin \.atomic-heat-months\s*\{[^}]*repeat\(var\(--atomic-heat-weeks,\s*53\)/s,
   );
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-month-label\s*\{[^}]*width:\s*var\(--atomic-heatmap-week-col\)/s,
+    /\.fitness-plugin \.atomic-heat-cells\s*\{[^}]*grid-auto-flow:\s*column/s,
   );
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-month-spacer\s*\{[^}]*width:\s*var\(--atomic-heatmap-week-col\)/s,
-  );
-  assert.match(
-    styles,
-    /\.fitness-plugin \.fitness-week\s*\{[^}]*padding:\s*var\(--atomic-heatmap-week-pad\)/s,
+    /\.fitness-plugin \.atomic-heat-body\s*\{[^}]*grid-template-columns:\s*var\(--atomic-heat-label\)/s,
   );
   assert.match(styles, /--atomic-book-width:\s*96px/);
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-heatmap-body\s*\{[^}]*min-width:\s*0/s,
+    /\.fitness-plugin \.atomic-heat-scroll\s*\{[^}]*overflow-x:\s*auto/s,
+  );
+  assert.match(styles, /\.theme-dark[^{]*\.atomic-heat-cell\.is-today/);
+  assert.match(styles, /\.atomic-heat-cell\.is-today[^}]*box-shadow/s);
+  assert.match(styles, /container-name:\s*atomic-heat/);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-heat-foot \.atomic-caption\s*\{[^}]*white-space:\s*nowrap/s,
   );
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-heatmap-scroll\s*\{[^}]*overflow-x:\s*auto/s,
+    /@container atomic-heat \(max-width:\s*520px\)\s*\{[^}]*font-size:\s*10px/s,
   );
-  assert.match(styles, /\.theme-dark[^{]*\.fitness-cell\.is-today/);
-  assert.match(styles, /\.fitness-cell\.is-today[^}]*box-shadow/s);
-  assert.match(styles, /\.fitness-weeks-end-pad\s*\{/);
+  assert.match(
+    styles,
+    /@container atomic-heat \(max-width:\s*400px\)\s*\{[^}]*font-size:\s*9px/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-heat \(max-width:\s*320px\)\s*\{[^}]*font-size:\s*8px/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-heat-grid\s*\{[^}]*padding:\s*4px 4px 4px 0/s,
+  );
+  assert.doesNotMatch(styles, /\.fitness-weeks-end-pad\s*\{/);
   assert.match(
     styles,
     /\.atomic-book-row-books\s*\{[^}]*overflow-x:\s*auto/s,

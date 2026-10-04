@@ -172,7 +172,7 @@ function splitText(
 }
 
 function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRenderContext): void {
-  const grid = root.createDiv({ cls: "atomic-dash-kpis" });
+  const grid = root.createDiv({ cls: "atomic-kpis" });
   const exercise = model.activities.filter(
     (card): card is DashboardExerciseCard => card.domain === "exercise",
   );
@@ -357,7 +357,7 @@ function renderActivityRow(
 
 function renderActivities(root: HTMLElement, model: DashboardModel, ctx: DashboardRenderContext): void {
   if (!model.activities.length) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language),

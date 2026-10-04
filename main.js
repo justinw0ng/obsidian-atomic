@@ -393,6 +393,7 @@ var en = {
   "view.dashboard.minuteUnitShort": "m",
   "view.dashboard.kgUnit": "kg",
   "view.dashboard.minutesShort": "{minutes} min",
+  "view.dashboard.minuteWord": "min",
   "view.dashboard.avgPerSession": "{minutes} min \xB7 avg {avg} min / session",
   "view.dashboard.setTableRows": "Set-table rows",
   "view.dashboard.activities": "Activities",
@@ -444,8 +445,9 @@ var en = {
   "view.heatmap.tooltipOpen": "{date}: {minutes} min - click to open",
   "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities: {ids}",
   "view.heatmap.noActivities": "No enabled habits to show in this heatmap.",
-  "view.today.title": "\u{1F5C2}\uFE0F Today\u2019s sessions",
-  "view.today.noSession": "no session yet",
+  "view.today.title": "Today",
+  "view.today.summary": "{date} \xB7 {done} of {total}",
+  "view.today.noSession": "No session yet",
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured.",
   "view.cues.empty": "No cues in {year} yet. Add one from a session note.",
   "view.cues.repeats": "\xD7{count}",
@@ -453,7 +455,6 @@ var en = {
   "view.cueLog.placeholder": "Keep the lead arm soft\n**Tempo** \u2014 count one-two",
   "view.cueLog.add": "Add cue",
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
-  "view.bookShelf.open": "Open {title}",
   "view.bookShelf.summary": "{count} books \xB7 {reading} reading \xB7 {finished} finished",
   "view.bookShelf.clickToOpen": "Click to open",
   "view.bookShelf.tapAgain": "Tap again to open",
@@ -709,6 +710,7 @@ var zhHantEn = {
   "view.dashboard.minuteUnitShort": "m",
   "view.dashboard.kgUnit": "kg",
   "view.dashboard.minutesShort": "{minutes} min / \u5206\u9418",
+  "view.dashboard.minuteWord": "min / \u5206\u9418",
   "view.dashboard.avgPerSession": "{minutes} min / \u5206\u9418 \xB7 avg / \u5E73\u5747 {avg} min / session",
   "view.dashboard.setTableRows": "Set-table rows / \u7D44\u6578\u8868",
   "view.dashboard.activities": "Activities / \u6D3B\u52D5",
@@ -760,8 +762,9 @@ var zhHantEn = {
   "view.heatmap.tooltipOpen": "{date}: {minutes} min / \u5206\u9418 - click to open / \u9EDE\u64CA\u958B\u555F",
   "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities / \u672A\u77E5\u6216\u5DF2\u505C\u7528\u7684 Heatmap \u6D3B\u52D5: {ids}",
   "view.heatmap.noActivities": "No enabled habits to show in this heatmap / \u6C92\u6709\u53EF\u986F\u793A\u7684\u5DF2\u555F\u7528\u7FD2\u6163\u3002",
-  "view.today.title": "\u{1F5C2}\uFE0F Today\u2019s sessions / \u4ECA\u65E5\u8A13\u7DF4",
-  "view.today.noSession": "no session yet / \u5C1A\u672A\u8A18\u9304",
+  "view.today.title": "Today / \u4ECA\u65E5",
+  "view.today.summary": "{date} \xB7 {done} / {total}",
+  "view.today.noSession": "No session yet / \u5C1A\u672A\u8A18\u9304",
   "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u9192\u7684 {activity} \u904B\u52D5\u6D3B\u52D5\u3002",
   "view.cues.empty": "No cues in {year} yet. Add one from a session note / {year} \u4EF2\u672A\u6709\u63D0\u793A\u3002\u55BA\u8A13\u7DF4\u7B46\u8A18\u52A0\u4E00\u689D\u5566\u3002",
   "view.cues.repeats": "\xD7{count}",
@@ -769,7 +772,6 @@ var zhHantEn = {
   "view.cueLog.placeholder": "Keep the lead arm soft / \u524D\u81C2\u653E\u9B06\n**Tempo / \u7BC0\u594F** \u2014 count one-two",
   "view.cueLog.add": "Add cue / \u52A0\u63D0\u793A",
   "view.cueLog.needsSavedNote": "Save this note to add cues / \u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
-  "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
   "view.bookShelf.summary": "{count} \u672C \xB7 {reading} \u672C\u95B1\u8B80\u4E2D \xB7 {finished} \u672C\u8B80\u5B8C",
   "view.bookShelf.clickToOpen": "Click to open / \u64B3\u4E00\u4E0B\u958B\u555F",
   "view.bookShelf.tapAgain": "Tap again to open / \u518D\u64B3\u4E00\u6B21\u958B\u555F",
@@ -2353,18 +2355,67 @@ function enqueueBlockRender(el, work) {
   return next;
 }
 
+// src/util/session-embed.ts
+var EMBED_SLOT = ".cm-embed-block, .cm-preview-code-block, .internal-embed, .el-pre, .codeblock, [class*='code-block']";
+var NOTE_COLUMN = ".cm-sizer, .markdown-preview-sizer";
+function slotClass(kind) {
+  return kind === "timer" ? "atomic-embed-slot-timer" : "atomic-embed-slot-gym";
+}
+function rowSlot(chosen) {
+  const parent = chosen.parentElement;
+  if (parent?.classList.contains("cm-line")) return parent;
+  return chosen;
+}
+function sessionEmbedSlot(start) {
+  const wrapper = start.closest(EMBED_SLOT);
+  return wrapper ? rowSlot(wrapper) : null;
+}
+function isEmptyGap(node) {
+  if ((node.textContent ?? "").trim() !== "") return false;
+  return !node.classList.contains("atomic-embed-slot") && !node.classList.contains("cm-embed-block");
+}
+function pairSessionSlots(slot) {
+  const parent = slot.parentElement;
+  if (!parent) return;
+  const kids = Array.from(parent.children);
+  const timer = kids.find((el) => el.classList.contains("atomic-embed-slot-timer"));
+  const gym = kids.find((el) => el.classList.contains("atomic-embed-slot-gym"));
+  if (!timer || !gym) return;
+  const start = Math.min(kids.indexOf(timer), kids.indexOf(gym));
+  const end = Math.max(kids.indexOf(timer), kids.indexOf(gym));
+  for (let index = start + 1; index < end; index += 1) {
+    const between = kids[index];
+    if (between && !isEmptyGap(between)) return;
+  }
+  parent.classList.add("atomic-note-paired");
+  for (let index = start + 1; index < end; index += 1) {
+    const between = kids[index];
+    if (between && (between.textContent ?? "").trim() === "") {
+      between.classList.add("atomic-embed-gap");
+    }
+  }
+}
+function markSessionEmbed(start, kind) {
+  start.classList.add("atomic-embed-stretch");
+  if (kind === "timer") start.classList.add("atomic-timer-host");
+  const slot = sessionEmbedSlot(start);
+  if (!slot) return;
+  slot.classList.add("atomic-embed-slot", slotClass(kind));
+  slot.closest(NOTE_COLUMN)?.classList.add("atomic-note-column");
+  pairSessionSlots(slot);
+}
+
 // src/views/actions.ts
 function renderActions(el, plugin) {
   el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  const wrap = root.createDiv({
-    cls: "fitness-actions",
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-actions fitness-actions",
     attr: { "data-testid": "atomic-actions" }
   });
   for (const activity of actionActivities(plugin.settings.activityTypes)) {
-    const button = wrap.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
+    const button = root.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
     const dot = button.createSpan({ cls: "atomic-dot" });
-    dot.style.setProperty("--atomic-c", activity.colors[2]);
+    dot.setCssProps({ "--atomic-c": activity.colors[2] });
     button.createSpan({ text: activity.label });
     button.addEventListener("click", () => {
       if (activity.domain === "hobby" && activity.noteModel === "item") {
@@ -2925,21 +2976,22 @@ async function renderAtomicCueLog(plugin, el, host, generation) {
     });
     return;
   }
-  const row = root.createDiv({ cls: "atomic-cue-log-row" });
-  const field = row.createEl("label", { cls: "atomic-cue-log-field" });
-  field.createSpan({ text: t("view.cueLog.cue", language) });
+  const compose = root.createDiv({ cls: "atomic-well atomic-cue-log-compose" });
+  const fields = compose.createDiv({ cls: "atomic-cue-log-fields" });
+  const field = fields.createDiv({ cls: "atomic-field atomic-cue-log-field" });
   const input = field.createEl("textarea", {
-    cls: "atomic-cue-log-text",
+    cls: "atomic-field-value atomic-cue-log-text",
     attr: {
-      rows: "4",
+      rows: "3",
       "data-testid": "atomic-cue-log-text",
-      placeholder: t("view.cueLog.placeholder", language)
+      placeholder: t("view.cueLog.placeholder", language),
+      "aria-label": t("view.cueLog.cue", language)
     }
   });
-  const addButton = row.createEl("button", {
+  const addButton = fields.createEl("button", {
     cls: "atomic-btn is-primary",
     text: t("view.cueLog.add", language),
-    attr: { "data-testid": "atomic-cue-log-add" }
+    attr: { type: "button", "data-testid": "atomic-cue-log-add" }
   });
   if (existing.length) {
     const fan = root.createDiv({
@@ -3687,6 +3739,16 @@ function splitCatalogLabel(text) {
 }
 
 // src/views/catalog-label.ts
+function appendInlineCatalog(parent, text) {
+  const { primary, secondary } = splitCatalogLabel(text);
+  parent.appendText(primary);
+  if (!secondary) return;
+  parent.createSpan({
+    cls: "atomic-inline-zh",
+    text: secondary,
+    attr: { lang: "zh-Hant-HK" }
+  });
+}
 function appendCatalogLabel(parent, text) {
   const { primary, secondary } = splitCatalogLabel(text);
   if (!secondary) {
@@ -4032,9 +4094,10 @@ function activityLinks(card, ctx) {
 function appendActivityLink(parent, link, cls = "atomic-dash-link", text = link.text) {
   const el = parent.createEl("a", {
     cls,
-    text,
     attr: { href: "#", "data-testid": "atomic-dashboard-link", "data-path": link.path }
   });
+  el.appendText(text);
+  el.createSpan({ cls: "atomic-link-arrow", text: "\u2197" });
   el.addEventListener("click", (event) => {
     event.preventDefault();
     void link.open();
@@ -4061,7 +4124,7 @@ function appendSectionTitle(parent, title, meta) {
   appendCatalogLabel(caption, title);
   const readout = head.createDiv({ cls: "atomic-readout" });
   appendCatalogLabel(readout, meta);
-  return section;
+  return { section, titleWrap };
 }
 function appendBars(parent, bars, variant) {
   for (const bar of bars) {
@@ -4159,14 +4222,16 @@ function sectionReadout(section) {
   if (readout == null || !readout.instanceOf(HTMLElement)) return null;
   return readout;
 }
-function appendMonthlyChart(card, columns, ctx, readout, year) {
-  const legend = card.createDiv({ cls: "atomic-legend" });
+function appendChartLegend(parent, columns) {
+  const legend = parent.createDiv({ cls: "atomic-legend" });
   for (const column of columns) {
     const item = legend.createSpan();
     const dot = item.createSpan({ cls: "atomic-dot" });
-    dot.style.setProperty("--atomic-c", column.activity.colors[2]);
+    dot.setCssProps({ "--atomic-c": column.activity.colors[2] });
     item.appendText(column.activity.label);
   }
+}
+function appendMonthlyChart(card, columns, ctx, readout, year) {
   const max = chartMax(columns, year, ctx.timezone);
   const axis = card.createDiv({ cls: "atomic-chart-y atomic-caption" });
   for (const mark of [0, 0.5, 1]) {
@@ -4242,7 +4307,7 @@ function appendMonthlyTable(parent, model, ctx) {
 }
 function renderDashboardMonthly(root, model, ctx) {
   if (!model.monthlyColumns.length) return;
-  const section = appendSectionTitle(
+  const { section, titleWrap } = appendSectionTitle(
     root,
     t("view.dashboard.monthly", ctx.language),
     t("view.dashboard.monthlyMeta", ctx.language)
@@ -4253,9 +4318,10 @@ function renderDashboardMonthly(root, model, ctx) {
     attr: { "data-testid": "atomic-dashboard-monthly" }
   });
   if (sessionColumns.length > 0 && readout) {
+    appendChartLegend(titleWrap, sessionColumns);
     card.addClass("atomic-chart");
     appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
-    const details = card.createEl("details", { cls: "atomic-quiet-toggle" });
+    const details = section.createEl("details", { cls: "atomic-quiet-toggle" });
     details.createEl("summary", { text: t("view.dashboard.showMonthlyTable", ctx.language) });
     appendMonthlyTable(details, model, ctx);
     return;
@@ -4265,7 +4331,7 @@ function renderDashboardMonthly(root, model, ctx) {
 function renderMuscles(parent, model, ctx) {
   if (!model.muscles) return;
   const { activity, rows } = model.muscles;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.muscles", ctx.language),
     t("view.dashboard.byVolumeSets", ctx.language)
@@ -4326,7 +4392,7 @@ function appendFelt(parent, felt, ctx) {
 function renderGolfFocus(parent, model, ctx) {
   if (!model.golfFocus) return;
   const { activity, sessions, tags } = model.golfFocus;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.golfFocus", ctx.language),
     t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) })
@@ -4357,21 +4423,24 @@ function renderDashboardDetails(root, model, ctx) {
   renderMuscles(columns, model, ctx);
   renderGolfFocus(columns, model, ctx);
 }
-function recentSummary(row, ctx) {
-  const parts = [t("view.dashboard.minutesShort", ctx.language, { minutes: formatCount(row.minutes) })];
-  if (row.volumeKg != null && row.volumeKg > 0) parts.push(kg(row.volumeKg, ctx));
+function recentParts(row, ctx) {
+  const extras = [];
+  if (row.volumeKg != null && row.volumeKg > 0) extras.push(kg(row.volumeKg, ctx));
   if (row.felt) {
-    parts.push(
+    extras.push(
       t("view.dashboard.feltSummary", ctx.language, {
         felt: t(FELT_LABEL_KEY[row.felt], ctx.language)
       })
     );
   }
-  return parts.join(" \xB7 ");
+  return {
+    minutes: formatCount(row.minutes),
+    extra: extras.join(" \xB7 ")
+  };
 }
 function renderDashboardRecent(root, model, ctx) {
   if (!model.activities.some((card2) => card2.domain === "exercise")) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.recentSessions", ctx.language),
     t("view.dashboard.recentMeta", ctx.language, { count: model.recent.length })
@@ -4389,7 +4458,7 @@ function renderDashboardRecent(root, model, ctx) {
       cls: "atomic-recent-row atomic-dash-recent-row",
       attr: { "data-testid": "atomic-dashboard-recent-row", "data-path": row.path }
     });
-    line.style.setProperty("--atomic-c", row.activity.colors[2]);
+    line.setCssProps({ "--atomic-c": row.activity.colors[2] });
     const parsed = parseYmd(row.date);
     line.createSpan({
       cls: "atomic-recent-date",
@@ -4398,7 +4467,15 @@ function renderDashboardRecent(root, model, ctx) {
     const what = line.createSpan({ cls: "atomic-name" });
     what.createSpan({ cls: "atomic-dot" });
     appendPathLink(what, row.activity.label, row.path, ctx, "atomic-link");
-    line.createSpan({ cls: "atomic-recent-sum", text: recentSummary(row, ctx) });
+    const parts = recentParts(row, ctx);
+    const sum = line.createSpan({ cls: "atomic-recent-sum" });
+    sum.createEl("strong", { text: parts.minutes });
+    sum.appendText(" ");
+    appendInlineCatalog(sum, t("view.dashboard.minuteWord", ctx.language));
+    if (parts.extra) {
+      sum.createSpan({ cls: "is-extra", text: ` \xB7 ${parts.extra}` });
+    }
+    line.createSpan({ cls: "atomic-recent-sub", text: parts.extra });
     line.createSpan({ cls: "atomic-recent-arrow", text: "\u2192" });
   }
 }
@@ -4502,7 +4579,7 @@ function splitText(cards, pick) {
   return cards.map((card) => `${card.activity.label} ${formatCount(pick(card))}`).join(" \xB7 ");
 }
 function renderKpis(root, model, ctx) {
-  const grid = root.createDiv({ cls: "atomic-dash-kpis" });
+  const grid = root.createDiv({ cls: "atomic-kpis" });
   const exercise = model.activities.filter(
     (card) => card.domain === "exercise"
   );
@@ -4653,7 +4730,7 @@ function renderActivityRow(grid, card, ctx) {
 }
 function renderActivities(root, model, ctx) {
   if (!model.activities.length) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language)
@@ -4897,10 +4974,9 @@ function coverObjectPosition(naturalWidth, naturalHeight) {
 }
 function bindCoverObjectPosition(img) {
   const apply = () => {
-    img.style.objectPosition = coverObjectPosition(
-      img.naturalWidth,
-      img.naturalHeight
-    );
+    img.setCssProps({
+      "object-position": coverObjectPosition(img.naturalWidth, img.naturalHeight)
+    });
   };
   if (img.complete) apply();
   else img.addEventListener("load", apply, { once: true });
@@ -4953,8 +5029,7 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
       type: "button",
       "data-testid": "atomic-book",
       "data-title": item.title,
-      "data-status": item.status,
-      "aria-label": t("view.bookShelf.open", language, { title: item.title })
+      "data-status": item.status
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
@@ -5283,34 +5358,28 @@ function buildHeatmapWeeks(params) {
   }
   return weeks;
 }
-function heatmapMonthSlots(weeks, language) {
-  const slots = [];
-  let lastName = "";
-  let lastMonth = null;
+function heatmapMonthPlacements(weeks, language) {
+  const placements = [];
+  const seen = /* @__PURE__ */ new Set();
+  let index = 0;
   for (const week of weeks) {
-    if (!week.length) {
-      slots.push({ kind: "spacer", month: lastMonth });
-      continue;
-    }
-    const first = week[0];
-    const name = monthShortForLanguage(first.y, first.m, first.d, language);
-    if (name !== lastName && first.d <= 7) {
-      slots.push({ kind: "label", text: name, month: first.m });
-      lastName = name;
-      lastMonth = first.m;
-    } else {
-      slots.push({ kind: "spacer", month: lastMonth });
+    for (const day of week) {
+      if (day.isCurrentYear && !seen.has(day.m)) {
+        seen.add(day.m);
+        placements.push({
+          month: day.m,
+          text: monthShortForLanguage(day.y, day.m, day.d, language),
+          week: Math.floor(index / 7) + 1
+        });
+      }
+      index += 1;
     }
   }
-  return slots;
+  return placements;
 }
 function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
   void colors;
   for (const week of weeks) {
-    const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
-    const weekEl = parent.createDiv({
-      cls: isTodayWeek ? "fitness-week is-today-week" : "fitness-week"
-    });
     for (const day of week) {
       const attr = {
         "data-minutes": String(day.minutes),
@@ -5323,32 +5392,46 @@ function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
         )
       };
       if (day.isToday) attr["data-testid"] = "atomic-heatmap-today";
-      if (day.path) attr["data-path"] = day.path;
-      attr["data-l"] = String(day.isCurrentYear ? day.level : 0);
-      weekEl.createDiv({ cls: cellClass(day), attr });
+      if (day.path && day.isCurrentYear && !day.isFuture) attr["data-path"] = day.path;
+      if (day.isCurrentYear && !day.isFuture) attr["data-l"] = String(day.level);
+      parent.createDiv({ cls: cellClass(day), attr });
     }
   }
-  parent.createDiv({ cls: "fitness-weeks-end-pad" });
 }
 function cellClass(day) {
-  let cls = "fitness-cell";
-  if (day.isToday) cls += " is-today";
-  if (!day.isCurrentYear) cls += " is-faded";
-  else if (day.isFuture) cls += " is-future";
-  if (day.path) cls += " is-link";
-  return cls;
+  if (!day.isCurrentYear) return "atomic-heat-cell is-pad";
+  const parts = ["atomic-heat-cell"];
+  if (day.isToday) parts.push("is-today");
+  if (day.isFuture) parts.push("is-future");
+  if (day.path && !day.isFuture) parts.push("is-link");
+  return parts.join(" ");
 }
 
+// src/util/heatmap-metrics.ts
+var HEATMAP_CELL_PX = 10;
+var HEATMAP_GAP_PX = 3;
+var HEATMAP_PITCH_PX = HEATMAP_CELL_PX + HEATMAP_GAP_PX;
+var HEATMAP_TODAY_RING_PX = 4;
+
 // src/util/heatmap-scroll.ts
-function scrollLeftToAlignRight(scrollWidth, clientWidth, targetRightPx) {
-  if (!Number.isFinite(scrollWidth) || !Number.isFinite(clientWidth) || !Number.isFinite(targetRightPx) || scrollWidth < 0 || clientWidth < 0) {
+function heatmapRevealOffsets(todayColumn, monthColumns) {
+  return {
+    todayLeft: todayColumn * HEATMAP_PITCH_PX,
+    todayWidth: HEATMAP_CELL_PX,
+    pitch: HEATMAP_PITCH_PX,
+    monthStarts: monthColumns.map((column) => column * HEATMAP_PITCH_PX)
+  };
+}
+function scrollLeftToRevealToday(params) {
+  const { scrollWidth, clientWidth, todayLeft, todayWidth, pitch, monthStarts } = params;
+  if (!Number.isFinite(scrollWidth) || !Number.isFinite(clientWidth) || !Number.isFinite(todayLeft) || !Number.isFinite(todayWidth) || !Number.isFinite(pitch) || scrollWidth < 0 || clientWidth < 0 || pitch < 0) {
     return 0;
   }
-  if (scrollWidth <= clientWidth) {
-    return 0;
-  }
+  if (scrollWidth <= clientWidth) return 0;
+  const minLeft = todayLeft + todayWidth + HEATMAP_TODAY_RING_PX + 2 * pitch - clientWidth;
+  const start = monthStarts.find((value) => Number.isFinite(value) && value >= minLeft);
+  const desired = start ?? minLeft;
   const maxScrollLeft = scrollWidth - clientWidth;
-  const desired = targetRightPx - clientWidth;
   return Math.min(Math.max(desired, 0), maxScrollLeft);
 }
 
@@ -5365,22 +5448,21 @@ function cleanupHeatmapObservers(container) {
   registry.grid?.disconnect();
   heatmapObserverRegistry.delete(container);
 }
-var DAY_NAMES = {
-  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  "zh-Hant-en": ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"]
+var DOW_MARKS = {
+  en: ["", "M", "", "W", "", "F", ""],
+  "zh-Hant-en": ["", "\u4E00", "", "\u4E09", "", "\u4E94", ""]
 };
-function wireHeatmapScroll(scrollEl, registry) {
+function wireHeatmapScroll(scrollEl, registry, todayColumn, monthColumns) {
   let userHasScrolled = false;
   let expectedScrollLeft = null;
+  const offsets = heatmapRevealOffsets(todayColumn, monthColumns);
   const applyTodayAlign = () => {
-    const todayWeek = scrollEl.querySelector(".is-today-week");
-    if (!todayWeek) return;
-    const targetRightPx = todayWeek.getBoundingClientRect().right - scrollEl.getBoundingClientRect().left + scrollEl.scrollLeft;
-    const nextScrollLeft = scrollLeftToAlignRight(
-      scrollEl.scrollWidth,
-      scrollEl.clientWidth,
-      targetRightPx
-    );
+    if (todayColumn < 0) return;
+    const nextScrollLeft = scrollLeftToRevealToday({
+      scrollWidth: scrollEl.scrollWidth,
+      clientWidth: scrollEl.clientWidth,
+      ...offsets
+    });
     expectedScrollLeft = nextScrollLeft;
     scrollEl.scrollLeft = nextScrollLeft;
   };
@@ -5420,111 +5502,98 @@ function wireHeatmapCellClicks(weeksEl, data) {
   weeksEl.addEventListener("click", (event) => {
     const target = htmlElementFromTarget(event.target);
     if (!target) return;
-    const cell = target.closest(".fitness-cell.is-link");
+    const cell = target.closest(".atomic-heat-cell.is-link");
     const path = cell?.getAttribute("data-path");
     if (!path) return;
     event.preventDefault();
     void data.openPath(path);
   });
 }
-function appendHeatmapMonthSlot(monthRow, slot) {
-  switch (slot.kind) {
-    case "label":
-      monthRow.createDiv({
-        cls: "fitness-month-label",
-        text: slot.text,
-        attr: {
-          "data-testid": "atomic-heatmap-month",
-          "data-month": String(slot.month)
-        }
-      });
-      return;
-    case "spacer": {
-      const attr = {
-        "data-testid": "atomic-heatmap-month-spacer"
-      };
-      if (slot.month != null) attr["data-month"] = String(slot.month);
-      monthRow.createDiv({ cls: "fitness-month-spacer", attr });
-      return;
-    }
-    default: {
-      const _exhaustive = slot;
-      return _exhaustive;
-    }
-  }
-}
 function renderOneHeatmap(root, data, activity, year, timezone, language, registry, activityMap) {
-  const wrap = root.createDiv({
-    cls: "fitness-heatmap",
-    attr: {
-      "data-testid": "atomic-heatmap",
-      "data-activity": activity.id
-    }
-  });
-  wrap.detach();
-  wrap.style.setProperty("--atomic-c", activity.colors[2]);
-  const head = wrap.createDiv({ cls: "atomic-heat-head" });
-  const title = head.createSpan({ cls: "atomic-name" });
-  title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: activity.label });
-  head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
   const weeks = buildHeatmapWeeks({
     year,
     todayStr: ymdInZone(/* @__PURE__ */ new Date(), timezone),
     language,
     activityMap
   });
-  const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
-  const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES[language]) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  const wrap = root.createDiv({
+    cls: "atomic-heatmap",
+    attr: {
+      "data-testid": "atomic-heatmap",
+      "data-activity": activity.id
+    }
+  });
+  wrap.detach();
+  wrap.setCssProps({
+    "--atomic-c": activity.colors[2],
+    "--atomic-heat-weeks": String(weeks.length)
+  });
+  const head = wrap.createDiv({ cls: "atomic-heat-head" });
+  const title = head.createSpan({ cls: "atomic-name" });
+  title.createSpan({ cls: "atomic-dot" });
+  title.createSpan({ text: activity.label });
+  head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
+  const body = wrap.createDiv({ cls: "atomic-heat-body" });
+  const dayLabels = body.createDiv({ cls: "atomic-heat-days atomic-caption" });
+  for (const mark of DOW_MARKS[language]) {
+    dayLabels.createSpan({ text: mark });
   }
   const scroll = body.createDiv({
-    cls: "fitness-heatmap-scroll atomic-scrollport",
+    cls: "atomic-heat-scroll fitness-heatmap-scroll atomic-scrollport",
     attr: { "data-testid": "atomic-heatmap-scroll" }
   });
-  const monthRow = scroll.createDiv({ cls: "fitness-month-row" });
-  for (const slot of heatmapMonthSlots(weeks, language)) {
-    appendHeatmapMonthSlot(monthRow, slot);
+  const grid = scroll.createDiv({ cls: "atomic-heat-grid" });
+  const monthPlacements = heatmapMonthPlacements(weeks, language);
+  const monthRow = grid.createDiv({ cls: "atomic-heat-months atomic-caption" });
+  for (const placement of monthPlacements) {
+    const label = monthRow.createSpan({
+      text: placement.text,
+      attr: {
+        "data-testid": "atomic-heatmap-month",
+        "data-month": String(placement.month),
+        "data-week": String(placement.week)
+      }
+    });
+    label.setCssProps({ "--w": String(placement.week) });
   }
-  const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
+  const cells = grid.createDiv({ cls: "atomic-heat-cells" });
   appendHeatmapWeeks(
-    weeksEl,
+    cells,
     weeks,
     activity.colors,
     t("view.heatmap.tooltip", language),
     t("view.heatmap.tooltipOpen", language)
   );
-  wireHeatmapCellClicks(weeksEl, data);
+  wireHeatmapCellClicks(cells, data);
   wireHeatmapReadout(wrap, language);
-  wireHeatmapScroll(scroll, registry);
-  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend atomic-heat-legend" });
+  const todayColumn = weeks.findIndex((week) => week.some((day) => day.isToday));
+  const monthColumns = monthPlacements.map((placement) => placement.week - 1);
+  wireHeatmapScroll(scroll, registry, todayColumn, monthColumns);
+  const foot = wrap.createDiv({ cls: "atomic-heat-foot" });
+  foot.createSpan({
+    cls: "atomic-caption",
+    text: t("view.heatmap.byDuration", language)
+  });
+  const legend = foot.createDiv({ cls: "atomic-heat-legend" });
   legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.less", language) });
-  legend.createDiv({ cls: "fitness-legend-swatch fitness-cell", attr: { "data-l": "0" } });
+  legend.createSpan({ cls: "atomic-heat-cell", attr: { "data-l": "0" } });
   activity.colors.forEach((_, level) => {
-    legend.createDiv({
-      cls: "fitness-legend-swatch fitness-cell",
+    legend.createSpan({
+      cls: "atomic-heat-cell",
       attr: { "data-l": String(level + 1) }
     });
   });
   legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.more", language) });
-  legend.createSpan({
-    cls: "atomic-caption",
-    text: t("view.heatmap.byDuration", language)
-  });
   root.appendChild(wrap);
 }
 function wireHeatmapReadout(wrap, language) {
   const readout = wrap.querySelector(".atomic-heat-readout");
   if (!readout?.instanceOf(HTMLElement)) return;
-  const cells = Array.from(
-    wrap.querySelectorAll(".fitness-cell.is-link, .fitness-cell[data-minutes]")
-  );
+  const cells = Array.from(wrap.querySelectorAll(".atomic-heat-cells .atomic-heat-cell"));
   let days = 0;
   let minutes = 0;
   for (const cell of cells) {
     if (!cell.instanceOf(HTMLElement)) continue;
-    if (cell.classList.contains("fitness-legend-swatch")) continue;
     const value = Number(cell.getAttribute("data-minutes") || "0");
     if (value > 0) {
       days += 1;
@@ -5538,8 +5607,8 @@ function wireHeatmapReadout(wrap, language) {
   wrap.addEventListener("pointerover", (event) => {
     const target = htmlElementFromTarget(event.target);
     if (!target) return;
-    const cell = target.closest(".fitness-cell");
-    if (!cell?.instanceOf(HTMLElement) || cell.classList.contains("fitness-legend-swatch")) return;
+    const cell = target.closest(".atomic-heat-cells .atomic-heat-cell");
+    if (!cell?.instanceOf(HTMLElement)) return;
     const title = cell.getAttribute("title");
     if (title) readout.setText(title);
   });
@@ -6478,32 +6547,88 @@ function resolveTodayDate(opts, sourcePath, timezone) {
   if (fromPath) return fromPath;
   return ymdInZone(/* @__PURE__ */ new Date(), timezone);
 }
-function renderTodaySessions(el, data, activityTypes, dateStr, language) {
-  el.empty();
-  const root = el.createDiv({ cls: "fitness-plugin" });
-  const box = root.createDiv({ attr: { "data-testid": "atomic-today" } });
-  box.createEl("strong", { text: t("view.today.title", language) });
-  const ul = box.createEl("ul");
+function sessionFromMap(map, dateStr) {
+  const entry = map?.get(dateStr);
+  if (!entry || entry.minutes <= 0) return null;
+  return { minutes: entry.minutes, path: entry.path ?? "" };
+}
+function conventionalSessionPath(activity, dateStr) {
+  return `${activity.folder}/${dateStr.slice(0, 4)}/${dateStr}.md`;
+}
+function sessionForToday(data, activity, map, dateStr) {
+  const mapped = sessionFromMap(map, dateStr);
+  const conventional = conventionalSessionPath(activity, dateStr);
+  const path = mapped?.path || (data.exists(conventional) ? conventional : "");
+  if (!mapped && !path) return null;
+  return { minutes: mapped?.minutes ?? 0, path };
+}
+async function renderTodaySessions(el, data, activityTypes, dateStr, language, generation) {
+  const activities = exerciseActivities(activityTypes);
   const year = Number(dateStr.slice(0, 4));
-  for (const activity of exerciseActivities(activityTypes)) {
-    const path = `${activity.folder}/${year}/${dateStr}.md`;
-    const li = ul.createEl("li");
-    li.appendText(`${activity.label}: `);
-    if (data.exists(path)) {
-      const a = li.createEl("a", {
-        cls: "fitness-link",
-        text: dateStr
-      });
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
+  const maps = await Promise.all(
+    activities.map((activity) => data.getActivityDurationMap(activity, year))
+  );
+  if (generation !== void 0 && isStaleBlockRender(el, generation)) return;
+  el.empty();
+  const rows = activities.map((activity, index) => ({
+    activity,
+    session: sessionForToday(data, activity, maps[index], dateStr)
+  }));
+  const done = rows.filter((row) => row.session).length;
+  const parsed = parseYmd(dateStr);
+  const dateLabel = parsed ? weekdayDateForLanguage(parsed.y, parsed.m, parsed.d, language) : dateStr;
+  const root = el.createDiv({
+    cls: "fitness-plugin atomic-today",
+    attr: { "data-testid": "atomic-today" }
+  });
+  const head = root.createDiv({ cls: "atomic-section-head" });
+  const titleWrap = head.createDiv();
+  const caption = titleWrap.createDiv({ cls: "atomic-caption" });
+  appendCatalogLabel(caption, t("view.today.title", language));
+  const readout = head.createDiv({ cls: "atomic-readout" });
+  appendCatalogLabel(
+    readout,
+    t("view.today.summary", language, {
+      date: dateLabel,
+      done,
+      total: activities.length
+    })
+  );
+  for (const { activity, session: session2 } of rows) {
+    const line = root.createDiv({
+      cls: session2?.path ? "atomic-recent-row atomic-today-row" : "atomic-recent-row atomic-today-row is-empty",
+      attr: session2?.path ? {
+        "data-testid": "atomic-today-row",
+        "data-path": session2.path,
+        role: "link",
+        tabindex: "0"
+      } : void 0
+    });
+    line.setCssProps({ "--atomic-c": activity.colors[2] });
+    if (session2?.path) {
+      const path = session2.path;
+      const open = (event) => {
+        event.preventDefault();
         void data.openPath(path);
-      });
-    } else {
-      li.createEl("em", {
-        cls: "fitness-muted",
-        text: t("view.today.noSession", language)
+      };
+      line.addEventListener("click", open);
+      line.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        open(event);
       });
     }
+    const name = line.createSpan({ cls: "atomic-name" });
+    name.createSpan({ cls: "atomic-dot" });
+    name.createSpan({ text: activity.label });
+    const sum = line.createSpan({ cls: "atomic-recent-sum" });
+    if (session2) {
+      sum.createEl("strong", { text: String(session2.minutes) });
+      sum.appendText(" ");
+      appendInlineCatalog(sum, t("view.dashboard.minuteWord", language));
+    } else {
+      sum.setText(t("view.today.noSession", language));
+    }
+    line.createSpan({ cls: "atomic-recent-arrow", text: session2?.path ? "\u2192" : "" });
   }
 }
 
@@ -6575,7 +6700,14 @@ async function renderBlock(plugin, kind, source, el, ctx) {
       }
       case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
-        renderTodaySessions(el, data, activityTypes, dateStr, language);
+        await renderTodaySessions(
+          el,
+          data,
+          activityTypes,
+          dateStr,
+          language,
+          ctx.generation
+        );
         break;
       }
       case "atomic-dashboard": {
@@ -6655,6 +6787,11 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         el.createEl("p", {
           text: t("view.unknownAtomicBlock", language, { kind })
         });
+    }
+    if (kind === "atomic-timer" || kind === "atomic-gym-log") {
+      markSessionEmbed(el, kind === "atomic-timer" ? "timer" : "gym-log");
+    } else if (kind === "atomic-cue-log") {
+      el.classList.add("atomic-embed-stretch");
     }
   } catch (err) {
     console.error("Atomic block error", kind, err);
@@ -7463,7 +7600,7 @@ var import_obsidian12 = require("obsidian");
 
 // src/core/update-notes.json
 var update_notes_default = {
-  version: "1.4.7",
+  version: "1.5.0",
   body: {
     en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
     "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"

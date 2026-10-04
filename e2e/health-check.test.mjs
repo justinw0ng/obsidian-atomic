@@ -509,6 +509,38 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await openVaultFile(driver, gymPath);
       await waitCss(driver, '[data-testid="atomic-cue-log"]');
       await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
+      const cueLayout = await driver.executeScript(`
+        const field = document.querySelector(".atomic-cue-log-field");
+        const button = document.querySelector('[data-testid="atomic-cue-log-add"]');
+        if (!field || !button) return null;
+        const fr = field.getBoundingClientRect();
+        const br = button.getBoundingClientRect();
+        const overlap = fr.left < br.right - 1 && fr.right > br.left + 1
+          && fr.top < br.bottom - 1 && fr.bottom > br.top + 1;
+        const cue = field.closest(".atomic-cue-log");
+        const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+        const note = field.closest(".cm-sizer, .markdown-preview-sizer");
+        const cueBox = cue?.getBoundingClientRect();
+        const gymBox = gym?.getBoundingClientRect();
+        return {
+          overlap,
+          label: field.querySelector(".atomic-field-label")?.textContent || "",
+          well: !!field.closest(".atomic-well"),
+          noteW: note?.clientWidth || 0,
+          cueRight: cueBox ? cueBox.right : 0,
+          gymRight: gymBox ? gymBox.right : 0,
+        };
+      `);
+      assert.ok(cueLayout, "cue field and add button should be measurable");
+      assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
+      assert.equal(cueLayout.label, "", "the reminder field has no title; Add cue names it");
+      assert.equal(cueLayout.well, true);
+      if (cueLayout.noteW >= 1280 && cueLayout.gymRight > 0) {
+        assert.ok(
+          cueLayout.cueRight <= cueLayout.gymRight + 2,
+          `reminder field should end with the gym log: ${JSON.stringify(cueLayout)}`,
+        );
+      }
 
       await waitCss(driver, '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]');
       const input = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');
@@ -779,8 +811,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         )].map((a) => [a.getAttribute("data-path"), (a.textContent || "").trim()]);
       `);
       assert.deepEqual(readingLinks, [
-        ["atomics/hobbies/Reading/Bookshelf.base", "Bases"],
-        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf"],
+        ["atomics/hobbies/Reading/Bookshelf.base", "Bases↗"],
+        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf↗"],
       ]);
       await saveScreenshot(driver, "dashboard-reading-links");
 
@@ -793,9 +825,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       // Minutes, not session count (a one-session month would be "1").
       assert.match(String(gymMonthMinutes), /^[1-9]\d+$/);
 
-      await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
+      await waitCss(
+        driver,
+        '[data-testid="atomic-dashboard-monthly"] + details.atomic-quiet-toggle',
+      );
       const monthlyTables = await driver.findElements(
-        By.css('[data-testid="atomic-dashboard-monthly"] table'),
+        By.css('[data-testid="atomic-dashboard-monthly"] + details.atomic-quiet-toggle table'),
       );
       assert.equal(monthlyTables.length, 1);
       const chartCols = await driver.executeScript(`
@@ -1028,6 +1063,50 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
+  it("opens today's gym and golf notes from the today rows", async () => {
+    await check(driver, "today-open-session", async () => {
+      const gymPath = E2E_FILES.gymSession(today.slice(0, 4), today);
+      const golfPath = E2E_FILES.golfSession(today.slice(0, 4), today);
+      const todayPath = await driver.executeScript(`
+        const plugin = app.plugins.getPlugin("atomic-tracker");
+        const tz = plugin.settings.timezone || "UTC";
+        const ymd = new Intl.DateTimeFormat("en-CA", {
+          timeZone: tz,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date());
+        return ${JSON.stringify(E2E_DAILY_NOTES_FOLDER + "/")} + ymd + ".md";
+      `);
+      await openVaultFile(driver, String(todayPath));
+      await waitCss(driver, `[data-testid="atomic-today-row"][data-path="${gymPath}"]`);
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-today-row"][data-path=${JSON.stringify(gymPath)}]'
+        ).click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === gymPath;
+      }, 8000);
+      await openVaultFile(driver, String(todayPath));
+      await waitCss(driver, `[data-testid="atomic-today-row"][data-path="${golfPath}"]`);
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-today-row"][data-path=${JSON.stringify(golfPath)}]'
+        ).click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === golfPath;
+      }, 8000);
+    });
+  });
+
   it("switches the dashboard year in place", async () => {
     await check(driver, "dashboard-year", async () => {
       const year = today.slice(0, 4);
@@ -1107,35 +1186,146 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           '[data-testid="atomic-heatmap"][data-activity="reading"]',
         );
         const today = heatmap.querySelector('[data-testid="atomic-heatmap-today"]');
-        const week = today.closest('.fitness-week');
-        const weeks = [...heatmap.querySelectorAll('.fitness-week')];
-        const index = weeks.indexOf(week);
-        const slot = heatmap.querySelector('.fitness-month-row').children[index];
-        const weekLeft = week.getBoundingClientRect().left;
-        const slotLeft = slot.getBoundingClientRect().left;
-        return {
-          ymd: today.getAttribute('data-ymd'),
-          slotMonth: slot.getAttribute('data-month'),
-          dx: Math.abs(weekLeft - slotLeft),
-        };
+        const cells = [...heatmap.querySelectorAll('.atomic-heat-cells > .atomic-heat-cell')];
+        const index = cells.indexOf(today);
+        const todayWeek = Math.floor(index / 7) + 1;
+        const ymd = today.getAttribute('data-ymd') || '';
+        const month = Number(ymd.slice(5, 7));
+        const labels = [...heatmap.querySelectorAll('[data-testid="atomic-heatmap-month"]')];
+        const label = labels.find((node) => Number(node.getAttribute('data-month')) === month);
+        const labelWeek = label ? Number(label.getAttribute('data-week')) : 0;
+        const next = labels.find((node) => Number(node.getAttribute('data-week')) > labelWeek);
+        const nextWeek = next ? Number(next.getAttribute('data-week')) : todayWeek + 1;
+        const anchor = cells[(labelWeek - 1) * 7];
+        const dx = label && anchor
+          ? Math.abs(label.getBoundingClientRect().left - anchor.getBoundingClientRect().left)
+          : 999;
+        return { ymd, todayWeek, labelWeek, nextWeek, dx };
       `);
       assert.ok(result.ymd, "today cell is missing data-ymd");
-      const todayMonth = Number(result.ymd.slice(5, 7));
-      const slotMonth = Number(result.slotMonth);
+      assert.ok(result.labelWeek >= 1, `today month label is missing (${result.ymd})`);
       assert.ok(
-        Number.isFinite(slotMonth) && slotMonth > 0,
-        `today column is missing data-month (ymd=${result.ymd})`,
-      );
-      assert.ok(
-        slotMonth === todayMonth ||
-          slotMonth === todayMonth - 1 ||
-          (todayMonth === 1 && slotMonth === 12),
-        `today ${result.ymd} sits under month ${slotMonth}`,
+        result.labelWeek <= result.todayWeek && result.nextWeek > result.todayWeek,
+        `today week ${result.todayWeek} is outside ${result.labelWeek}–${result.nextWeek} (${result.ymd})`,
       );
       assert.ok(
         result.dx < 2,
-        `month slot and today week differ by ${result.dx}px`,
+        `month label and its week differ by ${result.dx}px`,
       );
+    });
+  });
+
+  it("keeps bilingual heatmap captions on one line in a narrow pane", async () => {
+    await check(driver, "heatmap-foot-narrow", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      try {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 480,
+            height: 900,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(480, 900)`);
+        }
+        await openVaultFile(driver, E2E_FILES.heatmapReading);
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "zh-Hant-en";
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+          return plugin.refreshAll();
+        `);
+        let ready = {};
+        try {
+          await driver.wait(async () => {
+            ready = await driver.executeScript(`
+              const nodes = [...document.querySelectorAll('[data-testid="atomic-heatmap"]')];
+              const heatmap = nodes.sort(
+                (a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width,
+              )[0];
+              const caption = heatmap?.querySelector(".atomic-heat-foot > .atomic-caption");
+              const scroll = heatmap?.querySelector('[data-testid="atomic-heatmap-scroll"]');
+              return {
+                text: caption ? caption.textContent : "",
+                width: heatmap ? Math.round(heatmap.getBoundingClientRect().width) : 0,
+                scrollLeft: scroll ? scroll.scrollLeft : 0,
+                count: nodes.length,
+              };
+            `);
+            return String(ready.text).includes("按時長") && ready.width >= 280 && ready.width <= 520 && ready.scrollLeft > 0;
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(ready)}`);
+        }
+        await saveScreenshot(driver, "heatmap-foot-narrow-live");
+        const report = await driver.executeScript(`
+          const nodes = [...document.querySelectorAll('[data-testid="atomic-heatmap"]')];
+          const heatmap = nodes.sort(
+            (a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width,
+          )[0];
+          const foot = heatmap.querySelector(".atomic-heat-foot");
+          const captions = [...foot.querySelectorAll(".atomic-caption")];
+          const scroll = heatmap.querySelector('[data-testid="atomic-heatmap-scroll"]');
+          const today = heatmap.querySelector('[data-testid="atomic-heatmap-today"]');
+          const footBox = foot.getBoundingClientRect();
+          const legend = foot.querySelector(".atomic-heat-legend").getBoundingClientRect();
+          const duration = captions[0].getBoundingClientRect();
+          const ring = 2.75;
+          const scrollBox = scroll.getBoundingClientRect();
+          const todayBox = today.getBoundingClientRect();
+          return {
+            heatWidth: Math.round(heatmap.getBoundingClientRect().width),
+            overflow: Math.round(foot.scrollWidth - foot.clientWidth),
+            fontSize: Number.parseFloat(getComputedStyle(captions[0]).fontSize),
+            whiteSpace: getComputedStyle(captions[0]).whiteSpace,
+            heights: captions.map((node) => Math.round(node.getBoundingClientRect().height)),
+            overlap: duration.right > legend.left + 1,
+            durationClipped: duration.left < footBox.left - 1 || duration.right > footBox.right + 1,
+            legendClipped: legend.right > footBox.right + 1 || legend.left < footBox.left - 1,
+            ringLeft: todayBox.left - ring - scrollBox.left,
+            ringRight: scrollBox.right - (todayBox.right + ring),
+            ringTop: todayBox.top - ring - scrollBox.top,
+            ringBottom: scrollBox.bottom - (todayBox.bottom + ring),
+          };
+        `);
+        assert.ok(
+          report.heatWidth >= 280 && report.heatWidth <= 520,
+          `heatmap should be a phone pane, was ${report.heatWidth}px ${JSON.stringify(report)}`,
+        );
+        assert.equal(report.whiteSpace, "nowrap");
+        assert.ok(
+          report.fontSize < 12,
+          `narrow caption font should shrink, was ${report.fontSize}px ${JSON.stringify(report)}`,
+        );
+        assert.ok(report.overflow <= 1, `footer overflow ${JSON.stringify(report)}`);
+        assert.ok(report.heights.every((height) => height <= 16), `caption wrapped: ${report.heights}`);
+        assert.equal(report.overlap, false);
+        assert.equal(report.durationClipped, false);
+        assert.equal(report.legendClipped, false);
+        assert.ok(report.ringLeft >= -0.5, `today ring clipped on the left (${report.ringLeft})`);
+        assert.ok(report.ringRight >= -0.5, `today ring clipped on the right (${report.ringRight})`);
+        assert.ok(report.ringTop >= -0.5, `today ring clipped on the top (${report.ringTop})`);
+        assert.ok(report.ringBottom >= -0.5, `today ring clipped on the bottom (${report.ringBottom})`);
+      } finally {
+        try {
+          await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
+        } catch {
+          await driver.executeScript(
+            `window.resizeTo(arguments[0], arguments[1])`,
+            desktopViewport.width,
+            desktopViewport.height,
+          );
+        }
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "en";
+          return plugin.refreshAll();
+        `);
+      }
     });
   });
 
@@ -1273,6 +1463,36 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await openVaultFile(driver, gymPath);
       await waitCss(driver, '[data-testid="atomic-timer-start"]');
       await waitCss(driver, '[data-testid="atomic-gym-log"]');
+      const sessionLayout = await driver.executeScript(`
+        const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+        const fields = gym?.querySelector(".atomic-gym-log-fields");
+        const timer = document.querySelector('[data-testid="atomic-timer"]');
+        const note = gym?.closest(".cm-sizer, .markdown-preview-sizer");
+        if (!gym || !fields || !timer) return null;
+        const cols = getComputedStyle(fields).gridTemplateColumns.split(" ").filter(Boolean);
+        const gymBox = gym.getBoundingClientRect();
+        const timerBox = timer.getBoundingClientRect();
+        return {
+          gymW: gym.clientWidth,
+          cols: cols.length,
+          noteW: note?.clientWidth || 0,
+          sameRow: Math.abs(gymBox.top - timerBox.top) < 48,
+        };
+      `);
+      assert.ok(sessionLayout, "timer and gym log should be measurable");
+      if (sessionLayout.gymW > 560) {
+        assert.ok(
+          sessionLayout.cols >= 4,
+          `gym fields should share one row when the log is wide: ${JSON.stringify(sessionLayout)}`,
+        );
+      }
+      if (sessionLayout.noteW >= 1280) {
+        assert.equal(
+          sessionLayout.sameRow,
+          true,
+          `timer and gym log should share a row on a wide note: ${JSON.stringify(sessionLayout)}`,
+        );
+      }
 
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-timer-start"]').click()`,
