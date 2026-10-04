@@ -82,7 +82,7 @@ test("adjacent timer and gym log pair across an empty line", () => {
   assert.match(gap.className, /atomic-embed-gap/);
 });
 
-test("live preview lines share a row across an empty line", () => {
+test("live preview lines mark adjacent timer and gym slots across an empty line", () => {
   const timerHost = node("atomic-block-host");
   const timerLine = node("cm-line", [
     node("cm-embed-block", [node("markdown-rendered", [timerHost])]),

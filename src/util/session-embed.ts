@@ -8,7 +8,7 @@ function slotClass(kind: SessionEmbedKind): string {
   return kind === "timer" ? "atomic-embed-slot-timer" : "atomic-embed-slot-gym";
 }
 
-/** Prefer the editor line, so two code blocks can sit on one row. */
+/** Prefer the editor line so adjacent timer and gym slots stay siblings. */
 function rowSlot(chosen: Element): Element {
   const parent = chosen.parentElement;
   if (parent?.classList.contains("cm-line")) return parent;
@@ -49,8 +49,8 @@ function pairSessionSlots(slot: Element): void {
 }
 
 /**
- * Stretch a timer or gym-log block to the note column, and mark a wide note
- * so those two blocks can share one row.
+ * Stretch a timer or gym-log block to the note column. Mark adjacent
+ * timer and gym slots so a narrow note can stretch both to that column.
  */
 export function markSessionEmbed(start: Element, kind: SessionEmbedKind): void {
   start.classList.add("atomic-embed-stretch");
