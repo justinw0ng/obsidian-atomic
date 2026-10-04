@@ -364,6 +364,24 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       `);
       assert.equal(headings, 0);
 
+      // The fan layout (228px cards) is what clips a long cue. A short
+      // window with the sidebar open is under the 600px stack breakpoint,
+      // and the same sentence then fits in four lines.
+      await driver.executeScript(`
+        app.workspace.leftSplit?.collapse?.();
+        app.workspace.rightSplit?.collapse?.();
+      `);
+      await driver.wait(async () => {
+        const ready = await driver.executeScript(`
+          const host = document.querySelector('[data-testid="atomic-cues"]');
+          const meta = document.querySelector('[data-testid="atomic-cue-card"] .atomic-cue-meta');
+          const width = host ? host.getBoundingClientRect().width : 0;
+          const opacity = meta ? Number(getComputedStyle(meta).opacity) : 1;
+          return width > 600 && opacity < 0.01;
+        `);
+        return ready;
+      }, 8000);
+
       const before = await cueCardMetrics(driver, 2);
       assert.ok(before.clamped, "a long cue should be clipped at rest");
       assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
@@ -557,28 +575,40 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const br = button.getBoundingClientRect();
         const overlap = fr.left < br.right - 1 && fr.right > br.left + 1
           && fr.top < br.bottom - 1 && fr.bottom > br.top + 1;
-        const cue = field.closest(".atomic-cue-log");
+        const compose = field.closest(".atomic-cue-log-compose");
         const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+        const gymFields = gym?.querySelector(".atomic-gym-log-fields");
+        const exercise = gymFields?.firstElementChild;
         const note = field.closest(".cm-sizer, .markdown-preview-sizer");
-        const cueBox = cue?.getBoundingClientRect();
+        const composeBox = compose?.getBoundingClientRect();
         const gymBox = gym?.getBoundingClientRect();
+        const exerciseBox = exercise?.getBoundingClientRect();
         return {
           overlap,
           label: field.querySelector(".atomic-field-label")?.textContent || "",
           well: !!field.closest(".atomic-well"),
           noteW: note?.clientWidth || 0,
-          cueRight: cueBox ? cueBox.right : 0,
-          gymRight: gymBox ? gymBox.right : 0,
+          composeW: composeBox ? composeBox.width : 0,
+          gymW: gymBox ? gymBox.width : 0,
+          exerciseW: exerciseBox ? exerciseBox.width : 0,
         };
       `);
       assert.ok(cueLayout, "cue field and add button should be measurable");
       assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
       assert.equal(cueLayout.label, "", "the reminder field has no title; Add cue names it");
       assert.equal(cueLayout.well, true);
-      if (cueLayout.noteW >= 1280 && cueLayout.gymRight > 0) {
+      if (cueLayout.noteW >= 1280 && cueLayout.gymW > 0) {
         assert.ok(
-          cueLayout.cueRight <= cueLayout.gymRight + 2,
-          `reminder field should end with the gym log: ${JSON.stringify(cueLayout)}`,
+          Math.abs(cueLayout.composeW - cueLayout.gymW) <= 8,
+          `reminder composer should match the gym set row: ${JSON.stringify(cueLayout)}`,
+        );
+        assert.ok(
+          cueLayout.composeW < cueLayout.noteW * 0.7,
+          `reminder composer must not span the note: ${JSON.stringify(cueLayout)}`,
+        );
+        assert.ok(
+          cueLayout.composeW > cueLayout.exerciseW + 48,
+          `reminder composer should match the whole gym row, not one field: ${JSON.stringify(cueLayout)}`,
         );
       }
 
@@ -791,6 +821,34 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         By.css('[data-testid="atomic-heatmap"][data-activity="reading"]'),
       );
       assert.equal(readingOnGymGolf.length, 0);
+
+      const weekday = await driver.executeScript(`
+        const heat = document.querySelector('[data-testid="atomic-heatmap"]');
+        const labels = [...heat.querySelectorAll(".atomic-heat-days span")];
+        const cells = [...heat.querySelectorAll(".atomic-heat-cells .atomic-heat-cell")].slice(0, 7);
+        const language = app.plugins.getPlugin("atomic-tracker").settings.language;
+        const centers = labels.map((span, index) => {
+          const mark = span.getBoundingClientRect();
+          const cell = cells[index]?.getBoundingClientRect();
+          if (!cell) return 99;
+          return Math.abs((mark.top + mark.height / 2) - (cell.top + cell.height / 2));
+        });
+        return {
+          language,
+          marks: labels.map((span) => span.textContent || ""),
+          maxDelta: centers.length ? Math.max(...centers) : 99,
+        };
+      `);
+      assert.equal(weekday.marks.length, 7, `expected 7 weekday labels ${JSON.stringify(weekday)}`);
+      assert.ok(
+        weekday.maxDelta < 3,
+        `weekday labels should sit on their rows: ${JSON.stringify(weekday)}`,
+      );
+      if (weekday.language === "zh-Hant-en") {
+        assert.deepEqual(weekday.marks, ["日", "一", "二", "三", "四", "五", "六"]);
+      } else {
+        assert.deepEqual(weekday.marks, ["S", "M", "T", "W", "T", "F", "S"]);
+      }
     });
   });
 
@@ -802,6 +860,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
 
       await openVaultFile(driver, E2E_FILES.heatmapGrid);
       await waitCss(driver, ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]");
+      const gridGap = await driver.executeScript(`
+        const grid = document.querySelector(".fitness-heatmap-grid");
+        if (!grid) return "";
+        const style = getComputedStyle(grid);
+        return style.columnGap || style.gap || "";
+      `);
+      assert.equal(String(gridGap), "40px", `heatmap blocks need a visible gap: ${gridGap}`);
       await assertHiddenScrollports(
         driver,
         ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]",
@@ -1590,14 +1655,41 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const cols = getComputedStyle(fields).gridTemplateColumns.split(" ").filter(Boolean);
         const gymBox = gym.getBoundingClientRect();
         const timerBox = timer.getBoundingClientRect();
+        const select = document.querySelector('[data-testid="atomic-gym-log-exercise"]');
+        let exerciseFits = false;
+        if (select) {
+          const previous = select.value;
+          const probe = document.createElement("option");
+          probe.value = "__layout_probe__";
+          probe.text = "Cable front raise · Shoulder";
+          select.add(probe);
+          select.value = probe.value;
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          ctx.font = getComputedStyle(select).font;
+          const textW = ctx.measureText(probe.text).width;
+          exerciseFits = select.getBoundingClientRect().width + 1 >= textW;
+          select.value = previous;
+          probe.remove();
+        }
         return {
           gymW: gym.clientWidth,
+          timerW: timerBox.width,
+          timerH: timerBox.height,
+          gymH: gymBox.height,
+          gap: gymBox.left - timerBox.right,
           cols: cols.length,
           noteW: note?.clientWidth || 0,
           sameRow: Math.abs(gymBox.top - timerBox.top) < 48,
+          exerciseFits,
         };
       `);
       assert.ok(sessionLayout, "timer and gym log should be measurable");
+      assert.equal(
+        sessionLayout.exerciseFits,
+        true,
+        `exercise name should stay fully visible: ${JSON.stringify(sessionLayout)}`,
+      );
       if (sessionLayout.gymW > 560) {
         assert.ok(
           sessionLayout.cols >= 4,
@@ -1610,6 +1702,92 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           true,
           `timer and gym log should share a row on a wide note: ${JSON.stringify(sessionLayout)}`,
         );
+        assert.ok(
+          Math.abs(sessionLayout.timerH - sessionLayout.gymH) <= 1,
+          `gym set row should match the timer height: ${JSON.stringify(sessionLayout)}`,
+        );
+        assert.ok(
+          sessionLayout.gap >= 0 && sessionLayout.gap <= 20,
+          `timer and gym set row should sit close: ${JSON.stringify(sessionLayout)}`,
+        );
+        assert.ok(
+          sessionLayout.timerW > 560,
+          `timer should grow into the wide note: ${JSON.stringify(sessionLayout)}`,
+        );
+      }
+
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      try {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 900,
+            height: 900,
+            deviceScaleFactor: 1,
+            mobile: false,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(900, 900)`);
+        }
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+        `);
+        await driver.wait(async () => {
+          const width = await driver.executeScript(`
+            const timer = document.querySelector('[data-testid="atomic-timer"]');
+            const note = timer?.closest(".cm-sizer, .markdown-preview-sizer");
+            return note?.clientWidth || 0;
+          `);
+          return width > 0 && width < 1280;
+        }, 8000);
+        const stacked = await driver.executeScript(`
+          const timer = document.querySelector('[data-testid="atomic-timer"]');
+          const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+          const compose = document.querySelector(".atomic-cue-log-compose");
+          const content = timer?.closest(".cm-content, .markdown-preview-section");
+          if (!timer || !gym || !content) return null;
+          const timerBox = timer.getBoundingClientRect();
+          const gymBox = gym.getBoundingClientRect();
+          const contentBox = content.getBoundingClientRect();
+          const composeBox = compose?.getBoundingClientRect();
+          return {
+            timerW: timerBox.width,
+            gymW: gymBox.width,
+            timerLeft: timerBox.left,
+            gymLeft: gymBox.left,
+            timerRight: timerBox.right,
+            gymRight: gymBox.right,
+            contentLeft: contentBox.left,
+            contentRight: contentBox.right,
+            contentW: contentBox.width,
+            composeW: composeBox ? composeBox.width : 0,
+            sameRow: Math.abs(gymBox.top - timerBox.top) < 48,
+          };
+        `);
+        assert.ok(stacked, "stacked timer and gym log should be measurable");
+        assert.equal(stacked.sameRow, false, `timer and gym should stack: ${JSON.stringify(stacked)}`);
+        assert.ok(
+          Math.abs(stacked.timerW - stacked.gymW) <= 2,
+          `stacked timer and gym row should share a width: ${JSON.stringify(stacked)}`,
+        );
+        assert.ok(
+          Math.abs(stacked.timerLeft - stacked.gymLeft) <= 2 &&
+            Math.abs(stacked.timerRight - stacked.gymRight) <= 2,
+          `stacked timer and gym row should share left and right edges: ${JSON.stringify(stacked)}`,
+        );
+        assert.ok(
+          Math.abs(stacked.timerLeft - stacked.contentLeft) <= 12 &&
+            Math.abs(stacked.timerRight - stacked.contentRight) <= 12,
+          `stacked cards should fill the note width: ${JSON.stringify(stacked)}`,
+        );
+        assert.ok(
+          Math.abs(stacked.composeW - stacked.gymW) <= 8,
+          `stacked reminder composer should match the gym row: ${JSON.stringify(stacked)}`,
+        );
+      } finally {
+        await restoreDesktopPointer(driver, desktopViewport);
       }
 
       await driver.executeScript(
@@ -1781,6 +1959,36 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `a desktop pointer opens the cover ${JSON.stringify(pointer)}`,
       );
+      const ribbon = await driver.executeScript(`
+        const book = document.querySelector(
+          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+        );
+        const tab = book?.querySelector(".atomic-book-ribbon");
+        if (!book || !tab) return null;
+        const bookBox = book.getBoundingClientRect();
+        const tabBox = tab.getBoundingClientRect();
+        const scroll = book.closest('[data-testid="atomic-bookshelf-scroll"]');
+        const scrollBox = scroll?.getBoundingClientRect();
+        const style = getComputedStyle(tab);
+        return {
+          hang: tabBox.bottom - bookBox.bottom,
+          opacity: style.opacity,
+          height: tabBox.height,
+          inside: scrollBox ? tabBox.bottom <= scrollBox.bottom + 1 : false,
+        };
+      `);
+      assert.ok(ribbon, "a reading book should paint a bookmark");
+      assert.ok(ribbon.height > 8, `bookmark should have a tail ${JSON.stringify(ribbon)}`);
+      assert.notEqual(ribbon.opacity, "0");
+      assert.ok(
+        ribbon.hang > 8,
+        `bookmark should stick out below a closed book ${JSON.stringify(ribbon)}`,
+      );
+      assert.equal(
+        ribbon.inside,
+        true,
+        `bookmark tail should stay inside the shelf scroll ${JSON.stringify(ribbon)}`,
+      );
       const clickBook = () => driver.executeScript(`
         document.querySelector(
           '[data-testid="atomic-book"][data-title="Currently Reading"]'
@@ -1800,10 +2008,15 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const book = document.querySelector(
           '[data-testid="atomic-book"][data-title="Currently Reading"]'
         );
+        const face = book?.querySelector(".atomic-book-face");
+        const cover = book?.querySelector(".atomic-book-cover");
         return {
           cover: book?.classList.contains("is-cover-open") === true,
           className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
+          coverText: (cover?.textContent || "").trim(),
+          coverOpacity: cover ? getComputedStyle(cover).opacity : "",
+          filter: face ? getComputedStyle(face).filter : "",
         };
       `);
       assert.equal(
@@ -1811,6 +2024,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
       );
+      assert.match(
+        String(opened.filter),
+        /invert\(/,
+        `opened cover should invert the original face ${JSON.stringify(opened)}`,
+      );
+      assert.match(
+        String(opened.filter),
+        /blur\(/,
+        `opened cover should blur the original face ${JSON.stringify(opened)}`,
+      );
+      assert.equal(opened.coverOpacity, "1", "the original cover stays visible when open");
+      assert.match(opened.coverText, /Currently Reading/);
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {

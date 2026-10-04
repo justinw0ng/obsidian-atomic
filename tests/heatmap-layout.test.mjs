@@ -90,7 +90,7 @@ test("effectiveHeatmapColumns is at least 1", () => {
 });
 
 test("effectiveHeatmapColumns respects columns, activity count, and width", () => {
-  // 3×300 + 2×12 gap needs 924px; 900px fits two columns.
+  // 3×300 + 2×40 gap needs 980px; 900px fits two columns.
   assert.equal(
     effectiveHeatmapColumns({
       columns: 4,
@@ -104,7 +104,7 @@ test("effectiveHeatmapColumns respects columns, activity count, and width", () =
     effectiveHeatmapColumns({
       columns: 4,
       minColumnWidth: 300,
-      containerWidth: 924,
+      containerWidth: 980,
       activityCount: 3,
     }),
     3,
@@ -118,12 +118,12 @@ test("effectiveHeatmapColumns respects columns, activity count, and width", () =
     }),
     2,
   );
-  // 2×300 + 12 gap needs 612px; just under wraps to one column.
+  // 2×300 + 40 gap needs 640px; just under wraps to one column.
   assert.equal(
     effectiveHeatmapColumns({
       columns: 4,
       minColumnWidth: 300,
-      containerWidth: 611,
+      containerWidth: 639,
       activityCount: 4,
     }),
     1,
@@ -132,7 +132,7 @@ test("effectiveHeatmapColumns respects columns, activity count, and width", () =
     effectiveHeatmapColumns({
       columns: 4,
       minColumnWidth: 300,
-      containerWidth: 612,
+      containerWidth: 640,
       activityCount: 4,
     }),
     2,

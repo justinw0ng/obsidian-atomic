@@ -281,6 +281,48 @@ test("cover images fill the book face from the center", () => {
     styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-position:\s*center/s,
   );
+  const filled = cssRule(
+    styles,
+    ".workspace-leaf-content .fitness-plugin img.atomic-book-cover",
+  );
+  assert.ok(filled, "editor images need a more specific cover rule");
+  assert.match(filled.body, /object-fit:\s*cover/);
+  assert.match(filled.body, /max-width:\s*none/);
+  assert.match(filled.body, /height:\s*100%/);
+  assert.match(filled.body, /image-rendering:\s*auto/);
+});
+
+test("an open cover blurs the original face and the reading ribbon hangs out at rest", () => {
+  const face = cssRule(
+    styles,
+    ".fitness-plugin .atomic-book.is-cover-open .atomic-book-face",
+  );
+  assert.match(face.body, /filter:\s*invert\(1\) blur\(6px\)/);
+  assert.doesNotMatch(face.body, /#fff/);
+  assert.doesNotMatch(face.body, /#000/);
+  const cover = cssRule(
+    styles,
+    ".fitness-plugin .atomic-book.is-cover-open .atomic-book-cover",
+  );
+  assert.match(cover.body, /opacity:\s*1/);
+  assert.doesNotMatch(styles, /is-cover-open:not\(\.has-cover\)/);
+  const ribbon = cssRule(styles, ".fitness-plugin .atomic-book-ribbon");
+  assert.match(ribbon.body, /z-index:\s*3/);
+  assert.match(ribbon.body, /top:\s*calc\(100% - 4px\)/);
+  assert.doesNotMatch(ribbon.body, /z-index:\s*-1/);
+  const scroll = cssRule(styles, ".fitness-plugin .atomic-shelf-scroll");
+  assert.match(scroll.body, /padding:\s*22px 0 20px/);
+});
+
+test("heatmap grid blocks stay apart and day labels share the cell rows", () => {
+  const grid = cssRule(styles, ".fitness-plugin .fitness-heatmap-grid");
+  assert.match(grid.body, /gap:\s*40px/);
+  const days = cssRule(styles, ".fitness-plugin .atomic-heat-days");
+  assert.match(days.body, /margin-top:\s*24px/);
+  assert.match(days.body, /repeat\(7,\s*var\(--atomic-heat-cell\)\)/);
+  const src = readFileSync(join(root, "src/views/heatmap.ts"), "utf8");
+  assert.match(src, /heatmapWeekdayLabels\(language\)/);
+  assert.doesNotMatch(src, /\["", "M", "", "W", "", "F", ""\]/);
 });
 
 /** The rule whose selector list includes `selector` exactly, or null. */
@@ -524,7 +566,31 @@ test("reminder and gym controls share a well and wrap with the note", () => {
   );
   assert.match(
     styles,
-    /atomic-note-paired \.fitness-plugin\.atomic-cue-log\s*\{[^}]*width:\s*calc\(100% - \(2 \* var\(--atomic-pair-gap\)\)\)/s,
+    /atomic-note-paired \.fitness-plugin\.atomic-cue-log \.atomic-cue-log-compose\s*\{[^}]*width:\s*calc\(50% - var\(--atomic-pair-gap\)\)/s,
+  );
+  assert.match(
+    styles,
+    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log\s*\{[^}]*max-width:\s*none/s,
+  );
+  assert.match(
+    styles,
+    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log\s*\{[^}]*height:\s*var\(--atomic-session-card-height\)/s,
+  );
+  assert.match(
+    styles,
+    /\.atomic-gym-log-fields > \.atomic-field:first-child select\.atomic-field-value\s*\{[^}]*text-overflow:\s*clip/s,
+  );
+  assert.match(
+    styles,
+    /\.atomic-gym-log-fields > \.atomic-field:first-child select\.atomic-field-value\s*\{[^}]*white-space:\s*nowrap/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-note \(max-width:\s*1279px\)\s*\{[^}]*atomic-embed-slot-timer/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-note \(max-width:\s*1279px\)[\s\S]*\.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log[\s\S]*?max-width:\s*none/,
   );
   assert.match(
     styles,
