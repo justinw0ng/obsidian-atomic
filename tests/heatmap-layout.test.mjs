@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   effectiveHeatmapColumns,
+  heatmapWeekdayMarks,
   resolveHeatmapLayout,
 } from "../src/util/heatmap-layout.ts";
 
@@ -89,8 +90,14 @@ test("effectiveHeatmapColumns is at least 1", () => {
   );
 });
 
+test("heatmapWeekdayMarks lists every weekday row", () => {
+  assert.deepEqual(heatmapWeekdayMarks("en"), ["S", "M", "T", "W", "T", "F", "S"]);
+  assert.deepEqual(heatmapWeekdayMarks("zh-Hant-en"), ["日", "一", "二", "三", "四", "五", "六"]);
+  assert.equal(heatmapWeekdayMarks("en").length, 7);
+});
+
 test("effectiveHeatmapColumns respects columns, activity count, and width", () => {
-  // 3×300 + 2×12 gap needs 924px; 900px fits two columns.
+  // 3×300 + 2×32 gap needs 964px; 900px fits two columns.
   assert.equal(
     effectiveHeatmapColumns({
       columns: 4,
@@ -104,7 +111,7 @@ test("effectiveHeatmapColumns respects columns, activity count, and width", () =
     effectiveHeatmapColumns({
       columns: 4,
       minColumnWidth: 300,
-      containerWidth: 924,
+      containerWidth: 964,
       activityCount: 3,
     }),
     3,
@@ -118,12 +125,12 @@ test("effectiveHeatmapColumns respects columns, activity count, and width", () =
     }),
     2,
   );
-  // 2×300 + 12 gap needs 612px; just under wraps to one column.
+  // 2×300 + 32 gap needs 632px; just under wraps to one column.
   assert.equal(
     effectiveHeatmapColumns({
       columns: 4,
       minColumnWidth: 300,
-      containerWidth: 611,
+      containerWidth: 631,
       activityCount: 4,
     }),
     1,
@@ -132,7 +139,7 @@ test("effectiveHeatmapColumns respects columns, activity count, and width", () =
     effectiveHeatmapColumns({
       columns: 4,
       minColumnWidth: 300,
-      containerWidth: 612,
+      containerWidth: 632,
       activityCount: 4,
     }),
     2,

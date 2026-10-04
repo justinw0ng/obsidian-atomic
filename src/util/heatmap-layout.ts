@@ -1,3 +1,5 @@
+import type { Language } from "../i18n/types.ts";
+
 export type HeatmapLayout = {
   rows: number;
   columns: number;
@@ -5,13 +7,27 @@ export type HeatmapLayout = {
   defaultSpan: number;
 };
 
+/** One mark per weekday row, Sunday first, aligned with the heatmap cells. */
+export function heatmapWeekdayMarks(language: Language): readonly string[] {
+  switch (language) {
+    case "en":
+      return ["S", "M", "T", "W", "T", "F", "S"];
+    case "zh-Hant-en":
+      return ["日", "一", "二", "三", "四", "五", "六"];
+    default: {
+      const _exhaustive: never = language;
+      return _exhaustive;
+    }
+  }
+}
+
 const DEFAULT_ROWS = 1;
 const DEFAULT_COLUMNS = 1;
 const DEFAULT_MIN_COLUMN_WIDTH = 300;
 const DEFAULT_DEFAULT_SPAN = 1.2;
 
 /** Must match `.fitness-heatmap-grid { gap }` in styles.css. */
-export const HEATMAP_GRID_GAP_PX = 12;
+export const HEATMAP_GRID_GAP_PX = 32;
 
 function parsePositiveNumber(
   value: string | undefined,

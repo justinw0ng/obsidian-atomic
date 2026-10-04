@@ -4906,19 +4906,20 @@ function bindCoverObjectPosition(img) {
   else img.addEventListener("load", apply, { once: true });
 }
 var LIFTED_CLASS = "is-lifted";
+var COVER_OPEN_CLASS = "is-cover-open";
 function hoverFinePointer(media) {
   return Boolean(media?.matches);
 }
 function bookClickOpensNote(options) {
-  return options.hoverFine || options.coverOpen;
+  return options.coverOpen;
 }
 function hoverFineMedia() {
   if (typeof window.matchMedia !== "function") return null;
   return window.matchMedia("(hover: hover) and (pointer: fine)");
 }
 function closeLiftedBooks(root) {
-  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
-    el.classList.remove(LIFTED_CLASS);
+  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}, .atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(LIFTED_CLASS, COVER_OPEN_CLASS);
   });
 }
 function shelfSummary(items, language) {
@@ -4959,15 +4960,16 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
   const titleClass = titleLengthClass(item.title);
+  const face = button.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = button.createEl("img", {
+    const img = face.createEl("img", {
       cls: "atomic-book-cover",
       attr: { src: coverSrc, alt: "", draggable: "false" }
     });
     bindCoverObjectPosition(img);
   } else {
-    button.createDiv({
+    face.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
       text: item.title
     });
@@ -4994,15 +4996,16 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(LIFTED_CLASS);
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
     if (!bookClickOpensNote({ hoverFine, coverOpen })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeLiftedBooks(shelf);
-      button.classList.add(LIFTED_CLASS);
+      button.classList.add(COVER_OPEN_CLASS);
+      if (!hoverFine) button.classList.add(LIFTED_CLASS);
       showBookReadout(readout, item, language, true);
       return;
     }
-    button.classList.remove(LIFTED_CLASS);
+    button.classList.remove(LIFTED_CLASS, COVER_OPEN_CLASS);
     void data.openPath(item.path);
   });
 }
@@ -5177,11 +5180,23 @@ function resolveHeatmapActivities(activityTypes, activityOption) {
 }
 
 // src/util/heatmap-layout.ts
+function heatmapWeekdayMarks(language) {
+  switch (language) {
+    case "en":
+      return ["S", "M", "T", "W", "T", "F", "S"];
+    case "zh-Hant-en":
+      return ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
+    default: {
+      const _exhaustive = language;
+      return _exhaustive;
+    }
+  }
+}
 var DEFAULT_ROWS = 1;
 var DEFAULT_COLUMNS = 1;
 var DEFAULT_MIN_COLUMN_WIDTH = 300;
 var DEFAULT_DEFAULT_SPAN = 1.2;
-var HEATMAP_GRID_GAP_PX = 12;
+var HEATMAP_GRID_GAP_PX = 32;
 function parsePositiveNumber(value, defaultValue) {
   if (!value) return defaultValue;
   const n = Number(value);
@@ -5365,10 +5380,6 @@ function cleanupHeatmapObservers(container) {
   registry.grid?.disconnect();
   heatmapObserverRegistry.delete(container);
 }
-var DAY_NAMES = {
-  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  "zh-Hant-en": ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"]
-};
 function wireHeatmapScroll(scrollEl, registry) {
   let userHasScrolled = false;
   let expectedScrollLeft = null;
@@ -5475,9 +5486,13 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
     activityMap
   });
   const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
-  const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES[language]) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  const dayLabels = body.createDiv({ cls: "fitness-day-labels atomic-heat-days" });
+  for (const mark of heatmapWeekdayMarks(language)) {
+    dayLabels.createSpan({
+      cls: "fitness-day-label",
+      text: mark,
+      attr: { "data-testid": "atomic-heatmap-dow" }
+    });
   }
   const scroll = body.createDiv({
     cls: "fitness-heatmap-scroll atomic-scrollport",
