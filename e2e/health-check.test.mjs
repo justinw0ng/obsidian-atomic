@@ -364,6 +364,21 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       `);
       assert.equal(headings, 0);
 
+      // The fan layout (228px cards) is what clips a long cue. A short
+      // window with the sidebar open is under the 600px stack breakpoint,
+      // and the same sentence then fits in four lines.
+      await driver.executeScript(`
+        app.workspace.leftSplit?.collapse?.();
+        app.workspace.rightSplit?.collapse?.();
+      `);
+      await driver.wait(async () => {
+        const width = await driver.executeScript(`
+          const host = document.querySelector('[data-testid="atomic-cues"]');
+          return host ? host.getBoundingClientRect().width : 0;
+        `);
+        return width > 600;
+      }, 8000);
+
       const before = await cueCardMetrics(driver, 2);
       assert.ok(before.clamped, "a long cue should be clipped at rest");
       assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
