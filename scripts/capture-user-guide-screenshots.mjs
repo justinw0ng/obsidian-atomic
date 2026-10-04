@@ -32,6 +32,7 @@ import {
   ensureDocsBundle,
   hideCaptureScrollbars,
   hideNoteProperties,
+  showNoteProperties,
   openPreviewNote,
   parkMouse,
   resizeWindow,
@@ -118,7 +119,7 @@ async function waitForCoverImages(driver, min = 12, timeoutMs = 30000) {
   let last = 0;
   while (Date.now() - start < timeoutMs) {
     last = await driver.executeScript(`
-      return [...document.querySelectorAll(".atomic-book-cover-image")]
+      return [...document.querySelectorAll("img.atomic-book-cover")]
         .filter((img) => img.complete && img.naturalWidth > 40).length;
     `);
     if (last >= min) return last;
@@ -563,25 +564,52 @@ async function captureCuesHoverGif(driver) {
   assembleGif(dir, OUTPUTS.cues, { durationMs: 140, holdFirst: 2, holdLast: 3 });
 }
 
+async function waitForSessionPropertySelects(driver) {
+  let last = null;
+  try {
+    await driver.wait(async () => {
+      last = await driver.executeScript(`
+        const props = [...document.querySelectorAll(".metadata-property")].map((el) => {
+          const key = el.querySelector(".metadata-property-key-input");
+          return (key?.value || key?.textContent || "").trim();
+        });
+        const box = document.querySelector(".metadata-container");
+        return {
+          path: app.workspace.getActiveFile()?.path || "",
+          props,
+          selects: [...document.querySelectorAll("select.atomic-property-select")].map((el) => el.getAttribute("data-property")),
+          display: box ? getComputedStyle(box).display : "missing",
+          config: app.vault.getConfig?.("propertiesInDocument") || "",
+        };
+      `);
+      return last.selects.includes("location") && last.selects.includes("weight_unit");
+    }, 12000);
+  } catch (error) {
+    throw new Error(`Session property selects did not appear (${error.message}) last=${JSON.stringify(last)}`);
+  }
+}
+
 async function capturePropertySelectGif(driver) {
   await resizeWindow(driver, 980, 720);
-  await openPreviewNote(driver, FILES.gymSession);
-  await driver.executeScript(`
-    if (app.vault?.setConfig) app.vault.setConfig("propertiesInDocument", "visible");
-    for (const el of document.querySelectorAll(
-      ".metadata-container, .metadata-properties-heading, .metadata-add-button",
-    )) {
-      el.style.removeProperty("display");
+  await showNoteProperties(driver);
+  const resetUnit = await driver.executeAsyncScript(`
+    const path = arguments[0];
+    const done = arguments[arguments.length - 1];
+    const file = app.vault.getAbstractFileByPath(path);
+    if (!file) {
+      done("missing gym session");
+      return;
     }
-  `);
-  await waitCss(
-    driver,
-    'select[data-testid="atomic-property-select"][data-property="location"]',
-  );
-  await waitCss(
-    driver,
-    'select[data-testid="atomic-property-select"][data-property="weight_unit"]',
-  );
+    app.fileManager.processFrontMatter(file, (fm) => {
+      fm.weight_unit = "kg";
+    }).then(() => done("ok"), (err) => done(String(err)));
+  `, FILES.gymSession);
+  if (resetUnit !== "ok") {
+    throw new Error(`Could not reset weight unit: ${resetUnit}`);
+  }
+  await openPreviewNote(driver, FILES.gymSession);
+  await showNoteProperties(driver);
+  await waitForSessionPropertySelects(driver);
   await scrollBlockIntoView(driver, ".metadata-properties");
   await hideCaptureScrollbars(driver);
   await parkMouse(driver);
