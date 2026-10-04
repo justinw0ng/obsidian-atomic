@@ -22,6 +22,22 @@ function markdownFiles(dir) {
   return out;
 }
 
+function allFiles(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...allFiles(path));
+    else out.push(path);
+  }
+  return out;
+}
+
+function relativeNames(dir) {
+  return allFiles(dir)
+    .map((path) => path.slice(dir.length + 1))
+    .sort();
+}
+
 function relativeLinks(markdown) {
   const links = [];
   const re = /\[[^\]]*\]\(([^)]+)\)/g;
@@ -120,6 +136,105 @@ test("AGENTS.md points at the obsidian-plugin-e2e skill", () => {
   assert.match(agents, /\.cursor\/skills\/obsidian-plugin-e2e\/SKILL\.md/);
 });
 
+test("AGENTS.md points at the vendored security-audit skill", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /\.cursor\/skills\/security-audit\/SKILL\.md/);
+  const skill = read(".cursor/skills/security-audit/SKILL.md");
+  assert.ok(skill.startsWith("---\n"), "security-audit SKILL.md must start with YAML frontmatter");
+  assert.match(skill, /^name:\s*security-audit\s*$/m);
+});
+
+test("AGENTS.md points at the vendored thermo-nuclear skill", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
+  const skill = read(".cursor/skills/thermo-nuclear-code-quality-review/SKILL.md");
+  assert.ok(skill.startsWith("---\n"), "thermo-nuclear SKILL.md must start with YAML frontmatter");
+  assert.match(skill, /^name:\s*thermo-nuclear-code-quality-review\s*$/m);
+});
+
+test("AGENTS.md points at i-have-adhd and wait-what for PR review results", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /\.cursor\/skills\/i-have-adhd\/SKILL\.md/);
+  assert.match(agents, /\.agents\/skills\/wait-what\/SKILL\.md/);
+  const skill = read(".cursor/skills/i-have-adhd/SKILL.md");
+  assert.ok(skill.startsWith("---\n"), "i-have-adhd SKILL.md must start with YAML frontmatter");
+  assert.match(skill, /^name:\s*i-have-adhd\s*$/m);
+});
+
+test("security-audit skill is pinned to the Cloudflare default-branch commit", () => {
+  const pin = read(".cursor/skills/security-audit.SOURCE.md");
+  assert.match(pin, /https:\/\/github\.com\/cloudflare\/security-audit-skill/);
+  assert.match(pin, /c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/);
+  assert.match(pin, /default branch/i);
+  assert.match(pin, /security-audit\.LICENSE/);
+  assert.match(read(".cursor/skills/security-audit.LICENSE"), /MIT License/);
+  assert.match(read(".cursor/skills/security-audit.LICENSE"), /Cloudflare, Inc\./);
+});
+
+test("thermo-nuclear skill is pinned to the cursor/plugins default-branch commit", () => {
+  const pin = read(".cursor/skills/thermo-nuclear-code-quality-review.SOURCE.md");
+  assert.match(pin, /https:\/\/github\.com\/cursor\/plugins/);
+  assert.match(pin, /thermo-nuclear-code-quality-review/);
+  assert.match(pin, /e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a/);
+  assert.match(pin, /default branch/i);
+});
+
+test("vendored security-audit pack matches the pinned file set and relative links", () => {
+  const dir = join(root, ".cursor/skills/security-audit");
+  assert.deepEqual(relativeNames(dir), [
+    "AI-AND-LLM.md",
+    "ATTACK-CLASSES.md",
+    "CLIENT-SIDE.md",
+    "CLOUD-AND-DEPLOYMENT.md",
+    "DATA-ISOLATION-AND-LIFECYCLE.md",
+    "DESKTOP-MOBILE-AND-LOCAL-IPC.md",
+    "HUNTING.md",
+    "MEMORY-SAFETY-AND-BINARY.md",
+    "PROTOCOLS-RPC-AND-MESSAGING.md",
+    "RECONNAISSANCE.md",
+    "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md",
+    "SKILL.md",
+    "SUPPLY-CHAIN-AND-RELEASE.md",
+    "VALIDATION-AND-REPORTING.md",
+    "WEB-PROTOCOL-AND-AUTH.md",
+    "report-schema.json",
+    "validate-coverage-ledger.cjs",
+    "validate-coverage-ledger.test.cjs",
+    "validate-findings.cjs",
+    "validate-findings.test.cjs",
+  ]);
+  for (const file of markdownFiles(dir)) {
+    const text = readFileSync(file, "utf8");
+    for (const href of relativeLinks(text)) {
+      const target = resolve(dirname(file), href);
+      assert.ok(existsSync(target), `${file} links to missing ${href}`);
+    }
+  }
+});
+
+test("vendored thermo-nuclear pack is the pinned SKILL.md only", () => {
+  const dir = join(root, ".cursor/skills/thermo-nuclear-code-quality-review");
+  assert.deepEqual(relativeNames(dir), ["SKILL.md"]);
+});
+
+test("i-have-adhd skill is pinned to the ayghri default-branch commit", () => {
+  const pin = read(".cursor/skills/i-have-adhd.SOURCE.md");
+  assert.match(pin, /https:\/\/github\.com\/ayghri\/i-have-adhd/);
+  assert.match(pin, /839872f9d1cd634fed642b4589ce7226199cc15f/);
+  assert.match(pin, /default branch/i);
+  assert.match(read(".cursor/skills/i-have-adhd.LICENSE"), /MIT License/);
+  assert.match(read(".cursor/skills/i-have-adhd.LICENSE"), /Ayoub Ghriss/);
+});
+
+test("vendored i-have-adhd pack matches the pinned file set", () => {
+  const dir = join(root, ".cursor/skills/i-have-adhd");
+  assert.deepEqual(relativeNames(dir), [
+    "SKILL.md",
+    "agents/gemini.toml",
+    "agents/openai.yaml",
+  ]);
+});
+
 test("skill and AGENTS.md ban instanceof Element and redundant type assertions", () => {
   const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
   const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
@@ -160,9 +275,20 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
   for (const text of [skill, agents]) {
     assert.match(text, /Thermo-Nuclear Code Quality Review/);
     assert.match(text, /REQUEST CHANGES/);
+    assert.match(text, /confirmed security-audit findings/);
     assert.match(text, /CodeRabbit/);
+    assert.match(text, /security-audit/);
+    assert.match(text, /\.cursor\/skills\/security-audit\/SKILL\.md/);
+    assert.match(text, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
+    assert.match(text, /\.cursor\/skills\/i-have-adhd\/SKILL\.md/);
+    assert.match(text, /\.agents\/skills\/wait-what\/SKILL\.md/);
   }
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
+  assert.match(cloud, /security-audit/);
+  assert.match(cloud, /\.cursor\/skills\/security-audit\/SKILL\.md/);
+  assert.match(cloud, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
+  assert.match(cloud, /\.cursor\/skills\/i-have-adhd\/SKILL\.md/);
+  assert.match(cloud, /\.agents\/skills\/wait-what\/SKILL\.md/);
 });
 
 test("skill and AGENTS.md keep hero banner capture rules", () => {

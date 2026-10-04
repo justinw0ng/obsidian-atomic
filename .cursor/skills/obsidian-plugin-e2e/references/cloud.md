@@ -68,6 +68,6 @@ Keep a short Cloud section that names:
 - `OBSIDIAN_PLUGIN_OUT`
 - `git checkout -- main.js` policy
 - Selenium as the GUI health check, computer-use as debug-only
-- Thermo-Nuclear Code Quality Review before marking a PR ready (in addition to Copilot / CodeRabbit / CI)
+- Thermo-Nuclear Code Quality Review (`.cursor/skills/thermo-nuclear-code-quality-review/SKILL.md`) **and** security-audit (`.cursor/skills/security-audit/SKILL.md`) together before marking a PR ready (in addition to Copilot / CodeRabbit / CI). Write both review results on the PR with `.cursor/skills/i-have-adhd/SKILL.md` and `.agents/skills/wait-what/SKILL.md`. If you copy this gate, also copy those skill folders and their `*.SOURCE.md` pins.
 - `data-testid` prefixes for that plugin
 - Optional bilingual in-app update notes on Release (`release_notes` / `release_notes_zh_hant`). Catalog `version` must equal the plugin version being shipped. `scripts/bump-version.mjs` keeps catalog `version` in lockstep; omit both notes to keep current bodies under the new version — never ship with catalog behind manifest. Cantonese bodies are HK spoken Cantonese with 中英夾雜; see the Cantonese voice section in [release.md](release.md).
