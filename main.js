@@ -2440,6 +2440,7 @@ function pairSessionSlots(slot) {
 function markSessionEmbed(start, kind) {
   start.classList.add("atomic-embed-stretch");
   if (kind === "timer") start.classList.add("atomic-timer-host");
+  if (kind === "gym-log") start.classList.add("atomic-gym-log-host");
   const slot = sessionEmbedSlot(start);
   if (!slot) return;
   slot.classList.add("atomic-embed-slot", slotClass(kind));

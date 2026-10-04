@@ -62,6 +62,7 @@ test("reading view marks the preview block inside the section", () => {
   node("markdown-preview-sizer", [section]);
   assert.equal(sessionEmbedSlot(host), block);
   markSessionEmbed(host, "gym-log");
+  assert.match(host.className, /atomic-gym-log-host/);
   assert.match(block.className, /atomic-embed-slot-gym/);
   assert.match(section.parentElement.className, /atomic-note-column/);
 });
