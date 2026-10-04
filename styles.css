@@ -1398,7 +1398,9 @@
   gap: 6px 16px;
   padding: 14px 14px 14px 18px;
   margin: 12px 0 20px;
+  width: 100%;
   max-width: 560px;
+  box-sizing: border-box;
 }
 
 .fitness-plugin .atomic-timer-head {
@@ -1481,6 +1483,8 @@
 
 .fitness-plugin.atomic-gym-log {
   container-type: inline-size;
+  width: 100%;
+  box-sizing: border-box;
   padding: 14px 14px 14px 18px;
   margin: 12px 0 16px;
 }
@@ -1506,6 +1510,52 @@
 
 .fitness-plugin.atomic-gym-log .atomic-btn.is-primary {
   height: 36px;
+}
+
+/* A wide note puts the timer and the gym log on one row. Narrow notes stack them. */
+.atomic-embed-stretch {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.atomic-embed-stretch.atomic-timer-host {
+  container-type: inline-size;
+  container-name: atomic-timer-host;
+}
+
+.atomic-note-column {
+  container-type: inline-size;
+  container-name: atomic-note;
+}
+
+@container atomic-timer-host (max-width: 420px) {
+  .fitness-plugin.atomic-timer {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "head"
+      "clock"
+      "actions";
+  }
+
+  .fitness-plugin .atomic-timer-head {
+    flex-wrap: wrap;
+  }
+}
+
+@container atomic-note (min-width: 1280px) {
+  .atomic-note-paired .atomic-embed-slot-timer,
+  .atomic-note-paired .atomic-embed-slot-gym {
+    display: inline-block;
+    width: calc(50% - 12px);
+    vertical-align: top;
+  }
+
+  .atomic-note-paired .atomic-embed-gap {
+    display: none;
+  }
 }
 
 @container (max-width: 560px) {
@@ -1837,6 +1887,70 @@
 .fitness-plugin.atomic-cues,
 .fitness-plugin.atomic-cue-log {
   container-type: inline-size;
+}
+
+.fitness-plugin.atomic-cue-log {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Same well as a gym set: paper field, label inside, ink button on the row. */
+.fitness-plugin .atomic-cue-log-compose {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 14px 14px 18px;
+  margin: 12px 0 16px;
+}
+
+.fitness-plugin .atomic-cue-log-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: end;
+}
+
+.fitness-plugin .atomic-cue-log-field {
+  height: auto;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.fitness-plugin textarea.atomic-cue-log-text {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: calc(3 * 1.45em);
+  margin: 0;
+  resize: vertical;
+  white-space: pre-wrap;
+  overflow: auto;
+  text-overflow: clip;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.fitness-plugin textarea.atomic-cue-log-text:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.fitness-plugin.atomic-cue-log .atomic-btn.is-primary {
+  height: 36px;
+}
+
+.fitness-plugin .atomic-cue-log-existing {
+  margin-top: 4px;
+}
+
+@container (max-width: 560px) {
+  .fitness-plugin .atomic-cue-log-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fitness-plugin .atomic-cue-log-fields > .atomic-btn {
+    width: 100%;
+  }
 }
 
 .fitness-plugin .atomic-cues-head {
@@ -2439,6 +2553,7 @@
 
 .fitness-plugin .atomic-field input,
 .fitness-plugin .atomic-field select,
+.fitness-plugin .atomic-field textarea,
 .fitness-plugin .atomic-stepper input {
   border: 0;
   background: transparent;

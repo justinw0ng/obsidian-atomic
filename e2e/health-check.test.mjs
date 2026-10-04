@@ -509,6 +509,24 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await openVaultFile(driver, gymPath);
       await waitCss(driver, '[data-testid="atomic-cue-log"]');
       await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
+      const cueLayout = await driver.executeScript(`
+        const field = document.querySelector(".atomic-cue-log-field");
+        const button = document.querySelector('[data-testid="atomic-cue-log-add"]');
+        if (!field || !button) return null;
+        const fr = field.getBoundingClientRect();
+        const br = button.getBoundingClientRect();
+        const overlap = fr.left < br.right - 1 && fr.right > br.left + 1
+          && fr.top < br.bottom - 1 && fr.bottom > br.top + 1;
+        return {
+          overlap,
+          label: field.querySelector(".atomic-field-label")?.textContent || "",
+          well: !!field.closest(".atomic-well"),
+        };
+      `);
+      assert.ok(cueLayout, "cue field and add button should be measurable");
+      assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
+      assert.match(String(cueLayout.label), /Cue/);
+      assert.equal(cueLayout.well, true);
 
       await waitCss(driver, '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]');
       const input = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');
@@ -1317,6 +1335,36 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await openVaultFile(driver, gymPath);
       await waitCss(driver, '[data-testid="atomic-timer-start"]');
       await waitCss(driver, '[data-testid="atomic-gym-log"]');
+      const sessionLayout = await driver.executeScript(`
+        const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+        const fields = gym?.querySelector(".atomic-gym-log-fields");
+        const timer = document.querySelector('[data-testid="atomic-timer"]');
+        const note = gym?.closest(".cm-sizer, .markdown-preview-sizer");
+        if (!gym || !fields || !timer) return null;
+        const cols = getComputedStyle(fields).gridTemplateColumns.split(" ").filter(Boolean);
+        const gymBox = gym.getBoundingClientRect();
+        const timerBox = timer.getBoundingClientRect();
+        return {
+          gymW: gym.clientWidth,
+          cols: cols.length,
+          noteW: note?.clientWidth || 0,
+          sameRow: Math.abs(gymBox.top - timerBox.top) < 48,
+        };
+      `);
+      assert.ok(sessionLayout, "timer and gym log should be measurable");
+      if (sessionLayout.gymW > 560) {
+        assert.ok(
+          sessionLayout.cols >= 4,
+          `gym fields should share one row when the log is wide: ${JSON.stringify(sessionLayout)}`,
+        );
+      }
+      if (sessionLayout.noteW >= 1280) {
+        assert.equal(
+          sessionLayout.sameRow,
+          true,
+          `timer and gym log should share a row on a wide note: ${JSON.stringify(sessionLayout)}`,
+        );
+      }
 
       await driver.executeScript(
         `document.querySelector('[data-testid="atomic-timer-start"]').click()`,

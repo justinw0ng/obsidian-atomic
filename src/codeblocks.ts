@@ -12,6 +12,7 @@ import {
   isStaleBlockRender,
   mountAtomicBlockShell,
 } from "./util/block-render";
+import { markSessionEmbed } from "./util/session-embed";
 import { renderActions } from "./views/actions";
 import { renderAtomicCueLog } from "./views/cue-log";
 import { renderCues, resolveCuesYear } from "./views/cues";
@@ -232,6 +233,11 @@ export async function renderBlock(
         el.createEl("p", {
           text: t("view.unknownAtomicBlock", language, { kind }),
         });
+    }
+    if (kind === "atomic-timer" || kind === "atomic-gym-log") {
+      markSessionEmbed(el, kind === "atomic-timer" ? "timer" : "gym-log");
+    } else if (kind === "atomic-cue-log") {
+      el.classList.add("atomic-embed-stretch");
     }
   } catch (err) {
     console.error("Atomic block error", kind, err);

@@ -487,6 +487,34 @@ test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
   assert.match(flyCard.body, /height:\s*auto/);
 });
 
+test("reminder and gym controls share a well and wrap with the note", () => {
+  assert.match(styles, /\.fitness-plugin \.atomic-cue-log-compose/);
+  assert.match(styles, /\.atomic-well/);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-cue-log-fields\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) auto/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin textarea\.atomic-cue-log-text\s*\{[^}]*white-space:\s*pre-wrap/s,
+  );
+  assert.match(styles, /\.fitness-plugin\.atomic-gym-log\s*\{[^}]*width:\s*100%/s);
+  assert.match(styles, /\.fitness-plugin\.atomic-timer\s*\{[^}]*max-width:\s*560px/s);
+  assert.match(styles, /container-name:\s*atomic-note/);
+  assert.match(
+    styles,
+    /@container atomic-note \(min-width:\s*1280px\)\s*\{[^}]*atomic-embed-slot-timer/s,
+  );
+  assert.match(
+    styles,
+    /@container atomic-timer-host \(max-width:\s*420px\)\s*\{[^}]*grid-template-areas:\s*"head"\s*"clock"\s*"actions"/s,
+  );
+  assert.match(
+    styles,
+    /@container \(max-width:\s*560px\)\s*\{[^}]*\.atomic-cue-log-fields/s,
+  );
+});
+
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
   assert.doesNotMatch(styles, /scrollbar-width/);
   assert.match(styles, /::-webkit-scrollbar/);

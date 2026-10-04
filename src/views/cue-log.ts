@@ -70,21 +70,23 @@ export async function renderAtomicCueLog(
     return;
   }
 
-  const row = root.createDiv({ cls: "atomic-cue-log-row" });
-  const field = row.createEl("label", { cls: "atomic-cue-log-field" });
-  field.createSpan({ text: t("view.cueLog.cue", language) });
+  const compose = root.createDiv({ cls: "atomic-well atomic-cue-log-compose" });
+  const fields = compose.createDiv({ cls: "atomic-cue-log-fields" });
+  const field = fields.createEl("label", { cls: "atomic-field atomic-cue-log-field" });
+  const caption = field.createSpan({ cls: "atomic-field-label atomic-caption" });
+  caption.setText(t("view.cueLog.cue", language));
   const input = field.createEl("textarea", {
-    cls: "atomic-cue-log-text",
+    cls: "atomic-field-value atomic-cue-log-text",
     attr: {
-      rows: "4",
+      rows: "3",
       "data-testid": "atomic-cue-log-text",
       placeholder: t("view.cueLog.placeholder", language),
     },
   });
-  const addButton = row.createEl("button", {
+  const addButton = fields.createEl("button", {
     cls: "atomic-btn is-primary",
     text: t("view.cueLog.add", language),
-    attr: { "data-testid": "atomic-cue-log-add" },
+    attr: { type: "button", "data-testid": "atomic-cue-log-add" },
   });
 
   if (existing.length) {

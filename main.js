@@ -1789,14 +1789,14 @@ function parseStatusTokens(statusOption) {
   return statusOption.split(",").map((token) => token.trim()).filter((token) => token.length > 0);
 }
 function resolveBookShelfStatuses(statusOption) {
-  const tokens = parseStatusTokens(statusOption);
-  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
+  const tokens2 = parseStatusTokens(statusOption);
+  if (tokens2.length === 0 || tokens2.some((token) => token.toLowerCase() === "all")) {
     return { statuses: null, invalidStatuses: [] };
   }
   const statuses = [];
   const invalidStatuses = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const token of tokens) {
+  for (const token of tokens2) {
     const key = token.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -2353,6 +2353,94 @@ function enqueueBlockRender(el, work) {
   );
   chains.set(el, next);
   return next;
+}
+
+// src/util/session-embed.ts
+var NOTE_COLUMN = /(?:^|\s)(?:cm-sizer|markdown-preview-sizer)(?:\s|$)/;
+var PREVIEW_SECTION = /markdown-preview-section/;
+var STOP = /markdown-preview-view|markdown-source-view|cm-scroller|workspace-leaf/;
+var WRAPPER = /code-block|codeblock|cm-embed-block|internal-embed|(?:^|\s)el-pre(?:\s|$)/;
+function sessionSlotClass(kind) {
+  return kind === "timer" ? "atomic-embed-slot-timer" : "atomic-embed-slot-gym";
+}
+function tokens(className) {
+  return className.split(/\s+/).filter(Boolean);
+}
+function hasToken(className, token) {
+  return tokens(className).includes(token);
+}
+function childrenOf(node) {
+  return Array.from(node.children);
+}
+function rowSlot(chosen) {
+  if (!chosen) return null;
+  const parent = chosen.parentElement;
+  if (parent && hasToken(parent.className, "cm-line")) return parent;
+  return chosen;
+}
+function sessionEmbedSlot(start) {
+  let node = start;
+  let wrapper = null;
+  for (let depth = 0; depth < 12 && node?.parentElement; depth += 1) {
+    const parent = node.parentElement;
+    const parentClass = parent.className ?? "";
+    if (STOP.test(parentClass)) break;
+    if (WRAPPER.test(node.className ?? "")) wrapper = node;
+    if (NOTE_COLUMN.test(parentClass)) {
+      const chosen = WRAPPER.test(node.className ?? "") ? node : wrapper;
+      return rowSlot(chosen);
+    }
+    if (PREVIEW_SECTION.test(parentClass)) return rowSlot(node);
+    node = parent;
+  }
+  return rowSlot(wrapper);
+}
+function noteColumn(slot) {
+  let node = slot.parentElement;
+  for (let depth = 0; depth < 12 && node; depth += 1) {
+    if (NOTE_COLUMN.test(node.className ?? "")) return node;
+    if (STOP.test(node.className ?? "")) return null;
+    node = node.parentElement;
+  }
+  return null;
+}
+function isEmptyGap(node) {
+  if ((node.textContent ?? "").trim() !== "") return false;
+  const name = node.className ?? "";
+  return !hasToken(name, "atomic-embed-slot") && !hasToken(name, "cm-embed-block");
+}
+function pairSessionSlots(slot) {
+  const parent = slot.parentElement;
+  if (!parent) return;
+  const kids = childrenOf(parent);
+  const timer = kids.find((el) => hasToken(el.className, "atomic-embed-slot-timer"));
+  const gym = kids.find((el) => hasToken(el.className, "atomic-embed-slot-gym"));
+  if (!timer || !gym) return;
+  const from = kids.indexOf(timer);
+  const to = kids.indexOf(gym);
+  const start = Math.min(from, to);
+  const end = Math.max(from, to);
+  for (let index = start + 1; index < end; index += 1) {
+    const between = kids[index];
+    if (!between || between === timer || between === gym) continue;
+    if (!isEmptyGap(between)) return;
+  }
+  parent.classList.add("atomic-note-paired");
+  for (let index = start + 1; index < end; index += 1) {
+    const between = kids[index];
+    if (between && (between.textContent ?? "").trim() === "") {
+      between.classList.add("atomic-embed-gap");
+    }
+  }
+}
+function markSessionEmbed(start, kind) {
+  start.classList.add("atomic-embed-stretch");
+  if (kind === "timer") start.classList.add("atomic-timer-host");
+  const slot = sessionEmbedSlot(start);
+  if (!slot) return;
+  slot.classList.add("atomic-embed-slot", sessionSlotClass(kind));
+  noteColumn(slot)?.classList.add("atomic-note-column");
+  pairSessionSlots(slot);
 }
 
 // src/views/actions.ts
@@ -2926,21 +3014,23 @@ async function renderAtomicCueLog(plugin, el, host, generation) {
     });
     return;
   }
-  const row = root.createDiv({ cls: "atomic-cue-log-row" });
-  const field = row.createEl("label", { cls: "atomic-cue-log-field" });
-  field.createSpan({ text: t("view.cueLog.cue", language) });
+  const compose = root.createDiv({ cls: "atomic-well atomic-cue-log-compose" });
+  const fields = compose.createDiv({ cls: "atomic-cue-log-fields" });
+  const field = fields.createEl("label", { cls: "atomic-field atomic-cue-log-field" });
+  const caption = field.createSpan({ cls: "atomic-field-label atomic-caption" });
+  caption.setText(t("view.cueLog.cue", language));
   const input = field.createEl("textarea", {
-    cls: "atomic-cue-log-text",
+    cls: "atomic-field-value atomic-cue-log-text",
     attr: {
-      rows: "4",
+      rows: "3",
       "data-testid": "atomic-cue-log-text",
       placeholder: t("view.cueLog.placeholder", language)
     }
   });
-  const addButton = row.createEl("button", {
+  const addButton = fields.createEl("button", {
     cls: "atomic-btn is-primary",
     text: t("view.cueLog.add", language),
-    attr: { "data-testid": "atomic-cue-log-add" }
+    attr: { type: "button", "data-testid": "atomic-cue-log-add" }
   });
   if (existing.length) {
     const fan = root.createDiv({
@@ -5174,8 +5264,8 @@ function parseActivityTokens(activityOption) {
 }
 function resolveHeatmapActivities(activityTypes, activityOption) {
   const enabled = enabledActivities(activityTypes);
-  const tokens = parseActivityTokens(activityOption);
-  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
+  const tokens2 = parseActivityTokens(activityOption);
+  if (tokens2.length === 0 || tokens2.some((token) => token.toLowerCase() === "all")) {
     return { activities: enabled, invalidIds: [] };
   }
   const byId = new Map(
@@ -5184,7 +5274,7 @@ function resolveHeatmapActivities(activityTypes, activityOption) {
   const activities = [];
   const invalidIds = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const token of tokens) {
+  for (const token of tokens2) {
     const key = token.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -6742,6 +6832,11 @@ async function renderBlock(plugin, kind, source, el, ctx) {
         el.createEl("p", {
           text: t("view.unknownAtomicBlock", language, { kind })
         });
+    }
+    if (kind === "atomic-timer" || kind === "atomic-gym-log") {
+      markSessionEmbed(el, kind === "atomic-timer" ? "timer" : "gym-log");
+    } else if (kind === "atomic-cue-log") {
+      el.classList.add("atomic-embed-stretch");
     }
   } catch (err) {
     console.error("Atomic block error", kind, err);
