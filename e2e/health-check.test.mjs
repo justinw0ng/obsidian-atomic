@@ -476,6 +476,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         );
         assertNoCssMask(phoneHover, "phone hover cue body");
         assert.equal(phoneHover.fadeOpacity, 1, "phone hover keeps the bottom wash");
+        await shot(driver, "cue-list-preview");
 
         await driver.executeScript(`
           document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
@@ -1406,6 +1407,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           `${row.name} select reads as the property value`,
         );
       }
+      await driver.executeScript(`
+        document.querySelector(
+          'select[data-testid="atomic-property-select"][data-property="location"]',
+        )?.scrollIntoView({ block: "center", inline: "nearest" });
+      `);
+      await shot(driver, "property-selects");
     });
   });
 
