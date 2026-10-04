@@ -1,8 +1,10 @@
 # Atomic Tracker — user guide
 
-Atomic Tracker records gym, golf, and reading in your Obsidian vault. Everything stays as markdown. Nothing is sent over the network.
+1. Open today’s note.
+2. Log the session from the blocks on that note.
+3. Read the cue cards and the book shelf that day produced.
 
-Open today’s note, use the blocks on it, then look at the cue cards and book shelf that day produced.
+Atomic Tracker records gym, golf, and reading in your Obsidian vault. Everything stays as markdown. Nothing is sent over the network.
 
 ---
 
@@ -25,13 +27,15 @@ Open today’s note, use the blocks on it, then look at the cue cards and book s
 
 ## Open today’s note
 
-Command palette → **Create today's daily note**. Atomic writes today’s note at the Daily Notes **New file location** (vault root if unset), using the Daily Notes date format (`YYYY-MM-DD` if unset). The note has the book shelf, habit buttons, heatmaps, and today’s sessions. Atomic then opens it.
+1. Command palette → **Create today's daily note**.
+2. Check the book shelf, the habit buttons, the year of heatmaps, and today’s sessions.
+3. Press a habit button to create **today’s session note** (gym or golf) or a **reading item**.
+
+Atomic writes today’s note at the Daily Notes **New file location** (vault root if unset), using the Daily Notes date format (`YYYY-MM-DD` if unset).
 
 To reuse that layout every day, run **Create daily note template**. That writes the Daily Notes **Template file location** if set; otherwise `Atomic daily note.md` in the Templates folder, or the vault root when that folder is unset (Obsidian `{{date}}` tokens). Setup is in [examples/README.md](../examples/README.md#use-the-daily-note-template). You can still copy [`examples/daily-notes/2026-08-11.md`](../examples/daily-notes/2026-08-11.md) if you want a filled sample.
 
-Open **today’s daily note**. You should see a book shelf, buttons for each habit, a year of heatmaps, and today’s sessions.
-
-Turn on **Gym**, **Golf**, and **Reading** under **Settings → Atomic Tracker** if those buttons are missing. One color picker per habit sets the heatmap shades.
+Turn on **Gym**, **Golf**, and **Reading** under **Settings → Atomic Tracker** if those buttons are missing. One color picker per habit sets the four heatmap shades.
 
 ![Atomic Tracker settings](./images/07-settings-atomic.gif)
 
@@ -60,27 +64,43 @@ columns: 2
 ```
 ````
 
-Press a habit button. Atomic creates **today’s session note** (gym or golf) or a **reading item**. The session note is where the timer, gym set log, and cue form live.
-
 ![Quick actions](./images/atomic-actions.gif)
 
 ---
 
 ## Heatmap
 
-The year grid on today’s note fills in as you log time. Darker cells are more minutes.
+1. Stop a timer. The year of dots on today’s note fills in.
+2. Darker dots are more minutes. Point at a dot to read that day. Today is the ring.
+3. Click a filled dot to open that session.
 
 ![Year heatmap](./images/atomic-heatmap.gif)
 
-`atomic-today` lists the gym and golf notes for this date. Click a row to open that session.
+`atomic-today` lists each habit for this date. Click a row that has a session to open that note.
 
 ![Today’s sessions](./images/atomic-today.gif)
 
 ---
 
+## Dashboard
+
+1. Command palette → **Open dashboard**, or open `atomics/Dashboard.md`.
+2. Step the year. Read the totals row, then one row per habit.
+3. Use the links for cue pages, Bases, and the book shelf. The monthly chart is under the rows.
+
+![Year dashboard](./images/atomic-dashboard.gif)
+
+---
+
 ## Timer
 
-On the gym or golf session note, press **Start** when you begin and **Stop** when you finish. Minutes are saved on that note and show up on the heatmap.
+Gym, golf, and reading notes share one timer well.
+
+1. Press **Start** when you begin.
+2. While it runs, the well shows **Running · since** and a clock.
+3. Press **Stop** to save the minutes. Press **Discard** to drop this run.
+
+On a gym or golf session note, **Stop** writes `duration_min`. Those minutes show on the heatmap.
 
 ![Session timer](./images/atomic-session-timer.gif)
 
@@ -88,7 +108,9 @@ On the gym or golf session note, press **Start** when you begin and **Stop** whe
 
 ## Gym log
 
-On the gym session note, pick an exercise, enter weight and reps, then click **Add set**. A row appears in the table. You do not type the table yourself.
+1. On the gym session note, open the exercise field and pick an exercise. Choose **New exercise…** if it is not listed.
+2. Enter weight and reps. Notes are optional.
+3. Click **Add set**. A row appears in the table. You do not type the table yourself.
 
 ![Gym set log](./images/atomic-gym-log.gif)
 
@@ -96,17 +118,23 @@ On the gym session note, pick an exercise, enter weight and reps, then click **A
 
 ## Cues
 
-On the same session note, type a short reminder and click **Add cue**. Atomic saves it on that note.
+1. On the same session note, type a short reminder.
+2. Click **Add cue**. Atomic saves it on that note.
+3. Open `{folder}/Cues.md` (for example `atomics/exercise/Gym/Cues.md`) to see the cards.
 
-![Add a cue](./images/atomic-cue-log.gif)
+Atomic creates that host when it is missing — when the plugin loads, when you open a dashboard **Cues** link, or when you run **Atomic Tracker: Create cues notes**. Existing hosts are left unchanged. A new host uses `atomic-cues` with `activity:` set to the exercise id.
 
-The year fan lives on `{folder}/Cues.md` (for example `atomics/exercise/Gym/Cues.md`). Atomic creates that host when it is missing — when the plugin loads, when you open a dashboard **Cues** link, or when you run **Atomic Tracker: Create cues notes**. Existing hosts are left unchanged. A new host uses `atomic-cues` with `activity:` set to the exercise id.
+![Cue cards](./images/atomic-cue-log.gif)
 
 ---
 
 ## Reading
 
-From today’s note, press **Reading** (or click a book on the shelf). On the book note, **Start** / **Stop** the timer. Stop asks for a short note. Those minutes fill the reading heatmap.
+1. From today’s note, press **Reading**, or click a book on the shelf.
+2. On the book note, press **Start**.
+3. Press **Stop**. Stop asks for a short note. **Discard** drops the run.
+
+Those minutes fill the reading heatmap. The idle well shows the saved total.
 
 ![Reading timer](./images/atomic-reading-timer.gif)
 
@@ -114,13 +142,20 @@ From today’s note, press **Reading** (or click a book on the shelf). On the bo
 
 ## Cue cards and the shelf
 
-Cues from today show up as cards. Hover a card on desktop to lift it. Click it (or tap on a phone) to enlarge it in the center. The card grows with the writing and scrolls if it is taller than the window. The rest of the fan blurs; the page does not dim. Click outside, press Esc, or click the large card again to put it back.
+1. Hover a card on desktop to lift it and show the date.
+2. Click it (or tap on a phone) to enlarge it in the center.
+3. Click outside, press Esc, or click the large card again to put it back.
+
+The card grows with the writing and scrolls if it is taller than the window. The rest of the page blurs. The page does not dim.
 
 ![Cue card hover lift](./images/atomic-cues-hover.gif)
 
 ![Cue card center enlarge](./images/atomic-cue-popup.gif)
 
-The shelf on today’s note is your books. Hover (or tap once on a phone) rolls a cover open. Click (or tap again) to open the book note.
+The shelf on today’s note is your books.
+
+1. Hover a cover (or tap once on a phone). The line under the shelf names the book.
+2. Click the cover (or tap again) to open the book note.
 
 ![Book shelf](./images/atomic-book-shelf.gif)
 

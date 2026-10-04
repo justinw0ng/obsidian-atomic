@@ -119,7 +119,11 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(updateNote, /new Notice\(/);
   assert.match(updateNote, /formatUpdateNoteNotice/);
   assert.match(updateNote, /updateNoteBodyForLanguage/);
-  assert.match(updateNote, /messageEl/);
+  assert.match(updateNote, /requireApiVersion\("1\.8\.7"\)/);
+  assert.match(
+    updateNote,
+    /if \(requireApiVersion\("1\.8\.7"\)\) \{\s*notice\.messageEl\.addClass/,
+  );
   assert.doesNotMatch(updateNote, /noticeEl/);
   assert.doesNotMatch(updateNote, /innerHTML/);
   assert.doesNotMatch(updateNote, /Modal/);
@@ -150,7 +154,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(cueCard, /syncExpanded/);
   assert.doesNotMatch(cueCard, /is-open/);
   assert.match(cueCard, /"atomic-cue-text"/);
-  assert.match(cueCard, /"atomic-cue-repeats"/);
+  assert.match(cueCard, /atomic-cue-meta/);
+  assert.match(cueCard, /atomic-cue-repeats/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
   assert.match(cueCard, /cueTextNeedsMarkdown/);
   assert.match(cueCard, /host\.component/);
@@ -227,6 +232,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(dashboard, /innerHTML/);
   const dashboardSections = src("src/views/dashboard-sections.ts");
   assert.match(dashboardSections, /"atomic-dashboard-monthly"/);
+  assert.match(dashboardSections, /"atomic-dashboard-month-col"/);
+  assert.match(dashboardSections, /stackedMonthPeak/);
   assert.match(dashboardSections, /"atomic-dashboard-muscles"/);
   assert.match(dashboardSections, /"atomic-dashboard-golf-focus"/);
   assert.match(dashboardSections, /"atomic-dashboard-recent"/);
@@ -292,7 +299,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /waitForNotice/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
-  assert.match(health, /而家可以用/);
+  assert.match(health, /書架/);
   assert.match(health, /atomic-dashboard-kpi/);
   assert.match(health, /atomic-dashboard-activity/);
   assert.match(health, /atomic-dashboard-year-prev/);
@@ -343,9 +350,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /:has\(/);
   assert.doesNotMatch(styles, /!important/);
   assert.doesNotMatch(styles, /scrollbar-width/);
-  // css-masks is only partial on Obsidian 1.4.5; fade with a ::after wash.
+  // css-masks, css-clip-path, and multicolumn are only partial on Obsidian 1.4.5.
   assert.doesNotMatch(styles, /-webkit-mask/);
   assert.doesNotMatch(styles, /(?:^|[^a-z-])mask(?:-|\s*:)/im);
+  assert.doesNotMatch(styles, /(?<![\w-])column-gap\s*:/);
+  assert.doesNotMatch(styles, /(?<![\w-])column-count\s*:/);
+  assert.doesNotMatch(styles, /(?<![\w-])columns\s*:/);
+  assert.doesNotMatch(styles, /clip-path\s*:/);
+  assert.match(styles, /border-width:\s*0 4px 6px/);
   assert.match(styles, /\.atomic-cue-body::after/);
   assert.match(styles, /--atomic-cue-wash/);
   assert.match(styles, /--atomic-cue-stock/);
@@ -371,10 +383,34 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
 });
 
-test("plugin source bans globalThis and deprecated Notice noticeEl", () => {
+test("plugin source bans globalThis, unguarded Notice DOM, and static style literals", () => {
   for (const file of pluginTsFiles()) {
     const text = readFileSync(file, "utf8");
     assert.doesNotMatch(text, /\bglobalThis\b/, `${file} uses globalThis`);
-    assert.doesNotMatch(text, /\bnoticeEl\b/, `${file} uses noticeEl`);
+    assert.doesNotMatch(
+      text,
+      /\.style\.setProperty\(\s*["'][^"']+["']\s*,\s*["']/,
+      `${file} sets a static style via setProperty`,
+    );
+    assert.doesNotMatch(
+      text,
+      /\.style\.[A-Za-z]+\s*=\s*["']/,
+      `${file} assigns a static style literal`,
+    );
+    assert.doesNotMatch(
+      text,
+      /\.setAttribute\(\s*["']style["']\s*,\s*["']/,
+      `${file} sets a static style attribute`,
+    );
+    assert.doesNotMatch(text, /\bnoticeEl\b/, `${file} uses deprecated noticeEl`);
+    const unguarded = text.replace(
+      /if \(requireApiVersion\("1\.8\.7"\)\) \{[\s\S]*?\n {2}\}/g,
+      "",
+    );
+    assert.doesNotMatch(
+      unguarded,
+      /\.messageEl\b/,
+      `${file} uses messageEl outside requireApiVersion("1.8.7")`,
+    );
   }
 });

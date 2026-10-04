@@ -52,9 +52,9 @@ test("resolveBookShelfScale reads scale or ratio and clamps", () => {
   assert.equal(resolveBookShelfScale({ scale: "abc" }), 1);
   assert.equal(resolveBookShelfScale({ scale: "0.1" }), 0.25);
   assert.equal(resolveBookShelfScale({ scale: "9" }), 4);
-  assert.deepEqual(scaledBookSize(1), { maxWidth: 80, minWidth: 56 });
-  assert.deepEqual(scaledBookSize(1.5), { maxWidth: 120, minWidth: 84 });
-  assert.deepEqual(scaledBookSize(0.5), { maxWidth: 40, minWidth: 28 });
+  assert.deepEqual(scaledBookSize(1), { maxWidth: 96, minWidth: 56 });
+  assert.deepEqual(scaledBookSize(1.5), { maxWidth: 144, minWidth: 84 });
+  assert.deepEqual(scaledBookSize(0.5), { maxWidth: 48, minWidth: 28 });
 });
 
 test("bookWidthForContainer keeps default size on wide panes", () => {
@@ -81,8 +81,8 @@ test("bookWidthForContainer floors at MIN_BOOK_WIDTH_PX on tiny panes", () => {
 
 test("bookWidthForContainer honors a scale ratio on wide panes", () => {
   const { maxWidth, minWidth } = scaledBookSize(1.5);
-  assert.equal(bookWidthForContainer(900, undefined, undefined, minWidth, maxWidth), 120);
-  assert.equal(bookHeightForWidth(120), 186);
+  assert.equal(bookWidthForContainer(900, undefined, undefined, minWidth, maxWidth), 144);
+  assert.equal(bookHeightForWidth(144), 225);
 });
 
 test("booksPerRow never wraps below three books", () => {
@@ -226,54 +226,27 @@ test("book shelf window resize listener is only a ResizeObserver fallback", () =
   );
 });
 
-test("flat mobile books do not paint a spine strip over the cover", () => {
-  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
-  assert.ok(hoverAt > 0);
-  const flat = styles.slice(0, hoverAt);
-  const hover = styles.slice(hoverAt);
-
-  assert.match(
-    flat,
-    /\.fitness-plugin \.atomic-book-spine\s*\{[^}]*display:\s*none/s,
-  );
-  assert.match(
-    hover,
-    /\.fitness-plugin \.atomic-book-spine\s*\{[^}]*display:\s*block/s,
-  );
-  assert.match(
-    hover,
-    /\.fitness-plugin \.atomic-book-spine\s*\{[^}]*rotateY\(90deg\)/s,
-  );
+test("flat books paint a cover crease and hang a reading ribbon", () => {
+  assert.match(styles, /\.atomic-book-ribbon::before/);
+  assert.match(styles, /border-width:\s*0 4px 6px/);
+  assert.doesNotMatch(styles, /clip-path\s*:/);
+  assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
+  assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
   assert.match(
     styles,
-    /\.atomic-book-cover-image\s*\{[^}]*position:\s*absolute/s,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
   );
 });
 
-test("cover-open animation is available without hover-fine pointers", () => {
+test("fine pointers tilt a book; touch uses a lift instead of a cover flip", () => {
   const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
   assert.ok(hoverAt > 0);
-  const flat = styles.slice(0, hoverAt);
-  assert.match(flat, /is-cover-open/);
-  assert.match(flat, /rotateY\(-155deg\)/);
-  assert.doesNotMatch(
-    flat,
-    /\.atomic-book:is\([^)]*:active/,
-  );
-  assert.doesNotMatch(
-    flat,
-    /\.atomic-book\.is-cover-open[^{]*:hover/,
-  );
-  const restingRow = flat.match(
-    /\.fitness-plugin \.atomic-book-row-books\s*\{[^}]+\}/,
-  );
-  assert.ok(restingRow);
-  assert.doesNotMatch(restingRow[0], /perspective/);
-  assert.doesNotMatch(flat, /\.is-opening/);
-  assert.match(
-    flat,
-    /\.atomic-book\.is-cover-open\s*\{[^}]*perspective:\s*1400px/s,
-  );
+  const hover = styles.slice(hoverAt, hoverAt + 800);
+  assert.match(hover, /perspective\(700px\)/);
+  assert.match(hover, /rotateY\(calc\(var\(--px\)/);
+  assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
+  assert.doesNotMatch(styles, /atomic-book-spine/);
 });
 
 test("cover images apply coverObjectPosition after load", () => {
@@ -421,9 +394,9 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
   assert.doesNotMatch(sheet.body, /min-height:\s*220px/);
   const flyBody = cssRule(
     styles,
-    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body",
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet .atomic-cue-body",
   );
-  assert.match(flyBody.body, /max-height:\s*none/);
+  assert.match(flyBody.body, /max-height:\s*calc\(/);
   assert.match(flyBody.body, /overflow-y:\s*auto/);
   assert.match(flyBody.body, /overflow-x:\s*hidden/);
   assert.doesNotMatch(flyBody.body, /overflow:\s*hidden/);
@@ -505,8 +478,8 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
     styles,
     /pre\.atomic-block-host[\s\S]*overflow-x:\s*hidden/,
   );
-  assert.match(styles, /--atomic-heatmap-cell:\s*11px/);
-  assert.match(styles, /--atomic-heatmap-week-pad:\s*1px/);
+  assert.match(styles, /--atomic-heatmap-cell:\s*10px/);
+  assert.match(styles, /--atomic-heatmap-week-pad:\s*0px/);
   assert.match(styles, /--atomic-heatmap-week-col:/);
   assert.match(
     styles,
@@ -524,7 +497,7 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
     styles,
     /\.fitness-plugin \.fitness-week\s*\{[^}]*padding:\s*var\(--atomic-heatmap-week-pad\)/s,
   );
-  assert.match(styles, /--atomic-book-width:\s*80px/);
+  assert.match(styles, /--atomic-book-width:\s*96px/);
   assert.match(
     styles,
     /\.fitness-plugin \.fitness-heatmap-body\s*\{[^}]*min-width:\s*0/s,
@@ -534,7 +507,7 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
     /\.fitness-plugin \.fitness-heatmap-scroll\s*\{[^}]*overflow-x:\s*auto/s,
   );
   assert.match(styles, /\.theme-dark[^{]*\.fitness-cell\.is-today/);
-  assert.match(styles, /\.fitness-cell\.is-today[^}]*#000/s);
+  assert.match(styles, /\.fitness-cell\.is-today[^}]*box-shadow/s);
   assert.match(styles, /\.fitness-weeks-end-pad\s*\{/);
   assert.match(
     styles,

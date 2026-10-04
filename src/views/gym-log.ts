@@ -36,7 +36,7 @@ export async function renderAtomicGymLog(
   el.empty();
   const language = plugin.settings.language;
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-gym-log",
+    cls: "fitness-plugin atomic-gym-log atomic-well",
     attr: { "data-testid": "atomic-gym-log" },
   });
   if (!sourcePath) {
@@ -55,9 +55,10 @@ export async function renderAtomicGymLog(
     });
   }
 
-  const form = root.createDiv({ cls: "atomic-gym-log-row" });
-  const select = addField(form, t("view.gymLog.exercise", language)).createEl("select", {
-    cls: "dropdown",
+  const form = root.createDiv({ cls: "atomic-gym-log-fields" });
+  const exerciseField = addField(form, t("view.gymLog.exercise", language));
+  const select = exerciseField.createEl("select", {
+    cls: "dropdown atomic-field-value",
     attr: {
       "data-testid": "atomic-gym-log-exercise",
       "aria-label": t("view.gymLog.exercise", language),
@@ -98,11 +99,11 @@ export async function renderAtomicGymLog(
     t("view.gymLog.weight", language),
     "atomic-gym-log-weight",
   );
-  const repsInput = addTextField(
-    form,
-    t("view.gymLog.reps", language),
-    "atomic-gym-log-reps",
-  );
+  weightInput.parentElement?.createSpan({
+    cls: "atomic-field-suffix",
+    text: t("view.dashboard.kgUnit", language),
+  });
+  const repsInput = addRepsStepper(form, t("view.gymLog.reps", language));
   const notesInput = addTextField(
     form,
     t("view.gymLog.notes", language),
@@ -110,12 +111,10 @@ export async function renderAtomicGymLog(
   );
   notesInput.setAttr("placeholder", t("view.gymLog.notes", language));
 
-  const actions = form.createDiv({ cls: "atomic-gym-log-field" });
-  actions.createEl("label", { text: "\u00a0" });
-  const addButton = actions.createEl("button", {
-    cls: "mod-cta",
+  const addButton = form.createEl("button", {
+    cls: "atomic-btn is-primary mod-cta",
     text: t("view.gymLog.add", language),
-    attr: { "data-testid": "atomic-gym-log-add" },
+    attr: { "data-testid": "atomic-gym-log-add", type: "button" },
   });
 
   select.addEventListener("change", () => {
@@ -200,9 +199,44 @@ export async function renderAtomicGymLog(
 }
 
 function addField(parent: HTMLElement, label: string): HTMLElement {
-  const field = parent.createDiv({ cls: "atomic-gym-log-field" });
-  field.createEl("label", { text: label });
+  const field = parent.createDiv({ cls: "atomic-field atomic-gym-log-field" });
+  const caption = field.createSpan({ cls: "atomic-field-label atomic-caption" });
+  caption.setText(label);
   return field;
+}
+
+function addRepsStepper(parent: HTMLElement, label: string): HTMLInputElement {
+  const field = parent.createDiv({ cls: "atomic-stepper is-tall atomic-gym-log-field" });
+  field.createSpan({ cls: "atomic-stepper-label atomic-caption", text: label });
+  const input = field.createEl("input", {
+    cls: "atomic-stepper-value",
+    attr: {
+      type: "text",
+      inputmode: "numeric",
+      "data-testid": "atomic-gym-log-reps",
+      "aria-label": label,
+    },
+  });
+  const step = (delta: number) => {
+    const current = Number.parseInt(input.value, 10);
+    const next = (Number.isFinite(current) ? current : 0) + delta;
+    input.value = String(Math.max(0, next));
+  };
+  const minus = field.createEl("button", {
+    text: "−",
+    cls: "atomic-btn",
+    attr: { type: "button", "aria-label": label },
+  });
+  minus.addEventListener("click", () => step(-1));
+  field.insertBefore(minus, input);
+  field
+    .createEl("button", {
+      text: "+",
+      cls: "atomic-btn",
+      attr: { type: "button", "aria-label": label },
+    })
+    .addEventListener("click", () => step(1));
+  return input;
 }
 
 function addTextField(
@@ -211,6 +245,7 @@ function addTextField(
   testId: string,
 ): HTMLInputElement {
   return addField(parent, label).createEl("input", {
+    cls: "atomic-field-value",
     attr: {
       type: "text",
       "data-testid": testId,

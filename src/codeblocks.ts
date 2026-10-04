@@ -160,6 +160,7 @@ export async function renderBlock(
           activityTypes,
           year,
           language,
+          tz,
         );
         break;
       }

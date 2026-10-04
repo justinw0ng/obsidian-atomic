@@ -2,7 +2,7 @@ import type { VaultDataSource } from "../data/vault-source";
 import { nowYear, resolveBlockYear, ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
-import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types";
+import type { ActivityType, DayActivity } from "../types";
 import { resolveHeatmapActivities } from "../util/heatmap-activities";
 import {
   effectiveHeatmapColumns,
@@ -105,10 +105,16 @@ function wireHeatmapScroll(
   });
 }
 
+function htmlElementFromTarget(target: EventTarget | null): HTMLElement | null {
+  if (target == null || !("instanceOf" in target)) return null;
+  const node = target as Node;
+  return node.instanceOf(HTMLElement) ? node : null;
+}
+
 function wireHeatmapCellClicks(weeksEl: HTMLElement, data: VaultDataSource): void {
   weeksEl.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
+    const target = htmlElementFromTarget(event.target);
+    if (!target) return;
     const cell = target.closest(".fitness-cell.is-link");
     const path = cell?.getAttribute("data-path");
     if (!path) return;
@@ -166,21 +172,12 @@ function renderOneHeatmap(
   });
   // Paint off-document so ~370 cell createDivs do not mutate the live tree.
   wrap.detach();
-  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
-
-  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
-  legend.createSpan({ text: t("view.heatmap.less", language) });
-  legend.createDiv({ cls: "fitness-legend-swatch" }).style.background =
-    EMPTY_CELL;
-  for (const c of activity.colors) {
-    const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
-    sw.style.background = c;
-  }
-  legend.createSpan({ text: t("view.heatmap.more", language) });
-  legend.createSpan({
-    text: t("view.heatmap.byDuration", language),
-    attr: { style: "margin-left:8px" },
-  });
+  wrap.style.setProperty("--atomic-c", activity.colors[2]);
+  const head = wrap.createDiv({ cls: "atomic-heat-head" });
+  const title = head.createSpan({ cls: "atomic-name" });
+  title.createSpan({ cls: "atomic-dot" });
+  title.createSpan({ text: activity.label });
+  head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
 
   const weeks = buildHeatmapWeeks({
     year,
@@ -213,8 +210,61 @@ function renderOneHeatmap(
     t("view.heatmap.tooltipOpen", language),
   );
   wireHeatmapCellClicks(weeksEl, data);
+  wireHeatmapReadout(wrap, language);
   wireHeatmapScroll(scroll, registry);
+
+  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend atomic-heat-legend" });
+  legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.less", language) });
+  legend.createDiv({ cls: "fitness-legend-swatch fitness-cell", attr: { "data-l": "0" } });
+  activity.colors.forEach((_, level) => {
+    legend.createDiv({
+      cls: "fitness-legend-swatch fitness-cell",
+      attr: { "data-l": String(level + 1) },
+    });
+  });
+  legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.more", language) });
+  legend.createSpan({
+    cls: "atomic-caption",
+    text: t("view.heatmap.byDuration", language),
+  });
   root.appendChild(wrap);
+}
+
+function wireHeatmapReadout(wrap: HTMLElement, language: Language): void {
+  const readout = wrap.querySelector(".atomic-heat-readout");
+  if (!readout?.instanceOf(HTMLElement)) return;
+  const cells = Array.from(
+    wrap.querySelectorAll(".fitness-cell.is-link, .fitness-cell[data-minutes]"),
+  );
+  let days = 0;
+  let minutes = 0;
+  for (const cell of cells) {
+    if (!cell.instanceOf(HTMLElement)) continue;
+    if (cell.classList.contains("fitness-legend-swatch")) continue;
+    const value = Number(cell.getAttribute("data-minutes") || "0");
+    if (value > 0) {
+      days += 1;
+      minutes += value;
+    }
+  }
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  const summary =
+    hours > 0
+      ? t("view.heatmap.summaryHours", language, { days, hours, minutes: rest })
+      : t("view.heatmap.summary", language, { days, minutes });
+  readout.setText(summary);
+  wrap.addEventListener("pointerover", (event) => {
+    const target = htmlElementFromTarget(event.target);
+    if (!target) return;
+    const cell = target.closest(".fitness-cell");
+    if (!cell?.instanceOf(HTMLElement) || cell.classList.contains("fitness-legend-swatch")) return;
+    const title = cell.getAttribute("title");
+    if (title) readout.setText(title);
+  });
+  wrap.addEventListener("pointerleave", () => {
+    readout.setText(summary);
+  });
 }
 
 function wireHeatmapGrid(

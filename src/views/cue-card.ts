@@ -60,7 +60,11 @@ export async function appendCueCard(
   });
 
   const sheet = el.createDiv({ cls: "atomic-cue-sheet" });
-  const body = sheet.createDiv({ cls: "atomic-cue-body" });
+  const meta = sheet.createDiv({ cls: "atomic-cue-meta" });
+  if (card.lastSeen) {
+    meta.setText(card.focus ? `${card.lastSeen} · ${card.focus}` : card.lastSeen);
+  }
+  const body = sheet.createDiv({ cls: "atomic-cue-body atomic-scrollport" });
   const text = body.createDiv({ cls: "atomic-cue-text" });
   if (cueTextNeedsMarkdown(card.text)) {
     await MarkdownRenderer.render(
@@ -77,20 +81,11 @@ export async function appendCueCard(
   }
 
   const count = card.count ?? 0;
-  if (card.lastSeen || count > 1) {
-    const meta = sheet.createDiv({ cls: "atomic-cue-meta" });
-    if (card.lastSeen) {
-      meta.createSpan({
-        cls: "atomic-cue-date",
-        text: card.focus ? `${card.lastSeen} · ${card.focus}` : card.lastSeen,
-      });
-    }
-    if (count > 1) {
-      meta.createSpan({
-        cls: "atomic-cue-repeats",
-        text: t("view.cues.repeats", language, { count }),
-      });
-    }
+  if (count > 1) {
+    el.createSpan({
+      cls: "atomic-cue-tab atomic-cue-repeats",
+      text: t("view.cues.repeats", language, { count }),
+    });
   }
 
   return el;

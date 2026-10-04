@@ -39,13 +39,13 @@ Stop and fix before the next phase if any of these fail.
 1. Domain logic imports `obsidian`. Move it to a pure module.
 2. A user-visible control has no stable `data-testid`. Add the hook and the Selenium assertion together.
 3. Live DOM is built with `innerHTML`, `outerHTML`, or `insertAdjacentHTML`. Paint with `createDiv` / `createEl`.
-4. `styles.css` uses `:has(`, `!important`, `scrollbar-width`, or CSS masks (`mask`, `-webkit-mask`, `mask-image`). Replace them.
+4. `styles.css` uses `:has(`, `!important`, `scrollbar-width`, CSS masks (`mask`, `-webkit-mask`, `mask-image`), `clip-path`, or multicolumn (`column-gap`, `column-count`, `columns`). Replace them. Grid and flex spacing uses `gap`.
 5. A vault path from settings or user input is not validated. Run it through `normalizePath` and a folder-safety helper.
 6. `npm test`, `npm run typecheck`, or `npm run build` fails.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
 8. Release tag is `v1.2.3` or assets omit `main.js` / `manifest.json`.
 9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear has not run on the diff vs the default branch, or security-audit has not run on that diff, or REQUEST CHANGES / risk items / confirmed security-audit findings are still open with no fix or written rationale.
-10. Plugin source uses `globalThis`, Notice `noticeEl`, raw core-plugin `any`, or unused `*Covered` aliases. Follow [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md).
+10. Plugin source uses `globalThis`, an Obsidian API newer than `minAppVersion` without `requireApiVersion` (`obsidianmd/no-unsupported-api`), a static `element.style` literal (`obsidianmd/no-static-styles-assignment`), raw core-plugin `any`, unused `*Covered` aliases, or deprecated `noticeEl` (`@typescript-eslint/no-deprecated`). Follow [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md). `Notice.messageEl` is 1.8.7: guard it. `new Notice(message)` is the 1.5.0 path. Do not use `noticeEl`.
 
 Computer-use is not the health check. `npm run test:e2e` is. Use computer-use only after Selenium fails and you have screenshots under the e2e artifact dir.
 
@@ -106,7 +106,7 @@ Rules:
 - Feature-detect APIs newer than `minAppVersion`. Atomic keeps `minAppVersion` at `1.5.0`, implements `display()` and `getSettingDefinitions()`, and does not call `setWarning` / `setDestructive`.
 - DOM type checks: use Obsidian's `node.instanceOf(Element)` (or `HTMLElement`, `HTMLInputElement`, …). Do not use `instanceof Element` — it fails across windows/iframes.
 - Do not add TypeScript assertions that do not change the type (`@typescript-eslint/no-unnecessary-type-assertion`). If `includes` already accepts `string`, drop `as readonly string[]`.
-- Window APIs, Notice DOM, core-plugin `any`, unused type aliases: [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md). Use `activeWindow` (not `globalThis`), Notice `messageEl` (not `noticeEl`), the typed-cast pattern in `src/util/core-plugin-options.ts`, and delete unused `*Covered` aliases.
+- Window APIs, Notice DOM, static styles, partial CSS, core-plugin `any`, unused type aliases: [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md). Use `activeWindow` (not `globalThis`). Use Notice `messageEl` only inside `requireApiVersion("1.8.7")`. Do not use deprecated `noticeEl`. Do not assign style literals; put constants in CSS and use `setCssProps` for runtime custom properties. Do not use `column-gap`, `clip-path`, or CSS masks. Use the typed-cast pattern in `src/util/core-plugin-options.ts`, and delete unused `*Covered` aliases.
 
 UI copy is sentence case. No default command hotkeys. No `console.log` in shipped code.
 
@@ -136,7 +136,7 @@ Details, selectors, vault seeding, skip rules, and docs/hero screenshots: [verif
 
 ## 4. Keep the review linter green
 
-Directory review is an automated gate, not a later cleanup. Encode the rules as tests the way Atomic does in `tests/e2e-selectors.test.mjs` (hooks present, `innerHTML` absent, CSS bans, `globalThis` / `noticeEl` absent from `src/`). See [plugin-review.md](references/plugin-review.md) and [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md).
+Directory review is an automated gate, not a later cleanup. Encode the rules as tests the way Atomic does in `tests/e2e-selectors.test.mjs` (hooks present, `innerHTML` absent, CSS bans, `globalThis` absent, `messageEl` guarded). See [plugin-review.md](references/plugin-review.md) and [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md).
 
 Re-read [Plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines) when a review comment appears. Fix the root cause, bump a patch, cut a new GitHub release. Editing the listing description does not re-run asset checks.
 

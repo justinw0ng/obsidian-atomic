@@ -89,35 +89,17 @@ def load_compose():
     return module
 
 
-def locate_shelf_books(
-    image: Image.Image,
-    region: tuple[int, int, int, int] | None = None,
-) -> list[BookRect]:
-    width, height = image.size
-    pixels = image.load()
-    if region is None:
-        if width == 1600 and height == 900:
-            left, top, right, bottom = HERO_SEARCH
-        else:
-            left, top, right, bottom = 0, int(height * 0.08), width, int(height * 0.40)
-    else:
-        left, top, right, bottom = region
-
-    best_y = top
-    best = 0
-    for y in range(top, min(bottom, height)):
-        count = 0
-        for x in range(left, min(right, width), 2):
-            if painted(pixels[x, y]):
-                count += 1
-        if count > best:
-            best = count
-            best_y = y
-
+def horizontal_runs(
+    pixels: object,
+    y: int,
+    left: int,
+    right: int,
+    width: int,
+) -> list[tuple[int, int]]:
     runs: list[tuple[int, int]] = []
     run: list[int] | None = None
     for x in range(left, min(right, width)):
-        gap = not painted(pixels[x, best_y])
+        gap = not painted(pixels[x, y])
         if not gap:
             if run is None:
                 run = [x, x]
@@ -129,7 +111,16 @@ def locate_shelf_books(
         run = None
     if run is not None and run[1] - run[0] >= 20:
         runs.append((run[0], run[1]))
+    return runs
 
+
+def books_from_runs(
+    pixels: object,
+    runs: list[tuple[int, int]],
+    best_y: int,
+    width: int,
+    height: int,
+) -> list[BookRect]:
     def is_book_row(cx: int, y: int) -> bool:
         hit = 0
         total = 0
@@ -153,16 +144,67 @@ def locate_shelf_books(
             y += 1
         bottom_y = y - 1
         books.append(BookRect(x0, top_y, x1, bottom_y))
+    return books
 
-    tall = [book.height for book in books if book.height >= 40]
+
+def filter_full_height(books: list[BookRect]) -> list[BookRect]:
+    tall = [book for book in books if book.height >= 40 and book.width >= 48]
     if not tall:
         raise RuntimeError("could not locate bookshelf covers")
-    tall.sort()
-    median = tall[len(tall) // 2]
-    filtered = [book for book in books if book.height >= int(median * 0.6)]
+    heights = sorted(book.height for book in tall)
+    widths = sorted(book.width for book in tall)
+    median_h = heights[len(heights) // 2]
+    median_w = widths[len(widths) // 2]
+    filtered = [
+        book
+        for book in tall
+        if book.height >= int(median_h * 0.6) and book.width >= int(median_w * 0.75)
+    ]
     if not filtered:
         raise RuntimeError("could not locate a full-height rightmost book")
     return filtered
+
+
+def locate_shelf_books(
+    image: Image.Image,
+    region: tuple[int, int, int, int] | None = None,
+) -> list[BookRect]:
+    width, height = image.size
+    pixels = image.load()
+    if region is None:
+        if width == 1600 and height == 900:
+            left, top, right, bottom = HERO_SEARCH
+        else:
+            left, top, right, bottom = 0, int(height * 0.08), width, int(height * 0.40)
+    else:
+        left, top, right, bottom = region
+
+    # Cover rows have several separated spines. A shelf plank is one solid bar.
+    best_runs: list[tuple[int, int]] = []
+    best_y = top
+    best_count = 0
+    for y in range(top, min(bottom, height)):
+        runs = horizontal_runs(pixels, y, left, right, width)
+        bookish = [run for run in runs if 68 <= (run[1] - run[0]) <= 160]
+        if len(bookish) > best_count:
+            best_count = len(bookish)
+            best_y = y
+            best_runs = bookish
+    if best_count >= 3:
+        return filter_full_height(books_from_runs(pixels, best_runs, best_y, width, height))
+
+    best_y = top
+    best = 0
+    for y in range(top, min(bottom, height)):
+        count = 0
+        for x in range(left, min(right, width), 2):
+            if painted(pixels[x, y]):
+                count += 1
+        if count > best:
+            best = count
+            best_y = y
+    runs = horizontal_runs(pixels, best_y, left, right, width)
+    return filter_full_height(books_from_runs(pixels, runs, best_y, width, height))
 
 
 def rightmost_book(books: list[BookRect]) -> BookRect:

@@ -10,7 +10,10 @@ export function renderActions(el: HTMLElement, plugin: FitnessPlugin): void {
   });
 
   for (const activity of actionActivities(plugin.settings.activityTypes)) {
-    const button = wrap.createEl("button", { text: activity.label });
+    const button = wrap.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
+    const dot = button.createSpan({ cls: "atomic-dot" });
+    dot.style.setProperty("--atomic-c", activity.colors[2]);
+    button.createSpan({ text: activity.label });
     button.addEventListener("click", () => {
       if (activity.domain === "hobby" && activity.noteModel === "item") {
         void plugin.createHobbyItem(activity);

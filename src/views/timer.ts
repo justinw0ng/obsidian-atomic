@@ -1,4 +1,5 @@
 import { Notice } from "obsidian";
+import { appendCatalogLabel } from "./catalog-label";
 import type FitnessPlugin from "../main";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
@@ -27,6 +28,36 @@ async function modifyCurrentNote(
   return true;
 }
 
+const timerClocks = new WeakMap<HTMLElement, number>();
+
+function stopTimerClock(el: HTMLElement): void {
+  const id = timerClocks.get(el);
+  if (id == null) return;
+  window.clearInterval(id);
+  timerClocks.delete(el);
+}
+
+function localClock(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function elapsedClock(iso: string, now = Date.now()): string {
+  const started = new Date(iso).getTime();
+  if (Number.isNaN(started)) return "00:00";
+  const total = Math.max(0, Math.floor((now - started) / 1000));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return hours > 0
+    ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
+}
+
 function paintTimer(
   plugin: FitnessPlugin,
   el: HTMLElement,
@@ -49,9 +80,10 @@ export async function renderAtomicTimer(
     return;
   }
 
+  stopTimerClock(el);
   el.empty();
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-timer",
+    cls: "fitness-plugin atomic-timer atomic-well",
     attr: { "data-testid": "atomic-timer" },
   });
   if (!sourcePath) {
@@ -63,29 +95,40 @@ export async function renderAtomicTimer(
   }
 
   const frontmatter = readTimerFrontmatter(markdown);
+  const language = plugin.settings.language;
   const totalKey =
     frontmatter.persistMode === "session"
       ? "view.timer.duration"
       : "view.timer.total";
-  root.createEl("p", {
-    text: t(totalKey, plugin.settings.language, {
-      minutes: displayedTimerMinutes(frontmatter),
-    }),
-    cls: "atomic-timer-total",
-  });
-
+  const minutes = displayedTimerMinutes(frontmatter);
+  const head = root.createDiv({ cls: "atomic-timer-head" });
+  const caption = head.createDiv({ cls: "atomic-timer-caption atomic-caption" });
+  const total = head.createDiv({ cls: "atomic-readout atomic-timer-total" });
+  appendCatalogLabel(total, t(totalKey, language, { minutes }));
+  const clock = root.createDiv({ cls: "atomic-timer-clock" });
   const actions = root.createDiv({ cls: "fitness-actions atomic-timer-actions" });
   if (frontmatter.timerStartedAt) {
-    root.createEl("p", {
-      cls: "atomic-timer-running",
-      text: t("view.timer.runningSince", plugin.settings.language, {
-        time: frontmatter.timerStartedAt,
-      }),
-    });
+    root.addClass("is-running");
+    const startedAt = frontmatter.timerStartedAt;
+    caption.createSpan({ cls: "atomic-pulse" });
+    appendCatalogLabel(
+      caption,
+      t("view.timer.runningSince", language, { time: localClock(startedAt) }),
+    );
+    clock.setText(elapsedClock(startedAt));
+    const tick = window.setInterval(() => {
+      if (!clock.isConnected) {
+        stopTimerClock(el);
+        return;
+      }
+      clock.setText(elapsedClock(startedAt));
+    }, 1000);
+    timerClocks.set(el, tick);
     actions
       .createEl("button", {
         text: t("view.timer.stop", plugin.settings.language),
-        attr: { "data-testid": "atomic-timer-stop" },
+        cls: "atomic-btn is-primary",
+        attr: { "data-testid": "atomic-timer-stop", type: "button" },
       })
       .addEventListener("click", () => {
         void (async () => {
@@ -157,16 +200,9 @@ export async function renderAtomicTimer(
       });
     actions
       .createEl("button", {
-        text: t("view.timer.resume", plugin.settings.language),
-        attr: { "data-testid": "atomic-timer-resume" },
-      })
-      .addEventListener("click", () => {
-        new Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
-      });
-    actions
-      .createEl("button", {
         text: t("view.timer.discard", plugin.settings.language),
-        attr: { "data-testid": "atomic-timer-discard" },
+        cls: "atomic-btn is-quiet",
+        attr: { "data-testid": "atomic-timer-discard", type: "button" },
       })
       .addEventListener("click", () => {
         void (async () => {
@@ -179,10 +215,14 @@ export async function renderAtomicTimer(
     return;
   }
 
+  appendCatalogLabel(caption, t("view.timer.caption", language));
+  clock.appendText(String(minutes));
+  clock.createSpan({ cls: "atomic-unit", text: t("view.timer.minuteUnit", language) });
   actions
     .createEl("button", {
       text: t("view.timer.start", plugin.settings.language),
-      attr: { "data-testid": "atomic-timer-start" },
+      cls: "atomic-btn is-primary",
+      attr: { "data-testid": "atomic-timer-start", type: "button" },
     })
     .addEventListener("click", () => {
       void (async () => {

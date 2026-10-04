@@ -166,17 +166,14 @@ test("bundled update notes catalog is bilingual", () => {
   assert.equal(disk.body["zh-Hant"], bodies["zh-Hant"]);
   assert.equal(UPDATE_NOTE.body.en, bodies.en);
   assert.equal(UPDATE_NOTE.body["zh-Hant"], bodies["zh-Hant"]);
-  assert.match(bodies.en, /command palette/i);
-  assert.match(bodies.en, /daily notes/);
-  assert.match(bodies.en, /templates/);
-  assert.doesNotMatch(
-    bodies.en,
-    /What's new note once|New installs|Demo examples|Start \/ Stop|card layout|index cards|Performance improvements|cue card|enlarge|heatmaps|hardcoded|Daily Notes|fewer vault reads|short toast|scrollbars/,
-  );
-  assert.match(bodies["zh-Hant"], /command palette/i);
-  assert.match(bodies["zh-Hant"], /create daily note/);
-  assert.match(bodies["zh-Hant"], /template/);
-  assert.doesNotMatch(bodies["zh-Hant"], /更新說明|新安裝|示範例子|開始／停止|卡片式排版|而家用卡片嚟排|效能提升|少咗讀 vault|索引卡|用起嚟更順咗|cue card|中間彈大|Heat Map|寫死|Daily Notes|整/);
+  assert.match(bodies.en, /dashboard/i);
+  assert.match(bodies.en, /book shelf/);
+  assert.match(bodies.en, /cue cards/);
+  assert.doesNotMatch(bodies.en, /command palette|daily notes|templates/);
+  assert.match(bodies["zh-Hant"], /Dashboard/);
+  assert.match(bodies["zh-Hant"], /書架/);
+  assert.match(bodies["zh-Hant"], /cue card/);
+  assert.doesNotMatch(bodies["zh-Hant"], /command palette|create daily note|template/);
 });
 
 test("requiredUpdateNoteBodies rejects a blank or mismatched note", () => {

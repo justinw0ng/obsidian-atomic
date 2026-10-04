@@ -61,7 +61,7 @@ Typecheck is a separate `tsc --noEmit`. Production `npm run build` in Atomic is 
 
 `isDesktopOnly: false` unless you call Node or Electron APIs. Avoid lookbehind in regexes if you claim mobile support.
 
-Call APIs introduced after `minAppVersion` only behind a feature detect, and keep a fallback that still works on `minAppVersion`. Atomic's settings tab implements both `display()` (pre-1.13) and `getSettingDefinitions()` (1.13 settings search). It does not call `setWarning` or `setDestructive`.
+Call APIs introduced after `minAppVersion` only behind `requireApiVersion`, and keep a fallback that still works on `minAppVersion` (`obsidianmd/no-unsupported-api`). Atomic's settings tab implements both `display()` (pre-1.13) and `getSettingDefinitions()` (1.13 settings search). It does not call `setWarning` or `setDestructive`. What's new uses `Notice.messageEl` only when `requireApiVersion("1.8.7")` is true. Do not use deprecated `noticeEl`. Details: [obsidian-api-hygiene.md](obsidian-api-hygiene.md).
 
 ## Privacy
 

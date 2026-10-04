@@ -1,17 +1,50 @@
+/*
+  Atomic Tracker 1.5.0. Notes stay the desk. Data is paper (rules, no boxes).
+  Controls sit in a well. Cue cards and books are the objects. One glass
+  read-out floats above a cue.
+*/
+
 .fitness-plugin {
-  --atomic-heatmap-cell: 11px;
-  --atomic-heatmap-gap: 1px;
-  --atomic-heatmap-week-pad: 1px;
+  --atomic-heatmap-cell: 10px;
+  --atomic-heatmap-gap: 3px;
+  --atomic-heatmap-week-pad: 0px;
   --atomic-heatmap-week-col: calc(
     var(--atomic-heatmap-cell) + 2 * var(--atomic-heatmap-week-pad)
   );
-  --atomic-heatmap-day-label: 22px;
-  --atomic-book-width: 80px;
-  --atomic-book-height: 124px;
-  --atomic-book-gap: 6px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --atomic-heatmap-day-label: 16px;
+  --atomic-book-width: 96px;
+  --atomic-book-height: 150px;
+  --atomic-book-gap: 12px;
+  --atomic-font: var(--font-interface);
+  --atomic-mono: var(--font-monospace);
+  --atomic-ink: var(--text-normal);
+  --atomic-ink-2: var(--text-muted);
+  --atomic-paper: var(--background-primary);
+  --atomic-rule: color-mix(in srgb, var(--text-normal) 11%, transparent);
+  --atomic-rule-strong: color-mix(in srgb, var(--text-normal) 22%, transparent);
+  --atomic-fill-1: color-mix(in srgb, var(--text-normal) 4.5%, transparent);
+  --atomic-fill-2: color-mix(in srgb, var(--text-normal) 8%, transparent);
+  --atomic-fill-3: color-mix(in srgb, var(--text-normal) 13%, transparent);
+  --atomic-empty: color-mix(in srgb, var(--text-normal) 7%, transparent);
+  --atomic-future: color-mix(in srgb, var(--text-normal) 3.5%, transparent);
+  --atomic-focus: var(--interactive-accent);
+  --atomic-link-hover: var(--text-accent);
+  --atomic-r-object: 3px;
+  --atomic-r-control: 9px;
+  --atomic-r-well: 14px;
+  --atomic-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --atomic-t-press: 120ms;
+  --atomic-t-hover: 240ms;
+  --atomic-t-move: 560ms;
+  --atomic-stagger: 30ms;
+  --atomic-c: var(--text-muted);
+  font-family: var(--atomic-font);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--atomic-ink);
   max-width: 100%;
   min-width: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 .fitness-plugin.atomic-block-pending {
@@ -97,7 +130,7 @@
 }
 
 .fitness-plugin .fitness-heatmap {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", monospace;
+  font-family: var(--font-interface);
   margin-bottom: 18px;
   width: 100%;
   max-width: 100%;
@@ -107,14 +140,16 @@
 
 .fitness-plugin .fitness-heatmap-title {
   margin: 0 0 8px 0;
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .fitness-plugin .fitness-heatmap-legend {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-top: 10px;
+  font-family: var(--font-monospace);
   font-size: 11px;
   color: var(--text-muted);
 }
@@ -128,22 +163,8 @@
   flex-shrink: 0;
 }
 
-.fitness-plugin .fitness-legend-swatch {
-  border: 1px solid var(--background-modifier-border);
-}
-
 .fitness-plugin .fitness-cell {
-  border: 1px solid var(--background-modifier-border);
-}
-
-/* Ring sits on the cell (same outer size). Black in light, white in dark. */
-.fitness-plugin .fitness-cell.is-today {
-  border: 1.5px solid #000;
-  box-shadow: none;
-}
-
-.theme-dark .fitness-plugin .fitness-cell.is-today {
-  border-color: #fff;
+  border: none;
 }
 
 .fitness-plugin .fitness-cell.is-faded {
@@ -154,9 +175,6 @@
   cursor: pointer;
 }
 
-.fitness-plugin .fitness-cell.is-link:hover {
-  outline: 1px solid var(--interactive-accent);
-}
 
 .fitness-plugin .fitness-month-row {
   display: flex;
@@ -232,1239 +250,2296 @@
   padding: var(--atomic-heatmap-week-pad);
 }
 
-.fitness-plugin .fitness-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin: 4px 0 10px;
-}
+/* ------------------------------------------------------------- type roles */
 
-.fitness-plugin .fitness-actions button {
-  cursor: pointer;
-  padding: 4px 10px;
-  font-size: var(--font-ui-small, 13px);
-  border-radius: 6px;
-  border: 1px solid var(--background-modifier-border);
-  background: var(--interactive-normal);
-  color: var(--text-normal);
-}
-
-.fitness-plugin .fitness-actions button:hover {
-  background: var(--interactive-hover);
-}
-
-/* ---- atomic-dashboard ---- */
-
-.fitness-plugin.atomic-dashboard {
-  --atomic-dash-gap: 14px;
-  --atomic-dash-radius: 12px;
-  --atomic-dash-accent: var(--interactive-accent);
-  display: grid;
-  gap: var(--atomic-dash-gap);
-  font-size: 14px;
-  margin: 8px 0;
-}
-
-.fitness-plugin.atomic-dashboard h2,
-.fitness-plugin.atomic-dashboard h3,
-.fitness-plugin.atomic-dashboard h4 {
-  margin: 0;
-}
-
-.fitness-plugin .atomic-dash-card {
-  position: relative;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: var(--atomic-dash-radius);
-  background: var(--background-primary);
-  padding: 14px 16px;
-  min-width: 0;
-}
-
-.fitness-plugin .atomic-dash-meta {
-  color: var(--text-faint);
-  font-size: var(--font-ui-smaller, 12px);
-}
-
-.fitness-plugin .atomic-dash-empty {
-  color: var(--text-muted);
-  font-style: italic;
-  font-size: var(--font-ui-small, 13px);
-}
-
-.fitness-plugin a.atomic-dash-link {
-  color: var(--link-color);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.fitness-plugin a.atomic-dash-link:hover {
-  text-decoration: underline;
-}
-
-.fitness-plugin .atomic-dash-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--atomic-dash-accent);
-  flex: 0 0 auto;
-}
-
-.fitness-plugin .atomic-dash-swatch {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
-  border-radius: 2px;
-  margin-right: 5px;
-  vertical-align: -1px;
-}
-
-/* Header */
-
-.fitness-plugin .atomic-dash-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-}
-
-.fitness-plugin .atomic-dash-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px;
-  flex: 1 1 auto;
-}
-
-.fitness-plugin .atomic-dash-title h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.fitness-plugin .atomic-dash-subtitle {
-  color: var(--text-muted);
-  font-size: var(--font-ui-small, 13px);
-}
-
-.fitness-plugin .atomic-dash-year {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 999px;
-  padding: 2px;
-}
-
-.fitness-plugin .atomic-dash-year button {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border-radius: 50%;
-  font: inherit;
-}
-
-.fitness-plugin .atomic-dash-year button:hover {
-  background: var(--background-modifier-hover);
-  color: var(--text-normal);
-}
-
-.fitness-plugin .atomic-dash-year span {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  padding: 0 4px;
-}
-
-.fitness-plugin .atomic-dash-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.fitness-plugin a.atomic-dash-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 999px;
-  padding: 4px 11px;
-  font-size: var(--font-ui-small, 13px);
-  color: var(--text-normal);
-  background: var(--background-primary);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.fitness-plugin a.atomic-dash-chip:hover {
-  background: var(--background-modifier-hover);
-  text-decoration: none;
-}
-
-/* KPI cards */
-
-.fitness-plugin .atomic-dash-kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: var(--atomic-dash-gap);
-}
-
-.fitness-plugin .atomic-dash-kpi-label {
-  color: var(--text-muted);
-  font-size: var(--font-ui-small, 13px);
-}
-
-.fitness-plugin .atomic-dash-kpi-value {
-  font-size: 1.7rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  margin-top: 6px;
-}
-
-.fitness-plugin .atomic-dash-kpi-value small {
-  font-size: 0.85rem;
+.fitness-plugin .atomic-caption {
+  font-size: 12px;
+  line-height: 16px;
   font-weight: 500;
-  color: var(--text-muted);
-  margin-left: 4px;
+  letter-spacing: 0.01em;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-readout {
+  font-family: var(--atomic-mono);
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--atomic-ink-2);
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+  transition: color var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-readout.is-live {
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-hint {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-num {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.fitness-plugin .atomic-unit {
+  font-weight: 500;
+  color: var(--atomic-ink-2);
   letter-spacing: 0;
 }
 
-.fitness-plugin .atomic-dash-kpi-hint {
-  color: var(--text-faint);
-  font-size: var(--font-ui-smaller, 12px);
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.fitness-plugin .atomic-dash-spark {
+/*
+  Bilingual labels (zh-Hant-en): English line, then the Chinese line,
+  muted. Units and inline phrases join with a space, never a slash.
+*/
+.fitness-plugin .atomic-label {
   display: inline-flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 18px;
-  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 1px;
 }
 
-/* Bars: one element, three size families (KPI spark, card month, monthly column). */
-
-.fitness-plugin .atomic-dash-bar {
-  display: block;
-  min-height: 2px;
-  border-radius: 2px 2px 0 0;
-}
-
-.fitness-plugin .atomic-dash-bar.is-spark {
-  width: 4px;
-  border-radius: 1px;
-  background: var(--text-faint);
-  opacity: 0.7;
-}
-
-.fitness-plugin .atomic-dash-bar.is-month {
-  opacity: 0.85;
-}
-
-.fitness-plugin .atomic-dash-bar.is-column {
-  width: 100%;
-  max-width: 14px;
-  border-radius: 3px 3px 0 0;
-}
-
-/* Zero months stay flat: a 2px baseline stub, never a bar. */
-.fitness-plugin .atomic-dash-bar.is-zero {
-  background: var(--background-modifier-border);
-  opacity: 1;
-  height: 2px;
-}
-
-/* Section titles */
-
-.fitness-plugin .atomic-dash-section-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 6px 0 -4px;
-}
-
-.fitness-plugin .atomic-dash-section-title h3 {
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* Activity cards */
-
-.fitness-plugin .atomic-dash-activities {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--atomic-dash-gap);
-}
-
-.fitness-plugin .atomic-dash-activity {
-  display: grid;
-  gap: 12px;
-}
-
-.fitness-plugin .atomic-dash-activity::before {
-  content: "";
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 0;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--atomic-dash-accent);
-}
-
-.fitness-plugin .atomic-dash-activity-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.fitness-plugin .atomic-dash-activity-head h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  flex: 1;
-  min-width: 0;
-}
-
-.fitness-plugin .atomic-dash-kind {
-  color: var(--text-faint);
-  font-size: var(--font-ui-smaller, 12px);
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 999px;
-  padding: 1px 8px;
-  white-space: nowrap;
-}
-
-.fitness-plugin .atomic-dash-nums {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.fitness-plugin .atomic-dash-num b {
-  display: block;
-  font-size: 1.25rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-
-.fitness-plugin .atomic-dash-num span {
-  color: var(--text-muted);
-  font-size: var(--font-ui-smaller, 12px);
-}
-
-.fitness-plugin .atomic-dash-bars {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 3px;
-  align-items: end;
-  height: 46px;
-}
-
-.fitness-plugin .atomic-dash-months {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 3px;
-  color: var(--text-faint);
-  font-size: 10px;
-  text-align: center;
-  margin-top: -8px;
-}
-
-.fitness-plugin .atomic-dash-months-wide {
-  margin-top: 0;
-  gap: 8px;
-  font-size: 11px;
-}
-
-.fitness-plugin .atomic-dash-activity-foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: var(--font-ui-small, 13px);
-}
-
-.fitness-plugin .atomic-dash-activity-foot a.atomic-dash-link::after {
-  content: " →";
-}
-
-.fitness-plugin .atomic-dash-felt {
-  display: flex;
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: var(--background-modifier-border);
-}
-
-.fitness-plugin .atomic-dash-felt-seg {
-  display: block;
-  height: 100%;
-}
-
-.fitness-plugin .atomic-dash-felt-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  color: var(--text-muted);
-  font-size: var(--font-ui-smaller, 12px);
-  margin-top: 6px;
-}
-
-.fitness-plugin .atomic-dash-felt-legend b {
-  font-weight: 600;
-  color: var(--text-normal);
-}
-
-/* Monthly chart */
-
-.fitness-plugin .atomic-dash-chart {
-  display: grid;
-  gap: 10px;
-}
-
-.fitness-plugin .atomic-dash-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  color: var(--text-muted);
-  font-size: var(--font-ui-smaller, 12px);
-}
-
-.fitness-plugin .atomic-dash-legend-hint {
-  margin-left: auto;
-}
-
-.fitness-plugin .atomic-dash-cols {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 8px;
-  align-items: end;
-  height: 120px;
-  border-bottom: 1px solid var(--background-modifier-border);
-  padding-bottom: 6px;
-}
-
-.fitness-plugin .atomic-dash-col {
-  display: flex;
-  gap: 2px;
-  align-items: flex-end;
-  justify-content: center;
-  height: 100%;
-}
-
-.fitness-plugin .atomic-dash-chart details summary {
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: var(--font-ui-small, 13px);
-}
-
-.fitness-plugin .atomic-dash-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 10px 0 0;
-  font-size: var(--font-ui-small, 13px);
-  font-variant-numeric: tabular-nums;
-}
-
-.fitness-plugin .atomic-dash-table th,
-.fitness-plugin .atomic-dash-table td {
-  border: 0;
-  border-bottom: 1px solid var(--background-modifier-border);
-  padding: 6px 8px;
-  text-align: right;
-}
-
-.fitness-plugin .atomic-dash-table th:first-child,
-.fitness-plugin .atomic-dash-table td:first-child {
-  text-align: left;
-}
-
-.fitness-plugin .atomic-dash-table th {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* Muscles / golf focus */
-
-.fitness-plugin .atomic-dash-columns {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--atomic-dash-gap);
-}
-
-.fitness-plugin .atomic-dash-card-title {
-  margin: 0 0 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.fitness-plugin .atomic-dash-card-title span {
-  color: var(--text-faint);
-  font-size: var(--font-ui-smaller, 12px);
+.fitness-plugin .atomic-label-zh {
+  font-family: var(--atomic-font);
+  font-size: max(12px, 1em);
+  letter-spacing: 0.02em;
   font-weight: 400;
+  color: var(--atomic-ink-2);
 }
 
-.fitness-plugin .atomic-dash-rank {
-  display: grid;
-  gap: 9px;
+.fitness-plugin .atomic-caption .atomic-label-zh,
+.fitness-plugin .atomic-readout .atomic-label-zh,
+.fitness-plugin .atomic-hint .atomic-label-zh {
+  font-size: 12px;
+  line-height: 15px;
 }
 
-.fitness-plugin .atomic-dash-rank-row {
-  display: grid;
-  grid-template-columns: minmax(64px, 92px) 1fr auto;
+.fitness-plugin .atomic-inline-zh {
+  margin-left: 0.3em;
+  color: var(--atomic-ink-2);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  font-family: var(--atomic-font);
+}
+
+/* ------------------------------------------------------------- data marks */
+
+.fitness-plugin .atomic-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-name {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: var(--font-ui-small, 13px);
+  gap: 8px;
+  font-weight: 600;
+  color: var(--atomic-ink);
 }
 
-.fitness-plugin .atomic-dash-rank-name {
+/* ------------------------------------------------------------------ links */
+
+.fitness-plugin .atomic-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: var(--atomic-ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: 4px;
+  transition: color var(--atomic-t-hover) var(--atomic-ease);
+  cursor: pointer;
+}
+
+.fitness-plugin .atomic-link-arrow {
+  font-size: 11px;
+  transition: transform var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-link:hover,
+.fitness-plugin .atomic-link.is-preview {
+  color: var(--atomic-link-hover);
+}
+
+.fitness-plugin .atomic-link:hover .atomic-link-arrow,
+.fitness-plugin .atomic-link.is-preview .atomic-link-arrow {
+  transform: translate(2px, -1px);
+}
+
+.fitness-plugin .atomic-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--atomic-focus);
+}
+
+/* --------------------------------------------------------------- controls */
+
+.fitness-plugin .atomic-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  margin: 0;
+  border: 0;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-2);
+  box-shadow: none;
+  color: var(--atomic-ink);
+  font-family: var(--atomic-font);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform var(--atomic-t-press) var(--atomic-ease),
+    background-color var(--atomic-t-hover) var(--atomic-ease),
+    color var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-btn:hover {
+  background: var(--atomic-fill-3);
+}
+
+.fitness-plugin .atomic-btn:active {
+  transform: scale(0.97);
+}
+
+.fitness-plugin .atomic-btn:focus-visible,
+.fitness-plugin .atomic-field:focus-within,
+.fitness-plugin .atomic-seg-option:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--atomic-paper),
+    0 0 0 4px var(--atomic-focus);
+}
+
+.fitness-plugin .atomic-btn.is-primary {
+  background: var(--atomic-ink);
+  color: var(--atomic-paper);
+}
+
+.fitness-plugin .atomic-btn.is-primary:hover {
+  background: color-mix(in srgb, var(--atomic-ink) 86%, var(--atomic-paper));
+}
+
+.fitness-plugin .atomic-btn.is-quiet {
+  background: transparent;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-btn.is-quiet:hover {
+  background: var(--atomic-fill-1);
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-btn.is-danger {
+  background: transparent;
+  color: var(--text-error);
+}
+
+.fitness-plugin .atomic-btn.is-danger:hover {
+  background: color-mix(in srgb, var(--text-error) 9%, transparent);
+}
+
+/* Destructive actions confirm in place; the second press commits. */
+.fitness-plugin .atomic-btn.is-danger.is-armed {
+  background: var(--text-error);
+  color: var(--atomic-paper);
+}
+
+.fitness-plugin .atomic-btn.is-icon {
+  width: 32px;
+  padding: 0;
+}
+
+.fitness-plugin .atomic-btn.is-small {
+  height: 28px;
+  padding: 0 10px;
+}
+
+.fitness-plugin .atomic-btn .atomic-inline-zh {
+  color: inherit;
+  opacity: 0.68;
+  margin-left: 0;
+}
+
+.fitness-plugin .atomic-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A control is one step off its surface: fill on paper, paper in a well. */
+.fitness-plugin.atomic-well,
+.fitness-plugin .atomic-well {
+  background: var(--atomic-fill-1);
+  border-radius: var(--atomic-r-well);
+}
+
+.fitness-plugin .atomic-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+  color: var(--atomic-ink);
+  transition: background-color var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin.atomic-well :is(.atomic-field, .atomic-stepper, .atomic-seg),
+.fitness-plugin .atomic-well :is(.atomic-field, .atomic-stepper, .atomic-seg) {
+  background: var(--atomic-paper);
+}
+
+.fitness-plugin .atomic-field-label {
+  flex: none;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-field-value {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
-.fitness-plugin .atomic-dash-rank-bar {
-  display: block;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--background-modifier-border);
+.fitness-plugin .atomic-field-value.is-placeholder {
+  font-weight: 400;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-field-suffix {
+  flex: none;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-field-chevron {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  stroke: var(--atomic-ink-2);
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.fitness-plugin .atomic-stepper {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 2px;
+  box-sizing: border-box;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+
+.fitness-plugin .atomic-stepper.is-tall {
+  height: 36px;
+}
+
+.fitness-plugin .atomic-stepper .atomic-btn {
+  width: 28px;
+  height: 100%;
+  padding: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-stepper .atomic-btn:hover {
+  background: var(--atomic-fill-2);
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-stepper-value {
+  min-width: 40px;
+  padding: 0 4px;
+  text-align: center;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fitness-plugin .atomic-stepper-label {
+  padding: 0 4px 0 10px;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+
+.fitness-plugin .atomic-seg-option {
+  appearance: none;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--atomic-ink-2);
+  font: 500 13px/1 var(--atomic-font);
+  cursor: pointer;
+  transition:
+    background-color var(--atomic-t-hover) var(--atomic-ease),
+    color var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-seg-option.is-on {
+  background: var(--atomic-fill-3);
+  color: var(--atomic-ink);
+}
+
+/* Value row: label left, value right, the value drawn as a tinted fill. */
+.fitness-plugin .atomic-fill-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
   overflow: hidden;
 }
 
-.fitness-plugin .atomic-dash-rank-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--atomic-dash-accent);
+.fitness-plugin .atomic-fill-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: calc(var(--v, 0) * 100%);
+  background: color-mix(in srgb, var(--atomic-c) 22%, transparent);
+  transition: width var(--atomic-t-move) var(--atomic-ease);
 }
 
-.fitness-plugin .atomic-dash-rank-value {
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+.fitness-plugin .atomic-fill-row > * {
+  position: relative;
+}
+
+.fitness-plugin .atomic-fill-row-value {
+  font-size: 12px;
+  color: var(--atomic-ink-2);
+  font-variant-numeric: lining-nums tabular-nums;
   white-space: nowrap;
 }
 
-.fitness-plugin .atomic-dash-rank-value b {
-  color: var(--text-normal);
-  font-weight: 600;
+/* ------------------------------------------------------- rolling numbers */
+
+/*
+  Each digit is a clipped reel. A hidden ghost digit keeps width and
+  baseline; the reel slides on value change (rightmost first). Nothing
+  fades at the edges: masks are banned, overflow does the clipping.
+*/
+.fitness-plugin .atomic-roll {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
-.fitness-plugin .atomic-dash-tags {
+.fitness-plugin .atomic-digit {
+  position: relative;
+  display: inline-block;
+  line-height: 1.15;
+}
+
+.fitness-plugin .atomic-digit-ghost {
+  visibility: hidden;
+}
+
+.fitness-plugin .atomic-digit-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-reel {
+  display: block;
+  transform: translateY(calc(var(--d, 0) * -1.15em));
+  transition: transform var(--atomic-t-move) var(--atomic-ease);
+  transition-delay: calc(var(--i, 0) * var(--atomic-stagger));
+}
+
+.fitness-plugin .atomic-reel > span {
+  display: block;
+  height: 1.15em;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.fitness-plugin .atomic-digit.is-entering {
+  animation: atomic-digit-in var(--atomic-t-move) var(--atomic-ease) both;
+}
+
+@keyframes atomic-digit-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------- dashboard */
+
+.fitness-plugin.atomic-dashboard {
+  container-type: inline-size;
+  container-name: atomic-dash;
+  margin: 4px 0 32px;
+}
+
+.fitness-plugin .atomic-dash-top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.fitness-plugin .atomic-dash-range {
+  flex: 1 1 auto;
+}
+
+.fitness-plugin .atomic-jumps {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 20px;
 }
 
-.fitness-plugin .atomic-dash-tag {
+.fitness-plugin .atomic-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--atomic-rule-strong);
+  border-bottom: 1px solid var(--atomic-rule);
+}
+
+.fitness-plugin .atomic-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 20px 18px;
+}
+
+.fitness-plugin .atomic-kpi:first-child {
+  padding-left: 0;
+}
+
+.fitness-plugin .atomic-kpi + .atomic-kpi {
+  border-left: 1px solid var(--atomic-rule);
+}
+
+.fitness-plugin .atomic-kpi-value {
+  margin-top: 2px;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--atomic-ink);
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-kpi-value .atomic-unit {
+  margin: 0 0.18em 0 0.06em;
+  font-size: 15px;
+}
+
+.fitness-plugin .atomic-section {
+  margin-top: 48px;
+}
+
+.fitness-plugin .atomic-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--atomic-rule-strong);
+}
+
+.fitness-plugin .atomic-section-head > :first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+}
+
+.fitness-plugin .atomic-section-head .atomic-caption {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-legend {
+  display: inline-flex;
+  gap: 14px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-legend > span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 999px;
-  padding: 5px 11px;
-  font-size: var(--font-ui-small, 13px);
 }
 
-.fitness-plugin .atomic-dash-tag b {
-  font-variant-numeric: tabular-nums;
-  color: var(--text-muted);
-  font-weight: 500;
+/* Activities: a ledger, one row per activity. */
+.fitness-plugin .atomic-ledger {
+  --atomic-ledger-cols: minmax(150px, 1.25fr) minmax(104px, 0.8fr) minmax(112px, 0.85fr) minmax(128px, 1fr) minmax(220px, 2.1fr) 92px;
 }
 
-.fitness-plugin .atomic-dash-tag.is-large {
-  font-size: 0.95rem;
-  padding: 7px 14px;
-  border-color: var(--atomic-dash-accent);
-}
-
-.fitness-plugin .atomic-dash-tag .atomic-dash-dot {
-  width: 6px;
-  height: 6px;
-}
-
-/* Recent sessions */
-
-.fitness-plugin .atomic-dash-recent {
-  container-type: inline-size;
-}
-
-.fitness-plugin .atomic-dash-recent-row {
+.fitness-plugin .atomic-ledger-head,
+.fitness-plugin .atomic-ledger-row {
   display: grid;
-  grid-template-columns: minmax(80px, auto) 10px 1fr auto;
+  grid-template-columns: var(--atomic-ledger-cols);
+  gap: 0 20px;
   align-items: center;
-  gap: 12px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--background-modifier-border);
-  font-size: var(--font-ui-small, 13px);
 }
 
-.fitness-plugin .atomic-dash-recent-row:last-child {
-  border-bottom: 0;
+.fitness-plugin .atomic-ledger-head {
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--atomic-rule);
 }
 
-.fitness-plugin .atomic-dash-recent-date {
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+.fitness-plugin .atomic-ledger-row {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--atomic-rule);
 }
 
-.fitness-plugin .atomic-dash-recent-row .atomic-dash-dot {
-  width: 10px;
-  height: 10px;
-}
-
-.fitness-plugin .atomic-dash-recent-what {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fitness-plugin .atomic-dash-recent-path {
-  color: var(--text-faint);
-  margin-left: 8px;
-}
-
-.fitness-plugin .atomic-dash-recent-summary {
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-@container (max-width: 520px) {
-  .fitness-plugin .atomic-dash-recent-row {
-    grid-template-columns: 10px 1fr auto;
-  }
-
-  .fitness-plugin .atomic-dash-recent-date {
-    display: none;
-  }
-}
-
-.fitness-plugin table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 12px;
-}
-
-.fitness-plugin th,
-.fitness-plugin td {
-  border: 1px solid var(--background-modifier-border);
-  padding: 4px 8px;
-  text-align: left;
-}
-
-.fitness-plugin a.fitness-link {
-  color: var(--link-color);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.fitness-plugin .fitness-muted {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.fitness-plugin.atomic-timer {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 8px 0;
-}
-
-.fitness-plugin.atomic-gym-log {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 8px 0;
-}
-
-.fitness-plugin .atomic-gym-log-empty {
-  margin: 0 0 8px;
-}
-
-.fitness-plugin .atomic-gym-log-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  align-items: flex-end;
-}
-
-.fitness-plugin .atomic-gym-log-field {
+.fitness-plugin .atomic-ledger-name {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 72px;
+  gap: 2px;
+  min-width: 0;
 }
 
-.fitness-plugin .atomic-gym-log-field label {
-  font-size: 12px;
-  color: var(--text-muted);
+.fitness-plugin .atomic-ledger-name .atomic-name {
+  font-size: 15px;
 }
 
-.fitness-plugin .atomic-gym-log-field input,
-.fitness-plugin .atomic-gym-log-field select {
-  min-width: 88px;
+.fitness-plugin .atomic-ledger-name .atomic-caption {
+  padding-left: 16px;
 }
 
-.fitness-plugin .atomic-gym-log-field select[data-testid="atomic-gym-log-exercise"] {
-  min-width: 180px;
+.fitness-plugin .atomic-stat {
+  font-size: 20px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
 }
 
-.atomic-update-note-notice {
-  white-space: pre-wrap;
+.fitness-plugin .atomic-stat .atomic-unit {
+  margin-left: 0.25em;
+  font-size: 13px;
+  letter-spacing: 0;
 }
 
-.atomic-gym-custom-muscle-hidden {
+.fitness-plugin .atomic-stat .atomic-unit.is-tight {
+  margin: 0 0.2em 0 0.04em;
+}
+
+.fitness-plugin .atomic-ledger-detail {
+  color: var(--atomic-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.fitness-plugin .atomic-ledger-detail strong {
+  color: var(--atomic-ink);
+  font-weight: 600;
+}
+
+.fitness-plugin .atomic-ledger-end {
+  justify-self: end;
+}
+
+.fitness-plugin .atomic-months,
+.fitness-plugin .atomic-month-initials {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0 5px;
+}
+
+.fitness-plugin .atomic-months {
+  align-items: end;
+  height: 30px;
+}
+
+.fitness-plugin .atomic-month-initials > span {
+  text-align: center;
+}
+
+.fitness-plugin .atomic-ledger-bars .atomic-month-initials {
   display: none;
 }
 
-.fitness-plugin .atomic-timer-total,
-.fitness-plugin .atomic-timer-running {
-  margin: 0 0 8px;
+.fitness-plugin .atomic-month-initials > span.is-now {
+  color: var(--atomic-ink);
 }
 
-.fitness-plugin.atomic-book-shelf {
-  --atomic-shelf-depth: color-mix(in srgb, var(--background-modifier-border), var(--background-primary) 30%);
-  --atomic-shelf-face: color-mix(in srgb, var(--background-secondary), var(--text-muted) 12%);
-  margin: 8px 0 16px;
-  overflow: visible;
+.fitness-plugin .atomic-bar {
+  justify-self: center;
+  width: min(9px, 100%);
+  height: calc(var(--v, 0) * 100%);
+  min-height: 3px;
+  border-radius: 1.5px 1.5px 0 0;
+  background: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-bar.is-zero {
+  height: 2px;
+  min-height: 0;
+  background: var(--atomic-fill-3);
+}
+
+.fitness-plugin .atomic-bar.is-future {
+  height: 1px;
+  min-height: 0;
+  background: var(--atomic-rule);
+}
+
+/* Monthly: stacked columns on thin gridlines. */
+.fitness-plugin .atomic-chart {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  margin-top: 16px;
+}
+
+.fitness-plugin .atomic-chart > .atomic-legend,
+.fitness-plugin .atomic-chart > .atomic-quiet-toggle {
+  grid-column: 1 / -1;
+}
+
+.fitness-plugin .atomic-chart-y {
+  position: relative;
+  height: 168px;
+}
+
+.fitness-plugin .atomic-chart-y > span {
+  position: absolute;
+  left: 0;
+  transform: translateY(50%);
+  bottom: calc(var(--y) * 100%);
+}
+
+.fitness-plugin .atomic-chart-plot {
+  position: relative;
+  height: 168px;
+}
+
+.fitness-plugin .atomic-chart-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--y) * 100%);
+  height: 1px;
+  background: var(--atomic-rule);
+}
+
+.fitness-plugin .atomic-chart-grid.is-base {
+  background: var(--atomic-rule-strong);
+}
+
+.fitness-plugin .atomic-chart-cols {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.fitness-plugin .atomic-chart-col {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+  transition: opacity var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-chart-seg {
+  width: min(28px, 46%);
+  height: calc(var(--v) * 100%);
+  background: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-chart-seg:last-child {
+  border-radius: 2px 2px 0 0;
+}
+
+.fitness-plugin .atomic-chart-col.is-future::after {
+  content: "";
+  width: min(28px, 46%);
+  height: 0;
+  border-top: 1px dashed var(--atomic-rule-strong);
+}
+
+.fitness-plugin .atomic-chart-x {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  padding-top: 8px;
+}
+
+.fitness-plugin .atomic-chart-x > span {
+  text-align: center;
+  transition: color var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-chart.is-reading .atomic-chart-col {
+  opacity: 0.28;
+}
+
+.fitness-plugin .atomic-chart.is-reading .atomic-chart-col.is-hot {
+  opacity: 1;
+}
+
+.fitness-plugin .atomic-chart-x > span.is-hot {
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-chart-x .is-short {
+  display: none;
+}
+
+.fitness-plugin .atomic-quiet-toggle {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+/* Muscles / Golf focus / Recent share one grid that widens with the pane. */
+.fitness-plugin .atomic-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 48px;
+}
+
+.fitness-plugin .atomic-split > .atomic-section.is-wide {
+  grid-column: 1 / -1;
+}
+
+.fitness-plugin .atomic-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.fitness-plugin .atomic-leader-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+}
+
+.fitness-plugin .atomic-leader {
+  flex: 1 1 auto;
+  height: 1px;
+  align-self: center;
+  margin-top: 4px;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text-normal) 34%, transparent) 0.9px, transparent 1.1px);
+  background-size: 6px 2px;
+  background-repeat: repeat-x;
+}
+
+.fitness-plugin .atomic-leader-value {
+  font-size: 12px;
+  color: var(--atomic-ink-2);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.fitness-plugin .atomic-felt {
+  margin-top: 16px;
+}
+
+.fitness-plugin .atomic-felt-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  margin: 8px 0 8px;
+}
+
+.fitness-plugin .atomic-felt-bar > span {
+  flex: var(--v) 1 0;
+  background: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-felt-bar > span:first-child {
+  border-radius: 2px 0 0 2px;
+}
+
+.fitness-plugin .atomic-felt-bar > span:last-child {
+  border-radius: 0 2px 2px 0;
+}
+
+.fitness-plugin .atomic-felt-bar > .is-ok,
+.fitness-plugin .atomic-legend .atomic-dot.is-ok {
+  background: color-mix(in oklab, var(--atomic-c) 52%, var(--atomic-paper));
+}
+
+.fitness-plugin .atomic-felt-bar > .is-bad,
+.fitness-plugin .atomic-legend .atomic-dot.is-bad {
+  background: color-mix(in oklab, var(--atomic-c) 26%, var(--atomic-paper));
+}
+
+.fitness-plugin .atomic-recent-row {
+  display: grid;
+  grid-template-columns: 112px minmax(120px, 1fr) auto 16px;
+  align-items: center;
+  gap: 0 16px;
+  min-height: 40px;
+  padding: 0 8px;
+  margin: 0 -8px;
+  border-bottom: 1px solid var(--atomic-rule);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-recent-row:hover,
+.fitness-plugin .atomic-recent-row.is-preview {
+  background: var(--atomic-fill-1);
+}
+
+.fitness-plugin .atomic-recent-date {
+  color: var(--atomic-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.fitness-plugin .atomic-recent-sum {
+  color: var(--atomic-ink-2);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fitness-plugin .atomic-recent-sum strong {
+  color: var(--atomic-ink);
+  font-weight: 500;
+}
+
+.fitness-plugin .atomic-recent-arrow {
+  color: var(--atomic-ink-2);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--atomic-t-hover) var(--atomic-ease),
+    transform var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-recent-row:hover .atomic-recent-arrow,
+.fitness-plugin .atomic-recent-row.is-preview .atomic-recent-arrow {
+  opacity: 1;
+  transform: none;
+}
+
+.fitness-plugin .atomic-recent-sub {
+  display: none;
+}
+
+@container atomic-dash (min-width: 1500px) {
+  .fitness-plugin .atomic-split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+
+  .fitness-plugin .atomic-split > .atomic-section.is-wide {
+    grid-column: auto;
+  }
+}
+
+/*
+  Medium panes. The ledger's column minimums add up to ~906px and four KPI
+  columns need ~800px, so both stack here. Obsidian's default readable line
+  length (~700px) lands in this band, so it is the common case, not an edge.
+*/
+@container atomic-dash (max-width: 900px) {
+  .fitness-plugin .atomic-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fitness-plugin .atomic-kpi {
+    padding: 14px 0 16px 20px;
+  }
+
+  .fitness-plugin .atomic-kpi:nth-child(odd) {
+    padding-left: 0;
+    padding-right: 12px;
+  }
+
+  .fitness-plugin .atomic-kpi + .atomic-kpi {
+    border-left: 0;
+  }
+
+  .fitness-plugin .atomic-kpi:nth-child(even) {
+    border-left: 1px solid var(--atomic-rule);
+  }
+
+  .fitness-plugin .atomic-kpi:nth-child(n + 3) {
+    border-top: 1px solid var(--atomic-rule);
+  }
+
+  .fitness-plugin .atomic-ledger-head {
+    display: none;
+  }
+
+  .fitness-plugin .atomic-ledger-row {
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-areas:
+      "name name end"
+      "count time detail"
+      "months months months";
+    gap: 10px 12px;
+    padding: 16px 0;
+  }
+
+  .fitness-plugin .atomic-ledger-row > .atomic-ledger-name { grid-area: name; }
+  .fitness-plugin .atomic-ledger-row > .atomic-ledger-count { grid-area: count; }
+  .fitness-plugin .atomic-ledger-row > .atomic-ledger-time { grid-area: time; }
+  .fitness-plugin .atomic-ledger-row > .atomic-ledger-detail { grid-area: detail; justify-self: end; text-align: right; }
+  .fitness-plugin .atomic-ledger-row > .atomic-ledger-bars { grid-area: months; }
+  .fitness-plugin .atomic-ledger-row > .atomic-ledger-end { grid-area: end; }
+
+  .fitness-plugin .atomic-ledger-bars .atomic-month-initials {
+    display: grid;
+    margin-top: 4px;
+  }
+}
+
+@container atomic-dash (max-width: 760px) {
+  .fitness-plugin .atomic-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fitness-plugin .atomic-recent-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "act sum"
+      "date sub";
+    row-gap: 2px;
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+
+  .fitness-plugin .atomic-recent-row > .atomic-recent-date { grid-area: date; }
+  .fitness-plugin .atomic-recent-row > .atomic-name { grid-area: act; }
+  .fitness-plugin .atomic-recent-row > .atomic-recent-sum { grid-area: sum; }
+  .fitness-plugin .atomic-recent-row > .atomic-recent-arrow { display: none; }
+  .fitness-plugin .atomic-recent-row > .atomic-recent-sub {
+    display: block;
+    grid-area: sub;
+    text-align: right;
+    color: var(--atomic-ink-2);
+  }
+
+  .fitness-plugin .atomic-recent-row .atomic-recent-sum .is-extra {
+    display: none;
+  }
+
+  .fitness-plugin .atomic-section {
+    margin-top: 36px;
+  }
+}
+
+@container atomic-dash (max-width: 520px) {
+  .fitness-plugin .atomic-section-head {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .fitness-plugin .atomic-section-head > .atomic-readout {
+    margin-left: auto;
+  }
+
+  .fitness-plugin .atomic-kpi {
+    padding: 14px 0 16px 16px;
+  }
+
+  .fitness-plugin .atomic-kpi-value {
+    font-size: 30px;
+  }
+
+  .fitness-plugin .atomic-kpi-value .atomic-unit {
+    font-size: 14px;
+  }
+
+  .fitness-plugin .atomic-dash-range {
+    flex-basis: 0;
+    text-align: right;
+  }
+
+  .fitness-plugin .atomic-jumps {
+    flex-basis: 100%;
+    gap: 4px 16px;
+  }
+
+  .fitness-plugin .atomic-chart-plot,
+  .fitness-plugin .atomic-chart-y {
+    height: 132px;
+  }
+
+  .fitness-plugin .atomic-chart {
+    grid-template-columns: 22px 1fr;
+  }
+
+  .fitness-plugin .atomic-chart-x .is-long {
+    display: none;
+  }
+
+  .fitness-plugin .atomic-chart-x .is-short {
+    display: inline;
+  }
+}
+
+/* --------------------------------------------------------------- heatmap */
+
+.fitness-plugin.atomic-heatmap {
+  --atomic-heat-cell: 10px;
+  --atomic-heat-gap: 3px;
+  margin: 0 0 28px;
+}
+
+.fitness-plugin .atomic-heat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+/*
+  Day labels sit beside the scrollport, not over it: the year scrolls next to
+  them, so nothing can show through at fractional zoom or DPR.
+*/
+.fitness-plugin .atomic-heat-body {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 0 6px;
+}
+
+.fitness-plugin .atomic-heat-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+}
+
+.fitness-plugin .atomic-heat-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.fitness-plugin .atomic-heat-grid {
+  width: max-content;
+}
+
+.fitness-plugin .atomic-heat-months {
+  display: grid;
+  grid-template-columns: repeat(53, var(--atomic-heat-cell));
+  gap: 0 var(--atomic-heat-gap);
+  height: 16px;
+  margin-bottom: 4px;
+}
+
+.fitness-plugin .atomic-heat-months > span {
+  grid-column: var(--w) / span 4;
+}
+
+/* margin-top clears the months row (16px + 4px). */
+.fitness-plugin .atomic-heat-days {
+  display: grid;
+  grid-template-rows: repeat(7, var(--atomic-heat-cell));
+  row-gap: var(--atomic-heat-gap);
+  margin-top: 20px;
+}
+
+.fitness-plugin .atomic-heat-days > span {
+  line-height: var(--atomic-heat-cell);
+}
+
+.fitness-plugin .atomic-heat-cells {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--atomic-heat-cell));
+  grid-auto-columns: var(--atomic-heat-cell);
+  gap: var(--atomic-heat-gap);
+}
+
+.fitness-plugin .atomic-heat-cell,
+.fitness-plugin .fitness-cell {
+  width: var(--atomic-heat-cell, var(--atomic-heatmap-cell));
+  height: var(--atomic-heat-cell, var(--atomic-heatmap-cell));
+  border-radius: 50%;
+  background: var(--atomic-empty);
+  transition: transform var(--atomic-t-press) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-heat-cell.is-pad {
+  visibility: hidden;
+}
+
+.fitness-plugin .atomic-heat-cell.is-future,
+.fitness-plugin .fitness-cell.is-future {
+  background: var(--atomic-future);
+}
+
+/* Levels mix toward the page, so "least" is always closest to the paper. */
+.fitness-plugin .atomic-heat-cell[data-l="1"],
+.fitness-plugin .fitness-cell[data-l="1"] {
+  background: color-mix(in oklab, var(--atomic-c) 28%, var(--atomic-paper));
+}
+
+.fitness-plugin .atomic-heat-cell[data-l="2"],
+.fitness-plugin .fitness-cell[data-l="2"] {
+  background: color-mix(in oklab, var(--atomic-c) 52%, var(--atomic-paper));
+}
+
+.fitness-plugin .atomic-heat-cell[data-l="3"],
+.fitness-plugin .fitness-cell[data-l="3"] {
+  background: color-mix(in oklab, var(--atomic-c) 78%, var(--atomic-paper));
+}
+
+.fitness-plugin .atomic-heat-cell[data-l="4"],
+.fitness-plugin .fitness-cell[data-l="4"] {
+  background: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-heat-cell.is-today,
+.fitness-plugin .fitness-cell.is-today {
+  box-shadow:
+    0 0 0 1.5px var(--atomic-paper),
+    0 0 0 2.75px var(--atomic-ink);
+}
+
+.theme-dark .fitness-plugin .fitness-cell.is-today {
+  box-shadow:
+    0 0 0 1.5px var(--atomic-paper),
+    0 0 0 2.75px var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-heat-cell:hover,
+.fitness-plugin .atomic-heat-cell.is-preview,
+.fitness-plugin .fitness-cell.is-link:hover {
+  transform: scale(1.35);
+}
+
+.fitness-plugin .atomic-heat-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-left: 22px;
+  width: max-content;
   max-width: 100%;
   min-width: 0;
-  /* layout only — paint containment would clip hover title bubbles */
-  contain: layout;
+  box-sizing: border-box;
 }
 
-.fitness-plugin .atomic-book-shelf-frame {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 12px;
-  /* Frame chrome only. Title bubbles portal outside this box on hover. */
-  padding: 8px 4px 6px;
-  overflow: visible;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 40%),
-    var(--background-secondary);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+.fitness-plugin .atomic-heat-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.fitness-plugin .atomic-book-shelf-row {
-  position: relative;
-  padding: 0 2px 14px;
-  margin-bottom: 14px;
-  overflow: visible;
+.fitness-plugin .atomic-heat-legend .atomic-heat-cell {
+  width: 8px;
+  height: 8px;
 }
 
-.fitness-plugin .atomic-book-row-books {
+.fitness-plugin .atomic-heat-legend .atomic-caption:first-child {
+  margin-right: 4px;
+}
+
+.fitness-plugin .atomic-heat-legend .atomic-caption:last-child {
+  margin-left: 4px;
+}
+
+/* -------------------------------------------------------------- actions */
+
+.fitness-plugin.atomic-actions {
   display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-end;
-  justify-content: flex-start;
-  gap: var(--atomic-book-gap);
-  min-height: var(--atomic-book-height);
-  /* Room for the hover lift only. Title bubbles are portaled to document.body
-     because overflow-x: auto computes overflow-y to auto and would clip them. */
-  padding: 12px 4px 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 24px;
 }
 
-.fitness-plugin .atomic-book-shelf-plank {
+.fitness-plugin.atomic-actions .atomic-btn {
+  padding: 0 14px 0 12px;
+  gap: 8px;
+}
+
+.fitness-plugin.atomic-today {
+  margin: 0 0 24px;
+}
+
+.fitness-plugin .atomic-today-row {
+  grid-template-columns: minmax(0, 1fr) auto 16px;
+}
+
+.fitness-plugin .atomic-today-row.is-empty {
+  cursor: default;
+}
+
+.fitness-plugin .atomic-today-row.is-empty .atomic-recent-sum {
+  color: var(--atomic-ink-2);
+}
+
+/* ----------------------------------------------------------------- timer */
+
+.fitness-plugin.atomic-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head head"
+    "clock actions";
+  align-items: end;
+  gap: 6px 16px;
+  padding: 14px 14px 14px 18px;
+  margin: 12px 0 20px;
+  max-width: 560px;
+}
+
+.fitness-plugin .atomic-timer-head {
+  grid-area: head;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.fitness-plugin .atomic-timer-caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fitness-plugin .atomic-timer-head .atomic-readout {
+  text-align: right;
+}
+
+.fitness-plugin .atomic-timer-head .atomic-label {
+  align-items: inherit;
+}
+
+.fitness-plugin .atomic-timer-clock {
+  grid-area: clock;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.fitness-plugin .atomic-timer-clock .atomic-unit {
+  margin-left: 0.2em;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.fitness-plugin .atomic-timer-actions {
+  grid-area: actions;
+  display: flex;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.fitness-plugin .atomic-pulse {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--atomic-c);
+  opacity: 0;
+  animation: atomic-pulse 1.8s var(--atomic-ease) infinite;
+}
+
+@keyframes atomic-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------- gym log */
+
+.fitness-plugin.atomic-gym-log {
+  container-type: inline-size;
+  padding: 14px 14px 14px 18px;
+  margin: 12px 0 16px;
+}
+
+.fitness-plugin .atomic-gym-log-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fitness-plugin .atomic-gym-log-fields {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.6fr) minmax(104px, 0.9fr) auto minmax(110px, 1.3fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.fitness-plugin.atomic-gym-log .atomic-stepper {
+  height: 36px;
+}
+
+.fitness-plugin.atomic-gym-log .atomic-btn.is-primary {
+  height: 36px;
+}
+
+@container (max-width: 560px) {
+  .fitness-plugin .atomic-gym-log-fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .fitness-plugin .atomic-gym-log-fields > :first-child,
+  .fitness-plugin .atomic-gym-log-fields > :nth-child(4),
+  .fitness-plugin .atomic-gym-log-fields > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  .fitness-plugin.atomic-gym-log .atomic-stepper {
+    justify-content: space-between;
+  }
+}
+
+/* ----------------------------------------------------------- book shelf */
+
+.fitness-plugin.atomic-shelf {
+  --atomic-book-w: 96px;
+  --atomic-book-h: 150px;
+  --atomic-shelf-gap: 12px;
+  --atomic-plank-top: color-mix(in srgb, var(--text-normal) 8%, var(--background-primary));
+  --atomic-plank-face: color-mix(in srgb, var(--text-normal) 17%, var(--background-primary));
+  container-type: inline-size;
+  margin: 8px 0 24px;
+}
+
+.fitness-plugin .atomic-shelf-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 22px 0 0;
+}
+
+.fitness-plugin .atomic-shelf-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.fitness-plugin .atomic-shelf-row {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--atomic-shelf-gap);
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 0 14px;
+}
+
+/* The plank: the only furniture. Top face, front edge, soft drop. */
+.fitness-plugin .atomic-plank {
+  position: relative;
+  height: 15px;
+  border-radius: 1px 1px 3px 3px;
+  background:
+    linear-gradient(180deg,
+      var(--atomic-plank-top) 0,
+      var(--atomic-plank-top) 5px,
+      color-mix(in srgb, var(--atomic-plank-face), white 10%) 5px,
+      var(--atomic-plank-face) 7px,
+      color-mix(in srgb, var(--atomic-plank-face), black 6%) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--background-primary) 55%, transparent),
+    0 14px 18px -12px rgba(0, 0, 0, 0.4);
+  width: max-content;
+  min-width: 100%;
+}
+
+.fitness-plugin .atomic-book {
+  --px: 0;
+  --py: 0;
+  --sx: 30%;
+  --sy: 18%;
+  position: relative;
+  flex: none;
+  width: var(--atomic-book-w);
+  height: var(--atomic-book-h);
+  margin-bottom: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px 3px 3px 2px;
+  background: var(--atomic-fill-2);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.08),
+    0 7px 6px -6px rgba(0, 0, 0, 0.45);
+  transform-origin: 50% 100%;
+  transform: translateY(0);
+  transition:
+    transform var(--atomic-t-move) var(--atomic-ease),
+    box-shadow var(--atomic-t-move) var(--atomic-ease);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.fitness-plugin .atomic-book-cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/*
+  Painted at rest so a flat cover still reads as a bound book: hinge
+  crease near the spine, board edge on the right, a soft top light.
+  Flat on purpose: no preserve-3d (WebKit), works on every phone.
+*/
+.fitness-plugin .atomic-book::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      rgba(0, 0, 0, 0.22) 0,
+      rgba(255, 255, 255, 0.14) 2.5%,
+      rgba(0, 0, 0, 0) 5%,
+      rgba(0, 0, 0, 0.18) 7%,
+      rgba(255, 255, 255, 0.16) 8.5%,
+      rgba(255, 255, 255, 0) 12%,
+      rgba(255, 255, 255, 0) 94%,
+      rgba(0, 0, 0, 0.1) 98%,
+      rgba(0, 0, 0, 0.26) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 26%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.1));
+}
+
+/* Specular sheen that follows the pointer (fine pointers only). */
+.fitness-plugin .atomic-book::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--sx) var(--sy),
+    rgba(255, 255, 255, 0.62) 0,
+    rgba(255, 255, 255, 0.18) 28%,
+    rgba(255, 255, 255, 0) 58%
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-book:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--atomic-paper),
+    0 0 0 4px var(--atomic-focus);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .fitness-plugin .atomic-book:hover {
+    z-index: 3;
+    transform: perspective(700px) translateY(-8px) rotateX(calc(var(--py) * -12deg)) rotateY(calc(var(--px) * 20deg));
+    box-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.06),
+      0 22px 22px -14px rgba(0, 0, 0, 0.5);
+  }
+
+  .fitness-plugin .atomic-book:hover::after {
+    opacity: 1;
+  }
+}
+
+.fitness-plugin .atomic-book.is-preview {
+  z-index: 3;
+  transform: perspective(700px) translateY(-8px) rotateX(calc(var(--py) * -12deg)) rotateY(calc(var(--px) * 20deg));
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.06),
+    0 22px 22px -14px rgba(0, 0, 0, 0.5);
+}
+
+.fitness-plugin .atomic-book.is-preview::after {
+  opacity: 1;
+}
+
+/* Touch: first tap lifts and reads out, second tap opens. */
+.fitness-plugin .atomic-book.is-lifted {
+  z-index: 3;
+  transform: translateY(-10px);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.06),
+    0 20px 18px -12px rgba(0, 0, 0, 0.45);
+}
+
+/* Reading: a ribbon tail hangs out of the book over the plank's edge.
+   Swallowtail is a border notch: solid shaft, transparent bottom border. */
+.fitness-plugin .atomic-book-ribbon {
+  position: absolute;
+  right: 16%;
+  bottom: -20px;
+  width: 8px;
+  height: 24px;
+  z-index: -1;
+  filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
+  background: linear-gradient(var(--atomic-c), var(--atomic-c)) 0 0 / 100% 18px no-repeat;
+}
+
+.fitness-plugin .atomic-book-ribbon::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 4px 6px;
+  border-color: transparent;
+  border-left-color: var(--atomic-c);
+  border-right-color: var(--atomic-c);
+}
+
+.fitness-plugin .atomic-shelf-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 20px;
+  margin-top: 14px;
+  padding: 0 14px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-shelf-readout-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--atomic-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fitness-plugin .atomic-shelf-readout-meta {
+  color: var(--atomic-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fitness-plugin .atomic-shelf-readout .atomic-readout {
+  margin-left: auto;
+}
+
+.fitness-plugin .atomic-shelf-readout .atomic-readout:only-child {
+  margin-left: 0;
+}
+
+@container (max-width: 600px) {
+  .fitness-plugin .atomic-shelf-scroll {
+    --atomic-book-w: 84px;
+    --atomic-book-h: 132px;
+    --atomic-shelf-gap: 10px;
+    scroll-snap-type: x mandatory;
+    /* One gap, so a snapped book's neighbour is fully off the edge, not a sliver. */
+    scroll-padding: 0 var(--atomic-shelf-gap);
+  }
+
+  .fitness-plugin .atomic-book {
+    scroll-snap-align: start;
+  }
+
+  .fitness-plugin .atomic-shelf-readout {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .fitness-plugin .atomic-shelf-readout .atomic-readout {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+}
+
+/* ------------------------------------------------------------- cue cards */
+
+.fitness-plugin:is(.atomic-cues, .atomic-cue-log, .atomic-cue-lightbox) {
+  --atomic-cue-width: 228px;
+  --atomic-cue-step: 186px;
+  --atomic-cue-height: 144px;
+  --atomic-cue-head: 30px;
+  --atomic-cue-line: 22px;
+  --atomic-cue-paper: #fffdf8;
+  --atomic-cue-ink: #2b2925;
+  --atomic-cue-ink-soft: #6f695e;
+  --atomic-cue-rule: rgba(72, 98, 142, 0.2);
+  --atomic-cue-head-rule: rgba(204, 84, 84, 0.5);
+  --atomic-cue-shadow:
+    0 0 0 1px rgba(60, 50, 30, 0.06),
+    0 1px 1px rgba(40, 30, 10, 0.05),
+    0 6px 14px -4px rgba(40, 30, 10, 0.2);
+  --atomic-cue-shadow-lift:
+    0 0 0 1px rgba(60, 50, 30, 0.06),
+    0 3px 6px rgba(40, 30, 10, 0.07),
+    0 28px 44px -12px rgba(40, 30, 10, 0.42);
+  --atomic-cue-font: "Caveat", "Atomic Cue CJK", "Klee One", "DFKai-SB", "Kaiti TC", "BiauKai", "TW-Kai", "STKaiti", "KaiTi", "AR PL UKai TW", "Noto Serif CJK TC", cursive;
+}
+
+/* Dark mode keeps the card a physical, light-but-dimmed sheet. */
+.theme-dark .fitness-plugin:is(.atomic-cues, .atomic-cue-log, .atomic-cue-lightbox) {
+  --atomic-cue-paper: #e6e1d5;
+  --atomic-cue-rule: rgba(60, 84, 128, 0.24);
+  --atomic-cue-head-rule: rgba(186, 74, 74, 0.55);
+  --atomic-cue-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 8px 18px -6px rgba(0, 0, 0, 0.7);
+  --atomic-cue-shadow-lift:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 26px 40px -12px rgba(0, 0, 0, 0.85);
+}
+
+.fitness-plugin.atomic-cues,
+.fitness-plugin.atomic-cue-log {
+  container-type: inline-size;
+}
+
+.fitness-plugin .atomic-cues-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.fitness-plugin .atomic-cue-fan {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--atomic-cue-step));
+  grid-auto-rows: calc(var(--atomic-cue-height) + 22px);
+  padding: 22px calc(var(--atomic-cue-width) - var(--atomic-cue-step)) 8px 0;
+}
+
+.fitness-plugin .atomic-cue-card {
+  --atomic-cue-tilt: -1.4deg;
+  --atomic-cue-drop: 0px;
+  position: relative;
+  display: block;
+  width: var(--atomic-cue-width);
+  height: var(--atomic-cue-height);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.fitness-plugin .atomic-cue-card:nth-child(4n + 2) {
+  --atomic-cue-tilt: 1.1deg;
+  --atomic-cue-drop: 7px;
+}
+
+.fitness-plugin .atomic-cue-card:nth-child(4n + 3) {
+  --atomic-cue-tilt: -0.6deg;
+  --atomic-cue-drop: 3px;
+}
+
+.fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
+  --atomic-cue-tilt: 1.5deg;
+  --atomic-cue-drop: 10px;
+}
+
+/*
+  An authentic 3×5 card: one red header rule, blue lines below. The
+  header band stays empty at rest; date and tag read out on hover.
+*/
+.fitness-plugin .atomic-cue-sheet {
+  --atomic-cue-stock: var(--atomic-cue-paper);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 0 calc(var(--atomic-cue-width) - var(--atomic-cue-step) + 12px) 10px 16px;
+  border-radius: 2px;
+  background-color: var(--atomic-cue-stock);
+  background-image:
+    linear-gradient(180deg,
+      transparent calc(var(--atomic-cue-head) - 1px),
+      var(--atomic-cue-head-rule) calc(var(--atomic-cue-head) - 1px),
+      var(--atomic-cue-head-rule) var(--atomic-cue-head),
+      transparent var(--atomic-cue-head)),
+    linear-gradient(var(--atomic-cue-stock), var(--atomic-cue-stock)),
+    repeating-linear-gradient(180deg,
+      transparent 0,
+      transparent calc(var(--atomic-cue-line) - 1px),
+      var(--atomic-cue-rule) calc(var(--atomic-cue-line) - 1px),
+      var(--atomic-cue-rule) var(--atomic-cue-line));
+  background-position: 0 0, 0 0, 0 var(--atomic-cue-head);
+  background-size: auto, 100% var(--atomic-cue-head), auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+  box-shadow: var(--atomic-cue-shadow);
+  transform-origin: 50% 90%;
+  transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
+  transition:
+    transform var(--atomic-t-move) var(--atomic-ease),
+    box-shadow var(--atomic-t-move) var(--atomic-ease),
+    padding-right var(--atomic-t-move) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-cue-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--atomic-cue-head);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--atomic-cue-ink-soft);
+  opacity: 0;
+  transform: translateY(3px);
+  transition:
+    opacity var(--atomic-t-hover) var(--atomic-ease) 80ms,
+    transform var(--atomic-t-hover) var(--atomic-ease) 80ms;
+}
+
+.fitness-plugin .atomic-cue-body {
+  --atomic-cue-wash: 1;
+  position: relative;
+  min-height: calc(4 * var(--atomic-cue-line));
+  max-height: calc(4 * var(--atomic-cue-line));
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-cue-body::after {
+  content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   height: 14px;
-  border-radius: 6px;
-  background:
-    linear-gradient(180deg, var(--atomic-shelf-face), var(--atomic-shelf-depth));
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
-}
-
-.fitness-plugin button.atomic-book {
-  --atomic-book-color: #374151;
-  position: relative;
-  flex: 0 0 var(--atomic-book-width);
-  width: var(--atomic-book-width);
-  height: var(--atomic-book-height);
-  padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--text-normal);
-  cursor: pointer;
-  transform: translateY(0);
-  transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
-  z-index: 1;
-  overflow: visible;
-  white-space: normal;
-}
-
-/* Cover art / 3D faces must not steal hover from the button (aria-label tooltip). */
-.fitness-plugin .atomic-book * {
   pointer-events: none;
+  opacity: var(--atomic-cue-wash);
+  background: linear-gradient(180deg, transparent, var(--atomic-cue-stock));
 }
 
-.fitness-plugin .atomic-book:hover,
-.fitness-plugin .atomic-book:focus-visible,
-.fitness-plugin .atomic-book:active,
-.fitness-plugin .atomic-book.is-cover-open {
-  transform: translateY(-8px);
+.fitness-plugin .atomic-cue-text {
+  margin: 0;
+  padding-top: 1px;
+  font-family: var(--atomic-cue-font);
+  font-size: 23px;
+  line-height: var(--atomic-cue-line);
+  color: var(--atomic-cue-ink);
+  overflow-wrap: anywhere;
+}
+
+/* Repeats get a divider tab in the activity colour; one-offs get none. */
+.fitness-plugin .atomic-cue-tab {
+  position: absolute;
+  top: -8px;
+  right: calc(var(--atomic-cue-width) - var(--atomic-cue-step) + 12px);
+  height: 16px;
+  padding: 0 6px;
+  border-radius: 3px 3px 1px 1px;
+  background: color-mix(in oklab, var(--atomic-c) 82%, black);
+  color: #fff;
+  font: 600 11px/16px var(--atomic-font);
+  letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  transition: right var(--atomic-t-move) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-cue-card:hover,
+.fitness-plugin .atomic-cue-card:focus-visible,
+.fitness-plugin .atomic-cue-card.is-preview {
+  z-index: 5;
   outline: none;
-  z-index: 6;
 }
 
-.fitness-plugin .atomic-book-volume {
-  position: absolute;
-  inset: 0;
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
+  transform: rotate(0deg) translateY(-18px) scale(1.04);
+  padding-right: 14px;
+  box-shadow: var(--atomic-cue-shadow-lift);
+}
+
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-tab,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-tab,
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-tab {
+  right: 14px;
+}
+
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
+  max-height: none;
+  --atomic-cue-wash: 0;
+}
+
+.fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
+.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
+.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
+  opacity: 1;
   transform: none;
-  pointer-events: none;
-  transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
 }
 
-.fitness-plugin .atomic-book-pages,
-.fitness-plugin .atomic-book-cover,
-.fitness-plugin .atomic-book-spine {
+.fitness-plugin .atomic-cue-card.is-flying .atomic-cue-sheet,
+.fitness-plugin .atomic-cue-card.is-flying .atomic-cue-tab {
+  visibility: hidden;
+}
+
+@container (max-width: 600px) {
+  .fitness-plugin .atomic-cue-fan {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    row-gap: 12px;
+    padding: 14px 0 8px;
+  }
+
+  .fitness-plugin .atomic-cue-card,
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 2),
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 3),
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
+    --atomic-cue-tilt: -0.5deg;
+    --atomic-cue-drop: 0px;
+    width: 100%;
+    height: auto;
+  }
+
+  .fitness-plugin .atomic-cue-card:nth-child(2n) {
+    --atomic-cue-tilt: 0.5deg;
+  }
+
+  .fitness-plugin .atomic-cue-sheet {
+    position: relative;
+    padding-right: 14px;
+  }
+
+  .fitness-plugin .atomic-cue-body {
+    min-height: calc(2 * var(--atomic-cue-line));
+    max-height: calc(2 * var(--atomic-cue-line));
+    transition: none;
+  }
+
+  .fitness-plugin .atomic-cue-tab {
+    right: 14px;
+  }
+
+  .fitness-plugin .atomic-cue-meta {
+    opacity: 1;
+    transform: none;
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
+    transform: rotate(var(--atomic-cue-tilt));
+    box-shadow: var(--atomic-cue-shadow);
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
+    max-height: calc(2 * var(--atomic-cue-line));
+    --atomic-cue-wash: 1;
+  }
+}
+
+/* Lightbox: fly the same card to centre; blur behind, never dim. */
+.fitness-plugin.atomic-cue-lightbox {
+  --atomic-cue-fly-scale: 1.65;
+  --atomic-cue-fly-inset: 48px;
+  --atomic-cue-backdrop-blur: 10px;
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.fitness-plugin .atomic-cue-lightbox-backdrop {
   position: absolute;
   inset: 0;
-  border-radius: 3px 4px 4px 3px;
+  background: transparent;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition:
+    -webkit-backdrop-filter var(--atomic-t-move) var(--atomic-ease),
+    backdrop-filter var(--atomic-t-move) var(--atomic-ease);
 }
 
-.fitness-plugin .atomic-book-pages {
+.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
+  -webkit-backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
+  backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fitness-plugin .atomic-cue-lightbox-backdrop,
+  .fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
+  --atomic-cue-tilt: 0deg;
+  --atomic-cue-drop: 0px;
+  position: fixed;
+  left: var(--atomic-cue-origin-left);
+  top: var(--atomic-cue-origin-top);
+  width: var(--atomic-cue-width);
+  max-width: calc((100vw - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
+  max-height: calc((100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
+  height: auto;
+  overflow: hidden;
+  z-index: 1;
+  transform-origin: center center;
+  transform: none;
+  transition:
+    left var(--atomic-t-move) var(--atomic-ease),
+    top var(--atomic-t-move) var(--atomic-ease),
+    width var(--atomic-t-move) var(--atomic-ease),
+    transform var(--atomic-t-move) var(--atomic-ease);
+}
+
+.fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card {
+  left: 50%;
+  top: 50%;
+  width: var(--atomic-cue-lightbox-width, var(--atomic-cue-width));
+  transform: translate(-50%, -50%) scale(var(--atomic-cue-fly-scale));
+}
+
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet {
+  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px;
+  min-height: 0;
+  max-height: calc((100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
   overflow: hidden;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      #f8f1df 0,
-      #f8f1df 4px,
-      #efe3c7 5px
-    );
-  color: #3f3422;
-  box-shadow:
-    inset -8px 0 10px rgba(0, 0, 0, 0.12),
-    0 6px 12px rgba(0, 0, 0, 0.16);
-  z-index: 1;
+  transform: rotate(0deg);
+  padding-right: 14px;
+  box-shadow: var(--atomic-cue-shadow-lift);
 }
 
-.fitness-plugin .atomic-book-page-title {
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.15;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-  max-height: 4.6em;
-  overflow: hidden;
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-tab {
+  right: 14px;
 }
 
-.fitness-plugin .atomic-book-page-title.is-title-sm {
-  font-size: 8px;
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet .atomic-cue-body {
+  flex: none;
+  min-height: 0;
+  max-height: calc(
+    (100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale) - var(--atomic-cue-head) - 12px
+  );
+  --atomic-cue-wash: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-.fitness-plugin .atomic-book-page-title.is-title-xs {
-  font-size: 7px;
-  line-height: 1.1;
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta {
+  opacity: 1;
+  transform: none;
 }
 
-.fitness-plugin .atomic-book-page-author {
-  font-size: 9px;
-  color: #6b5a3a;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
-  max-height: 2.4em;
-  overflow: hidden;
-}
-
-/* Flat cover by default so iOS/WebKit paints books without preserve-3d bugs. */
-.fitness-plugin .atomic-book-cover {
-  background: transparent;
-  overflow: visible;
-  pointer-events: none;
-  z-index: 2;
-  transform-origin: left center;
-  transition: transform 760ms cubic-bezier(0.18, 0.9, 0.22, 1);
-}
-
-.fitness-plugin .atomic-book-cover-face {
+/* Off-screen twin that measures the cue's natural line length before fly. */
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-sheet.atomic-cue-lightbox-measure {
   position: absolute;
-  inset: 0;
-  border-radius: 3px 4px 4px 3px;
-  overflow: hidden;
-  color: white;
-  background: var(--atomic-book-color);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.22);
-}
-
-.fitness-plugin .atomic-book-cover-inside,
-.fitness-plugin .atomic-book-cover-sleeve {
-  display: none;
-}
-
-/* Beat Obsidian's preview `img { height: auto }` so covers fill the face.
-   Absolute fill makes object-fit reliable on iOS/Android WebViews. */
-.markdown-preview-view .fitness-plugin.atomic-book-shelf img.atomic-book-cover-image,
-.markdown-source-view .fitness-plugin.atomic-book-shelf img.atomic-book-cover-image,
-.cm-preview-code-block .fitness-plugin.atomic-book-shelf img.atomic-book-cover-image,
-.markdown-rendered .fitness-plugin.atomic-book-shelf img.atomic-book-cover-image,
-.fitness-plugin.atomic-book-shelf img.atomic-book-cover-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  left: 0;
+  top: 0;
+  width: max-content;
   max-width: none;
-  max-height: none;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 3px 4px 4px 3px;
-  display: block;
+  visibility: hidden;
   pointer-events: none;
+  transform: none;
+}
+
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-measure .atomic-cue-text {
+  word-break: keep-all;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+/* GLASS: one floating read-out under the card. Solid paper fallback. */
+.fitness-plugin .atomic-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background-primary) 58%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px color-mix(in srgb, var(--text-normal) 9%, transparent),
+    0 10px 24px -10px rgba(0, 0, 0, 0.3);
+  color: var(--atomic-ink);
+}
+
+.theme-dark .fitness-plugin .atomic-glass {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 10px 28px -10px rgba(0, 0, 0, 0.7);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fitness-plugin .atomic-glass {
+    background: var(--background-primary);
+  }
+}
+
+.fitness-plugin .atomic-glass .atomic-readout {
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-glass .atomic-readout.is-hint {
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-glass kbd {
+  font: inherit;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--atomic-fill-2);
+  color: var(--atomic-ink-2);
+}
+
+.fitness-plugin .atomic-cue-lightbox-readout {
+  position: fixed;
+  left: 50%;
+  top: var(--atomic-cue-readout-top, 80%);
+  z-index: 2;
+  transform: translate(-50%, 6px);
+  opacity: 0;
+  transition:
+    opacity var(--atomic-t-hover) var(--atomic-ease),
+    transform var(--atomic-t-hover) var(--atomic-ease);
+}
+
+.fitness-plugin.atomic-cue-lightbox.is-settled .atomic-cue-lightbox-readout {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* --------------------------------------------------------- reduced motion */
+
+/*
+  One switch: the media query. The JS parts (digit roll, cue fly) read the
+  same query through activeWindow.matchMedia, so popouts follow their own
+  window. Motion tokens drop to 0; transforms that move things are removed.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .fitness-plugin {
+    --atomic-t-move: 0ms;
+    --atomic-t-hover: 0ms;
+    --atomic-t-press: 0ms;
+    --atomic-stagger: 0ms;
+  }
+
+  .fitness-plugin .atomic-cue-sheet {
+    transition: none;
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
+    transform: rotate(0deg);
+  }
+
+  .fitness-plugin .atomic-book:hover,
+  .fitness-plugin .atomic-book.is-preview,
+  .fitness-plugin .atomic-book.is-lifted {
+    transform: none;
+  }
+
+  .fitness-plugin .atomic-book::after {
+    display: none;
+  }
+
+  .fitness-plugin .atomic-btn:active,
+  .fitness-plugin .atomic-heat-cell:hover,
+  .fitness-plugin .fitness-cell.is-link:hover {
+    transform: none;
+  }
+
+  .fitness-plugin .atomic-pulse::after {
+    animation: none;
+    opacity: 0.45;
+    transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .fitness-plugin .atomic-cue-fan {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    row-gap: 12px;
+    padding: 14px 0 8px;
+  }
+
+  .fitness-plugin .atomic-cue-card,
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 2),
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 3),
+  .fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
+    --atomic-cue-tilt: -0.5deg;
+    --atomic-cue-drop: 0px;
+    width: 100%;
+    height: auto;
+  }
+
+  .fitness-plugin .atomic-cue-card:nth-child(2n) {
+    --atomic-cue-tilt: 0.5deg;
+  }
+
+  .fitness-plugin .atomic-cue-sheet {
+    position: relative;
+    padding-right: 14px;
+  }
+
+  .fitness-plugin .atomic-cue-body {
+    min-height: calc(2 * var(--atomic-cue-line));
+    max-height: calc(2 * var(--atomic-cue-line));
+    transition: none;
+  }
+
+  .fitness-plugin .atomic-cue-tab {
+    right: 14px;
+  }
+
+  .fitness-plugin .atomic-cue-meta {
+    opacity: 1;
+    transform: none;
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet {
+    transform: rotate(var(--atomic-cue-tilt));
+    box-shadow: var(--atomic-cue-shadow);
+  }
+
+  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
+  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body {
+    max-height: calc(2 * var(--atomic-cue-line));
+    --atomic-cue-wash: 1;
+  }
+}
+
+/* Plugin hooks that the ledger and shelf keep alongside the visual system. */
+
+.fitness-plugin .atomic-book-row-books {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.fitness-plugin .atomic-book-shelf-frame {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
 .fitness-plugin .atomic-book-cover-title {
-  position: absolute;
-  inset: 8px 6px;
   display: flex;
+  align-items: flex-end;
+  height: 100%;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.fitness-plugin .fitness-actions button {
+  appearance: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1.15;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
-  overflow: hidden;
-}
-
-.fitness-plugin .atomic-book-cover-title.is-title-sm {
-  font-size: 8px;
-  inset: 7px 5px;
-}
-
-.fitness-plugin .atomic-book-cover-title.is-title-xs {
-  font-size: 7px;
-  line-height: 1.1;
-  inset: 6px 4px;
-}
-
-/* Default: no 2D spine overlay on the cover face. Hover + fine pointer
-   restores a 3D edge-on spine in the media query below. */
-.fitness-plugin .atomic-book-spine {
-  display: none;
-}
-
-.fitness-plugin .atomic-book-spine-title {
-  display: none;
-}
-
-/* Coarse first tap (.is-cover-open). Fine-pointer hover/focus 3D is in the
-   media query below. Resting books stay flat so WebKit still paints covers. */
-.fitness-plugin .atomic-book.is-cover-open {
-  perspective: 1400px;
-}
-
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-volume {
-  transform-style: preserve-3d;
-  transform: rotateY(-10deg);
-}
-
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-pages {
-  box-shadow:
-    inset -12px 0 16px rgba(0, 0, 0, 0.18),
-    6px 10px 20px rgba(0, 0, 0, 0.22);
-}
-
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
-  transform-style: preserve-3d;
-  transform: rotateY(-155deg);
-}
-
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover-face {
-  transform: translateZ(3px);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover-inside {
-  display: block;
-  position: absolute;
-  inset: 0;
-  border-radius: 3px 4px 4px 3px;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.1), transparent 22%),
-    linear-gradient(180deg, #f7f0e2, #ebe1cb);
-  transform: rotateY(180deg) translateZ(3px);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  opacity: 1;
-}
-
-.fitness-plugin .atomic-book.is-cover-open .atomic-book-cover-sleeve {
-  display: block;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 6px;
-  transform-origin: left center;
-  transform: rotateY(-90deg);
-  background: color-mix(in srgb, var(--atomic-book-color), black 18%);
-  opacity: 1;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .fitness-plugin .atomic-book-row-books {
-    perspective: 1400px;
-    overflow-x: auto;
-  }
-
-  .fitness-plugin .atomic-book-volume {
-    transform-style: preserve-3d;
-    transform: rotateY(0deg);
-    transition: transform 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-volume,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-volume {
-    transform: rotateY(-10deg);
-  }
-
-  .fitness-plugin .atomic-book-pages {
-    transform: translateZ(0);
-    transition: box-shadow 720ms cubic-bezier(0.2, 0.85, 0.25, 1);
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-pages,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-pages {
-    box-shadow:
-      inset -12px 0 16px rgba(0, 0, 0, 0.18),
-      6px 10px 20px rgba(0, 0, 0, 0.22);
-  }
-
-  .fitness-plugin .atomic-book-cover {
-    transform-origin: left center;
-    transform-style: preserve-3d;
-    transform: rotateY(0deg);
-    transition: transform 760ms cubic-bezier(0.18, 0.9, 0.22, 1);
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-cover,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover {
-    transform: rotateY(-155deg);
-  }
-
-  .fitness-plugin .atomic-book-cover-face {
-    transform: translateZ(3px);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-
-  .fitness-plugin .atomic-book-cover-inside {
-    display: block;
-    position: absolute;
-    inset: 0;
-    border-radius: 3px 4px 4px 3px;
-    background:
-      linear-gradient(90deg, rgba(0, 0, 0, 0.1), transparent 22%),
-      linear-gradient(180deg, #f7f0e2, #ebe1cb);
-    transform: rotateY(180deg) translateZ(3px);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    opacity: 0;
-    transition: opacity 90ms ease;
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-cover-inside,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover-inside {
-    opacity: 1;
-    transition: opacity 180ms ease 140ms;
-  }
-
-  .fitness-plugin .atomic-book-cover-sleeve {
-    display: block;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 6px;
-    transform-origin: left center;
-    transform: rotateY(-90deg);
-    background: color-mix(in srgb, var(--atomic-book-color), black 18%);
-    opacity: 0;
-    transition: opacity 90ms ease;
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-cover-sleeve,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover-sleeve {
-    opacity: 1;
-    transition: opacity 160ms ease 120ms;
-  }
-
-  .fitness-plugin .atomic-book-spine {
-    display: block;
-    width: 14px;
-    right: auto;
-    overflow: hidden;
-    background: color-mix(in srgb, var(--atomic-book-color), black 24%);
-    transform: translateX(-7px) rotateY(90deg);
-    transform-origin: right center;
-    z-index: 0;
-    opacity: 1;
-    transition: opacity 220ms ease;
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-spine,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-spine {
-    opacity: 0;
-  }
-
-  .fitness-plugin .atomic-book-spine-title {
-    display: block;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    color: white;
-    font-size: 8px;
-    line-height: 1;
-    padding: 8px 2px;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-height: 100%;
-  }
-
-  .fitness-plugin .atomic-book-spine-title.is-title-sm {
-    font-size: 7px;
-  }
-
-  .fitness-plugin .atomic-book-spine-title.is-title-xs {
-    font-size: 6px;
-  }
-}
-
-.atomic-book-detail {
-  --atomic-book-detail-bg: #1e1e1e;
-  --atomic-book-detail-fg: #fff;
-  width: max-content;
-  max-width: min(200px, 72vw);
-  box-sizing: border-box;
-  pointer-events: none;
+  gap: 8px;
+  height: 32px;
+  padding: 0 14px;
+  margin: 0;
   border: 0;
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: var(--atomic-book-detail-bg);
-  color: var(--atomic-book-detail-fg);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-  text-align: left;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-2);
+  box-shadow: none;
+  color: var(--atomic-ink);
+  font-family: var(--atomic-font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.fitness-plugin .atomic-book-detail {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%) translateY(8px);
-  opacity: 0;
-  transition:
-    opacity 200ms ease,
-    transform 200ms ease;
-  z-index: 20;
+.fitness-plugin .fitness-actions button.mod-cta,
+.fitness-plugin .atomic-btn.is-primary {
+  background: var(--atomic-ink);
+  color: var(--atomic-paper);
 }
 
-/* Escapes the shelf scrollport (overflow-x: auto clips overflow-y). */
-.atomic-book-detail.is-ported {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: auto;
-  transform: translate(-50%, -100%);
-  opacity: 1;
-  z-index: var(--layer-tooltip, 10000);
-}
-
-.atomic-book-detail::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -6px;
-  border: 6px solid transparent;
-  border-top-color: var(--atomic-book-detail-bg);
-}
-
-.theme-dark .atomic-book-detail {
-  --atomic-book-detail-bg: #fff;
-  --atomic-book-detail-fg: #111;
-  background: #fff;
-  color: #111;
-}
-
-.theme-dark .atomic-book-detail::after {
-  border-top-color: #fff;
-}
-
-.atomic-book-detail-title {
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 1.25;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
-}
-
-.atomic-book-detail-author,
-.atomic-book-detail-description {
+.fitness-plugin .atomic-field input,
+.fitness-plugin .atomic-field select,
+.fitness-plugin .atomic-stepper input {
+  border: 0;
+  background: transparent;
   color: inherit;
-  opacity: 0.8;
-  font-size: 11px;
-  margin-top: 3px;
-  line-height: 1.3;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-wrap: break-word;
-  word-break: break-word;
+  font: inherit;
+  min-width: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
-.fitness-plugin .atomic-book-empty {
-  align-self: center;
-  color: var(--text-muted);
-  font-style: italic;
-  padding: 18px 8px;
+.fitness-plugin .atomic-stepper input {
+  width: 2.2em;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atomic-block-pending-bar {
+    animation: none;
+  }
+
+  .fitness-plugin .fitness-cell.is-link:hover {
+    transform: none;
+  }
 }
 
 /* Property dropdowns: match Obsidian form controls (light/dark). */
@@ -1503,39 +2578,6 @@
   inset: 2px 4px;
   width: auto;
   min-width: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fitness-plugin .atomic-book,
-  .fitness-plugin .atomic-book-volume,
-  .fitness-plugin .atomic-book-cover,
-  .fitness-plugin .atomic-book-pages,
-  .fitness-plugin .atomic-book-detail,
-  .atomic-book-detail.is-ported {
-    transition: none;
-  }
-
-  .fitness-plugin .atomic-book:hover,
-  .fitness-plugin .atomic-book:focus-visible,
-  .fitness-plugin .atomic-book:active,
-  .fitness-plugin .atomic-book.is-cover-open {
-    transform: none;
-  }
-
-  .fitness-plugin .atomic-book:hover .atomic-book-volume,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-volume,
-  .fitness-plugin .atomic-book:active .atomic-book-volume,
-  .fitness-plugin .atomic-book.is-cover-open .atomic-book-volume,
-  .fitness-plugin .atomic-book:hover .atomic-book-cover,
-  .fitness-plugin .atomic-book:focus-visible .atomic-book-cover,
-  .fitness-plugin .atomic-book:active .atomic-book-cover,
-  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
-    transform: none;
-  }
-
-  .atomic-block-pending-bar {
-    animation: none;
-  }
 }
 
 /* Settings tab: one habit = one labeled card (activity row + color row). */
@@ -1626,11 +2668,6 @@
   flex: 0 0 auto;
 }
 
-/* ---------------------------------------------------------------------------
-   Cue cards: every cue of the year as one index card in a fanned stack.
-   Hover or keyboard focus lifts a card for a preview. Click after hover
-   (or tap on a phone) flies a larger card to the center of the screen.
-   --------------------------------------------------------------------------- */
 
 @font-face {
   font-family: "Caveat";
@@ -1664,549 +2701,3 @@
   unicode-range: U+2E80-2FFF, U+3000-303F, U+3040-30FF, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF;
 }
 
-.fitness-plugin.atomic-cues,
-.fitness-plugin.atomic-cue-log {
-  --atomic-cue-width: 228px;
-  --atomic-cue-step: 186px;
-  --atomic-cue-height: 140px;
-  --atomic-cue-line: 23px;
-  --atomic-cue-pop: cubic-bezier(0.22, 1, 0.36, 1);
-  --atomic-cue-paper: #fffdf7;
-  --atomic-cue-ink: #2c2a26;
-  --atomic-cue-ink-soft: #6d675c;
-  --atomic-cue-rule: rgba(84, 106, 148, 0.22);
-  --atomic-cue-margin-rule: rgba(214, 92, 92, 0.5);
-  --atomic-cue-accent: var(--interactive-accent);
-  --atomic-cue-font: "Caveat", "Atomic Cue CJK", "Klee One", "DFKai-SB", "Kaiti TC", "BiauKai", "TW-Kai", "STKaiti", "KaiTi", "AR PL UKai TW", "Noto Serif CJK TC", cursive;
-  margin: 8px 0 16px;
-  min-width: 0;
-  /* Layout only: paint containment would clip a popped card. */
-  contain: layout;
-}
-
-/* Index cards are physical paper, so they stay light in a dark theme. */
-.theme-dark .fitness-plugin.atomic-cues,
-.theme-dark .fitness-plugin.atomic-cue-log {
-  --atomic-cue-paper: #ebe5d7;
-  --atomic-cue-rule: rgba(60, 84, 128, 0.26);
-  --atomic-cue-margin-rule: rgba(186, 78, 78, 0.55);
-}
-
-.fitness-plugin .atomic-cues-empty {
-  margin: 4px 0;
-}
-
-.fitness-plugin .atomic-cue-fan {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, var(--atomic-cue-step));
-  row-gap: 34px;
-  /* The last card of a row overhangs its column, so reserve the difference. */
-  padding: 14px calc(var(--atomic-cue-width) - var(--atomic-cue-step)) 24px 0;
-}
-
-/*
-  Four fixed pastel paper stocks cycle by position, the way a pack of index
-  cards does. They are deliberately not derived from the activity colour: the
-  paper is the physical object, and the activity colour shows up on the repeat
-  badge (--atomic-cue-accent).
-*/
-.fitness-plugin .atomic-cue-card {
-  --atomic-cue-tilt: -2.4deg;
-  --atomic-cue-drop: 0px;
-  --atomic-cue-tint: #b7e4c0;
-  /* Block, not the default button box, which shrink-wraps the sheet. */
-  display: block;
-  position: relative;
-  width: var(--atomic-cue-width);
-  height: var(--atomic-cue-height);
-  padding: 0;
-  border: 0;
-  border-radius: 3px;
-  background: none;
-  box-shadow: none;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  /* Obsidian buttons default to nowrap; a cue has to wrap on the card. */
-  white-space: normal;
-}
-
-.fitness-plugin .atomic-cue-card:nth-child(4n + 2) {
-  --atomic-cue-tilt: 1.6deg;
-  --atomic-cue-drop: 9px;
-  --atomic-cue-tint: #bcdcf2;
-}
-
-.fitness-plugin .atomic-cue-card:nth-child(4n + 3) {
-  --atomic-cue-tilt: -1.1deg;
-  --atomic-cue-drop: 4px;
-  --atomic-cue-tint: #f6dcb0;
-}
-
-.fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
-  --atomic-cue-tilt: 2.1deg;
-  --atomic-cue-drop: 13px;
-  --atomic-cue-tint: #eac7de;
-}
-
-.fitness-plugin .atomic-cue-sheet {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  width: 100%;
-  min-height: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  /* Right padding keeps the resting cue inside the strip the next card leaves. */
-  padding: 27px calc(var(--atomic-cue-width) - var(--atomic-cue-step) + 12px) 12px 42px;
-  border-radius: 3px;
-  transform-origin: 50% 92%;
-  transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
-  --atomic-cue-stock: color-mix(in srgb, var(--atomic-cue-tint) 46%, var(--atomic-cue-paper));
-  background-color: var(--atomic-cue-stock);
-  background-image:
-    linear-gradient(
-      90deg,
-      transparent 29px,
-      var(--atomic-cue-margin-rule) 29px,
-      var(--atomic-cue-margin-rule) 30px,
-      transparent 30px
-    ),
-    repeating-linear-gradient(
-      180deg,
-      var(--atomic-cue-rule),
-      var(--atomic-cue-rule) 1px,
-      transparent 1px,
-      transparent var(--atomic-cue-line)
-    );
-  background-position: 0 0, 0 26px;
-  box-shadow:
-    0 0 0 1px rgba(70, 60, 44, 0.07),
-    0 5px 12px rgba(38, 32, 22, 0.16);
-  transition:
-    transform 420ms var(--atomic-cue-pop),
-    box-shadow 420ms var(--atomic-cue-pop),
-    padding-right 420ms var(--atomic-cue-pop);
-}
-
-/* The punch hole that makes a rectangle read as a card. */
-.fitness-plugin .atomic-cue-sheet::before {
-  content: "";
-  position: absolute;
-  left: 11px;
-  top: 10px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: rgba(60, 52, 40, 0.13);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
-}
-
-/*
-  The resting height is an exact 3-line multiple, so a clipped cue cuts on a
-  ruled line instead of mid-glyph and a one-line cue still fills a card's worth
-  of paper. A bottom wash fades the last clipped line.
-*/
-.fitness-plugin .atomic-cue-body {
-  --atomic-cue-wash: 1;
-  position: relative;
-  min-height: calc(3 * var(--atomic-cue-line));
-  max-height: calc(3 * var(--atomic-cue-line));
-  overflow: hidden;
-  transition: max-height 420ms var(--atomic-cue-pop);
-}
-
-.fitness-plugin .atomic-cue-body::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 15px;
-  pointer-events: none;
-  opacity: var(--atomic-cue-wash);
-  background: linear-gradient(180deg, transparent, var(--atomic-cue-stock));
-}
-
-.fitness-plugin .atomic-cue-text {
-  margin: 0;
-  font-family: var(--atomic-cue-font);
-  font-size: 1.35rem;
-  line-height: var(--atomic-cue-line);
-  color: var(--atomic-cue-ink);
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-.fitness-plugin .atomic-cue-text p,
-.fitness-plugin .atomic-cue-text li {
-  margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  color: inherit;
-}
-
-.fitness-plugin .atomic-cue-text p + p {
-  margin-top: var(--atomic-cue-line);
-}
-
-.fitness-plugin .atomic-cue-text ul,
-.fitness-plugin .atomic-cue-text ol {
-  margin: 0;
-  padding-left: 1.2em;
-}
-
-.fitness-plugin .atomic-cue-meta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--atomic-cue-ink-soft);
-  opacity: 0;
-  transform: translateY(5px);
-  transition:
-    opacity 300ms var(--atomic-cue-pop) 90ms,
-    transform 300ms var(--atomic-cue-pop) 90ms;
-}
-
-.fitness-plugin .atomic-cue-repeats {
-  padding: 0 5px;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--atomic-cue-accent) 32%, var(--atomic-cue-paper));
-  color: var(--atomic-cue-ink);
-}
-
-/*
-  Preview lift. Hover and keyboard focus share one rule set so the pop is not
-  gated behind a `(hover: hover)` query: remote desktops and touch-capable
-  laptops report no hover even with a mouse attached. `.is-preview` is only
-  for capture scripts that cannot hold a real pointer over the card.
-  Click/tap opens the centered lightbox; it does not expand the fan card.
-*/
-.fitness-plugin .atomic-cue-card:hover,
-.fitness-plugin .atomic-cue-card:focus-visible,
-.fitness-plugin .atomic-cue-card.is-preview {
-  z-index: 5;
-}
-
-.fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
-  transform: rotate(0deg) translateY(-18px) scale(1.07);
-  padding-right: 14px;
-  box-shadow:
-    0 0 0 1px rgba(70, 60, 44, 0.08),
-    0 20px 38px rgba(38, 32, 22, 0.28);
-}
-
-.fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
-.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
-.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
-  max-height: none;
-  --atomic-cue-wash: 0;
-}
-
-.fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
-.fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
-.fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* The flying clone is the card; hide the fan sheet so it looks like it left. */
-.fitness-plugin .atomic-cue-card.is-flying .atomic-cue-sheet {
-  visibility: hidden;
-}
-
-/* Phones and narrow panes: one card per row, no overlap, tap to pop. */
-@media (max-width: 600px) {
-  .fitness-plugin .atomic-cue-fan {
-    grid-template-columns: 1fr;
-    row-gap: 14px;
-    padding-right: 0;
-  }
-
-  .fitness-plugin .atomic-cue-card {
-    --atomic-cue-tilt: -0.6deg;
-    --atomic-cue-drop: 0px;
-    width: 100%;
-    height: auto;
-  }
-
-  /*
-    Desktop nth-child tilt/drop rules are more specific than the reset
-    above, so restated here or phones keep a 9–13px translateY stagger.
-  */
-  .fitness-plugin .atomic-cue-card:nth-child(4n + 2),
-  .fitness-plugin .atomic-cue-card:nth-child(4n + 3),
-  .fitness-plugin .atomic-cue-card:nth-child(4n + 4) {
-    --atomic-cue-tilt: -0.6deg;
-    --atomic-cue-drop: 0px;
-  }
-
-  .fitness-plugin .atomic-cue-card:nth-child(2n) {
-    --atomic-cue-tilt: 0.6deg;
-  }
-
-  .fitness-plugin .atomic-cue-sheet {
-    position: relative;
-    padding-right: 14px;
-    transition:
-      transform 420ms var(--atomic-cue-pop),
-      box-shadow 420ms var(--atomic-cue-pop);
-  }
-
-  /* max-height cannot interpolate to none; skip layout frames on tap. */
-  .fitness-plugin .atomic-cue-body {
-    transition: none;
-  }
-
-  /*
-    Sticky :hover on touch reflows this in-flow stack while scrolling.
-    Tap opens the centered lightbox; do not also pop on hover or focus.
-  */
-  .fitness-plugin .atomic-cue-card:hover,
-  .fitness-plugin .atomic-cue-card:focus-visible {
-    z-index: auto;
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
-    transform: rotate(var(--atomic-cue-tilt)) translateY(var(--atomic-cue-drop));
-    padding-right: 14px;
-    box-shadow:
-      0 0 0 1px rgba(70, 60, 44, 0.07),
-      0 5px 12px rgba(38, 32, 22, 0.16);
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-body,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-body,
-  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-body {
-    max-height: calc(3 * var(--atomic-cue-line));
-    --atomic-cue-wash: 1;
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-meta,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-meta,
-  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-meta {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fitness-plugin .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-body,
-  .fitness-plugin .atomic-cue-meta {
-    transition: none;
-  }
-
-  .fitness-plugin .atomic-cue-card:hover .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card:focus-visible .atomic-cue-sheet,
-  .fitness-plugin .atomic-cue-card.is-preview .atomic-cue-sheet {
-    transform: rotate(0deg);
-  }
-}
-
-/* Cue entry form on a session note. Existing cues reuse the same fan cards. */
-.fitness-plugin.atomic-cue-log {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 8px 0;
-}
-
-.fitness-plugin .atomic-cue-log-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-  align-items: flex-end;
-}
-
-.fitness-plugin .atomic-cue-log-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1 1 240px;
-  min-width: 0;
-}
-
-.fitness-plugin .atomic-cue-log-field > span {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.fitness-plugin textarea.atomic-cue-log-text {
-  font-family: var(--atomic-cue-font);
-  font-size: 1.2rem;
-  line-height: var(--atomic-cue-line);
-  min-height: calc(3 * var(--atomic-cue-line));
-  resize: vertical;
-  padding: 6px 9px;
-  color: var(--atomic-cue-ink);
-}
-
-.fitness-plugin .atomic-cue-log-existing {
-  margin-top: 10px;
-}
-
-/*
-  Fly the same ruled index card to the center and scale it. Lives on
-  document.body so note overflow and the fan's contain: layout cannot clip
-  it. The backdrop is a transparent hit target that blurs what is behind
-  the card — no dim wash, no restyle, no masks, no overlay scrollbars.
-  Width grows with the cue; the card body scrolls if the cue is taller
-  than the viewport.
-*/
-.fitness-plugin.atomic-cue-lightbox {
-  --atomic-cue-fly-scale: 1.65;
-  --atomic-cue-fly-inset: 48px;
-  --atomic-cue-backdrop-blur: 10px;
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  margin: 0;
-  overflow: hidden;
-  contain: none;
-  background: transparent;
-}
-
-.fitness-plugin .atomic-cue-lightbox-backdrop {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  -webkit-backdrop-filter: blur(0);
-  backdrop-filter: blur(0);
-  transition:
-    -webkit-backdrop-filter 420ms var(--atomic-cue-pop),
-    backdrop-filter 420ms var(--atomic-cue-pop);
-}
-
-.fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
-  -webkit-backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
-  backdrop-filter: blur(var(--atomic-cue-backdrop-blur));
-}
-
-/*
-  Engines without backdrop-filter keep the transparent hit target.
-  Do not substitute a dim / opacity wash; css-masks is also off-limits.
-*/
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .fitness-plugin .atomic-cue-lightbox-backdrop,
-  .fitness-plugin.atomic-cue-lightbox.is-placed .atomic-cue-lightbox-backdrop {
-    background: transparent;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-
-.fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card {
-  --atomic-cue-tilt: 0deg;
-  --atomic-cue-drop: 0px;
-  position: fixed;
-  left: var(--atomic-cue-origin-left);
-  top: var(--atomic-cue-origin-top);
-  display: flex;
-  flex-direction: column;
-  width: var(--atomic-cue-width);
-  max-width: calc((100vw - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
-  max-height: calc((100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
-  height: auto;
-  margin: 0;
-  overflow: hidden;
-  z-index: 1;
-  transform-origin: center center;
-  transform: none;
-  transition:
-    left 420ms var(--atomic-cue-pop),
-    top 420ms var(--atomic-cue-pop),
-    width 420ms var(--atomic-cue-pop),
-    transform 420ms var(--atomic-cue-pop);
-}
-
-.fitness-plugin.atomic-cue-lightbox.is-placed > .atomic-cue-card.atomic-cue-lightbox-card {
-  left: 50%;
-  top: 50%;
-  width: var(--atomic-cue-lightbox-width, var(--atomic-cue-width));
-  transform: translate(-50%, -50%) scale(var(--atomic-cue-fly-scale));
-}
-
-/*
-  Same paper as the fan: do not change padding, line height, or type.
-  position: relative so height: auto wraps the unclamped sheet.
-  padding-right: 14px matches the hovered fan card so the full cue fits.
-  min-height: 0 lets a tall sheet shrink so the body can scroll.
-  These sit after the fan :hover rules, so the lightbox does not need
-  :hover / :focus-visible copies.
-*/
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
-  transform: rotate(0deg);
-  padding-right: 14px;
-  box-shadow:
-    0 0 0 1px rgba(70, 60, 44, 0.08),
-    0 20px 38px rgba(38, 32, 22, 0.28);
-}
-
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: none;
-  --atomic-cue-wash: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-meta {
-  opacity: 1;
-  transform: none;
-}
-
-/*
-  Invert .atomic-cue-text wrap-anywhere so the probe's max-content is the
-  longest cue line (CJK included). Inheritance covers markdown blocks.
-*/
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-sheet.atomic-cue-lightbox-measure {
-  position: absolute;
-  left: -10000px;
-  top: 0;
-  width: max-content;
-  max-width: none;
-  max-height: none;
-  height: auto;
-  overflow: visible;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-measure .atomic-cue-body {
-  overflow: visible;
-  max-height: none;
-}
-
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-measure .atomic-cue-text {
-  width: max-content;
-  max-width: none;
-  overflow-wrap: normal;
-  word-break: keep-all;
-  white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card,
-  .fitness-plugin .atomic-cue-lightbox-backdrop {
-    transition: none;
-  }
-}

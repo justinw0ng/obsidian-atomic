@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import { Notice, requireApiVersion } from "obsidian";
 import type FitnessPlugin from "../main";
 import {
   UPDATE_NOTE,
@@ -44,7 +44,9 @@ export function promptPendingUpdateNote(plugin: FitnessPlugin): void {
 function showUpdateNoteNotice(message: string): void {
   activeUpdateNotice?.hide();
   const notice = new Notice(message, UPDATE_NOTE_NOTICE_MS);
-  notice.messageEl.addClass("atomic-update-note-notice");
-  notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  if (requireApiVersion("1.8.7")) {
+    notice.messageEl.addClass("atomic-update-note-notice");
+    notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  }
   activeUpdateNotice = notice;
 }

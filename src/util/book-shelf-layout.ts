@@ -1,7 +1,7 @@
 /** Book shelf geometry. Keep in sync with `--atomic-book-*` in styles.css. */
 
-export const DEFAULT_BOOK_WIDTH_PX = 80;
-export const DEFAULT_BOOK_HEIGHT_PX = 124;
+export const DEFAULT_BOOK_WIDTH_PX = 96;
+export const DEFAULT_BOOK_HEIGHT_PX = 150;
 export const MIN_BOOK_WIDTH_PX = 56;
 export const BOOK_GAP_PX = 6;
 /** Frame 4*2 + row 2*2 + books 4*2. */

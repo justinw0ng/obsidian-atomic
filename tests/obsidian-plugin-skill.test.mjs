@@ -268,6 +268,30 @@ test("skill and AGENTS.md document Obsidian API hygiene from 1.4.7 review", () =
   assert.match(hygiene, /e2e-selectors\.test\.mjs/);
 });
 
+test("skill, AGENTS.md, and cloud.md lock Obsidian review checks from #108", () => {
+  const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
+  const hygiene = read(".cursor/skills/obsidian-plugin-e2e/references/obsidian-api-hygiene.md");
+  const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
+  const agents = read("AGENTS.md");
+  const cloud = read(".cursor/skills/obsidian-plugin-e2e/references/cloud.md");
+  const architecture = read(".cursor/skills/obsidian-plugin-e2e/references/architecture.md");
+  for (const text of [skill, hygiene, review, agents, cloud]) {
+    assert.match(text, /no-unsupported-api/);
+    assert.match(text, /no-static-styles-assignment/);
+    assert.match(text, /column-gap/);
+    assert.match(text, /clip-path/);
+  }
+  for (const text of [skill, review, agents, cloud, architecture]) {
+    assert.match(text, /obsidian-api-hygiene\.md/);
+  }
+  assert.match(hygiene, /requireApiVersion\("1\.8\.7"\)/);
+  assert.match(hygiene, /setCssProps/);
+  assert.match(architecture, /requireApiVersion\("1\.8\.7"\)/);
+  assert.match(architecture, /obsidian-api-hygiene\.md/);
+  assert.match(skill, /noticeEl/);
+  assert.match(hygiene, /no-deprecated/);
+});
+
 test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", () => {
   const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
   const agents = read("AGENTS.md");
