@@ -42,6 +42,16 @@ test("t interpolates and falls back", () => {
   assert.equal(t("missing.key.for.test", "en"), "missing.key.for.test");
 });
 
+test("settings activity field labels exist", () => {
+  assert.equal(en["settings.enabledLabel"], "Enabled");
+  assert.equal(en["settings.labelField"], "Label");
+  assert.equal(en["settings.folderField"], "Folder");
+  assert.equal(en["settings.cuesLabel"], "Cues");
+  assert.equal(en["settings.heatmapShades"], "Heatmap shades");
+  assert.match(zhHantEn["settings.enabledLabel"], /啟用/);
+  assert.match(zhHantEn["settings.folderField"], /資料夾/);
+});
+
 test("language option labels exist", () => {
   assert.ok(en["settings.languageOption.zh-Hant-en"]);
   assert.ok(en["settings.languageOption.en"]);

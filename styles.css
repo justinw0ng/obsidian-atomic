@@ -1538,12 +1538,37 @@
   }
 }
 
-/* Settings tab: stack dense bilingual activity rows and show shade previews. */
+/* Settings tab: one habit = one labeled card (activity row + color row). */
 .atomic-setting-exercise-type,
 .atomic-setting-colors {
   flex-wrap: wrap;
   align-items: flex-start;
   gap: 8px 12px;
+}
+
+.atomic-setting-exercise-type.setting-item {
+  margin-top: 14px;
+  padding: 12px 14px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: var(--background-secondary);
+  box-shadow: inset 3px 0 0 var(--interactive-accent);
+}
+
+.atomic-setting-exercise-type.setting-item + .atomic-setting-colors.setting-item {
+  margin-top: 0;
+  padding: 4px 14px 14px;
+  border: 1px solid var(--background-modifier-border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  background: var(--background-secondary);
+  box-shadow: inset 3px 0 0 var(--interactive-accent);
+}
+
+.atomic-setting-exercise-type.is-disabled.setting-item,
+.atomic-setting-exercise-type.is-disabled.setting-item + .atomic-setting-colors.setting-item {
+  box-shadow: inset 3px 0 0 var(--text-faint);
 }
 
 .atomic-setting-exercise-type .setting-item-info,
@@ -1558,24 +1583,44 @@
   flex: 1 1 100%;
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px 12px;
+}
+
+.atomic-setting-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.atomic-setting-field-label {
+  font-size: var(--font-ui-smaller, 12px);
+  line-height: 1.2;
+  color: var(--text-muted);
+}
+
+.atomic-setting-field-label.is-spacer {
+  visibility: hidden;
+  user-select: none;
 }
 
 .atomic-setting-exercise-type .setting-item-control input[type="text"] {
   min-width: 0;
-  width: min(100%, 18rem);
+  width: min(100%, 16rem);
 }
 
 .atomic-color-swatch-row {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-left: 4px;
 }
 
 .atomic-color-swatch {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 3px;
   border: 1px solid var(--background-modifier-border);
   flex: 0 0 auto;

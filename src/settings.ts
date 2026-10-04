@@ -28,6 +28,40 @@ function styleDestructiveButton(button: ButtonComponent): void {
   button.buttonEl.addClass("mod-warning");
 }
 
+/** Caption the last painted control. Use a div, not a label: a label around
+ *  Obsidian's checkbox-container can fire the toggle twice. */
+/** Caption the last painted control. Use a div, not a label: a label around
+ *  Obsidian's checkbox-container can fire the toggle twice. */
+function wrapLastSettingControl(
+  setting: Setting,
+  options: { label: string; testId: string; action?: boolean },
+): void {
+  const last = setting.controlEl.lastElementChild;
+  if (!last) return;
+  const classes = options.action
+    ? "atomic-setting-field atomic-setting-field-action"
+    : "atomic-setting-field";
+  const field = setting.controlEl.createDiv({
+    cls: classes,
+    attr: { "data-testid": options.testId },
+  });
+  field.createSpan({
+    cls: options.action
+      ? "atomic-setting-field-label is-spacer"
+      : "atomic-setting-field-label",
+    text: options.action ? "\u00a0" : options.label,
+    attr: { "data-testid": `${options.testId}-label` },
+  });
+  field.appendChild(last);
+}
+
+function syncActivityDisabledClass(activityEl: HTMLElement, disabled: boolean): void {
+  activityEl.toggleClass("is-disabled", disabled);
+  const colors = activityEl.nextElementSibling;
+  if (!colors?.classList.contains("atomic-setting-colors")) return;
+  colors.classList.toggle("is-disabled", disabled);
+}
+
 function isFunction(
   value: unknown,
 ): value is (this: object, ...args: unknown[]) => unknown {
@@ -407,55 +441,82 @@ export class FitnessSettingTab extends PluginSettingTab {
       ? t("settings.exerciseFolderPlaceholder", language)
       : t("settings.hobbyFolderPlaceholder", language);
 
-    setting
-      .setClass("atomic-setting-exercise-type")
-      .addToggle((toggle) =>
-        toggle
-          .setTooltip(t("settings.enabledTooltip", language))
-          .setValue(activity.enabled !== false)
-          .onChange(async (value) => {
-            activity.enabled = value;
-            await this.saveAndRefresh();
-          }),
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder(t("settings.labelPlaceholder", language))
-          .setValue(activity.label)
-          .onChange(async (value) => {
-            const label = value.trim();
-            if (!label) return;
-            activity.label = label;
-            await this.saveAndRefresh();
-          }),
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder(folderPlaceholder)
-          .setValue(activity.folder)
-          .onChange(async (value) => {
-            const folder = value.trim();
-            if (!isSafeVaultFolder(folder)) {
-              new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
-              return;
-            }
-            activity.folder = folder;
-            await this.saveAndRefresh();
-          }),
-      );
+    setting.setClass("atomic-setting-exercise-type");
+    if (activity.enabled === false) {
+      setting.settingEl.addClass("is-disabled");
+    }
+
+    setting.addToggle((toggle) => {
+      toggle
+        .setTooltip(t("settings.enabledTooltip", language))
+        .setValue(activity.enabled !== false)
+        .onChange(async (value) => {
+          activity.enabled = value;
+          syncActivityDisabledClass(setting.settingEl, !value);
+          await this.saveAndRefresh();
+        });
+      toggle.toggleEl.setAttr("aria-label", t("settings.enabledLabel", language));
+    });
+    wrapLastSettingControl(setting, {
+      label: t("settings.enabledLabel", language),
+      testId: "atomic-setting-enabled",
+    });
+
+    setting.addText((text) => {
+      text
+        .setPlaceholder(t("settings.labelPlaceholder", language))
+        .setValue(activity.label)
+        .onChange(async (value) => {
+          const label = value.trim();
+          if (!label) return;
+          activity.label = label;
+          await this.saveAndRefresh();
+        });
+      text.inputEl.setAttr("aria-label", t("settings.labelField", language));
+    });
+    wrapLastSettingControl(setting, {
+      label: t("settings.labelField", language),
+      testId: "atomic-setting-label",
+    });
+
+    setting.addText((text) => {
+      text
+        .setPlaceholder(folderPlaceholder)
+        .setValue(activity.folder)
+        .onChange(async (value) => {
+          const folder = value.trim();
+          if (!isSafeVaultFolder(folder)) {
+            new Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+            return;
+          }
+          activity.folder = folder;
+          await this.saveAndRefresh();
+        });
+      text.inputEl.setAttr("aria-label", t("settings.folderField", language));
+    });
+    wrapLastSettingControl(setting, {
+      label: t("settings.folderField", language),
+      testId: "atomic-setting-folder",
+    });
+
     setting.settingEl.setAttr("data-testid", "atomic-setting-activity");
     setting.settingEl.setAttr("data-activity-id", activity.id);
 
     if (options.showCues) {
-      setting.addToggle((toggle) =>
+      setting.addToggle((toggle) => {
         toggle
           .setTooltip(t("settings.enableCuesTooltip", language))
           .setValue(activity.supportsCues)
           .onChange(async (value) => {
             activity.supportsCues = value;
             await this.saveAndRefresh();
-          }),
-      );
+          });
+        toggle.toggleEl.setAttr("aria-label", t("settings.cuesLabel", language));
+      });
+      wrapLastSettingControl(setting, {
+        label: t("settings.cuesLabel", language),
+        testId: "atomic-setting-cues",
+      });
     }
 
     setting.addButton((button) => {
@@ -465,19 +526,26 @@ export class FitnessSettingTab extends PluginSettingTab {
         this.confirmDeleteActivity(activity);
       });
     });
+    wrapLastSettingControl(setting, {
+      label: "",
+      testId: "atomic-setting-delete",
+      action: true,
+    });
   }
 
   private paintColorControls(setting: Setting, activity: ActivityType): void {
-    setting
-      .setClass("atomic-setting-colors")
-      .addColorPicker((picker) =>
-        picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
-          activity.baseColor = value;
-          activity.colors = shadesFromBaseColor(value);
-          await this.saveAndRefresh();
-          this.renderColorSwatches(setting.controlEl, activity);
-        }),
-      );
+    setting.setClass("atomic-setting-colors");
+    if (activity.enabled === false) {
+      setting.settingEl.addClass("is-disabled");
+    }
+    setting.addColorPicker((picker) =>
+      picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
+        activity.baseColor = value;
+        activity.colors = shadesFromBaseColor(value);
+        await this.saveAndRefresh();
+        this.renderColorSwatches(setting.controlEl, activity);
+      }),
+    );
     setting.settingEl.setAttr("data-testid", "atomic-setting-colors");
     setting.settingEl.setAttr("data-activity-id", activity.id);
     this.renderColorSwatches(setting.controlEl, activity);
@@ -555,6 +623,10 @@ export class FitnessSettingTab extends PluginSettingTab {
     const row = controlEl.createDiv({
       cls: "atomic-color-swatch-row",
       attr: { "data-testid": "atomic-color-swatch-row" },
+    });
+    row.createSpan({
+      cls: "atomic-setting-field-label",
+      text: t("settings.heatmapShades", this.plugin.settings.language),
     });
     for (const color of activity.colors) {
       const swatch = row.createDiv({
