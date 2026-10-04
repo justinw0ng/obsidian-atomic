@@ -779,8 +779,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         )].map((a) => [a.getAttribute("data-path"), (a.textContent || "").trim()]);
       `);
       assert.deepEqual(readingLinks, [
-        ["atomics/hobbies/Reading/Bookshelf.base", "Bases"],
-        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf"],
+        ["atomics/hobbies/Reading/Bookshelf.base", "Bases↗"],
+        ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf↗"],
       ]);
       await saveScreenshot(driver, "dashboard-reading-links");
 
@@ -793,9 +793,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       // Minutes, not session count (a one-session month would be "1").
       assert.match(String(gymMonthMinutes), /^[1-9]\d+$/);
 
-      await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
+      await waitCss(
+        driver,
+        '[data-testid="atomic-dashboard-monthly"] + details.atomic-quiet-toggle',
+      );
       const monthlyTables = await driver.findElements(
-        By.css('[data-testid="atomic-dashboard-monthly"] table'),
+        By.css('[data-testid="atomic-dashboard-monthly"] + details.atomic-quiet-toggle table'),
       );
       assert.equal(monthlyTables.length, 1);
       const chartCols = await driver.executeScript(`
