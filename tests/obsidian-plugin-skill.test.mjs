@@ -119,6 +119,21 @@ test("AGENTS.md points at the obsidian-plugin-e2e skill", () => {
   assert.match(agents, /\.cursor\/skills\/obsidian-plugin-e2e\/SKILL\.md/);
 });
 
+test("AGENTS.md points at the vendored security-audit skill", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /\.cursor\/skills\/security-audit\/SKILL\.md/);
+  const skill = read(".cursor/skills/security-audit/SKILL.md");
+  assert.ok(skill.startsWith("---\n"), "security-audit SKILL.md must start with YAML frontmatter");
+  assert.match(skill, /^name:\s*security-audit\s*$/m);
+});
+
+test("security-audit skill is pinned to the Cloudflare default-branch commit", () => {
+  const pin = read(".cursor/skills/security-audit.SOURCE.md");
+  assert.match(pin, /https:\/\/github\.com\/cloudflare\/security-audit-skill/);
+  assert.match(pin, /c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/);
+  assert.match(pin, /default branch/i);
+});
+
 test("skill and AGENTS.md ban instanceof Element and redundant type assertions", () => {
   const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
   const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
@@ -160,8 +175,12 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
     assert.match(text, /Thermo-Nuclear Code Quality Review/);
     assert.match(text, /REQUEST CHANGES/);
     assert.match(text, /CodeRabbit/);
+    assert.match(text, /security-audit/);
+    assert.match(text, /\.cursor\/skills\/security-audit\/SKILL\.md/);
   }
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
+  assert.match(cloud, /security-audit/);
+  assert.match(cloud, /\.cursor\/skills\/security-audit\/SKILL\.md/);
 });
 
 test("skill and AGENTS.md keep hero banner capture rules", () => {
