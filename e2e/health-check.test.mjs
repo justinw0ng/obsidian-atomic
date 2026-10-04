@@ -17,6 +17,7 @@ import {
 } from "./lib/vault.mjs";
 import {
   ARTIFACT_DIR,
+  assertRequiredE2eReady,
   attachSelenium,
   closeSettings,
   e2eSkipReason,
@@ -35,6 +36,7 @@ import {
 } from "./lib/obsidian.mjs";
 
 const skipReason = e2eSkipReason();
+assertRequiredE2eReady(skipReason);
 
 async function shot(driver, name) {
   try {

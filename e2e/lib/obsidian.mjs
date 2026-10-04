@@ -46,6 +46,16 @@ export function e2eSkipReason() {
   return "";
 }
 
+/** CI sets ATOMIC_E2E_REQUIRED=1 so a skipped health check is a failed job. */
+export function assertRequiredE2eReady(
+  skipReason,
+  required = process.env.ATOMIC_E2E_REQUIRED === "1",
+) {
+  if (required && skipReason) {
+    throw new Error(`E2E required but skipped: ${skipReason}`);
+  }
+}
+
 export async function sleep(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -336,7 +346,21 @@ export async function runCommand(driver, id) {
 }
 
 export async function openCommandPalette(driver) {
-  await driver.actions({ async: false }).keyDown(Key.CONTROL).sendKeys("p").keyUp(Key.CONTROL).perform();
+  await switchToObsidianWindow(driver, 8000);
+  try {
+    await driver.executeScript(`
+      const app = window.app;
+      if (app && app.setting && app.setting.close) app.setting.close();
+    `);
+  } catch {
+    // settings window may already be closed
+  }
+  const opened = await driver.executeScript(
+    `return !!(window.app && window.app.commands && window.app.commands.executeCommandById("command-palette:open"))`,
+  );
+  if (!opened) {
+    await driver.actions({ async: false }).keyDown(Key.CONTROL).sendKeys("p").keyUp(Key.CONTROL).perform();
+  }
   await waitCss(driver, ".prompt-input", 8000);
 }
 
