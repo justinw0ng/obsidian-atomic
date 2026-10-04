@@ -109,7 +109,7 @@
 
 .fitness-plugin .fitness-heatmap-grid {
   display: grid;
-  gap: 12px;
+  gap: 40px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -117,9 +117,12 @@
 }
 
 .fitness-plugin .fitness-heatmap-grid > .atomic-heatmap {
-  margin-bottom: 0;
+  margin: 0;
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
+  padding: 4px 8px 8px;
+  box-sizing: border-box;
 }
 
 /* ------------------------------------------------------------- type roles */
@@ -1251,16 +1254,28 @@
   grid-column: var(--w) / span 4;
 }
 
-/* margin-top clears the months row (16px + 4px). */
+/*
+  Months are 16px plus 4px under them. The cell grid adds 4px of top
+  padding for the today ring. Labels share that offset so each glyph
+  sits on its row.
+*/
 .fitness-plugin .atomic-heat-days {
   display: grid;
   grid-template-rows: repeat(7, var(--atomic-heat-cell));
   row-gap: var(--atomic-heat-gap);
-  margin-top: 20px;
+  align-content: start;
+  margin-top: 24px;
+  font-size: 8px;
+  line-height: 1;
 }
 
 .fitness-plugin .atomic-heat-days > span {
-  line-height: var(--atomic-heat-cell);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--atomic-heat-cell);
+  font-size: 8px;
+  line-height: 1;
 }
 
 .fitness-plugin .atomic-heat-cells {
@@ -1557,9 +1572,29 @@
 
 .fitness-plugin .atomic-gym-log-fields {
   display: grid;
-  grid-template-columns: minmax(150px, 1.6fr) minmax(104px, 0.9fr) auto minmax(110px, 1.3fr) auto;
+  grid-template-columns: max-content minmax(72px, 0.9fr) auto minmax(72px, 1.3fr) auto;
   gap: 6px;
   align-items: center;
+}
+
+/* The exercise name stays one full line at every width. */
+.fitness-plugin .atomic-gym-log-fields > .atomic-field:first-child {
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  justify-self: start;
+}
+
+.fitness-plugin .atomic-gym-log-fields > .atomic-field:first-child select.atomic-field-value {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  field-sizing: content;
 }
 
 .fitness-plugin.atomic-gym-log .atomic-stepper {
@@ -1584,10 +1619,22 @@
   container-name: atomic-timer-host;
 }
 
+.atomic-note-paired .atomic-embed-slot-timer .cm-embed-block,
+.atomic-note-paired .atomic-embed-slot-gym .cm-embed-block,
+.atomic-note-paired .atomic-embed-slot-timer .atomic-embed-stretch,
+.atomic-note-paired .atomic-embed-slot-gym .atomic-embed-stretch {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .atomic-note-column {
   container-type: inline-size;
   container-name: atomic-note;
-  --atomic-pair-gap: 12px;
+  /* One gap shared by the timer slot and the gym slot. */
+  --atomic-pair-gap: 8px;
+  /* Timer well: vertical padding, caption, row gap, and the 34px clock. */
+  --atomic-session-card-height: calc(14px + 16px + 6px + (34px * 1.15) + 14px);
 }
 
 @container atomic-timer-host (max-width: 420px) {
@@ -1610,17 +1657,83 @@
     display: inline-block;
     width: calc(50% - var(--atomic-pair-gap));
     vertical-align: top;
+    margin-left: 0;
+    padding: 0;
+  }
+
+  .atomic-note-paired .atomic-embed-slot-timer {
+    margin-right: var(--atomic-pair-gap);
   }
 
   .atomic-note-paired .atomic-embed-gap {
     display: none;
   }
 
-  /* The reminder field ends on the gym log, not past it. */
-  .atomic-note-paired .fitness-plugin.atomic-cue-log {
-    width: calc(100% - (2 * var(--atomic-pair-gap)));
-    max-width: calc(100% - (2 * var(--atomic-pair-gap)));
+  .atomic-note-paired .fitness-plugin.atomic-timer,
+  .atomic-note-paired .fitness-plugin.atomic-gym-log {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    height: var(--atomic-session-card-height);
+    margin: 12px 0 16px;
+    padding: 14px 10px;
   }
+
+  .atomic-note-paired .fitness-plugin.atomic-gym-log {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .atomic-note-paired .fitness-plugin.atomic-gym-log .atomic-gym-log-fields {
+    width: 100%;
+  }
+
+  /* The composer matches the gym set row, not the full note. */
+  .atomic-note-paired .fitness-plugin.atomic-cue-log .atomic-cue-log-compose {
+    box-sizing: border-box;
+    width: calc(50% - var(--atomic-pair-gap));
+    max-width: calc(50% - var(--atomic-pair-gap));
+    padding: 14px 10px;
+  }
+}
+
+/* Stacked notes: the timer, gym row, and reminder composer share the full column. */
+@container atomic-note (max-width: 1279px) {
+  .atomic-note-paired .atomic-embed-slot-timer,
+  .atomic-note-paired .atomic-embed-slot-gym {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin-right: 0;
+    padding: 0;
+  }
+
+  .atomic-note-paired .atomic-embed-slot-timer :is(.cm-embed-block, .atomic-embed-stretch),
+  .atomic-note-paired .atomic-embed-slot-gym :is(.cm-embed-block, .atomic-embed-stretch) {
+    display: block;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .atomic-note-paired .fitness-plugin.atomic-timer,
+  .atomic-note-paired .fitness-plugin.atomic-gym-log,
+  .atomic-note-paired .fitness-plugin.atomic-cue-log,
+  .atomic-note-paired .fitness-plugin.atomic-cue-log .atomic-cue-log-compose {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+
+  .atomic-note-paired .fitness-plugin.atomic-gym-log .atomic-gym-log-fields {
+    width: 100%;
+  }
+}
+
+.markdown-preview-view pre.atomic-block-host.atomic-gym-log-host,
+.cm-preview-code-block pre.atomic-block-host.atomic-gym-log-host {
+  overflow-x: visible;
 }
 
 @container (max-width: 560px) {
@@ -1654,7 +1767,8 @@
 .fitness-plugin .atomic-shelf-scroll {
   overflow-x: auto;
   overflow-y: visible;
-  padding: 22px 0 0;
+  /* Bottom padding keeps the reading ribbon inside the scrollport. */
+  padding: 22px 0 20px;
 }
 
 .fitness-plugin .atomic-shelf-scroll::-webkit-scrollbar {
@@ -1770,6 +1884,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   border-radius: inherit;
   background: var(--atomic-fill-2);
   transform-origin: left center;
@@ -1788,8 +1903,33 @@
   max-height: none;
   object-fit: cover;
   object-position: center;
+  image-rendering: auto;
   border-radius: inherit;
   pointer-events: none;
+}
+
+/*
+  Obsidian's img max-width is more specific than the rule above in the
+  editor and the preview. Repeat the fill here so a custom cover paints
+  edge to edge.
+*/
+.markdown-source-view.mod-cm6 .fitness-plugin img.atomic-book-cover,
+.markdown-preview-view .fitness-plugin img.atomic-book-cover,
+.markdown-rendered .fitness-plugin img.atomic-book-cover,
+.workspace-leaf-content .fitness-plugin img.atomic-book-cover {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
 }
 
 /*
@@ -1865,6 +2005,14 @@
 
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
     transform: perspective(900px) rotateY(-112deg);
+    filter: invert(1) blur(6px);
+  }
+
+  /* The closed cover, image or title board, fills the opened face before the blur. */
+  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
+    opacity: 1;
+    transform: scale(1.12);
+    transform-origin: center;
   }
 
   .fitness-plugin .atomic-book.is-cover-open::before,
@@ -1901,10 +2049,10 @@
 .fitness-plugin .atomic-book-ribbon {
   position: absolute;
   right: 16%;
-  bottom: -20px;
+  top: calc(100% - 4px);
   width: 8px;
   height: 24px;
-  z-index: -1;
+  z-index: 3;
   filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
   background: linear-gradient(var(--atomic-c), var(--atomic-c)) 0 0 / 100% 18px no-repeat;
 }
@@ -2549,6 +2697,14 @@
   .fitness-plugin .atomic-book.is-preview,
   .fitness-plugin .atomic-book.is-cover-open,
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
+    transform: none;
+  }
+
+  .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
+    filter: none;
+  }
+
+  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
     transform: none;
   }
 

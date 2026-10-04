@@ -11,7 +11,7 @@ const DEFAULT_MIN_COLUMN_WIDTH = 300;
 const DEFAULT_DEFAULT_SPAN = 1.2;
 
 /** Must match `.fitness-heatmap-grid { gap }` in styles.css. */
-export const HEATMAP_GRID_GAP_PX = 12;
+export const HEATMAP_GRID_GAP_PX = 40;
 
 function parsePositiveNumber(
   value: string | undefined,
