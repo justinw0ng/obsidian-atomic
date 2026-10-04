@@ -127,10 +127,26 @@ test("AGENTS.md points at the vendored security-audit skill", () => {
   assert.match(skill, /^name:\s*security-audit\s*$/m);
 });
 
+test("AGENTS.md points at the vendored thermo-nuclear skill", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
+  const skill = read(".cursor/skills/thermo-nuclear-code-quality-review/SKILL.md");
+  assert.ok(skill.startsWith("---\n"), "thermo-nuclear SKILL.md must start with YAML frontmatter");
+  assert.match(skill, /^name:\s*thermo-nuclear-code-quality-review\s*$/m);
+});
+
 test("security-audit skill is pinned to the Cloudflare default-branch commit", () => {
   const pin = read(".cursor/skills/security-audit.SOURCE.md");
   assert.match(pin, /https:\/\/github\.com\/cloudflare\/security-audit-skill/);
   assert.match(pin, /c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/);
+  assert.match(pin, /default branch/i);
+});
+
+test("thermo-nuclear skill is pinned to the cursor/plugins default-branch commit", () => {
+  const pin = read(".cursor/skills/thermo-nuclear-code-quality-review.SOURCE.md");
+  assert.match(pin, /https:\/\/github\.com\/cursor\/plugins/);
+  assert.match(pin, /thermo-nuclear-code-quality-review/);
+  assert.match(pin, /e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a/);
   assert.match(pin, /default branch/i);
 });
 
@@ -177,10 +193,12 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
     assert.match(text, /CodeRabbit/);
     assert.match(text, /security-audit/);
     assert.match(text, /\.cursor\/skills\/security-audit\/SKILL\.md/);
+    assert.match(text, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
   }
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
   assert.match(cloud, /security-audit/);
   assert.match(cloud, /\.cursor\/skills\/security-audit\/SKILL\.md/);
+  assert.match(cloud, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
 });
 
 test("skill and AGENTS.md keep hero banner capture rules", () => {

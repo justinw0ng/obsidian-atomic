@@ -144,7 +144,7 @@ Re-read [Plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+gu
 
 After planned code changes are done and `npm test` / `typecheck` are green, before you mark the PR ready for human review/merge:
 
-1. Run a **Thermo-Nuclear Code Quality Review** in Cursor (`thermo-nuclear-code-quality-review`) on the PR diff vs the default branch (`main`). This is structural/maintainability risk, not a second functional QA pass.
+1. Run a **Thermo-Nuclear Code Quality Review** from `.cursor/skills/thermo-nuclear-code-quality-review/SKILL.md` on the PR diff vs the default branch (`main`). Load that in-repo skill file directly. This is structural/maintainability risk, not a second functional QA pass.
 2. Run a **security-audit** from `.cursor/skills/security-audit/SKILL.md` on the same PR diff. This is the security review. Use the skill's focused-review / guidance mode unless the change is an explicit full-repo audit request. Do not treat Thermo-Nuclear as a substitute for security-audit, or the reverse.
 3. Treat REQUEST CHANGES / risk items as blocking. Fix at root on the same branch, rethink if findings cluster, or dismiss with a written rationale on the PR.
 4. Re-run Thermo-Nuclear and security-audit only when the code diff materially changed after those fixes. Skip for pure comment/docs-only unless asked.
