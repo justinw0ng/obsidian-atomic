@@ -292,12 +292,14 @@ test("cover images fill the book face from the center", () => {
   assert.match(filled.body, /image-rendering:\s*auto/);
 });
 
-test("an open cover blurs the original face and the reading ribbon hangs out at rest", () => {
+test("an open cover keeps its colors and the reading ribbon hangs out at rest", () => {
   const face = cssRule(
     styles,
     ".fitness-plugin .atomic-book.is-cover-open .atomic-book-face",
   );
-  assert.match(face.body, /filter:\s*invert\(1\) blur\(6px\)/);
+  assert.match(face.body, /filter:\s*blur\(6px\)/);
+  assert.doesNotMatch(face.body, /invert\(/);
+  assert.doesNotMatch(styles, /filter:\s*invert\(/);
   assert.doesNotMatch(face.body, /#fff/);
   assert.doesNotMatch(face.body, /#000/);
   const cover = cssRule(

@@ -2005,7 +2005,7 @@
 
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
     transform: perspective(900px) rotateY(-112deg);
-    filter: invert(1) blur(6px);
+    filter: blur(6px);
   }
 
   /* The closed cover, image or title board, fills the opened face before the blur. */
