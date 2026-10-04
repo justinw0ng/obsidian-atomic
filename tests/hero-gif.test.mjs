@@ -33,10 +33,14 @@ test("hero GIF is 1600x900 and a small looping animation", () => {
   assert.ok(gif.length < 5_000_000, `gif too large: ${gif.length}`);
 });
 
-test("capture-readme-hero.sh writes the GIF after composing the still", () => {
+test("capture-readme-hero.sh writes the GIF from the shared device chrome", () => {
   const script = readFileSync(join(root, "scripts/capture-readme-hero.sh"), "utf8");
   assert.match(script, /animate-hero-gif\.py/);
   assert.match(script, /atomic-daily-hero\.gif/);
+  assert.match(script, /frame-hero-content\.py/);
+  assert.match(script, /--preframed/);
+  assert.match(script, /--hero "\$OUT"/);
+  assert.doesNotMatch(script, /--desktop "\$DESKTOP_SHOT"/);
 });
 
 test("animate-hero-gif locates the rightmost desktop book left of the phone", (t) => {

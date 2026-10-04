@@ -56,7 +56,9 @@ test("cue hero capture is a scenario on the shared docs-capture helpers", () => 
   assert.match(src, /launchObsidian/);
   assert.match(src, /stopSession/);
   assert.match(src, /composeDeviceHero/);
-  assert.match(src, /cropChrome: false/);
+  assert.match(src, /frameHeroContent/);
+  assert.match(src, /scene: "cues"/);
+  assert.match(src, /preframed: true/);
   assert.match(src, /\/tmp\/atomic-cue-hero-review/);
   assert.doesNotMatch(src, /\/cursor\/stores\//);
   assert.doesNotMatch(src, /function ensureCueCardBundle/);
@@ -93,6 +95,8 @@ test("cue hero gif script flies from hover to the centered card", () => {
   assert.match(src, /animate-hero-gif\.py/);
   assert.match(src, /save_gif/);
   assert.match(src, /compose-device-hero\.py/);
+  assert.match(src, /compose_preframed/);
+  assert.match(src, /frame-hero-content\.py/);
   assert.match(src, /FLY_FRAMES/);
   assert.match(src, /Image\.blend/);
   assert.match(src, /--lightbox/);

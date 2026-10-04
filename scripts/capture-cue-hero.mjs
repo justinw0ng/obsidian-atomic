@@ -1,5 +1,5 @@
 /**
- * Cue-card README hero: seed, wait/pop cards, compose without cropping chrome.
+ * Cue-card README hero: seed, wait/pop cards, paste into the shared device chrome.
  *
  * Launch/resize/preview/park/compose live in e2e/lib/obsidian.mjs + docs-capture.mjs.
  * Run: npm run docs:cue-hero
@@ -15,6 +15,7 @@ import {
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CUE_HERO_FILES, CUE_HERO_HEADLINE } from "./cue-hero-content.mjs";
+import { capturePreviewCrop, frameHeroContent, heroHoleSize } from "./hero-frames.mjs";
 import {
   composeDeviceHero,
   ensureDocsBundle,
@@ -31,7 +32,6 @@ import {
   dismissTrustDialog,
   e2eSkipReason,
   launchObsidian,
-  saveScreenshot,
   sleep,
   stopSession,
   switchToObsidianWindow,
@@ -47,8 +47,8 @@ const REVIEW_DIR = process.env.ATOMIC_CUE_HERO_REVIEW || DEFAULT_CUE_HERO_REVIEW
 const WALKTHROUGH_DIR = "/opt/cursor/artifacts";
 const HERO_OUT = join(ROOT, "docs/images/atomic-cue-hero.png");
 const GIF_OUT = join(ROOT, "docs/images/atomic-cue-hero.gif");
-const DESKTOP = { width: 1600, height: 900 };
-const MOBILE = { width: 390, height: 844 };
+const DESKTOP = heroHoleSize("cues", "desktop");
+const MOBILE = heroHoleSize("cues", "phone");
 const HOVER_INDEX = 1;
 const TAP_INDEX = 1;
 
@@ -368,10 +368,9 @@ async function captureNamed(driver, name) {
   await driver.executeScript(
     `document.querySelectorAll(".notice, .tooltip").forEach((el) => el.remove())`,
   );
-  const src = await saveScreenshot(driver, name);
   const dest = join(SHOT_DIR, `${name}.png`);
   mkdirSync(SHOT_DIR, { recursive: true });
-  copyFileSync(src, dest);
+  await capturePreviewCrop(driver, dest);
   trimShotWhitespace(dest);
   return dest;
 }
@@ -388,17 +387,26 @@ function trimShotWhitespace(path) {
 }
 
 function composeCueHero(desktopPath, mobilePath) {
+  const framedDesktop = join(SHOT_DIR, "cue-framed-desktop.png");
+  const framedMobile = join(SHOT_DIR, "cue-framed-phone.png");
+  frameHeroContent({
+    scene: "cues",
+    kind: "desktop",
+    content: desktopPath,
+    out: framedDesktop,
+  });
+  frameHeroContent({
+    scene: "cues",
+    kind: "phone",
+    content: mobilePath,
+    out: framedMobile,
+  });
   return composeDeviceHero({
-    desktop: desktopPath,
-    mobile: mobilePath,
+    desktop: framedDesktop,
+    mobile: framedMobile,
     out: HERO_OUT,
     headline: CUE_HERO_HEADLINE,
-    cropChrome: false,
-    desktopFit: "contain",
-    phoneFit: "contain",
-    mobileKind: "window",
-    phonePad: 22,
-    scrubScrollbars: true,
+    preframed: true,
   });
 }
 
