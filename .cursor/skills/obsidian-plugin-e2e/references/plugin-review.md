@@ -35,11 +35,15 @@ Atomic bans these in `styles.css` because review flagged them:
 | `:has(` | Use a class on the host (`atomic-block-host`) or JS (`unclipBookShelfAncestors`) |
 | `!important` | Raise specificity (`button.atomic-book`, `img.atomic-book-cover-image`) |
 | `scrollbar-width` | Keep `::-webkit-scrollbar` / `-ms-overflow-style` if you must style scrollbars |
+| `column-gap` / `column-count` / `columns` | Multicolumn is only partial on Obsidian 1.4.5. Use `gap` on grid or flex |
+| `clip-path` | `css-clip-path` is only partial on Obsidian 1.4.5. The reading-ribbon swallowtail is a border notch |
 | `mask` / `-webkit-mask` / `mask-image` | `css-masks` is only partial on Obsidian 1.4.5. Fade clipped cue text with a `::after` paper wash (`atomic-cue-body`) |
 
 `backdrop-filter` is allowed (cue lightbox blur). Keep the backdrop a transparent hit target. If the engine lacks `backdrop-filter`, do **not** fall back to a dim wash (`rgba` overlay / opacity) or a CSS mask — leave the backdrop transparent.
 
 Use Obsidian CSS variables (`--text-normal`, `--background-modifier-border`, …). Do not hardcode `element.style.color` for theme-facing chrome.
+
+`obsidianmd/no-static-styles-assignment`: do not assign a style literal (`element.style.prop = "…"`, `style.setProperty(name, "…")`, `setAttribute("style", "…")`). Constants live in `styles.css`. Runtime custom properties use `setCssProps`. A non-literal `setProperty` is not this error; prefer `setCssProps` for new custom-property writes.
 
 Do not use lookbehind regexes if `isDesktopOnly` is false.
 
@@ -47,6 +51,8 @@ Do not use lookbehind regexes if `isDesktopOnly` is false.
 
 | Avoid | Use |
 | --- | --- |
+| Obsidian API newer than `minAppVersion` (`obsidianmd/no-unsupported-api`) | `requireApiVersion` guard plus a 1.5.0 fallback. Do not raise `minAppVersion` just to silence the lint, and do not bump plugin `version` for it |
+| Unguarded `Notice.messageEl` (1.8.7) | `requireApiVersion("1.8.7")` then `messageEl`, else `noticeEl` |
 | Global `app` / `window.app` in plugin source | `this.app` (the e2e harness may use `window.app`) |
 | `workspace.activeLeaf` | `getActiveViewOfType`, `activeEditor` |
 | `vault.modify` on a background file | `vault.process` |
@@ -58,7 +64,7 @@ Do not use lookbehind regexes if `isDesktopOnly` is false.
 
 Register events with `this.registerEvent` so disable/unload drops them.
 
-Window APIs, Notice DOM, core-plugin `any`, and unused `*Covered` aliases: [obsidian-api-hygiene.md](obsidian-api-hygiene.md) (1.4.7 / #101).
+Window APIs, Notice DOM, `minAppVersion` guards, static styles, partial CSS, core-plugin `any`, and unused `*Covered` aliases: [obsidian-api-hygiene.md](obsidian-api-hygiene.md) (1.4.7 / #101, 1.5.0 design / #108).
 
 ## Encode each ban as a test
 
@@ -68,8 +74,8 @@ Window APIs, Notice DOM, core-plugin `any`, and unused `*Covered` aliases: [obsi
 - `innerHTML` absent from heatmap, gym log
 - `setWarning` / `setDestructive` / recursive `display()` absent from settings
 - `getSettingDefinitions` present
-- `:has(`, `!important`, `scrollbar-width`, `mask` / `-webkit-mask` absent from `styles.css`
-- `globalThis` / `noticeEl` absent from `src/**`; `activeWindow` / `messageEl` / typed `getFormat` at the cited call sites
+- `:has(`, `!important`, `scrollbar-width`, `column-gap` / `column-count` / `columns`, `clip-path`, `mask` / `-webkit-mask` absent from `styles.css`
+- `globalThis` absent from `src/**`; `messageEl` only behind `requireApiVersion("1.8.7")`; `noticeEl` only as that fallback; no static style literals; `activeWindow` / typed `getFormat` at the cited call sites
 - unused `*Covered` aliases absent from `src/core/dashboard.ts` (`tests/dashboard-paint-state.test.mjs`)
 
 When review invents a new ban, add a `doesNotMatch` (or a `match` for the replacement) in that file in the same PR as the fix.

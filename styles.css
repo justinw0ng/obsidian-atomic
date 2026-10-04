@@ -811,7 +811,7 @@
 .fitness-plugin .atomic-ledger-row {
   display: grid;
   grid-template-columns: var(--atomic-ledger-cols);
-  column-gap: 20px;
+  gap: 0 20px;
   align-items: center;
 }
 
@@ -877,7 +877,7 @@
 .fitness-plugin .atomic-month-initials {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: 5px;
+  gap: 0 5px;
 }
 
 .fitness-plugin .atomic-months {
@@ -1106,7 +1106,7 @@
   display: grid;
   grid-template-columns: 112px minmax(120px, 1fr) auto 16px;
   align-items: center;
-  column-gap: 16px;
+  gap: 0 16px;
   min-height: 40px;
   padding: 0 8px;
   margin: 0 -8px;
@@ -1207,8 +1207,7 @@
       "name name end"
       "count time detail"
       "months months months";
-    row-gap: 10px;
-    column-gap: 12px;
+    gap: 10px 12px;
     padding: 16px 0;
   }
 
@@ -1333,7 +1332,7 @@
 .fitness-plugin .atomic-heat-body {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr);
-  column-gap: 6px;
+  gap: 0 6px;
 }
 
 .fitness-plugin .atomic-heat-scroll {
@@ -1353,7 +1352,7 @@
 .fitness-plugin .atomic-heat-months {
   display: grid;
   grid-template-columns: repeat(53, var(--atomic-heat-cell));
-  column-gap: var(--atomic-heat-gap);
+  gap: 0 var(--atomic-heat-gap);
   height: 16px;
   margin-bottom: 4px;
 }
@@ -1810,7 +1809,8 @@
     0 20px 18px -12px rgba(0, 0, 0, 0.45);
 }
 
-/* Reading: a ribbon tail hangs out of the book over the plank's edge. */
+/* Reading: a ribbon tail hangs out of the book over the plank's edge.
+   Swallowtail is a border notch: solid shaft, transparent bottom border. */
 .fitness-plugin .atomic-book-ribbon {
   position: absolute;
   right: 16%;
@@ -1819,14 +1819,21 @@
   height: 24px;
   z-index: -1;
   filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
+  background: linear-gradient(var(--atomic-c), var(--atomic-c)) 0 0 / 100% 18px no-repeat;
 }
 
 .fitness-plugin .atomic-book-ribbon::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: var(--atomic-c);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 4px 6px;
+  border-color: transparent;
+  border-left-color: var(--atomic-c);
+  border-right-color: var(--atomic-c);
 }
 
 .fitness-plugin .atomic-shelf-readout {

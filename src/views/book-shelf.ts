@@ -373,8 +373,6 @@ function createBook(
     },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
-  button.style.setProperty("--px", "0");
-  button.style.setProperty("--py", "0");
 
   const titleClass = titleLengthClass(item.title);
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);

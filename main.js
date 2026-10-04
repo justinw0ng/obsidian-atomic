@@ -4958,8 +4958,6 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
-  button.style.setProperty("--px", "0");
-  button.style.setProperty("--py", "0");
   const titleClass = titleLengthClass(item.title);
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
@@ -7565,11 +7563,18 @@ function promptPendingUpdateNote(plugin) {
   showUpdateNoteNotice(message);
   void persistSeenUpdateNote(plugin);
 }
+function updateNoteMessageEl(notice) {
+  if ((0, import_obsidian12.requireApiVersion)("1.8.7")) {
+    return notice.messageEl;
+  }
+  return notice.noticeEl;
+}
 function showUpdateNoteNotice(message) {
   activeUpdateNotice?.hide();
   const notice = new import_obsidian12.Notice(message, UPDATE_NOTE_NOTICE_MS);
-  notice.messageEl.addClass("atomic-update-note-notice");
-  notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  const messageEl = updateNoteMessageEl(notice);
+  messageEl.addClass("atomic-update-note-notice");
+  messageEl.setAttr("data-testid", "atomic-update-note-notice");
   activeUpdateNotice = notice;
 }
 

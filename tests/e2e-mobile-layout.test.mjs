@@ -228,7 +228,8 @@ test("book shelf window resize listener is only a ResizeObserver fallback", () =
 
 test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /\.atomic-book-ribbon::before/);
-  assert.match(styles, /clip-path:\s*polygon/);
+  assert.match(styles, /border-width:\s*0 4px 6px/);
+  assert.doesNotMatch(styles, /clip-path\s*:/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
   assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
   assert.match(

@@ -119,8 +119,12 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(updateNote, /new Notice\(/);
   assert.match(updateNote, /formatUpdateNoteNotice/);
   assert.match(updateNote, /updateNoteBodyForLanguage/);
-  assert.match(updateNote, /messageEl/);
-  assert.doesNotMatch(updateNote, /noticeEl/);
+  assert.match(updateNote, /requireApiVersion\("1\.8\.7"\)/);
+  assert.match(
+    updateNote,
+    /if \(requireApiVersion\("1\.8\.7"\)\) \{\s*return notice\.messageEl;/,
+  );
+  assert.match(updateNote, /return notice\.noticeEl;/);
   assert.doesNotMatch(updateNote, /innerHTML/);
   assert.doesNotMatch(updateNote, /Modal/);
   assert.doesNotMatch(updateNote, /atomic-update-note-modal/);
@@ -346,9 +350,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /:has\(/);
   assert.doesNotMatch(styles, /!important/);
   assert.doesNotMatch(styles, /scrollbar-width/);
-  // css-masks is only partial on Obsidian 1.4.5; fade with a ::after wash.
+  // css-masks, css-clip-path, and multicolumn are only partial on Obsidian 1.4.5.
   assert.doesNotMatch(styles, /-webkit-mask/);
   assert.doesNotMatch(styles, /(?:^|[^a-z-])mask(?:-|\s*:)/im);
+  assert.doesNotMatch(styles, /(?<![\w-])column-gap\s*:/);
+  assert.doesNotMatch(styles, /(?<![\w-])column-count\s*:/);
+  assert.doesNotMatch(styles, /(?<![\w-])columns\s*:/);
+  assert.doesNotMatch(styles, /clip-path\s*:/);
+  assert.match(styles, /border-width:\s*0 4px 6px/);
   assert.match(styles, /\.atomic-cue-body::after/);
   assert.match(styles, /--atomic-cue-wash/);
   assert.match(styles, /--atomic-cue-stock/);
@@ -374,10 +383,39 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /\.atomic-cue-lightbox[^{]*\{[^}]*overflow:\s*auto/s);
 });
 
-test("plugin source bans globalThis and deprecated Notice noticeEl", () => {
+test("plugin source bans globalThis, unguarded Notice DOM, and static style literals", () => {
   for (const file of pluginTsFiles()) {
     const text = readFileSync(file, "utf8");
     assert.doesNotMatch(text, /\bglobalThis\b/, `${file} uses globalThis`);
-    assert.doesNotMatch(text, /\bnoticeEl\b/, `${file} uses noticeEl`);
+    assert.doesNotMatch(
+      text,
+      /\.style\.setProperty\(\s*["'][^"']+["']\s*,\s*["']/,
+      `${file} sets a static style via setProperty`,
+    );
+    assert.doesNotMatch(
+      text,
+      /\.style\.[A-Za-z]+\s*=\s*["']/,
+      `${file} assigns a static style literal`,
+    );
+    assert.doesNotMatch(
+      text,
+      /\.setAttribute\(\s*["']style["']\s*,\s*["']/,
+      `${file} sets a static style attribute`,
+    );
+    if (/\.messageEl\b/.test(text)) {
+      assert.match(
+        text,
+        /requireApiVersion\(\s*["']1\.8\.7["']\s*\)/,
+        `${file} uses messageEl without requireApiVersion("1.8.7")`,
+      );
+    }
+    if (/\bnoticeEl\b/.test(text)) {
+      assert.match(
+        text,
+        /requireApiVersion\(\s*["']1\.8\.7["']\s*\)/,
+        `${file} uses noticeEl outside the 1.8.7 fallback`,
+      );
+      assert.match(text, /\.messageEl\b/, `${file} uses noticeEl without messageEl`);
+    }
   }
 });
