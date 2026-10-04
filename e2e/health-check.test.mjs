@@ -250,7 +250,7 @@ async function assertHiddenScrollports(driver, selector, minCount) {
   }
 }
 
-describe("Obsidian Selenium health check", { skip: skipReason || undefined }, () => {
+describe("Obsidian Selenium health check", { skip: skipReason || undefined, concurrency: false }, () => {
   let driver;
   let vaultPath;
   let today;
@@ -443,52 +443,54 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         `return { width: window.innerWidth, height: window.innerHeight }`,
       );
       try {
-        await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
-          width: 390,
-          height: 844,
-          deviceScaleFactor: 1,
-          mobile: true,
-        });
-      } catch {
-        await driver.executeScript(`window.resizeTo(390, 844)`);
-      }
-      await driver.wait(async () => {
-        return driver.executeScript(
-          `return window.matchMedia("(max-width: 600px)").matches`,
-        );
-      }, 8000);
-      await driver.wait(async () => {
-        const rest = await cueCardMetrics(driver, 0);
-        return rest && rest.clamped && rest.lift < 4 && !rest.isOpen;
-      }, 8000);
-      const phoneHover = await cueCardMetrics(driver, 0);
-      assert.ok(phoneHover.clamped, "phone hover must not expand a card");
-      assertNoCssMask(phoneHover, "phone hover cue body");
-      assert.equal(phoneHover.fadeOpacity, 1, "phone hover keeps the bottom wash");
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 390,
+            height: 844,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(390, 844)`);
+        }
+        await driver.wait(async () => {
+          return driver.executeScript(
+            `return window.matchMedia("(max-width: 600px)").matches`,
+          );
+        }, 8000);
+        await driver.wait(async () => {
+          const rest = await cueCardMetrics(driver, 0);
+          return rest && rest.clamped && rest.lift < 4 && !rest.isOpen;
+        }, 8000);
+        const phoneHover = await cueCardMetrics(driver, 0);
+        assert.ok(phoneHover.clamped, "phone hover must not expand a card");
+        assertNoCssMask(phoneHover, "phone hover cue body");
+        assert.equal(phoneHover.fadeOpacity, 1, "phone hover keeps the bottom wash");
 
-      await driver.executeScript(`
-        document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
-      `);
-      const phoneSource = await cueCardMetrics(driver, 0);
-      assert.equal(phoneSource.isOpen, false, "phone tap must not expand the in-flow card");
-      assert.equal(phoneSource.ariaExpanded, "true");
-      const phoneLightbox = await waitForCueLightbox(driver);
-      assert.ok(phoneLightbox.width > 200, "phone lightbox is a larger card");
-      assert.equal(phoneLightbox.clamped, false);
-      assert.ok(isCssTransparent(phoneLightbox.backdropBg), "phone tap must not dim the fan");
-      assert.match(String(phoneLightbox.backdropFilter), /blur\(/, "phone backdrop blurs without a wash");
-      assert.equal(phoneLightbox.fontSize, phoneLightbox.sourceFontSize);
-      assert.equal(phoneLightbox.paddingLeft, phoneLightbox.sourcePaddingLeft);
-      assert.match(String(phoneLightbox.sheetBgImage), /linear-gradient/);
-
-      try {
-        await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
-      } catch {
-        await driver.executeScript(
-          `window.resizeTo(arguments[0], arguments[1])`,
-          desktopViewport.width,
-          desktopViewport.height,
-        );
+        await driver.executeScript(`
+          document.querySelectorAll('[data-testid="atomic-cue-card"]')[0].click();
+        `);
+        const phoneSource = await cueCardMetrics(driver, 0);
+        assert.equal(phoneSource.isOpen, false, "phone tap must not expand the in-flow card");
+        assert.equal(phoneSource.ariaExpanded, "true");
+        const phoneLightbox = await waitForCueLightbox(driver);
+        assert.ok(phoneLightbox.width > 200, "phone lightbox is a larger card");
+        assert.equal(phoneLightbox.clamped, false);
+        assert.ok(isCssTransparent(phoneLightbox.backdropBg), "phone tap must not dim the fan");
+        assert.match(String(phoneLightbox.backdropFilter), /blur\(/, "phone backdrop blurs without a wash");
+        assert.equal(phoneLightbox.fontSize, phoneLightbox.sourceFontSize);
+        assert.equal(phoneLightbox.paddingLeft, phoneLightbox.sourcePaddingLeft);
+        assert.match(String(phoneLightbox.sheetBgImage), /linear-gradient/);
+      } finally {
+        try {
+          await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
+        } catch {
+          await driver.executeScript(
+            `window.resizeTo(arguments[0], arguments[1])`,
+            desktopViewport.width,
+            desktopViewport.height,
+          );
+        }
       }
 
       await openVaultFile(driver, E2E_FILES.gymCues);

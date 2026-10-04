@@ -2226,6 +2226,7 @@
   max-width: calc((100vw - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
   max-height: calc((100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
   height: auto;
+  overflow: hidden;
   z-index: 1;
   transform-origin: center center;
   transform: none;
@@ -2245,6 +2246,11 @@
 
 .fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc((100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale));
+  overflow: hidden;
   transform: rotate(0deg);
   padding-right: 14px;
   box-shadow: var(--atomic-cue-shadow-lift);
@@ -2254,8 +2260,12 @@
   right: 14px;
 }
 
-.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body {
-  max-height: none;
+.fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet .atomic-cue-body {
+  flex: none;
+  min-height: 0;
+  max-height: calc(
+    (100vh - var(--atomic-cue-fly-inset)) / var(--atomic-cue-fly-scale) - var(--atomic-cue-head) - 12px
+  );
   --atomic-cue-wash: 0;
   overflow-x: hidden;
   overflow-y: auto;

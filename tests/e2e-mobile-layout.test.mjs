@@ -393,9 +393,9 @@ test("the cue lightbox is a centered larger card without overlay scrollbars", ()
   assert.doesNotMatch(sheet.body, /min-height:\s*220px/);
   const flyBody = cssRule(
     styles,
-    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-body",
+    ".fitness-plugin.atomic-cue-lightbox .atomic-cue-lightbox-card .atomic-cue-sheet .atomic-cue-body",
   );
-  assert.match(flyBody.body, /max-height:\s*none/);
+  assert.match(flyBody.body, /max-height:\s*calc\(/);
   assert.match(flyBody.body, /overflow-y:\s*auto/);
   assert.match(flyBody.body, /overflow-x:\s*hidden/);
   assert.doesNotMatch(flyBody.body, /overflow:\s*hidden/);
