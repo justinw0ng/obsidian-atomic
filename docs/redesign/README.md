@@ -31,7 +31,7 @@ Obsidian `PluginSettingTab` / `getSettingDefinitions()` (1.13+).
 
 | Row | What it is |
 |-----|------------|
-| Language | Dropdown: `en`, `zh-Hant-en` |
+| Language | Dropdown: English (`en`) or Traditional Chinese (`zh-Hant-en`). Chinese UI is Traditional Chinese only. A stored `Gym / 健身` name shows one half. |
 | Timezone | Text, IANA id |
 | Dashboard path | Text, vault-relative |
 | Exercise types | Heading, then one **activity row + color row** per exercise |
@@ -58,11 +58,11 @@ create today's daily note; open dashboard. Command palette chrome is Obsidian's.
 | `atomic-dashboard` | `src/views/dashboard.ts` | KPI cards, activity cards, monthly chart |
 | `atomic-timer` | `src/views/timer.ts` | Start / Stop / Resume / Discard |
 | `atomic-gym-log` | `src/views/gym-log.ts` | Labeled Exercise / Weight / Reps / Notes |
-| `atomic-cues` | `src/views/cues.ts` | Fanned index cards |
+| `atomic-cues` | `src/views/cues.ts` | Fanned index cards. A narrow list shows four lines. |
 | `atomic-cue-log` | `src/views/cue-log.ts` | Labeled cue textarea |
-| `atomic-bookshelf` | `src/views/book-shelf.ts` | Shelf + cover-open |
+| `atomic-bookshelf` | `src/views/book-shelf.ts` | Hover pops the book. Click opens the cover. The next click opens the note. A user cover fills the face. |
 | `atomic-actions` / `atomic-today` | `src/views/actions.ts`, `today.ts` | Buttons / today's sessions |
-| Property selects | `src/properties/property-select.ts` | Status, felt, location, … |
+| Property selects | `src/properties/property-select.ts` | The select is the value for status, felt, location, and weight unit. |
 
 ### Modals
 

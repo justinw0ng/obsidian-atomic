@@ -122,6 +122,19 @@ export async function hideNoteProperties(driver) {
   `);
 }
 
+export async function showNoteProperties(driver) {
+  await driver.executeScript(`
+    if (app.vault?.setConfig) {
+      app.vault.setConfig("propertiesInDocument", "visible");
+    }
+    for (const el of document.querySelectorAll(
+      ".metadata-container, .metadata-properties-heading, .metadata-add-button, .metadata-properties",
+    )) {
+      el.style.removeProperty("display");
+    }
+  `);
+}
+
 export async function hideCaptureScrollbars(driver, extraCss = "") {
   await driver.executeScript(
     `

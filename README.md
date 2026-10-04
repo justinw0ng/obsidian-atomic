@@ -32,14 +32,15 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Exercise sessions and custom habits: enable/disable, one color picker → four heatmap shades
 - Gym set log (`atomic-gym-log`): pick an exercise, enter weight and reps, click Add set. You don't type the table row yourself
 - Cue log (`atomic-cue-log`): type multiline markdown (English or Traditional Chinese) on a session note and click Add cue; logged cues show as the same index cards as the cue page
-- Cue pages (`atomic-cues` with `activity:`): every cue of the year as an index card; hover lifts the card, click or tap enlarges it in the center, and the card grows with the cue and scrolls if it is taller than the window
+- Cue pages (`atomic-cues` with `activity:`): every cue of the year as an index card. Hover lifts the card. Click or tap enlarges it in the center. The card grows with the cue and scrolls if it is taller than the window. A narrow list shows four lines of each cue.
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
 - Reading items with timers, book shelf, and Bases
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Yearly dashboard: one totals row, one row per habit, a monthly chart, and recent sessions
-- Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit` (`location` also allows Custom…)
+- Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…
+- Book shelf: hover pops a book, click opens the cover, and the next click opens the note. A cover image fills the book when its width does not match. On the dashboard, click a recent session row to open that note.
 
-Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese & English (`zh-Hant-en`). Changing language never rewrites existing notes. Saved language is kept on existing installs.
+Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese (`zh-Hant-en`). Traditional Chinese shows one language. A stored activity name such as `🏋️ Gym / 健身` shows `🏋️ Gym` in English and `🏋️ 健身` in Traditional Chinese. Changing language never rewrites existing notes. Saved language is kept on existing installs.
 
 ## Default vault layout
 

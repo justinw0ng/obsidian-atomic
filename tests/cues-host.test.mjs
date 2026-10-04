@@ -54,6 +54,12 @@ test("cueActivities is enabled cue-supporting exercises only", () => {
   assert.deepEqual(ids, ["gym", "golf"]);
 });
 
+test("cuesHostMarkdown titles a bilingual label in the active language", () => {
+  const gym = DEFAULT_ACTIVITY_TYPES[0];
+  assert.match(cuesHostMarkdown(gym, "en"), /^# 🏋️ Gym\n/);
+  assert.match(cuesHostMarkdown(gym, "zh-Hant-en"), /^# 🏋️ 健身\n/);
+});
+
 test("cuesHostMarkdown is the activity title plus an atomic-cues fence", () => {
   const badminton = createExerciseActivityType("Badminton");
   const markdown = cuesHostMarkdown(badminton, "en");

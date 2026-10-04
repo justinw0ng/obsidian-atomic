@@ -52,6 +52,29 @@ test("gymBody writes frontmatter, muscle hints, gym-log fence, and reminders", (
   assert.match(markdown, /## 💡 Reminders\n/);
 });
 
+test("gymBody heading uses one language from a stored bilingual label", () => {
+  const zh = gymBody(
+    activity({ label: "🏋️ Gym / 健身" }),
+    "2026-08-11",
+    "Home",
+    "",
+    "kg",
+    "zh-Hant-en",
+  );
+  assert.match(zh, /# 🏋️ 健身 — 2026-08-11\n/);
+  assert.doesNotMatch(zh, /Gym \/ 健身/);
+  const en = gymBody(
+    activity({ label: "🏋️ Gym / 健身" }),
+    "2026-08-11",
+    "Home",
+    "",
+    "kg",
+    "en",
+  );
+  assert.match(en, /# 🏋️ Gym — 2026-08-11\n/);
+  assert.doesNotMatch(en, /健身/);
+});
+
 test("gymBody omits reminders when cues are disabled", () => {
   const markdown = gymBody(
     activity({ supportsCues: false }),

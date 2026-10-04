@@ -258,41 +258,7 @@ export function resolveCoverSrc(
   return data.resolveResourcePath(ref.path, sourcePath);
 }
 
-/**
- * Upright covers are ~2:3. Wider images usually include a left-edge spine
- * (Hardcover-style 3D renders, photos of physical books). Pin to the right
- * so object-fit:cover shows the front face, matching desktop shelves.
- */
-const COVER_SPINE_WIDE_RATIO = 0.72;
-
-export function coverObjectPosition(
-  naturalWidth: number,
-  naturalHeight: number,
-): string {
-  if (
-    !Number.isFinite(naturalWidth) ||
-    !Number.isFinite(naturalHeight) ||
-    naturalWidth <= 0 ||
-    naturalHeight <= 0
-  ) {
-    return "center";
-  }
-  return naturalWidth / naturalHeight > COVER_SPINE_WIDE_RATIO
-    ? "right center"
-    : "center";
-}
-
-function bindCoverObjectPosition(img: HTMLImageElement): void {
-  const apply = (): void => {
-    img.setCssProps({
-      "object-position": coverObjectPosition(img.naturalWidth, img.naturalHeight),
-    });
-  };
-  if (img.complete) apply();
-  else img.addEventListener("load", apply, { once: true });
-}
-
-const LIFTED_CLASS = "is-lifted";
+const COVER_OPEN_CLASS = "is-cover-open";
 
 export function hoverFinePointer(
   media: Pick<MediaQueryList, "matches"> | null | undefined,
@@ -300,22 +266,34 @@ export function hoverFinePointer(
   return Boolean(media?.matches);
 }
 
-/** Coarse pointers peek the cover first; a second tap opens the note. */
+/**
+ * Hover on a fine pointer only pops the book. The click opens the cover.
+ * The next click opens the note. A coarse pointer lifts on the first tap
+ * and opens the note on the next. Reduced motion skips the cover swing.
+ */
 export function bookClickOpensNote(options: {
   hoverFine: boolean;
   coverOpen: boolean;
+  reducedMotion?: boolean;
 }): boolean {
-  return options.hoverFine || options.coverOpen;
+  if (options.coverOpen) return true;
+  return Boolean(options.hoverFine && options.reducedMotion);
 }
 
 function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
   if (typeof window.matchMedia !== "function") return null;
-  return window.matchMedia("(hover: hover) and (pointer: fine)");
+  // pointer:none is a virtual display with a mouse, not a coarse phone.
+  return window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)");
 }
 
-function closeLiftedBooks(root: ParentNode): void {
-  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
-    el.classList.remove(LIFTED_CLASS);
+function prefersReducedMotion(): boolean {
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function closeOpenCovers(root: ParentNode): void {
+  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(COVER_OPEN_CLASS);
   });
 }
 
@@ -333,16 +311,21 @@ function showBookReadout(
   readout: HTMLElement,
   item: BookShelfItem,
   language: Language,
-  lifted: boolean,
+  mode: "preview" | "again",
+  hoverFine = false,
 ): void {
   readout.empty();
   readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
   const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
   readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" · ") });
-  const hint = readout.createDiv({ cls: lifted ? "atomic-readout is-live" : "atomic-readout" });
-  hint.setText(
-    t(lifted ? "view.bookShelf.tapAgain" : "view.bookShelf.clickToOpen", language),
-  );
+  const again = mode === "again";
+  const hint = readout.createDiv({ cls: again ? "atomic-readout is-live" : "atomic-readout" });
+  const key = !again
+    ? "view.bookShelf.clickToOpen"
+    : hoverFine
+      ? "view.bookShelf.clickAgain"
+      : "view.bookShelf.tapAgain";
+  hint.setText(t(key, language));
 }
 
 /** Smaller cover/page type for long titles so they wrap inside the book face. */
@@ -368,21 +351,30 @@ function createBook(
       "data-testid": "atomic-book",
       "data-title": item.title,
       "data-status": item.status,
+      "data-path": item.path,
     },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
 
   const titleClass = titleLengthClass(item.title);
+  const pages = button.createDiv({ cls: "atomic-book-pages" });
+  pages.createDiv({
+    cls: ["atomic-book-pages-title", titleClass].filter(Boolean).join(" "),
+    text: item.title,
+  });
+  const author = item.authors[0];
+  if (author) pages.createDiv({ cls: "atomic-book-pages-meta", text: author });
+
+  const face = button.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = button.createEl("img", {
+    face.createEl("img", {
       cls: "atomic-book-cover",
       attr: { src: coverSrc, alt: "", draggable: "false" },
     });
-    bindCoverObjectPosition(img);
   } else {
-    button.createDiv({
-      cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
+    face.createDiv({
+      cls: ["atomic-book-cover", "atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
       text: item.title,
     });
   }
@@ -404,21 +396,32 @@ function createBook(
   });
   button.addEventListener("pointerenter", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    showBookReadout(readout, item, language, false);
+    showBookReadout(readout, item, language, "preview");
+  });
+  button.addEventListener("pointerleave", () => {
+    if (!hoverFinePointer(hoverFineMedia())) return;
+    button.classList.remove(COVER_OPEN_CLASS);
+    const summary = readout.dataset.shelfSummary;
+    if (summary) readout.setText(summary);
   });
 
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(LIFTED_CLASS);
-    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({
+      hoverFine,
+      coverOpen,
+      reducedMotion: prefersReducedMotion(),
+    })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeLiftedBooks(shelf);
-      button.classList.add(LIFTED_CLASS);
-      showBookReadout(readout, item, language, true);
+      closeOpenCovers(shelf);
+      button.classList.add(COVER_OPEN_CLASS);
+      showBookReadout(readout, item, language, "again", hoverFine);
       return;
     }
-    button.classList.remove(LIFTED_CLASS);
+    button.classList.remove(COVER_OPEN_CLASS);
     void data.openPath(item.path);
   });
 }
@@ -434,6 +437,7 @@ function paintRows(
   readout: HTMLElement,
 ): void {
   frame.empty();
+  readout.dataset.shelfSummary = shelfSummary(items, language);
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
     const scroll = frame.createDiv({

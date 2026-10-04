@@ -3,6 +3,7 @@ import { nowYear, resolveBlockYear, ymdInZone } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, DayActivity } from "../types";
+import { labelForLanguage } from "../util/bilingual-label";
 import { resolveHeatmapActivities } from "../util/heatmap-activities";
 import {
   effectiveHeatmapColumns,
@@ -152,7 +153,7 @@ function renderOneHeatmap(
   const head = wrap.createDiv({ cls: "atomic-heat-head" });
   const title = head.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: activity.label });
+  title.createSpan({ text: labelForLanguage(activity.label, language) });
   head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
 
   const body = wrap.createDiv({ cls: "atomic-heat-body" });

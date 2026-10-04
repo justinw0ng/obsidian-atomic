@@ -26,6 +26,7 @@ import { t } from "./i18n/index.ts";
 import type { ActivityType, FitnessSettings } from "./types";
 import { DEFAULT_SETTINGS } from "./types";
 import { exerciseActivities, hobbyActivities } from "./util/activity-types";
+import { labelForLanguage } from "./util/bilingual-label";
 import {
   collectAtomicDataRoots,
   pathAffectsAtomicRefresh,
@@ -350,7 +351,7 @@ export default class FitnessPlugin extends Plugin {
       this.app,
       t(placeholderKey, this.settings.language),
       activities,
-      (activity) => activity.label,
+      (activity) => labelForLanguage(activity.label, this.settings.language),
     );
   }
 

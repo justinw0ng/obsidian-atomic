@@ -97,7 +97,7 @@
 </head>
 <body>
   <h1>Language selection mockup</h1>
-  <p class="lead">Settings row for the standalone i18n PR. Two modes only: bilingual Traditional Chinese &amp; English, or English.</p>
+  <p class="lead">Settings row. Two modes: Traditional Chinese, or English. Traditional Chinese is one language. The saved id stays <code>zh-Hant-en</code>.</p>
 
   <div class="frame" aria-label="Obsidian settings mock">
     <nav>
@@ -113,18 +113,18 @@
 
       <div class="row">
         <div>
-          <div class="label">Language / 語言</div>
+          <div class="label">Language</div>
           <div class="desc">UI labels for settings, dashboards, notices, and new-session templates. Your note content is never rewritten.</div>
         </div>
         <select aria-label="Language">
-          <option selected>Traditional Chinese &amp; English</option>
+          <option selected>Traditional Chinese</option>
           <option>English</option>
         </select>
       </div>
 
       <div class="row">
         <div>
-          <div class="label">Timezone / 時區</div>
+          <div class="label">Timezone</div>
           <div class="desc">Used for “today” and year boundaries.</div>
         </div>
         <select disabled>
@@ -133,22 +133,22 @@
       </div>
 
       <div class="preview">
-        <h3>Live label preview (bilingual mode)</h3>
-        <span class="chip">New gym session / 新建健身課</span>
-        <span class="chip">This month / 本月</span>
-        <span class="chip">Keepers / 常駐提醒</span>
-        <span class="chip">Duration (min) / 時長（分鐘）</span>
+        <h3>Live label preview (Traditional Chinese)</h3>
+        <span class="chip">新增健身訓練</span>
+        <span class="chip">按時長</span>
+        <span class="chip">啟用</span>
+        <span class="chip">開啟儀表板</span>
       </div>
     </main>
   </div>
 
   <div class="modes">
     <div class="card">
-      <h3>Mode: Traditional Chinese &amp; English</h3>
+      <h3>Mode: Traditional Chinese</h3>
       <ul>
         <li>Catalog id: <code>zh-Hant-en</code></li>
-        <li>Default for existing installs</li>
-        <li>Keeps current “EN / 中文” compound labels</li>
+        <li>Dropdown label: Traditional Chinese. The Traditional Chinese catalog calls it 繁體中文.</li>
+        <li>One language on screen. Activity names such as 🏋️ Gym / 健身 show 🏋️ 健身.</li>
       </ul>
     </div>
     <div class="card">

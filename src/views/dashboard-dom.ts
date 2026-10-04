@@ -14,6 +14,7 @@ import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
 import { t } from "../i18n/index.ts";
 import type { Language } from "../i18n/types";
 import { cuePathForActivity } from "../util/activity-types";
+import { labelForLanguage } from "../util/bilingual-label";
 import { appendCatalogLabel } from "./catalog-label";
 
 export type DashboardRenderContext = {
@@ -90,7 +91,9 @@ export function activityLinks(
   if (card.domain === "exercise" && activity.supportsCues) {
     const path = cuePathForActivity(activity);
     links.push({
-      text: t("view.dashboard.cues", ctx.language, { activity: activity.label }),
+      text: t("view.dashboard.cues", ctx.language, {
+        activity: labelForLanguage(activity.label, ctx.language),
+      }),
       path,
       color,
       open: () => openCuesHostFile(ctx.data, activity, ctx.language),
@@ -129,6 +132,7 @@ export function appendActivityLink(
   el.createSpan({ cls: "atomic-link-arrow", text: "↗" });
   el.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     void link.open();
   });
   return el;
@@ -148,6 +152,7 @@ export function appendPathLink(
   });
   link.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     void ctx.data.openPath(path);
   });
   return link;

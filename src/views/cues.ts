@@ -5,6 +5,7 @@ import { nowYear, resolveBlockYear } from "../dates";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, SessionMeta } from "../types";
 import { resolveCueActivityType } from "../util/activity-types";
+import { labelForLanguage } from "../util/bilingual-label";
 import { PaintMemo, sameList } from "../util/paint-memo";
 import {
   appendCueCard,
@@ -93,7 +94,7 @@ export async function renderCues(
   });
   root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
   root.style.setProperty("--atomic-c", activityType.colors[2]);
-  root.setAttr("data-activity-label", activityType.label);
+  root.setAttr("data-activity-label", labelForLanguage(activityType.label, language));
 
   if (!cards.length) {
     root.createEl("p", {

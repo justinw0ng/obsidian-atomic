@@ -226,7 +226,10 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /border-width:\s*0 4px 6px/);
   assert.doesNotMatch(styles, /clip-path\s*:/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
-  assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.match(
+    styles,
+    /@media \(hover: none\) and \(pointer: coarse\)\s*\{[^}]*\.atomic-book\.is-cover-open\s*\{[^}]*translateY\(-10px\)/s,
+  );
   assert.match(
     styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*position:\s*absolute/s,
@@ -251,23 +254,32 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /\.atomic-book-cover-title\.is-title-xs/);
 });
 
-test("fine pointers tilt a book; touch uses a lift instead of a cover flip", () => {
-  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
+test("fine pointers pop a book, then open the cover on click", () => {
+  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine), (pointer: none)");
   assert.ok(hoverAt > 0);
-  const hover = styles.slice(hoverAt, hoverAt + 800);
+  const hover = styles.slice(hoverAt, styles.indexOf("}", styles.indexOf("is-cover-open::after", hoverAt)));
   assert.match(hover, /perspective\(700px\)/);
   assert.match(hover, /rotateY\(calc\(var\(--px\)/);
-  assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.match(hover, /\.atomic-book\.is-cover-open \.atomic-book-face/);
+  assert.match(hover, /rotateY\(-112deg\)/);
+  assert.doesNotMatch(styles, /\.atomic-book\.is-lifted/);
+  assert.match(styles, /min-width:\s*100%/);
+  assert.match(styles, /min-height:\s*100%/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
   assert.doesNotMatch(styles, /atomic-book-spine/);
 });
 
-test("cover images apply coverObjectPosition after load", () => {
+test("cover images fill the book face from the center", () => {
   const src = readFileSync(join(root, "src/views/book-shelf.ts"), "utf8");
-  assert.match(src, /bindCoverObjectPosition\(img\)/);
+  assert.doesNotMatch(src, /coverObjectPosition/);
+  assert.doesNotMatch(src, /--atomic-cover-position/);
   assert.match(
-    src,
-    /function bindCoverObjectPosition[\s\S]*?addEventListener\("load", apply, \{ once: true \}/,
+    styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-position:\s*center/s,
   );
 });
 
@@ -468,11 +480,22 @@ test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
   assert.match(phone, /--atomic-cue-drop:\s*0px/);
   const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
   assert.match(body.body, /transition:\s*none/);
+  assert.match(body.body, /min-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
+  assert.match(body.body, /max-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
   const hoverBody = cssRule(
     phone,
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hoverBody.body, /--atomic-cue-wash:\s*1/);
+  assert.match(hoverBody.body, /max-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
+  assert.doesNotMatch(styles, /calc\(2 \* var\(--atomic-cue-line\)\)/);
+  const cueList = styles.slice(styles.lastIndexOf("@container (max-width: 600px)"));
+  assert.match(cueList, /min-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
+  const cueText = cssRule(
+    styles,
+    ".fitness-plugin .atomic-cue-text p",
+  );
+  assert.match(cueText.body, /margin:\s*0/);
   const flyCard = cssRule(
     styles,
     ".fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card",
@@ -511,6 +534,19 @@ test("reminder and gym controls share a well and wrap with the note", () => {
     styles,
     /@container \(max-width:\s*560px\)\s*\{[^}]*\.atomic-cue-log-fields/s,
   );
+});
+
+test("session property selects read as the value", () => {
+  const select = cssRule(styles, ".metadata-property-value > .atomic-property-select");
+  assert.ok(select, "note property select has its own rule");
+  assert.match(select.body, /background-color:\s*transparent/);
+  assert.match(select.body, /border:\s*0/);
+  assert.match(select.body, /min-width:\s*0/);
+  const hidden = cssRule(
+    styles,
+    ".metadata-properties .metadata-property-value > .metadata-input-longtext.atomic-property-native-hidden:not(:empty)",
+  );
+  assert.match(hidden.body, /display:\s*none/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
