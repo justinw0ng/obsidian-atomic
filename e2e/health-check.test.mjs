@@ -372,11 +372,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         app.workspace.rightSplit?.collapse?.();
       `);
       await driver.wait(async () => {
-        const width = await driver.executeScript(`
+        const ready = await driver.executeScript(`
           const host = document.querySelector('[data-testid="atomic-cues"]');
-          return host ? host.getBoundingClientRect().width : 0;
+          const meta = document.querySelector('[data-testid="atomic-cue-card"] .atomic-cue-meta');
+          const width = host ? host.getBoundingClientRect().width : 0;
+          const opacity = meta ? Number(getComputedStyle(meta).opacity) : 1;
+          return width > 600 && opacity < 0.01;
         `);
-        return width > 600;
+        return ready;
       }, 8000);
 
       const before = await cueCardMetrics(driver, 2);
