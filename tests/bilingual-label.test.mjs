@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   applyLabelEdit,
   labelForLanguage,
+  ledgerActivityName,
   splitCatalogLabel,
 } from "../src/util/bilingual-label.ts";
 
@@ -25,6 +26,14 @@ test("labelForLanguage shows one half of a stored activity name", () => {
     labelForLanguage("{date} · {done} / {total}", "zh-Hant-en"),
     "{date} · {done} / {total}",
   );
+});
+
+test("ledgerActivityName shows both halves and drops the emoji", () => {
+  assert.deepEqual(ledgerActivityName("🏋️ Gym / 健身"), { name: "Gym", zh: "健身" });
+  assert.deepEqual(ledgerActivityName("⛳ Golf / 高爾夫"), { name: "Golf", zh: "高爾夫" });
+  assert.deepEqual(ledgerActivityName("Reading / 睇書"), { name: "Reading", zh: "睇書" });
+  assert.deepEqual(ledgerActivityName("📚 Reading"), { name: "Reading", zh: null });
+  assert.deepEqual(ledgerActivityName("Chess"), { name: "Chess", zh: null });
 });
 
 test("applyLabelEdit keeps the other language when one half changes", () => {

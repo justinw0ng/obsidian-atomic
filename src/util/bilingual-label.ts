@@ -21,6 +21,17 @@ export function splitCatalogLabel(text: string): CatalogLabel {
   return { primary: match[1] ?? text, secondary };
 }
 
+/**
+ * Dashboard activity row: English half, emoji dropped, Chinese half beside it.
+ * The color dot is the mark. Other surfaces still use {@link labelForLanguage}.
+ */
+export function ledgerActivityName(text: string): { name: string; zh: string | null } {
+  const { primary, secondary } = splitCatalogLabel(text);
+  const stripped = primary.replace(LEADING_EMOJI, "").trim();
+  const zh = secondary?.trim() ?? "";
+  return { name: stripped || primary.trim(), zh: zh || null };
+}
+
 /** One language for a stored "English / 中文" label. Other strings stay as written. */
 export function labelForLanguage(text: string, language: string): string {
   const { primary, secondary } = splitCatalogLabel(text);

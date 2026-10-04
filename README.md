@@ -11,7 +11,7 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 ## Dashboard
 
 1. Open `atomics/Dashboard.md`, or run **Open dashboard**.
-2. Step the year. Read one totals row, then one row per habit, then the monthly chart.
+2. Step the year. Read one totals row, then one row per habit: count, time, detail, and hours each month. **Last** opens that habit’s latest session.
 
 ![Dashboard on desktop and phone](docs/images/atomic-dashboard-hero.png)
 
@@ -36,11 +36,11 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
 - Reading items with timers, book shelf, and Bases
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
-- Yearly dashboard: one totals row, one row per habit, a monthly chart, and recent sessions
+- Yearly dashboard: one totals row, one row per habit with monthly hour bars, a monthly chart, and recent sessions. Last opens the latest session note, including reading
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…
 - Book shelf: hover pops a book, click opens the cover, and the next click opens the note. A cover image fills the book when its width does not match. On the dashboard, click a recent session row to open that note.
 
-Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese (`zh-Hant-en`). Traditional Chinese shows one language. A stored activity name such as `🏋️ Gym / 健身` shows `🏋️ Gym` in English and `🏋️ 健身` in Traditional Chinese. Changing language never rewrites existing notes. Saved language is kept on existing installs.
+Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese (`zh-Hant-en`). Traditional Chinese shows one language. A stored activity name such as `🏋️ Gym / 健身` shows `🏋️ Gym` in English and `🏋️ 健身` in Traditional Chinese. The dashboard activity row shows both halves, `Gym` then `健身`, and the color dot stands in for the emoji. Changing language never rewrites existing notes. Saved language is kept on existing installs.
 
 ## Default vault layout
 

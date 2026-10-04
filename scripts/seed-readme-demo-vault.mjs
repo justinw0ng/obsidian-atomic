@@ -348,7 +348,7 @@ function seedObsidianConfig() {
       {
         id: "gym",
         domain: "exercise",
-        label: "🏋️ Gym",
+        label: "🏋️ Gym / 健身",
         folder: "atomics/exercise/Gym",
         enabled: true,
         baseColor: GREEN[2],
@@ -361,7 +361,7 @@ function seedObsidianConfig() {
       {
         id: "golf",
         domain: "exercise",
-        label: "⛳ Golf",
+        label: "⛳ Golf / 高爾夫",
         folder: "atomics/exercise/Golf",
         enabled: true,
         baseColor: ORANGE[2],
@@ -374,7 +374,7 @@ function seedObsidianConfig() {
       {
         id: "reading",
         domain: "hobby",
-        label: "📚 Reading",
+        label: "📚 Reading / 睇書",
         folder: "atomics/hobbies/Reading",
         enabled: true,
         baseColor: BLUE[2],

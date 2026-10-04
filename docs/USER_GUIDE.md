@@ -85,8 +85,9 @@ columns: 2
 ## Dashboard
 
 1. Command palette → **Open dashboard**, or open `atomics/Dashboard.md`.
-2. Step the year. Read the totals row, then one row per habit.
-3. Use the links for cue pages, Bases, and the book shelf. Click a recent session to open that note. The monthly chart is under the rows.
+2. Step the year. Read the totals row, then the activities table: count, time, one detail, and hours for each month.
+3. **Last** is that habit’s latest session. Click it to open the note. Reading uses the latest session too.
+4. The links above the totals open cue pages, Bases, and the book shelf. Click a recent session to open that note. The monthly chart is under the rows.
 
 ![Year dashboard](./images/atomic-dashboard.gif)
 

@@ -73,6 +73,13 @@ test("english catalog drops the Chinese half", () => {
   assert.doesNotMatch(en["settings.timezone"], /\/|時區/);
 });
 
+test("dashboard activities header names the hour bars", () => {
+  assert.equal(en["view.dashboard.activitiesMeta"], "Bars · hours per month");
+  assert.equal(zhHantEn["view.dashboard.activitiesMeta"], "每月時數");
+  assert.equal(en["view.dashboard.inProgress"], "in progress");
+  assert.equal(zhHantEn["view.dashboard.inProgress"], "進行中");
+});
+
 test("dashboard reading Bases label is distinct from book shelf", () => {
   assert.equal(en["view.dashboard.readingBookshelf"], "Bases");
   assert.equal(zhHantEn["view.dashboard.readingBookshelf"], "Bases");

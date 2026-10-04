@@ -910,15 +910,40 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         ["reading", "2"],
       ]);
 
-      const readingLinks = await driver.executeScript(`
+      const activitiesMeta = await driver.executeScript(`
+        return document.querySelector('[data-testid="atomic-dashboard-activities"] .atomic-readout')?.textContent || "";
+      `);
+      assert.match(String(activitiesMeta), /Bars · hours per month/);
+
+      const jumpLinks = await driver.executeScript(`
         return [...document.querySelectorAll(
-          '[data-testid="atomic-dashboard-activity"][data-activity="reading"] [data-testid="atomic-dashboard-link"]'
+          '.atomic-jumps [data-testid="atomic-dashboard-link"]'
         )].map((a) => [a.getAttribute("data-path"), (a.textContent || "").trim()]);
       `);
-      assert.deepEqual(readingLinks, [
+      assert.deepEqual(jumpLinks, [
+        ["atomics/exercise/Gym/Cues.md", "Gym cues↗"],
+        ["atomics/exercise/Golf/Cues.md", "Golf cues↗"],
         ["atomics/hobbies/Reading/Bookshelf.base", "Bases↗"],
         ["atomics/hobbies/Reading/Book Shelf.md", "Book shelf↗"],
       ]);
+
+      const lastLinks = await driver.executeScript(`
+        return [...document.querySelectorAll('[data-testid="atomic-dashboard-last"]')].map((a) => [
+          a.closest("[data-activity]")?.getAttribute("data-activity"),
+          a.getAttribute("data-path"),
+        ]);
+      `);
+      assert.deepEqual(lastLinks, [
+        ["gym", E2E_FILES.gymSession(year, today)],
+        ["golf", E2E_FILES.golfSession(year, today)],
+        ["reading", E2E_FILES.readingCurrent],
+      ]);
+      const readingShelf = await driver.findElements(
+        By.css(
+          '[data-testid="atomic-dashboard-activity"][data-activity="reading"] [data-path="atomics/hobbies/Reading/Book Shelf.md"]',
+        ),
+      );
+      assert.equal(readingShelf.length, 0);
       await saveScreenshot(driver, "dashboard-reading-links");
 
       const month = String(Number(today.slice(5, 7)));
@@ -982,6 +1007,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         E2E_FILES.golfSession(year, today),
         E2E_FILES.gymSession(year, today),
       ]);
+
+      await driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-dashboard-activity"][data-activity="reading"] [data-testid="atomic-dashboard-last"]'
+        ).click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === E2E_FILES.readingCurrent;
+      }, 8000);
     });
   });
 
@@ -1212,7 +1249,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
-  it("shows one language for a stored bilingual activity name", async () => {
+  it("shows both name halves on the dashboard and one language elsewhere", async () => {
     await check(driver, "activity-label-one-language", async () => {
       await openVaultFile(driver, E2E_FILES.dashboard);
       await waitCss(
@@ -1227,21 +1264,35 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           plugin.settings.language = "zh-Hant-en";
           return plugin.refreshAll();
         `);
-        let name = "";
+        let name = { text: "", zh: "" };
         try {
           await driver.wait(async () => {
             name = await driver.executeScript(`
               const row = document.querySelector(
                 '[data-testid="atomic-dashboard-activity"][data-activity="gym"] .atomic-name'
               );
-              return row ? row.textContent.trim() : "";
+              const zh = row?.querySelector(".atomic-inline-zh");
+              return {
+                text: row ? row.textContent.trim() : "",
+                zh: zh ? zh.textContent.trim() : "",
+              };
             `);
-            return name === "🏋️ 健身";
+            return name.text === "Gym健身" && name.zh === "健身";
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} last=${JSON.stringify(name)}`);
         }
-        assert.equal(name.includes("/"), false);
+        assert.equal(name.text.includes("/"), false);
+        assert.equal(name.text.includes("🏋️"), false);
+
+        await openVaultFile(driver, E2E_FILES.heatmapAll);
+        await waitCss(driver, '[data-testid="atomic-heatmap"][data-activity="gym"] .atomic-name');
+        const heatName = await driver.executeScript(`
+          return document.querySelector(
+            '[data-testid="atomic-heatmap"][data-activity="gym"] .atomic-name'
+          )?.textContent.trim() || "";
+        `);
+        assert.equal(heatName, "🏋️ 健身");
       } finally {
         await driver.executeScript(`
           const plugin = app.plugins.getPlugin("atomic-tracker");

@@ -126,20 +126,23 @@ test("buildDashboardModel builds one card per activity with domain-specific fiel
   assert.deepEqual(gym.monthly, [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   assert.deepEqual(gym.monthlyMinutes, [50, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   assert.equal(gym.lastDate, "2026-03-15");
+  assert.equal(gym.lastPath, "atomics/exercise/Gym/2026/2026-03-15.md");
   assert.equal(gym.felt, null);
   assert.equal("inProgress" in gym, false);
 
   assert.equal(golf.volumeKg, null);
   assert.deepEqual(golf.felt, { good: 1, ok: 0, bad: 1 });
   assert.equal(golf.lastDate, "2026-04-05");
+  assert.equal(golf.lastPath, "atomics/exercise/Golf/2026/2026-04-05.md");
 
   assert.equal(reading.domain, "hobby");
   assert.equal(reading.count, 2);
   assert.equal(reading.minutes, 70);
   assert.equal(reading.inProgress, 1);
+  assert.equal(reading.lastDate, "2026-05-01");
+  assert.equal(reading.lastPath, "atomics/hobbies/Reading/Items/B.md");
   assert.deepEqual(reading.monthlyMinutes, [45, 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0]);
   assert.equal("monthly" in reading, false);
-  assert.equal("lastDate" in reading, false);
   assert.equal("felt" in reading, false);
 });
 
@@ -220,18 +223,29 @@ test("buildDashboardModel buckets set rows without a muscle under an empty name"
   assert.deepEqual(model.muscles.rows, [{ muscle: "", sets: 0, volumeKg: 400 }]);
 });
 
-test("buildDashboardModel only counts reading-now for the reading habit", () => {
+test("buildDashboardModel counts in-progress items for every hobby", () => {
   const chess = { ...READING, id: "chess", label: "Chess" };
   const model = buildDashboardModel({
     year: 2026,
     exercise: [],
     hobbies: [
-      { activity: chess, items: [{ path: "c.md", frontmatter: { status: "reading" }, entries: [] }] },
+      {
+        activity: chess,
+        items: [
+          {
+            path: "c.md",
+            frontmatter: { status: "reading" },
+            entries: parseTimeLog("## Time log\n\n- 2026-02-02 | 10 min | a\n- 2025-01-01 | 40 min | old\n"),
+          },
+        ],
+      },
     ],
   });
   assert.equal(model.activities[0].domain, "hobby");
-  assert.equal(model.activities[0].inProgress, null);
-  assert.equal(model.totalHabitMinutes, 0);
+  assert.equal(model.activities[0].inProgress, 1);
+  assert.equal(model.activities[0].lastDate, "2026-02-02");
+  assert.equal(model.activities[0].lastPath, "c.md");
+  assert.equal(model.totalHabitMinutes, 10);
   assert.equal(model.totalVolumeKg, null);
   assert.equal(model.muscles, null);
 });
@@ -271,6 +285,7 @@ test("activity card monthly bars follow hours, not session count", () => {
   const gym = model.activities[0];
   assert.equal(gym.count, 6);
   assert.equal(gym.lastDate, "2026-09-11");
+  assert.equal(gym.lastPath, "atomics/exercise/Gym/2026/2026-09-11.md");
   assert.deepEqual(gym.monthly, [0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0]);
   assert.deepEqual(gym.monthlyMinutes, [0, 0, 0, 0, 0, 0, 0, 180, 195, 0, 0, 0]);
   const heights = barHeights(gym.monthlyMinutes);

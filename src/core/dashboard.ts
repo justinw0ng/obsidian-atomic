@@ -116,6 +116,10 @@ type DashboardCardBase = {
   minutes: number;
   /** Minutes per month; drives the activity-card bars. */
   monthlyMinutes: number[];
+  /** Newest session in the viewed year, when one exists. */
+  lastDate: string | null;
+  /** Note opened from the ledger Last column. */
+  lastPath: string | null;
 };
 
 export type DashboardExerciseCard = DashboardCardBase & {
@@ -124,15 +128,14 @@ export type DashboardExerciseCard = DashboardCardBase & {
   monthly: number[];
   /** Null unless the activity supports a set table. */
   volumeKg: number | null;
-  lastDate: string | null;
   /** Golf only. */
   felt: FeltCounts | null;
 };
 
 export type DashboardHobbyCard = DashboardCardBase & {
   domain: "hobby";
-  /** Reading only: items whose `status` is `reading`. */
-  inProgress: number | null;
+  /** Items whose `status` is in progress (`reading`). */
+  inProgress: number;
 };
 
 export type DashboardActivityCard = DashboardExerciseCard | DashboardHobbyCard;
@@ -192,7 +195,6 @@ export type DashboardModel = {
 
 const RECENT_LIMIT = 10;
 const GOLF_ID = "golf";
-const READING_ID = "reading";
 
 function emptyMonths(): number[] {
   return Array(12).fill(0) as number[];
@@ -204,6 +206,15 @@ function addMonths(target: number[], source: number[]): void {
 
 function bump(map: Map<string, number>, key: string, by: number): void {
   map.set(key, (map.get(key) || 0) + by);
+}
+
+function rememberLatest(
+  current: { date: string; path: string } | null,
+  date: string,
+  path: string,
+): { date: string; path: string } {
+  if (!current || date > current.date) return { date, path };
+  return current;
 }
 
 export function formatKg(n: number): string {
@@ -276,7 +287,7 @@ function summarizeExercise({ activity, sessions }: DashboardExerciseInput): Exer
   const isGolf = activity.id === GOLF_ID;
   let minutes = 0;
   let volumeKg = 0;
-  let lastDate: string | null = null;
+  let latest: { date: string; path: string } | null = null;
 
   for (const { meta, setRows } of sessions) {
     const mi = monthIndexFromDate(meta.date);
@@ -305,7 +316,7 @@ function summarizeExercise({ activity, sessions }: DashboardExerciseInput): Exer
     }
 
     if (meta.date) {
-      if (!lastDate || meta.date > lastDate) lastDate = meta.date;
+      latest = rememberLatest(latest, meta.date, meta.path);
       recent.push({
         date: meta.date,
         activity,
@@ -330,7 +341,8 @@ function summarizeExercise({ activity, sessions }: DashboardExerciseInput): Exer
       monthly,
       monthlyMinutes,
       volumeKg: activity.supportsSetTable ? volumeKg : null,
-      lastDate,
+      lastDate: latest?.date ?? null,
+      lastPath: latest?.path ?? null,
       felt: isGolf ? felt : null,
     },
     columns,
@@ -348,9 +360,15 @@ function summarizeHobby(
 ): { card: DashboardHobbyCard; column: DashboardMonthlyColumn } {
   const monthlyMinutes = emptyMonths();
   let inProgress = 0;
+  let latest: { date: string; path: string } | null = null;
+  const yearPrefix = `${year}-`;
   for (const item of items) {
     addMonths(monthlyMinutes, minutesByMonthForYear(item.entries, year));
     if (isInProgressStatus(item.frontmatter.status)) inProgress += 1;
+    for (const entry of item.entries) {
+      if (!entry.date.startsWith(yearPrefix)) continue;
+      latest = rememberLatest(latest, entry.date, item.path);
+    }
   }
   return {
     card: {
@@ -359,7 +377,9 @@ function summarizeHobby(
       count: items.length,
       minutes: monthlyMinutes.reduce((sum, v) => sum + v, 0),
       monthlyMinutes,
-      inProgress: activity.id === READING_ID ? inProgress : null,
+      inProgress,
+      lastDate: latest?.date ?? null,
+      lastPath: latest?.path ?? null,
     },
     column: { activity, kind: "minutes", values: monthlyMinutes },
   };
