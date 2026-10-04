@@ -517,16 +517,30 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const br = button.getBoundingClientRect();
         const overlap = fr.left < br.right - 1 && fr.right > br.left + 1
           && fr.top < br.bottom - 1 && fr.bottom > br.top + 1;
+        const cue = field.closest(".atomic-cue-log");
+        const gym = document.querySelector('[data-testid="atomic-gym-log"]');
+        const note = field.closest(".cm-sizer, .markdown-preview-sizer");
+        const cueBox = cue?.getBoundingClientRect();
+        const gymBox = gym?.getBoundingClientRect();
         return {
           overlap,
           label: field.querySelector(".atomic-field-label")?.textContent || "",
           well: !!field.closest(".atomic-well"),
+          noteW: note?.clientWidth || 0,
+          cueRight: cueBox ? cueBox.right : 0,
+          gymRight: gymBox ? gymBox.right : 0,
         };
       `);
       assert.ok(cueLayout, "cue field and add button should be measurable");
       assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
       assert.equal(cueLayout.label, "", "the reminder field has no title; Add cue names it");
       assert.equal(cueLayout.well, true);
+      if (cueLayout.noteW >= 1280 && cueLayout.gymRight > 0) {
+        assert.ok(
+          cueLayout.cueRight <= cueLayout.gymRight + 2,
+          `reminder field should end with the gym log: ${JSON.stringify(cueLayout)}`,
+        );
+      }
 
       await waitCss(driver, '[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]');
       const input = await waitCss(driver, '[data-testid="atomic-cue-log-text"]');

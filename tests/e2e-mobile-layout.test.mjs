@@ -501,6 +501,10 @@ test("reminder and gym controls share a well and wrap with the note", () => {
   );
   assert.match(
     styles,
+    /atomic-note-paired \.fitness-plugin\.atomic-cue-log\s*\{[^}]*width:\s*calc\(100% - \(2 \* var\(--atomic-pair-gap\)\)\)/s,
+  );
+  assert.match(
+    styles,
     /@container atomic-timer-host \(max-width:\s*420px\)\s*\{[^}]*grid-template-areas:\s*"head"\s*"clock"\s*"actions"/s,
   );
   assert.match(

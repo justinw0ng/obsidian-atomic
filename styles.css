@@ -1529,6 +1529,7 @@
 .atomic-note-column {
   container-type: inline-size;
   container-name: atomic-note;
+  --atomic-pair-gap: 12px;
 }
 
 @container atomic-timer-host (max-width: 420px) {
@@ -1549,12 +1550,18 @@
   .atomic-note-paired .atomic-embed-slot-timer,
   .atomic-note-paired .atomic-embed-slot-gym {
     display: inline-block;
-    width: calc(50% - 12px);
+    width: calc(50% - var(--atomic-pair-gap));
     vertical-align: top;
   }
 
   .atomic-note-paired .atomic-embed-gap {
     display: none;
+  }
+
+  /* The reminder field ends on the gym log, not past it. */
+  .atomic-note-paired .fitness-plugin.atomic-cue-log {
+    width: calc(100% - (2 * var(--atomic-pair-gap)));
+    max-width: calc(100% - (2 * var(--atomic-pair-gap)));
   }
 }
 
