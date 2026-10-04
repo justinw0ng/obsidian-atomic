@@ -538,7 +538,7 @@ test("session property selects read as the value", () => {
   assert.match(select.body, /min-width:\s*0/);
   const hidden = cssRule(
     styles,
-    ".metadata-property-value > .atomic-property-native-hidden",
+    ".metadata-properties .metadata-property-value > .metadata-input-longtext.atomic-property-native-hidden:not(:empty)",
   );
   assert.match(hidden.body, /display:\s*none/);
 });

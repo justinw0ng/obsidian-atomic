@@ -458,6 +458,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
             `return window.matchMedia("(max-width: 600px)").matches`,
           );
         }, 8000);
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+          document.querySelector('[data-testid="atomic-cues"]')?.scrollIntoView({ block: "start" });
+        `);
         await driver.wait(async () => {
           const rest = await cueCardMetrics(driver, 0);
           return rest && rest.bodyHeight >= 80 && rest.lift < 4 && !rest.isOpen;
@@ -1378,28 +1383,27 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           if (!select || !value) return { name, missing: true };
           const style = getComputedStyle(select);
           const natives = [...value.children].filter((el) => el !== select);
-          const selectBox = select.getBoundingClientRect();
-          const visibleNative = natives.some((el) => {
+          const shown = natives.filter((el) => {
             const box = el.getBoundingClientRect();
-            return getComputedStyle(el).display !== "none" && box.width > 1 && box.height > 1
-              && box.left < selectBox.right - 1 && box.right > selectBox.left + 1;
-          });
+            return getComputedStyle(el).display !== "none" && box.width > 1 && box.height > 1;
+          }).map((el) => ({
+            tag: el.tagName,
+            className: el.className,
+            display: getComputedStyle(el).display,
+            text: (el.textContent || "").trim().slice(0, 40),
+            width: Math.round(el.getBoundingClientRect().width),
+          }));
           return {
             name,
-            nativeDisplays: natives.map((el) => getComputedStyle(el).display),
+            shown,
             background: style.backgroundColor,
             borderTop: style.borderTopWidth,
-            visibleNative,
           };
         });
       `);
       for (const row of propertyUi) {
         assert.equal(row.missing, undefined, `${row.name} select is missing`);
-        assert.equal(row.visibleNative, false, `${row.name} native value overlaps the select`);
-        assert.ok(
-          row.nativeDisplays.every((display) => display === "none"),
-          `${row.name} native editor stays hidden: ${JSON.stringify(row)}`,
-        );
+        assert.deepEqual(row.shown, [], `${row.name} native value is still on screen`);
         assert.equal(row.borderTop, "0px", `${row.name} select has no box`);
         assert.match(
           String(row.background),

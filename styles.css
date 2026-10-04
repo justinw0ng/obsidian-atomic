@@ -2692,7 +2692,9 @@
 .metadata-property-value > input.atomic-property-native-hidden,
 .metadata-property-value > [hidden].metadata-input-text,
 .metadata-property-value > input[hidden],
-.bases-td .atomic-property-native-hidden {
+.bases-td .atomic-property-native-hidden,
+.metadata-properties .metadata-property-value > .metadata-input-longtext.atomic-property-native-hidden,
+.metadata-properties .metadata-property-value > .metadata-input-longtext.atomic-property-native-hidden:not(:empty) {
   display: none;
 }
 
