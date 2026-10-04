@@ -1458,6 +1458,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           `[data-testid="atomic-setting-activity"][data-activity-id="${id}"]`,
         );
         assert.ok(row);
+        const enabledLabel = await row.findElement(
+          By.css('[data-testid="atomic-setting-enabled-label"]'),
+        );
+        assert.equal(await enabledLabel.getText(), "Enabled");
+        const folderLabel = await row.findElement(
+          By.css('[data-testid="atomic-setting-folder-label"]'),
+        );
+        assert.equal(await folderLabel.getText(), "Folder");
         const colors = await waitCss(
           driver,
           `[data-testid="atomic-setting-colors"][data-activity-id="${id}"]`,
@@ -1468,7 +1476,25 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
           By.css('[data-testid="atomic-color-swatch"]'),
         );
         assert.equal(swatches.length, 4);
+        const shadeLabel = await colors.findElement(
+          By.css('[data-testid="atomic-setting-shades-label"]'),
+        );
+        assert.equal(await shadeLabel.getText(), "Heatmap shades");
       }
+
+      const gymRow = await driver.findElement(
+        By.css('[data-testid="atomic-setting-activity"][data-activity-id="gym"]'),
+      );
+      const cuesLabel = await gymRow.findElement(
+        By.css('[data-testid="atomic-setting-cues-label"]'),
+      );
+      assert.equal(await cuesLabel.getText(), "Cues");
+      const readingCues = await driver.findElements(
+        By.css(
+          '[data-testid="atomic-setting-activity"][data-activity-id="reading"] [data-testid="atomic-setting-cues"]',
+        ),
+      );
+      assert.equal(readingCues.length, 0);
 
       await waitCss(driver, '[data-testid="atomic-setting-gym-exercises"]');
       await waitCss(driver, '[data-testid="atomic-setting-gym-import"]');
