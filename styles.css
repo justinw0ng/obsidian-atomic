@@ -1844,7 +1844,8 @@
     0 0 0 4px var(--atomic-focus);
 }
 
-@media (hover: hover) and (pointer: fine) {
+/* pointer:none is a virtual display with a mouse, not a phone. */
+@media (hover: hover) and (pointer: fine), (pointer: none) {
   .fitness-plugin .atomic-book:hover {
     z-index: 3;
     transform: perspective(700px) translateY(-8px) rotateX(calc(var(--py) * -12deg)) rotateY(calc(var(--px) * 20deg));

@@ -181,7 +181,7 @@ var en = {
   "settings.title": "Atomic Tracker",
   "settings.language": "Language",
   "settings.languageDesc": "Choose the plugin UI language. Existing notes and frontmatter are not rewritten.",
-  "settings.languageOption.zh-Hant-en": "Traditional Chinese & English",
+  "settings.languageOption.zh-Hant-en": "Traditional Chinese",
   "settings.languageOption.en": "English",
   "settings.timezone": "Timezone",
   "settings.timezoneDesc": "IANA timezone for today and session dates (e.g. Asia/Hong_Kong).",
@@ -457,6 +457,7 @@ var en = {
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
   "view.bookShelf.summary": "{count} books \xB7 {reading} reading \xB7 {finished} finished",
   "view.bookShelf.clickToOpen": "Click to open",
+  "view.bookShelf.clickAgain": "Click again to open the note",
   "view.bookShelf.tapAgain": "Tap again to open",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
@@ -496,318 +497,319 @@ var en = {
 // src/i18n/locales/zh-Hant-en.ts
 var zhHantEn = {
   "settings.title": "Atomic Tracker",
-  "settings.language": "Language / \u8A9E\u8A00",
-  "settings.languageDesc": "Choose plugin UI language / \u9078\u64C7\u5916\u639B\u4ECB\u9762\u8A9E\u8A00\u3002Existing notes are not rewritten / \u4E0D\u6703\u6539\u5BEB\u73FE\u6709\u7B46\u8A18\u3002",
-  "settings.languageOption.zh-Hant-en": "Traditional Chinese & English / \u7E41\u9AD4\u4E2D\u6587\uFF0B\u82F1\u6587",
-  "settings.languageOption.en": "English / \u82F1\u6587",
-  "settings.timezone": "Timezone / \u6642\u5340",
-  "settings.timezoneDesc": "IANA timezone for today and session dates / \u7528\u65BC\u300C\u4ECA\u65E5\u300D\u548C\u8A13\u7DF4\u65E5\u671F\u7684 IANA \u6642\u5340 (e.g. Asia/Hong_Kong)\u3002",
-  "settings.dashboardPath": "Dashboard path / \u5100\u8868\u677F\u8DEF\u5F91",
-  "settings.dashboardPathDesc": "Vault-relative path opened by Open dashboard / Open dashboard \u6703\u958B\u555F\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
-  "settings.exerciseTypes": "Exercise types / \u904B\u52D5\u985E\u578B",
-  "settings.exerciseTypesDesc": "Exercise sessions live in each activity folder. New exercise types default under atomics/exercise/<Name> / \u8A13\u7DF4\u7B46\u8A18\u5B58\u65BC\u5404\u6D3B\u52D5\u8CC7\u6599\u593E\uFF0C\u65B0\u904B\u52D5\u985E\u578B\u9810\u8A2D\u653E\u5728 atomics/exercise/<Name>\u3002",
-  "settings.addExerciseType": "Add exercise type / \u65B0\u589E\u904B\u52D5\u985E\u578B",
-  "settings.addExerciseTypeDesc": "Creates a daily-session exercise with cues enabled and no set table / \u5EFA\u7ACB\u6BCF\u65E5\u8A13\u7DF4\u985E\u578B\uFF0C\u555F\u7528\u63D0\u9192\uFF0C\u4E0D\u555F\u7528\u7D44\u6578\u8868\u3002",
-  "settings.add": "Add / \u65B0\u589E",
-  "settings.activityId": "Activity id / \u6D3B\u52D5 ID: {id}",
-  "settings.labelPlaceholder": "Label / \u6A19\u7C64",
-  "settings.enabledLabel": "Enabled / \u555F\u7528",
-  "settings.labelField": "Label / \u6A19\u7C64",
-  "settings.folderField": "Folder / \u8CC7\u6599\u593E",
-  "settings.cuesLabel": "Cues / \u63D0\u9192",
-  "settings.heatmapShades": "Heatmap shades / Heatmap \u8272\u968E",
+  "settings.language": "\u8A9E\u8A00",
+  "settings.languageDesc": "\u9078\u64C7\u5916\u639B\u4ECB\u9762\u8A9E\u8A00\u3002\u4E0D\u6703\u6539\u5BEB\u73FE\u6709\u7B46\u8A18\u3002",
+  "settings.languageOption.zh-Hant-en": "\u7E41\u9AD4\u4E2D\u6587",
+  "settings.languageOption.en": "\u82F1\u6587",
+  "settings.timezone": "\u6642\u5340",
+  "settings.timezoneDesc": "\u7528\u65BC\u300C\u4ECA\u65E5\u300D\u548C\u8A13\u7DF4\u65E5\u671F\u7684 IANA \u6642\u5340 (e.g. Asia/Hong_Kong)\u3002",
+  "settings.dashboardPath": "\u5100\u8868\u677F\u8DEF\u5F91",
+  "settings.dashboardPathDesc": "Open dashboard \u6703\u958B\u555F\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
+  "settings.exerciseTypes": "\u904B\u52D5\u985E\u578B",
+  "settings.exerciseTypesDesc": "\u8A13\u7DF4\u7B46\u8A18\u5B58\u65BC\u5404\u6D3B\u52D5\u8CC7\u6599\u593E\uFF0C\u65B0\u904B\u52D5\u985E\u578B\u9810\u8A2D\u653E\u5728 atomics/exercise/<Name>\u3002",
+  "settings.addExerciseType": "\u65B0\u589E\u904B\u52D5\u985E\u578B",
+  "settings.addExerciseTypeDesc": "\u5EFA\u7ACB\u6BCF\u65E5\u8A13\u7DF4\u985E\u578B\uFF0C\u555F\u7528\u63D0\u9192\uFF0C\u4E0D\u555F\u7528\u7D44\u6578\u8868\u3002",
+  "settings.add": "\u65B0\u589E",
+  "settings.activityId": "\u6D3B\u52D5 ID: {id}",
+  "settings.labelPlaceholder": "\u6A19\u7C64",
+  "settings.enabledLabel": "\u555F\u7528",
+  "settings.labelField": "\u6A19\u7C64",
+  "settings.folderField": "\u8CC7\u6599\u593E",
+  "settings.cuesLabel": "\u63D0\u9192",
+  "settings.heatmapShades": "Heatmap \u8272\u968E",
   "settings.exerciseFolderPlaceholder": "atomics/exercise/Name",
-  "settings.enableCuesTooltip": "Enable reminder/cue rollups for this exercise / \u555F\u7528\u6B64\u904B\u52D5\u7684\u63D0\u9192\u5F59\u6574",
-  "settings.enabledTooltip": "Include this habit in heatmaps, dashboard, and commands / \u5728 Heatmap\u3001\u5100\u8868\u677F\u8207\u547D\u4EE4\u4E2D\u5305\u542B\u6B64\u7FD2\u6163",
-  "settings.baseColor": "{label} color / \u984F\u8272",
-  "settings.baseColorDesc": "Pick one color. Heatmap shades are generated automatically (light to dark) / \u9078\u64C7\u4E00\u7A2E\u984F\u8272\uFF0CHeatmap \u6DF1\u6DFA\u8272\u968E\u6703\u81EA\u52D5\u7522\u751F\uFF08\u7531\u6DFA\u81F3\u6DF1\uFF09\u3002",
-  "settings.colors": "{label} colors / \u984F\u8272",
-  "settings.colorsDesc": "Heatmap colors from low to high intensity / Heatmap \u984F\u8272\uFF0C\u7531\u4F4E\u81F3\u9AD8\u5F37\u5EA6\u3002",
-  "settings.exerciseNamePlaceholder": "Running / \u8DD1\u6B65",
+  "settings.enableCuesTooltip": "\u555F\u7528\u6B64\u904B\u52D5\u7684\u63D0\u9192\u5F59\u6574",
+  "settings.enabledTooltip": "\u5728 Heatmap\u3001\u5100\u8868\u677F\u8207\u547D\u4EE4\u4E2D\u5305\u542B\u6B64\u7FD2\u6163",
+  "settings.baseColor": "{label} \u984F\u8272",
+  "settings.baseColorDesc": "\u9078\u64C7\u4E00\u7A2E\u984F\u8272\uFF0CHeatmap \u6DF1\u6DFA\u8272\u968E\u6703\u81EA\u52D5\u7522\u751F\uFF08\u7531\u6DFA\u81F3\u6DF1\uFF09\u3002",
+  "settings.colors": "{label} \u984F\u8272",
+  "settings.colorsDesc": "Heatmap \u984F\u8272\uFF0C\u7531\u4F4E\u81F3\u9AD8\u5F37\u5EA6\u3002",
+  "settings.exerciseNamePlaceholder": "\u8DD1\u6B65",
   "settings.colorPlaceholder": "#{number}",
-  "settings.hobbyTypes": "General habits / \u4E00\u822C\u7FD2\u6163",
-  "settings.hobbyTypesDesc": "Item notes with timers. New habits default under atomics/hobbies/<Name>. Reading is included by default and can be disabled or deleted / \u542B\u8A08\u6642\u5668\u7684\u9805\u76EE\u7B46\u8A18\u3002\u65B0\u7FD2\u6163\u9810\u8A2D\u653E\u5728 atomics/hobbies/<Name>\u3002\u95B1\u8B80\u70BA\u9810\u8A2D\u9805\u76EE\uFF0C\u53EF\u505C\u7528\u6216\u522A\u9664\u3002",
-  "settings.addHobbyType": "Add general habit / \u65B0\u589E\u4E00\u822C\u7FD2\u6163",
-  "settings.addHobbyTypeDesc": "Creates an item hobby with timer tracking and no cues / \u5EFA\u7ACB\u542B\u8A08\u6642\u5668\u3001\u4E0D\u542B\u63D0\u9192\u7684\u8208\u8DA3\u9805\u76EE\u985E\u578B\u3002",
-  "settings.hobbyNamePlaceholder": "Chess / \u4E0B\u68CB",
+  "settings.hobbyTypes": "\u4E00\u822C\u7FD2\u6163",
+  "settings.hobbyTypesDesc": "\u542B\u8A08\u6642\u5668\u7684\u9805\u76EE\u7B46\u8A18\u3002\u65B0\u7FD2\u6163\u9810\u8A2D\u653E\u5728 atomics/hobbies/<Name>\u3002\u95B1\u8B80\u70BA\u9810\u8A2D\u9805\u76EE\uFF0C\u53EF\u505C\u7528\u6216\u522A\u9664\u3002",
+  "settings.addHobbyType": "\u65B0\u589E\u4E00\u822C\u7FD2\u6163",
+  "settings.addHobbyTypeDesc": "\u5EFA\u7ACB\u542B\u8A08\u6642\u5668\u3001\u4E0D\u542B\u63D0\u9192\u7684\u8208\u8DA3\u9805\u76EE\u985E\u578B\u3002",
+  "settings.hobbyNamePlaceholder": "\u4E0B\u68CB",
   "settings.hobbyFolderPlaceholder": "atomics/hobbies/Name",
-  "settings.delete": "Delete / \u522A\u9664",
-  "settings.deleteConfirm": "Remove \u201C{label}\u201D from Atomic Tracker settings? Vault notes are not deleted / \u8981\u5F9E Atomic Tracker \u8A2D\u5B9A\u79FB\u9664\u300C{label}\u300D\u55CE\uFF1F\u4E0D\u6703\u522A\u9664 vault \u7B46\u8A18\u3002",
-  "settings.gymExercises": "Gym exercises / \u5065\u8EAB\u52D5\u4F5C",
-  "settings.gymExercisesDesc": "Exercises you have logged, so you can pick them from the dropdown / \u4F60\u8A18\u4F4E\u904E\u5605\u52D5\u4F5C\uFF0C\u4E4B\u5F8C\u53EF\u4EE5\u55BA\u4E0B\u62C9\u9078\u55AE\u5EA6\u63C0\u3002",
-  "settings.gymExercisesCount": "{count} saved pairs / \u5B58\u5497 {count} \u7D44",
-  "settings.gymImport": "Import from gym notes / \u7531\u5065\u8EAB\u7B46\u8A18\u532F\u5165",
-  "settings.gymImportDesc": "Find exercises in your gym notes and add the set form to notes that do not have it yet / \u55BA\u5065\u8EAB\u7B46\u8A18\u6435\u8FD4\u7528\u904E\u5605\u52D5\u4F5C\uFF0C\u540C\u57CB\u55BA\u672A\u6709\u8868\u55AE\u5605\u7B46\u8A18\u52A0\u4E0A\u7D44\u6578\u8868\u55AE\u3002",
-  "command.newGymSession": "New gym session / \u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
-  "command.newGolfSession": "New golf session / \u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
-  "command.newExerciseSession": "New exercise session / \u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
-  "command.newReadingItem": "New reading item / \u65B0\u589E\u95B1\u8B80\u9805\u76EE",
-  "command.newHobbyItem": "New hobby item / \u65B0\u589E\u8208\u8DA3\u9805\u76EE",
-  "command.createReadingBookshelf": "Create reading Bases / \u5EFA\u7ACB\u95B1\u8B80 Bases",
-  "command.openReadingBookshelf": "Open reading Bases / \u958B\u555F\u95B1\u8B80 Bases",
-  "command.createBookShelf": "Create book shelf / \u5EFA\u7ACB\u66F8\u67B6",
-  "command.openBookShelf": "Open book shelf / \u958B\u555F\u66F8\u67B6",
-  "command.createCues": "Create cues notes / \u5EFA\u7ACB\u63D0\u793A\u7B46\u8A18",
-  "command.createDailyNoteTemplate": "Create daily note template / \u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C",
-  "command.createTodaysDailyNote": "Create today's daily note / \u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18",
-  "command.openDashboard": "Open dashboard / \u958B\u555F\u5100\u8868\u677F",
-  "notice.created": "Created / \u5DF2\u5EFA\u7ACB: {path}",
-  "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names / \u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
-  "notice.enterExerciseType": "Enter an exercise type name first / \u8ACB\u5148\u8F38\u5165\u904B\u52D5\u985E\u578B\u540D\u7A31\u3002",
-  "notice.enterHobbyType": "Enter a general habit name first / \u8ACB\u5148\u8F38\u5165\u4E00\u822C\u7FD2\u6163\u540D\u7A31\u3002",
-  "notice.activityDeleted": "Removed {label} from settings / \u5DF2\u5F9E\u8A2D\u5B9A\u79FB\u9664 {label}\u3002",
-  "notice.noHobbyActivities": "No enabled general habits configured / \u5C1A\u672A\u8A2D\u5B9A\u5DF2\u555F\u7528\u7684\u4E00\u822C\u7FD2\u6163",
-  "notice.folderUnsafe": "Folder must be a safe vault-relative path / \u8CC7\u6599\u593E\u5FC5\u9808\u662F\u5B89\u5168\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
-  "notice.noExerciseActivities": "No exercise activities configured / \u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
-  "notice.noGymActivity": "No gym activity configured / \u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
-  "notice.noGolfActivity": "No golf activity configured / \u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
-  "notice.noReadingHobby": "No Reading hobby configured / \u5C1A\u672A\u8A2D\u5B9A\u7747\u66F8\u8208\u8DA3",
-  "notice.dashboardNotFound": "Dashboard not found / \u627E\u4E0D\u5230\u5100\u8868\u677F: {path}",
-  "notice.openedExistingSession": "Opened existing {activity} session / \u5DF2\u958B\u555F\u73FE\u6709 {activity} \u8A13\u7DF4: {path}",
-  "notice.createdSession": "Created {activity} session / \u5DF2\u5EFA\u7ACB {activity} \u8A13\u7DF4: {path}",
-  "notice.invalidDate": "Invalid date / \u65E5\u671F\u7121\u6548",
-  "notice.createdReadingItem": "Created Reading item / \u5DF2\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {path}",
-  "notice.openedExistingReadingItem": "Opened existing Reading item / \u5DF2\u958B\u555F\u73FE\u6709\u95B1\u8B80\u9805\u76EE: {path}",
-  "notice.readingItemFailed": "Could not create Reading item / \u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {message}",
-  "notice.createdHobbyItem": "Created {label} item / \u5DF2\u5EFA\u7ACB {label} \u9805\u76EE: {path}",
-  "notice.openedExistingHobbyItem": "Opened existing {label} item / \u5DF2\u958B\u555F\u73FE\u6709 {label} \u9805\u76EE: {path}",
-  "notice.hobbyItemFailed": "Could not create hobby item / \u7121\u6CD5\u5EFA\u7ACB\u8208\u8DA3\u9805\u76EE: {message}",
-  "notice.bookShelfFailed": "Could not create book shelf / \u7121\u6CD5\u5EFA\u7ACB\u66F8\u67B6: {message}",
-  "notice.createdReadingBookshelf": "Created reading Bases / \u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bases: {path}",
-  "notice.updatedReadingBookshelf": "Updated reading Bases / \u5DF2\u66F4\u65B0\u95B1\u8B80 Bases: {path}",
-  "notice.readingBookshelfExists": "Reading Bases already exists / \u95B1\u8B80 Bases \u5DF2\u5B58\u5728: {path}",
-  "notice.readingBookshelfFailed": "Could not create reading Bases / \u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80 Bases: {message}",
-  "notice.enableBases": "Enable the Bases core plugin to use reading Bases / \u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bases\u3002",
-  "notice.createdBookShelf": "Created book shelf / \u5DF2\u5EFA\u7ACB\u66F8\u67B6: {path}",
-  "notice.bookShelfExists": "Book shelf already exists / \u66F8\u67B6\u5DF2\u5B58\u5728: {path}",
-  "notice.createdCues": "Created cues / \u5DF2\u5EFA\u7ACB\u63D0\u793A: {paths}",
-  "notice.cuesExist": "Cues notes already exist / \u63D0\u793A\u7B46\u8A18\u5DF2\u5B58\u5728: {paths}",
-  "notice.noCueActivities": "No cue-supporting exercise activities configured / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u793A\u7684\u904B\u52D5\u6D3B\u52D5",
-  "notice.cuesFailed": "Could not create cues / \u7121\u6CD5\u5EFA\u7ACB\u63D0\u793A: {message}",
-  "notice.createdDailyNoteTemplate": "Created daily note template / \u5DF2\u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C: {path}",
-  "notice.dailyNoteTemplateExists": "Daily note template already exists / \u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C\u5DF2\u5B58\u5728: {path}",
-  "notice.dailyNoteTemplateFailed": "Could not create daily note template / \u7121\u6CD5\u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C: {message}",
-  "notice.createdTodaysDailyNote": "Created today's daily note / \u5DF2\u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18: {path}",
-  "notice.todaysDailyNoteExists": "Opened existing daily note / \u5DF2\u958B\u555F\u73FE\u6709\u6BCF\u65E5\u7B46\u8A18: {path}",
-  "notice.todaysDailyNoteFailed": "Could not create today's daily note / \u7121\u6CD5\u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18: {message}",
-  "notice.timerNeedsSavedNote": "Timer can only update a saved note / Timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
-  "notice.timerNotRunning": "Timer is not running / Timer \u5C1A\u672A\u958B\u59CB\u3002",
-  "notice.timerAlreadyRunning": "Timer is already running / Timer \u5DF2\u5728\u904B\u884C\u3002",
-  "notice.timerLogged": "Logged {minutes} min / \u5DF2\u8A18\u9304 {minutes} \u5206\u9418\u3002",
-  "notice.emptyCustomLocation": "Location cannot be empty. / \u5730\u9EDE\u4E0D\u53EF\u70BA\u7A7A\u767D\u3002",
-  "notice.gymLogNeedsSavedNote": "Set log can only update a saved note / \u7D44\u6578\u8868\u55AE\u6DE8\u4FC2\u53EF\u4EE5\u6539\u5DF2\u5132\u5B58\u5605\u7B46\u8A18\u3002",
-  "notice.gymLogMissingFields": "Choose an exercise and enter weight and reps / \u63C0\u500B\u52D5\u4F5C\uFF0C\u518D\u586B\u91CD\u91CF\u540C\u6B21\u6578\u3002",
-  "notice.gymLogAdded": "Logged {exercise} / \u8A18\u4F4E\u5497 {exercise}\u3002",
-  "notice.gymLogEmptyExercise": "Exercise name cannot be empty / \u52D5\u4F5C\u540D\u5514\u53EF\u4EE5\u7A7A\u767D\u3002",
-  "notice.gymLogEmptyMuscle": "Muscle cannot be empty / \u808C\u7FA4\u5514\u53EF\u4EE5\u7A7A\u767D\u3002",
-  "notice.gymLogSetupComplete": "Ready. Saved {pairs} exercises and updated {notes} notes / \u641E\u6382\u3002\u5B58\u5497 {pairs} \u500B\u52D5\u4F5C\uFF0C\u66F4\u65B0\u5497 {notes} \u7BC7\u7B46\u8A18\u3002",
-  "notice.gymLogSetupLater": "You can import gym exercises later from Settings \u2192 Atomic Tracker / \u4E4B\u5F8C\u53EF\u4EE5\u55BA Settings \u2192 Atomic Tracker \u532F\u5165\u5065\u8EAB\u52D5\u4F5C\u3002",
-  "notice.gymLogSetupFailed": "Set log setup failed / \u7D44\u6578\u8868\u55AE\u8A2D\u5B9A\u5514\u5230: {message}",
-  "notice.cueNeedsSavedNote": "Cues can only be added to a saved note / \u63D0\u793A\u6DE8\u4FC2\u53EF\u4EE5\u52A0\u5728\u5DF2\u5132\u5B58\u5605\u7B46\u8A18\u3002",
-  "notice.cueMissingText": "Type a cue first / \u5148\u6253\u500B\u63D0\u793A\u5427\u3002",
-  "notice.cueAdded": "Added cue / \u52A0\u4F4E\u63D0\u793A\uFF1A{cue}",
-  "notice.gymExerciseSaved": "Saved {exercise} \xB7 {muscle} / \u5B58\u5497 {exercise} \xB7 {muscle}\u3002",
-  "notice.updateNoteTitle": "What's new in {version} / {version} \u66F4\u65B0\u8AAA\u660E",
-  "modal.dateTitle": "Date / \u65E5\u671F (YYYY-MM-DD)",
-  "modal.cancel": "Cancel / \u53D6\u6D88",
+  "settings.delete": "\u522A\u9664",
+  "settings.deleteConfirm": "\u8981\u5F9E Atomic Tracker \u8A2D\u5B9A\u79FB\u9664\u300C{label}\u300D\u55CE\uFF1F\u4E0D\u6703\u522A\u9664 vault \u7B46\u8A18\u3002",
+  "settings.gymExercises": "\u5065\u8EAB\u52D5\u4F5C",
+  "settings.gymExercisesDesc": "\u4F60\u8A18\u4F4E\u904E\u5605\u52D5\u4F5C\uFF0C\u4E4B\u5F8C\u53EF\u4EE5\u55BA\u4E0B\u62C9\u9078\u55AE\u5EA6\u63C0\u3002",
+  "settings.gymExercisesCount": "\u5B58\u5497 {count} \u7D44",
+  "settings.gymImport": "\u7531\u5065\u8EAB\u7B46\u8A18\u532F\u5165",
+  "settings.gymImportDesc": "\u55BA\u5065\u8EAB\u7B46\u8A18\u6435\u8FD4\u7528\u904E\u5605\u52D5\u4F5C\uFF0C\u540C\u57CB\u55BA\u672A\u6709\u8868\u55AE\u5605\u7B46\u8A18\u52A0\u4E0A\u7D44\u6578\u8868\u55AE\u3002",
+  "command.newGymSession": "\u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
+  "command.newGolfSession": "\u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
+  "command.newExerciseSession": "\u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
+  "command.newReadingItem": "\u65B0\u589E\u95B1\u8B80\u9805\u76EE",
+  "command.newHobbyItem": "\u65B0\u589E\u8208\u8DA3\u9805\u76EE",
+  "command.createReadingBookshelf": "\u5EFA\u7ACB\u95B1\u8B80 Bases",
+  "command.openReadingBookshelf": "\u958B\u555F\u95B1\u8B80 Bases",
+  "command.createBookShelf": "\u5EFA\u7ACB\u66F8\u67B6",
+  "command.openBookShelf": "\u958B\u555F\u66F8\u67B6",
+  "command.createCues": "\u5EFA\u7ACB\u63D0\u793A\u7B46\u8A18",
+  "command.createDailyNoteTemplate": "\u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C",
+  "command.createTodaysDailyNote": "\u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18",
+  "command.openDashboard": "\u958B\u555F\u5100\u8868\u677F",
+  "notice.created": "\u5DF2\u5EFA\u7ACB: {path}",
+  "notice.reloadForCommands": "\u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
+  "notice.enterExerciseType": "\u8ACB\u5148\u8F38\u5165\u904B\u52D5\u985E\u578B\u540D\u7A31\u3002",
+  "notice.enterHobbyType": "\u8ACB\u5148\u8F38\u5165\u4E00\u822C\u7FD2\u6163\u540D\u7A31\u3002",
+  "notice.activityDeleted": "\u5DF2\u5F9E\u8A2D\u5B9A\u79FB\u9664 {label}\u3002",
+  "notice.noHobbyActivities": "\u5C1A\u672A\u8A2D\u5B9A\u5DF2\u555F\u7528\u7684\u4E00\u822C\u7FD2\u6163",
+  "notice.folderUnsafe": "\u8CC7\u6599\u593E\u5FC5\u9808\u662F\u5B89\u5168\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
+  "notice.noExerciseActivities": "\u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
+  "notice.noGymActivity": "\u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
+  "notice.noGolfActivity": "\u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
+  "notice.noReadingHobby": "\u5C1A\u672A\u8A2D\u5B9A\u7747\u66F8\u8208\u8DA3",
+  "notice.dashboardNotFound": "\u627E\u4E0D\u5230\u5100\u8868\u677F: {path}",
+  "notice.openedExistingSession": "\u5DF2\u958B\u555F\u73FE\u6709 {activity} \u8A13\u7DF4: {path}",
+  "notice.createdSession": "\u5DF2\u5EFA\u7ACB {activity} \u8A13\u7DF4: {path}",
+  "notice.invalidDate": "\u65E5\u671F\u7121\u6548",
+  "notice.createdReadingItem": "\u5DF2\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.openedExistingReadingItem": "\u5DF2\u958B\u555F\u73FE\u6709\u95B1\u8B80\u9805\u76EE: {path}",
+  "notice.readingItemFailed": "\u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80\u9805\u76EE: {message}",
+  "notice.createdHobbyItem": "\u5DF2\u5EFA\u7ACB {label} \u9805\u76EE: {path}",
+  "notice.openedExistingHobbyItem": "\u5DF2\u958B\u555F\u73FE\u6709 {label} \u9805\u76EE: {path}",
+  "notice.hobbyItemFailed": "\u7121\u6CD5\u5EFA\u7ACB\u8208\u8DA3\u9805\u76EE: {message}",
+  "notice.bookShelfFailed": "\u7121\u6CD5\u5EFA\u7ACB\u66F8\u67B6: {message}",
+  "notice.createdReadingBookshelf": "\u5DF2\u5EFA\u7ACB\u95B1\u8B80 Bases: {path}",
+  "notice.updatedReadingBookshelf": "\u5DF2\u66F4\u65B0\u95B1\u8B80 Bases: {path}",
+  "notice.readingBookshelfExists": "\u95B1\u8B80 Bases \u5DF2\u5B58\u5728: {path}",
+  "notice.readingBookshelfFailed": "\u7121\u6CD5\u5EFA\u7ACB\u95B1\u8B80 Bases: {message}",
+  "notice.enableBases": "\u8ACB\u555F\u7528 Bases \u6838\u5FC3\u5916\u639B\u4EE5\u4F7F\u7528\u95B1\u8B80 Bases\u3002",
+  "notice.createdBookShelf": "\u5DF2\u5EFA\u7ACB\u66F8\u67B6: {path}",
+  "notice.bookShelfExists": "\u66F8\u67B6\u5DF2\u5B58\u5728: {path}",
+  "notice.createdCues": "\u5DF2\u5EFA\u7ACB\u63D0\u793A: {paths}",
+  "notice.cuesExist": "\u63D0\u793A\u7B46\u8A18\u5DF2\u5B58\u5728: {paths}",
+  "notice.noCueActivities": "\u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u793A\u7684\u904B\u52D5\u6D3B\u52D5",
+  "notice.cuesFailed": "\u7121\u6CD5\u5EFA\u7ACB\u63D0\u793A: {message}",
+  "notice.createdDailyNoteTemplate": "\u5DF2\u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C: {path}",
+  "notice.dailyNoteTemplateExists": "\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C\u5DF2\u5B58\u5728: {path}",
+  "notice.dailyNoteTemplateFailed": "\u7121\u6CD5\u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C: {message}",
+  "notice.createdTodaysDailyNote": "\u5DF2\u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18: {path}",
+  "notice.todaysDailyNoteExists": "\u5DF2\u958B\u555F\u73FE\u6709\u6BCF\u65E5\u7B46\u8A18: {path}",
+  "notice.todaysDailyNoteFailed": "\u7121\u6CD5\u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18: {message}",
+  "notice.timerNeedsSavedNote": "Timer \u53EA\u53EF\u66F4\u65B0\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u3002",
+  "notice.timerNotRunning": "Timer \u5C1A\u672A\u958B\u59CB\u3002",
+  "notice.timerAlreadyRunning": "Timer \u5DF2\u5728\u904B\u884C\u3002",
+  "notice.timerLogged": "\u5DF2\u8A18\u9304 {minutes} \u5206\u9418\u3002",
+  "notice.emptyCustomLocation": "\u5730\u9EDE\u4E0D\u53EF\u70BA\u7A7A\u767D\u3002",
+  "notice.gymLogNeedsSavedNote": "\u7D44\u6578\u8868\u55AE\u6DE8\u4FC2\u53EF\u4EE5\u6539\u5DF2\u5132\u5B58\u5605\u7B46\u8A18\u3002",
+  "notice.gymLogMissingFields": "\u63C0\u500B\u52D5\u4F5C\uFF0C\u518D\u586B\u91CD\u91CF\u540C\u6B21\u6578\u3002",
+  "notice.gymLogAdded": "\u8A18\u4F4E\u5497 {exercise}\u3002",
+  "notice.gymLogEmptyExercise": "\u52D5\u4F5C\u540D\u5514\u53EF\u4EE5\u7A7A\u767D\u3002",
+  "notice.gymLogEmptyMuscle": "\u808C\u7FA4\u5514\u53EF\u4EE5\u7A7A\u767D\u3002",
+  "notice.gymLogSetupComplete": "\u641E\u6382\u3002\u5B58\u5497 {pairs} \u500B\u52D5\u4F5C\uFF0C\u66F4\u65B0\u5497 {notes} \u7BC7\u7B46\u8A18\u3002",
+  "notice.gymLogSetupLater": "\u4E4B\u5F8C\u53EF\u4EE5\u55BA Settings \u2192 Atomic Tracker \u532F\u5165\u5065\u8EAB\u52D5\u4F5C\u3002",
+  "notice.gymLogSetupFailed": "\u7D44\u6578\u8868\u55AE\u8A2D\u5B9A\u5514\u5230: {message}",
+  "notice.cueNeedsSavedNote": "\u63D0\u793A\u6DE8\u4FC2\u53EF\u4EE5\u52A0\u5728\u5DF2\u5132\u5B58\u5605\u7B46\u8A18\u3002",
+  "notice.cueMissingText": "\u5148\u6253\u500B\u63D0\u793A\u5427\u3002",
+  "notice.cueAdded": "\u52A0\u4F4E\u63D0\u793A\uFF1A{cue}",
+  "notice.gymExerciseSaved": "\u5B58\u5497 {exercise} \xB7 {muscle}\u3002",
+  "notice.updateNoteTitle": "{version} \u66F4\u65B0\u8AAA\u660E",
+  "modal.dateTitle": "\u65E5\u671F (YYYY",
+  "modal.cancel": "\u53D6\u6D88",
   "modal.ok": "OK",
-  "modal.locationPlaceholder": "Location / \u5730\u9EDE (Esc to skip / \u7565\u904E)",
-  "modal.otherLocationDetail": "Other location detail / \u5176\u4ED6\u5730\u9EDE\u8AAA\u660E",
-  "modal.customLocation": "Custom location / \u81EA\u8A02\u5730\u9EDE",
-  "modal.weightUnitPlaceholder": "Weight unit / \u91CD\u91CF\u55AE\u4F4D (Esc -> kg)",
-  "modal.exerciseTypePlaceholder": "Exercise type / \u904B\u52D5\u985E\u578B",
-  "modal.hobbyTypePlaceholder": "General habit / \u4E00\u822C\u7FD2\u6163",
-  "modal.readingItemTitle": "Reading item title / \u95B1\u8B80\u9805\u76EE\u6A19\u984C",
-  "modal.hobbyItemTitle": "{label} item title / {label} \u9805\u76EE\u6A19\u984C",
-  "modal.timeLogNote": "Time log note / \u6642\u9593\u8A18\u9304\u5099\u8A3B",
-  "modal.gymNewExerciseTitle": "New exercise / \u65B0\u52D5\u4F5C",
-  "modal.gymExerciseName": "Exercise / \u52D5\u4F5C",
-  "modal.gymMuscle": "Muscle / \u808C\u7FA4",
-  "modal.gymCustomMuscle": "Custom muscle / \u81EA\u8A02\u808C\u7FA4",
-  "modal.gymSetupTitle": "Easier gym sets / \u5065\u8EAB\u7D44\u6578\u800C\u5BB6\u66F4\u597D\u586B",
-  "modal.gymSetupLead": "You don't have to fill in each gym set one by one / \u5514\u4F7F\u518D\u4E00\u5217\u4E00\u5217\u624B\u586B\u7D44\u6578\u3002",
-  "modal.gymSetupBody": "On a gym note, pick an exercise, enter weight and reps, then click Add set. The table still keeps every set. It writes the row for you. Set up once to remember exercises from your old notes and add this form to gym notes that don't have it yet / \u55BA\u5065\u8EAB\u7B46\u8A18\u63C0\u500B\u52D5\u4F5C\u3001\u586B\u91CD\u91CF\u540C\u6B21\u6578\uFF0C\u518D\u64B3\u300C\u52A0\u4E00\u7D44\u300D\u3002\u7D44\u6578\u4F9D\u7136\u55BA\u7B46\u8A18\u500B\u8868\u5EA6\u3002\u5462\u500B\u6703\u5E6B\u4F60\u5BEB\u4F4E\u55F0\u884C\u3002\u8A2D\u5B9A\u4E00\u6B21\uFF1A\u8A18\u4F4F\u820A\u7B46\u8A18\u7528\u904E\u5605\u52D5\u4F5C\uFF0C\u540C\u57CB\u55BA\u672A\u6709\u5462\u500B\u8868\u55AE\u5605\u5065\u8EAB\u7B46\u8A18\u52A0\u843D\u53BB\u3002",
-  "modal.gymSetupConfirm": "Set up now / \u800C\u5BB6\u8A2D\u5B9A",
-  "modal.gymSetupLater": "Later / \u9072\u5572",
-  "location.home": "Home / \u5BB6\u4E2D",
-  "location.commercial": "Commercial / \u5546\u696D\u5065\u8EAB\u623F",
-  "location.hotelTravel": "Hotel/Travel / \u9152\u5E97\uFF0F\u65C5\u9014",
-  "location.other": "Other / \u5176\u4ED6",
-  "template.gymMuscles": "Muscles / \u808C\u7FA4",
-  "template.gymTable.exercise": "\u{1F4AA} Exercise / \u52D5\u4F5C",
-  "template.gymTable.muscle": "\u{1F9EC} Muscle / \u808C\u7FA4",
-  "template.gymTable.weight": "\u2696\uFE0F Weight / \u91CD\u91CF",
-  "template.gymTable.reps": "\u{1F522} Reps / \u6B21\u6578",
-  "template.gymTable.notes": "\u{1F5D2}\uFE0F Notes / \u5099\u8A3B",
-  "template.reminders": "\u{1F4A1} Reminders / \u63D0\u9192",
-  "template.golfLocationHint": "\u{1F4CD} location / \u5730\u9EDE: Home net / \u5BB6\u7528\u7DB2, Driving range / \u7DF4\u7FD2\u5834, Course / \u7403\u5834, Other / \u5176\u4ED6",
-  "template.golfFocusHint": "\u{1F3AF} focus / \u91CD\u9EDE (multi): Grip / \u63E1\u687F, Stance / \u7AD9\u59FF, Takeaway / \u8D77\u687F, Backswing / \u4E0A\u687F, Transition / \u8F49\u63DB, Downswing / \u4E0B\u687F, Impact / \u64CA\u7403, Follow-through / \u9001\u687F, Tempo / \u7BC0\u594F, Alignment / \u7784\u6E96\u7DDA",
-  "template.golfClubHint": "\u{1F3CC}\uFE0F club / \u7403\u687F (multi): Driver / \u4E00\u865F\u6728, 3W / \u4E09\u865F\u6728, 5W / \u4E94\u865F\u6728, Hybrid / \u6DF7\u8840\u687F, 4i-9i / \u9435\u687F, PW / \u5288\u8D77\u687F, GW / \u7F3A\u53E3\u687F, SW / \u6C99\u5751\u687F, LW / \u9AD8\u540A\u687F, Putter / \u63A8\u687F, Mixed / \u6DF7\u5408",
-  "template.golfFeltHint": "felt / \u611F\u89BA: good / \u597D, ok / \u4E00\u822C, bad / \u5DEE",
-  "template.dailyNote.trackToday": "Track your activities today! / \u8A18\u9304\u4ECA\u65E5\u6D3B\u52D5\uFF01",
-  "template.readingRemarks": "Remarks / \u5099\u8A3B",
-  "template.readingTimeLog": "Time log / \u6642\u9593\u8A18\u9304",
+  "modal.locationPlaceholder": "\u5730\u9EDE (Esc to skip\u7565\u904E)",
+  "modal.otherLocationDetail": "\u5176\u4ED6\u5730\u9EDE\u8AAA\u660E",
+  "modal.customLocation": "\u81EA\u8A02\u5730\u9EDE",
+  "modal.weightUnitPlaceholder": "\u91CD\u91CF\u55AE\u4F4D (Esc -> kg)",
+  "modal.exerciseTypePlaceholder": "\u904B\u52D5\u985E\u578B",
+  "modal.hobbyTypePlaceholder": "\u4E00\u822C\u7FD2\u6163",
+  "modal.readingItemTitle": "\u95B1\u8B80\u9805\u76EE\u6A19\u984C",
+  "modal.hobbyItemTitle": "{label} \u9805\u76EE\u6A19\u984C",
+  "modal.timeLogNote": "\u6642\u9593\u8A18\u9304\u5099\u8A3B",
+  "modal.gymNewExerciseTitle": "\u65B0\u52D5\u4F5C",
+  "modal.gymExerciseName": "\u52D5\u4F5C",
+  "modal.gymMuscle": "\u808C\u7FA4",
+  "modal.gymCustomMuscle": "\u81EA\u8A02\u808C\u7FA4",
+  "modal.gymSetupTitle": "\u5065\u8EAB\u7D44\u6578\u800C\u5BB6\u66F4\u597D\u586B",
+  "modal.gymSetupLead": "\u5514\u4F7F\u518D\u4E00\u5217\u4E00\u5217\u624B\u586B\u7D44\u6578\u3002",
+  "modal.gymSetupBody": "\u55BA\u5065\u8EAB\u7B46\u8A18\u63C0\u500B\u52D5\u4F5C\u3001\u586B\u91CD\u91CF\u540C\u6B21\u6578\uFF0C\u518D\u64B3\u300C\u52A0\u4E00\u7D44\u300D\u3002\u7D44\u6578\u4F9D\u7136\u55BA\u7B46\u8A18\u500B\u8868\u5EA6\u3002\u5462\u500B\u6703\u5E6B\u4F60\u5BEB\u4F4E\u55F0\u884C\u3002\u8A2D\u5B9A\u4E00\u6B21\uFF1A\u8A18\u4F4F\u820A\u7B46\u8A18\u7528\u904E\u5605\u52D5\u4F5C\uFF0C\u540C\u57CB\u55BA\u672A\u6709\u5462\u500B\u8868\u55AE\u5605\u5065\u8EAB\u7B46\u8A18\u52A0\u843D\u53BB\u3002",
+  "modal.gymSetupConfirm": "\u800C\u5BB6\u8A2D\u5B9A",
+  "modal.gymSetupLater": "\u9072\u5572",
+  "location.home": "\u5BB6\u4E2D",
+  "location.commercial": "\u5546\u696D\u5065\u8EAB\u623F",
+  "location.hotelTravel": "\u9152\u5E97\uFF0F\u65C5\u9014",
+  "location.other": "\u5176\u4ED6",
+  "template.gymMuscles": "\u808C\u7FA4",
+  "template.gymTable.exercise": "\u{1F4AA} \u52D5\u4F5C",
+  "template.gymTable.muscle": "\u{1F9EC} \u808C\u7FA4",
+  "template.gymTable.weight": "\u2696\uFE0F \u91CD\u91CF",
+  "template.gymTable.reps": "\u{1F522} \u6B21\u6578",
+  "template.gymTable.notes": "\u{1F5D2}\uFE0F \u5099\u8A3B",
+  "template.reminders": "\u{1F4A1} \u63D0\u9192",
+  "template.golfLocationHint": "\u{1F4CD} \u5730\u9EDE: Home net\u7DF4\u7FD2\u5834, Course\u5176\u4ED6",
+  "template.golfFocusHint": "\u{1F3AF} \u91CD\u9EDE (multi): Grip\u7AD9\u59FF, Takeaway\u4E0A\u687F, Transition\u4E0B\u687F, Impact\u9001\u687F, Tempo\u7784\u6E96\u7DDA",
+  "template.golfClubHint": "\u{1F3CC}\uFE0F \u7403\u687F (multi): Driver\u4E09\u865F\u6728, 5W\u6DF7\u8840\u687F, 4i-9i\u5288\u8D77\u687F, GW\u6C99\u5751\u687F, LW\u63A8\u687F, Mixed\u6DF7\u5408",
+  "template.golfFeltHint": "\u611F\u89BA: good\u4E00\u822C, bad\u5DEE",
+  "template.dailyNote.trackToday": "\u8A18\u9304\u4ECA\u65E5\u6D3B\u52D5\uFF01",
+  "template.readingRemarks": "\u5099\u8A3B",
+  "template.readingTimeLog": "\u6642\u9593\u8A18\u9304",
   "template.readingBookshelfTitle": "Reading bookshelf v2",
-  "template.base.title": "Title / \u66F8\u540D",
-  "template.base.authors": "Authors / \u4F5C\u8005",
-  "template.base.description": "Description / \u63CF\u8FF0",
-  "template.base.pages": "Pages / \u9801\u6578",
-  "template.base.status": "Status / \u72C0\u614B",
-  "template.base.tags": "Tags / \u6A19\u7C64",
-  "template.base.totalMinutes": "Total minutes / \u7E3D\u5206\u9418",
-  "template.base.cards": "Cards / \u5361\u7247",
-  "template.base.table": "Table / \u8868\u683C",
-  "block.opt.header": "Uncomment a line to use it. Lines that start with # are ignored. / \u53D6\u6D88\u8A3B\u89E3\u5373\u53EF\u4F7F\u7528\u3002\u4EE5 # \u958B\u982D\u7684\u884C\u6703\u88AB\u5FFD\u7565\u3002",
-  "block.opt.yearHeatmap": "calendar year. Omit to use a YYYY-MM-DD note path, or this year / \u897F\u5143\u5E74\u3002\u7701\u7565\u5247\u7528\u8DEF\u5F91\u4E2D\u7684\u65E5\u671F\uFF0C\u5426\u5247\u7528\u4ECA\u5E74",
-  "block.opt.activityHeatmap": "all, one id, or comma list (gym, golf). Default: all enabled habits / \u5168\u90E8\u3001\u55AE\u4E00 id\uFF0C\u6216\u9017\u865F\u6E05\u55AE\u3002\u9810\u8A2D\uFF1A\u5168\u90E8\u5DF2\u555F\u7528\u7FD2\u6163",
-  "block.opt.rows": "preferred rows for several heatmaps. Default: 1 / \u591A\u500B heatmap \u7684\u5217\u6578\u3002\u9810\u8A2D\uFF1A1",
-  "block.opt.columns": "max columns; 1 stacks vertically. Default: 1 / \u6B04\u6578\u4E0A\u9650\uFF1B1 \u70BA\u76F4\u5411\u5806\u758A\u3002\u9810\u8A2D\uFF1A1",
-  "block.opt.minColumnWidth": "wrap below this column width in px. Default: 300 / \u4F4E\u65BC\u6B64\u6B04\u5BEC\uFF08px\uFF09\u6703\u63DB\u884C\u3002\u9810\u8A2D\uFF1A300",
-  "block.opt.defaultSpan": "relative width of each heatmap column. Default: 1.2 / \u6BCF\u500B heatmap \u6B04\u7684\u76F8\u5C0D\u5BEC\u5EA6\u3002\u9810\u8A2D\uFF1A1.2",
-  "block.opt.dateToday": "YYYY-MM-DD. Omit to use the note path date, or today / \u65E5\u671F\u3002\u7701\u7565\u5247\u7528\u8DEF\u5F91\u4E2D\u7684\u65E5\u671F\uFF0C\u5426\u5247\u7528\u4ECA\u5929",
-  "block.opt.yearDashboard": "calendar year. Omit to use the note year property, or this year / \u897F\u5143\u5E74\u3002\u7701\u7565\u5247\u7528\u7B46\u8A18 year \u5C6C\u6027\uFF0C\u5426\u5247\u7528\u4ECA\u5E74",
-  "block.opt.yearCues": "calendar year. Omit to use the note year property, or this year / \u897F\u5143\u5E74\u3002\u7701\u7565\u5247\u7528\u7B46\u8A18 year \u5C6C\u6027\uFF0C\u5426\u5247\u7528\u4ECA\u5E74",
-  "block.opt.activityCues": "required: golf, gym, or another exercise id / \u5FC5\u586B\uFF1Agolf\u3001gym \u6216\u5176\u4ED6\u904B\u52D5 id",
-  "block.opt.activityBookshelf": "habit id (enabled item habit with a timer). Default: reading / \u7FD2\u6163 id\uFF08\u9700\u5DF2\u555F\u7528\u3001\u9805\u76EE\u7B46\u8A18\u8207 timer\uFF09\u3002\u9810\u8A2D\uFF1Areading",
-  "block.opt.statusBookshelf": "all, or to-read, reading, to-read-again, finished. Default: all / \u5168\u90E8\uFF0C\u6216 to-read\u3001reading\u3001to-read-again\u3001finished\u3002\u9810\u8A2D\uFF1Aall",
-  "block.opt.scaleBookshelf": "book size vs default, 0.25\u20134. Default: 1. Alias: ratio / \u76F8\u5C0D\u9810\u8A2D\u5C3A\u5BF8\uFF0C0.25\u20134\u3002\u9810\u8A2D\uFF1A1\u3002\u5225\u540D\uFF1Aratio",
-  "block.opt.noneActions": "No options. One button for each enabled habit. / \u7121\u9078\u9805\u3002\u6BCF\u500B\u5DF2\u555F\u7528\u7FD2\u6163\u4E00\u500B\u6309\u9215\u3002",
-  "block.opt.noneTimer": "No options. Start, Stop, Resume, or Discard the timer on this note. / \u7121\u9078\u9805\u3002\u5728\u6B64\u7B46\u8A18\u958B\u59CB\u3001\u505C\u6B62\u3001\u7E7C\u7E8C\u6216\u653E\u68C4\u8A08\u6642\u3002",
-  "block.opt.noneGymLog": "No options. Pick an exercise, enter weight and reps, then add a set. No need to type the table row yourself. / \u7121\u9078\u9805\u3002\u63C0\u500B\u52D5\u4F5C\u3001\u586B\u91CD\u91CF\u540C\u6B21\u6578\uFF0C\u518D\u52A0\u4E00\u7D44\u3002\u5514\u4F7F\u81EA\u5DF1\u6253\u8868\u683C\u55F0\u884C\u3002",
-  "block.opt.noneCueLog": "No options. Type markdown (including Traditional Chinese) and add it. It is saved as a bullet under this note\u2019s Reminders heading. / \u7121\u9078\u9805\u3002\u7528 Markdown\uFF08\u5305\u62EC\u7E41\u9AD4\u4E2D\u6587\uFF09\u6253\u500B\u63D0\u793A\u518D\u52A0\uFF0C\u4F62\u6703\u5B58\u5728\u9019\u7BC7\u7B46\u8A18\u5605 Reminders \u6A19\u984C\u4E0B\u9762\u3002",
-  "reading.status.selectLabel": "Reading status / \u95B1\u8B80\u72C0\u614B",
-  "reading.status.toRead": "To read / \u5F85\u8B80",
-  "reading.status.reading": "Reading / \u95B1\u8B80\u4E2D",
-  "reading.status.toReadAgain": "To read again / \u91CD\u8B80",
-  "reading.status.finished": "Finished / \u8B80\u5B8C",
-  "property.selectLabel": "Select {property} value / \u9078\u64C7 {property} \u503C",
-  "property.felt.good": "Good / \u597D",
-  "property.felt.ok": "OK / \u4E00\u822C",
-  "property.felt.bad": "Bad / \u5DEE",
-  "property.golfLocation.homeNet": "Home net / \u5BB6\u7528\u7DB2",
-  "property.golfLocation.drivingRange": "Driving range / \u7DF4\u7FD2\u5834",
-  "property.golfLocation.course": "Course / \u7403\u5834",
-  "property.golfLocation.other": "Other / \u5176\u4ED6",
-  "property.location.custom": "Custom\u2026 / \u81EA\u8A02\u2026",
+  "template.base.title": "\u66F8\u540D",
+  "template.base.authors": "\u4F5C\u8005",
+  "template.base.description": "\u63CF\u8FF0",
+  "template.base.pages": "\u9801\u6578",
+  "template.base.status": "\u72C0\u614B",
+  "template.base.tags": "\u6A19\u7C64",
+  "template.base.totalMinutes": "\u7E3D\u5206\u9418",
+  "template.base.cards": "\u5361\u7247",
+  "template.base.table": "\u8868\u683C",
+  "block.opt.header": "\u53D6\u6D88\u8A3B\u89E3\u5373\u53EF\u4F7F\u7528\u3002\u4EE5 # \u958B\u982D\u7684\u884C\u6703\u88AB\u5FFD\u7565\u3002",
+  "block.opt.yearHeatmap": "\u897F\u5143\u5E74\u3002\u7701\u7565\u5247\u7528\u8DEF\u5F91\u4E2D\u7684\u65E5\u671F\uFF0C\u5426\u5247\u7528\u4ECA\u5E74",
+  "block.opt.activityHeatmap": "\u5168\u90E8\u3001\u55AE\u4E00 id\uFF0C\u6216\u9017\u865F\u6E05\u55AE\u3002\u9810\u8A2D\uFF1A\u5168\u90E8\u5DF2\u555F\u7528\u7FD2\u6163",
+  "block.opt.rows": "\u591A\u500B heatmap \u7684\u5217\u6578\u3002\u9810\u8A2D\uFF1A1",
+  "block.opt.columns": "\u6B04\u6578\u4E0A\u9650\uFF1B1 \u70BA\u76F4\u5411\u5806\u758A\u3002\u9810\u8A2D\uFF1A1",
+  "block.opt.minColumnWidth": "\u4F4E\u65BC\u6B64\u6B04\u5BEC\uFF08px\uFF09\u6703\u63DB\u884C\u3002\u9810\u8A2D\uFF1A300",
+  "block.opt.defaultSpan": "\u6BCF\u500B heatmap \u6B04\u7684\u76F8\u5C0D\u5BEC\u5EA6\u3002\u9810\u8A2D\uFF1A1.2",
+  "block.opt.dateToday": "\u65E5\u671F\u3002\u7701\u7565\u5247\u7528\u8DEF\u5F91\u4E2D\u7684\u65E5\u671F\uFF0C\u5426\u5247\u7528\u4ECA\u5929",
+  "block.opt.yearDashboard": "\u897F\u5143\u5E74\u3002\u7701\u7565\u5247\u7528\u7B46\u8A18 year \u5C6C\u6027\uFF0C\u5426\u5247\u7528\u4ECA\u5E74",
+  "block.opt.yearCues": "\u897F\u5143\u5E74\u3002\u7701\u7565\u5247\u7528\u7B46\u8A18 year \u5C6C\u6027\uFF0C\u5426\u5247\u7528\u4ECA\u5E74",
+  "block.opt.activityCues": "\u5FC5\u586B\uFF1Agolf\u3001gym \u6216\u5176\u4ED6\u904B\u52D5 id",
+  "block.opt.activityBookshelf": "\u7FD2\u6163 id\uFF08\u9700\u5DF2\u555F\u7528\u3001\u9805\u76EE\u7B46\u8A18\u8207 timer\uFF09\u3002\u9810\u8A2D\uFF1Areading",
+  "block.opt.statusBookshelf": "\u5168\u90E8\uFF0C\u6216 to-read\u3001reading\u3001to-read-again\u3001finished\u3002\u9810\u8A2D\uFF1Aall",
+  "block.opt.scaleBookshelf": "\u76F8\u5C0D\u9810\u8A2D\u5C3A\u5BF8\uFF0C0.25\u20134\u3002\u9810\u8A2D\uFF1A1\u3002\u5225\u540D\uFF1Aratio",
+  "block.opt.noneActions": "\u7121\u9078\u9805\u3002\u6BCF\u500B\u5DF2\u555F\u7528\u7FD2\u6163\u4E00\u500B\u6309\u9215\u3002",
+  "block.opt.noneTimer": "\u7121\u9078\u9805\u3002\u5728\u6B64\u7B46\u8A18\u958B\u59CB\u3001\u505C\u6B62\u3001\u7E7C\u7E8C\u6216\u653E\u68C4\u8A08\u6642\u3002",
+  "block.opt.noneGymLog": "\u7121\u9078\u9805\u3002\u63C0\u500B\u52D5\u4F5C\u3001\u586B\u91CD\u91CF\u540C\u6B21\u6578\uFF0C\u518D\u52A0\u4E00\u7D44\u3002\u5514\u4F7F\u81EA\u5DF1\u6253\u8868\u683C\u55F0\u884C\u3002",
+  "block.opt.noneCueLog": "\u7121\u9078\u9805\u3002\u7528 Markdown\uFF08\u5305\u62EC\u7E41\u9AD4\u4E2D\u6587\uFF09\u6253\u500B\u63D0\u793A\u518D\u52A0\uFF0C\u4F62\u6703\u5B58\u5728\u9019\u7BC7\u7B46\u8A18\u5605 Reminders \u6A19\u984C\u4E0B\u9762\u3002",
+  "reading.status.selectLabel": "\u95B1\u8B80\u72C0\u614B",
+  "reading.status.toRead": "\u5F85\u8B80",
+  "reading.status.reading": "\u95B1\u8B80\u4E2D",
+  "reading.status.toReadAgain": "\u91CD\u8B80",
+  "reading.status.finished": "\u8B80\u5B8C",
+  "property.selectLabel": "\u9078\u64C7 {property} \u503C",
+  "property.felt.good": "\u597D",
+  "property.felt.ok": "\u4E00\u822C",
+  "property.felt.bad": "\u5DEE",
+  "property.golfLocation.homeNet": "\u5BB6\u7528\u7DB2",
+  "property.golfLocation.drivingRange": "\u7DF4\u7FD2\u5834",
+  "property.golfLocation.course": "\u7403\u5834",
+  "property.golfLocation.other": "\u5176\u4ED6",
+  "property.location.custom": "\u81EA\u8A02\u2026",
   "property.weightUnit.kg": "kg",
   "property.weightUnit.lb": "lb",
-  "view.atomicCuesRequiresActivity": "atomic-cues requires an activity option, for example activity: golf / atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
-  "view.unknownAtomicBlock": "Unknown block / \u672A\u77E5\u5340\u584A: {kind}",
-  "view.atomicError": "Error / \u932F\u8AA4: {message}",
-  "view.dashboard.overview": "{year} overview / \u7E3D\u89BD",
+  "view.atomicCuesRequiresActivity": "atomic-cues \u9700\u8981 activity \u9078\u9805\uFF0C\u4F8B\u5982 activity: golf\u3002",
+  "view.unknownAtomicBlock": "\u672A\u77E5\u5340\u584A: {kind}",
+  "view.atomicError": "\u932F\u8AA4: {message}",
+  "view.dashboard.overview": "{year} \u7E3D\u89BD",
   "view.dashboard.range": "{from} \u2013 {to}",
-  "view.dashboard.sessionsCount": "{count} sessions / \u6B21",
-  "view.dashboard.prevYear": "Previous year / \u4E0A\u4E00\u5E74",
-  "view.dashboard.nextYear": "Next year / \u4E0B\u4E00\u5E74",
-  "view.dashboard.cues": "{activity} cues / \u63D0\u9192\u5F59\u6574",
+  "view.dashboard.sessionsCount": "{count} \u6B21",
+  "view.dashboard.prevYear": "\u4E0A\u4E00\u5E74",
+  "view.dashboard.nextYear": "\u4E0B\u4E00\u5E74",
+  "view.dashboard.cues": "{activity} \u63D0\u9192\u5F59\u6574",
   "view.dashboard.readingBookshelf": "Bases",
-  "view.dashboard.bookShelf": "Book shelf / \u66F8\u67B6",
-  "view.dashboard.kpiSessions": "Exercise sessions / \u904B\u52D5\u6B21\u6578",
-  "view.dashboard.kpiExerciseTime": "Exercise time / \u904B\u52D5\u6642\u9577",
-  "view.dashboard.kpiVolume": "Volume lifted / \u7E3D\u8A13\u7DF4\u91CF",
-  "view.dashboard.kpiHabitTime": "Habit time / \u7FD2\u6163\u6642\u9577",
+  "view.dashboard.bookShelf": "\u66F8\u67B6",
+  "view.dashboard.kpiSessions": "\u904B\u52D5\u6B21\u6578",
+  "view.dashboard.kpiExerciseTime": "\u904B\u52D5\u6642\u9577",
+  "view.dashboard.kpiVolume": "\u7E3D\u8A13\u7DF4\u91CF",
+  "view.dashboard.kpiHabitTime": "\u7FD2\u6163\u6642\u9577",
   "view.dashboard.hourUnitShort": "h",
   "view.dashboard.minuteUnitShort": "m",
   "view.dashboard.kgUnit": "kg",
-  "view.dashboard.minutesShort": "{minutes} min / \u5206\u9418",
-  "view.dashboard.minuteWord": "min / \u5206\u9418",
-  "view.dashboard.avgPerSession": "{minutes} min / \u5206\u9418 \xB7 avg / \u5E73\u5747 {avg} min / session",
-  "view.dashboard.setTableRows": "Set-table rows / \u7D44\u6578\u8868",
-  "view.dashboard.activities": "Activities / \u6D3B\u52D5",
-  "view.dashboard.activitiesMeta": "Enabled habits only \xB7 colors from Settings / \u53EA\u986F\u793A\u5DF2\u555F\u7528",
-  "view.dashboard.domainExercise": "exercise / \u904B\u52D5",
-  "view.dashboard.domainHabit": "habit / \u7FD2\u6163",
-  "view.dashboard.unitSessions": "sessions / \u6B21",
-  "view.dashboard.unitMinutes": "minutes / \u5206\u9418",
-  "view.dashboard.unitItems": "items / \u9805\u76EE",
-  "view.dashboard.unitVolume": "kg volume / \u8A13\u7DF4\u91CF",
-  "view.dashboard.colCount": "Count / \u6578\u91CF",
-  "view.dashboard.colTime": "Time / \u6642\u9577",
-  "view.dashboard.colDetail": "Detail / \u8A73\u60C5",
-  "view.dashboard.colLast": "Last / \u6700\u8FD1",
-  "view.dashboard.kgLifted": "kg lifted / \u8A13\u7DF4\u91CF",
-  "view.dashboard.feltGoodCount": "felt good / \u611F\u89BA\u597D",
-  "view.dashboard.readingNow": "reading now / \u5728\u8B80",
-  "view.dashboard.barsHours": "Hours per month / \u6BCF\u6708\u6642\u6578",
-  "view.dashboard.lastSession": "last session / \u6700\u8FD1\u8A13\u7DF4: {date}",
-  "view.dashboard.feltTitle": "How sessions felt / \u611F\u89BA",
-  "view.dashboard.feltGood": "good / \u597D",
-  "view.dashboard.feltOk": "ok / \u4E00\u822C",
-  "view.dashboard.feltBad": "bad / \u5DEE",
-  "view.dashboard.feltSummary": "felt / \u611F\u89BA {felt}",
-  "view.dashboard.monthly": "Monthly / \u6BCF\u6708",
-  "view.dashboard.monthlyMeta": "Sessions per month by activity / \u6BCF\u6708\u5404\u6D3B\u52D5\u6B21\u6578",
-  "view.dashboard.monthlyTableHint": "Volume and habit minutes: see table / \u898B\u8868\u683C",
-  "view.dashboard.showMonthlyTable": "Show monthly table / \u986F\u793A\u6BCF\u6708\u8868\u683C",
-  "view.dashboard.month": "Month / \u6708",
-  "view.dashboard.volumeHeader": "{activity} volume / \u8A13\u7DF4\u91CF (kg)",
-  "view.dashboard.minutesHeader": "{activity} (min / \u5206\u9418)",
-  "view.dashboard.muscles": "Muscles / \u808C\u7FA4",
-  "view.dashboard.unknownMuscle": "Unspecified muscle / \u672A\u6307\u5B9A\u808C\u7FA4",
-  "view.dashboard.byVolumeSets": "by volume \xB7 sets / \u6309\u8A13\u7DF4\u91CF \xB7 \u7D44\u6578",
-  "view.dashboard.noSetData": "No set data / \u5C1A\u7121\u7D44\u6578\u8CC7\u6599",
-  "view.dashboard.golfFocus": "Golf focus / \u9AD8\u723E\u592B\u91CD\u9EDE",
-  "view.dashboard.focusMeta": "tags across {count} sessions / \u6B21\u8A13\u7DF4\u7684\u6A19\u7C64",
-  "view.dashboard.noFocusTags": "No focus tags / \u5C1A\u7121\u91CD\u9EDE\u6A19\u7C64",
-  "view.dashboard.recentSessions": "Recent sessions / \u6700\u8FD1\u8A13\u7DF4",
-  "view.dashboard.recentMeta": "Latest {count} \xB7 click to open the note / \u9EDE\u64CA\u958B\u555F\u7B46\u8A18",
-  "view.dashboard.noSessions": "No sessions yet / \u5C1A\u672A\u8A18\u9304",
+  "view.dashboard.minutesShort": "{minutes} \u5206\u9418",
+  "view.dashboard.minuteWord": "\u5206\u9418",
+  "view.dashboard.avgPerSession": "{minutes} \u5206\u9418 \xB7 \u5E73\u5747 {avg} \u5206\u9418",
+  "view.dashboard.setTableRows": "\u7D44\u6578\u8868",
+  "view.dashboard.activities": "\u6D3B\u52D5",
+  "view.dashboard.activitiesMeta": "\u53EA\u986F\u793A\u5DF2\u555F\u7528",
+  "view.dashboard.domainExercise": "\u904B\u52D5",
+  "view.dashboard.domainHabit": "\u7FD2\u6163",
+  "view.dashboard.unitSessions": "\u6B21",
+  "view.dashboard.unitMinutes": "\u5206\u9418",
+  "view.dashboard.unitItems": "\u9805\u76EE",
+  "view.dashboard.unitVolume": "\u8A13\u7DF4\u91CF",
+  "view.dashboard.colCount": "\u6578\u91CF",
+  "view.dashboard.colTime": "\u6642\u9577",
+  "view.dashboard.colDetail": "\u8A73\u60C5",
+  "view.dashboard.colLast": "\u6700\u8FD1",
+  "view.dashboard.kgLifted": "\u8A13\u7DF4\u91CF",
+  "view.dashboard.feltGoodCount": "\u611F\u89BA\u597D",
+  "view.dashboard.readingNow": "\u5728\u8B80",
+  "view.dashboard.barsHours": "\u6BCF\u6708\u6642\u6578",
+  "view.dashboard.lastSession": "\u6700\u8FD1\u8A13\u7DF4: {date}",
+  "view.dashboard.feltTitle": "\u611F\u89BA",
+  "view.dashboard.feltGood": "\u597D",
+  "view.dashboard.feltOk": "\u4E00\u822C",
+  "view.dashboard.feltBad": "\u5DEE",
+  "view.dashboard.feltSummary": "\u611F\u89BA {felt}",
+  "view.dashboard.monthly": "\u6BCF\u6708",
+  "view.dashboard.monthlyMeta": "\u6BCF\u6708\u5404\u6D3B\u52D5\u6B21\u6578",
+  "view.dashboard.monthlyTableHint": "\u8A13\u7DF4\u91CF\u540C\u7FD2\u6163\u5206\u9418\uFF1A\u898B\u8868\u683C",
+  "view.dashboard.showMonthlyTable": "\u986F\u793A\u6BCF\u6708\u8868\u683C",
+  "view.dashboard.month": "\u6708",
+  "view.dashboard.volumeHeader": "{activity} \u8A13\u7DF4\u91CF (kg)",
+  "view.dashboard.minutesHeader": "{activity}\uFF08\u5206\u9418\uFF09",
+  "view.dashboard.muscles": "\u808C\u7FA4",
+  "view.dashboard.unknownMuscle": "\u672A\u6307\u5B9A\u808C\u7FA4",
+  "view.dashboard.byVolumeSets": "\u6309\u8A13\u7DF4\u91CF \xB7 \u7D44\u6578",
+  "view.dashboard.noSetData": "\u5C1A\u7121\u7D44\u6578\u8CC7\u6599",
+  "view.dashboard.golfFocus": "\u9AD8\u723E\u592B\u91CD\u9EDE",
+  "view.dashboard.focusMeta": "\u8DE8 {count} \u6B21\u8A13\u7DF4\u7684\u6A19\u7C64",
+  "view.dashboard.noFocusTags": "\u5C1A\u7121\u91CD\u9EDE\u6A19\u7C64",
+  "view.dashboard.recentSessions": "\u6700\u8FD1\u8A13\u7DF4",
+  "view.dashboard.recentMeta": "\u6700\u8FD1 {count} \xB7 \u9EDE\u64CA\u958B\u555F\u7B46\u8A18",
+  "view.dashboard.noSessions": "\u5C1A\u672A\u8A18\u9304",
   "view.heatmap.summary": "{days} \u65E5 \xB7 {minutes} \u5206\u9418",
   "view.heatmap.summaryHours": "{days} \u65E5 \xB7 {hours} \u5C0F\u6642 {minutes} \u5206\u9418",
-  "view.heatmap.less": "Less / \u5C11",
-  "view.heatmap.more": "More / \u591A",
-  "view.heatmap.byDuration": "by duration / \u6309\u6642\u9577",
-  "view.heatmap.minutes": "{minutes} min / \u5206\u9418",
-  "view.heatmap.tooltip": "{date}: {minutes} min / \u5206\u9418",
-  "view.heatmap.tooltipOpen": "{date}: {minutes} min / \u5206\u9418 - click to open / \u9EDE\u64CA\u958B\u555F",
-  "view.heatmap.invalidActivities": "Unknown or disabled heatmap activities / \u672A\u77E5\u6216\u5DF2\u505C\u7528\u7684 Heatmap \u6D3B\u52D5: {ids}",
-  "view.heatmap.noActivities": "No enabled habits to show in this heatmap / \u6C92\u6709\u53EF\u986F\u793A\u7684\u5DF2\u555F\u7528\u7FD2\u6163\u3002",
-  "view.today.title": "Today / \u4ECA\u65E5",
+  "view.heatmap.less": "\u5C11",
+  "view.heatmap.more": "\u591A",
+  "view.heatmap.byDuration": "\u6309\u6642\u9577",
+  "view.heatmap.minutes": "{minutes} \u5206\u9418",
+  "view.heatmap.tooltip": "{date}\uFF1A{minutes} \u5206\u9418",
+  "view.heatmap.tooltipOpen": "{date}\uFF1A{minutes} \u5206\u9418 \xB7 \u9EDE\u64CA\u958B\u555F",
+  "view.heatmap.invalidActivities": "\u672A\u77E5\u6216\u5DF2\u505C\u7528\u7684 Heatmap \u6D3B\u52D5: {ids}",
+  "view.heatmap.noActivities": "\u6C92\u6709\u53EF\u986F\u793A\u7684\u5DF2\u555F\u7528\u7FD2\u6163\u3002",
+  "view.today.title": "\u4ECA\u65E5",
   "view.today.summary": "{date} \xB7 {done} / {total}",
-  "view.today.noSession": "No session yet / \u5C1A\u672A\u8A18\u9304",
-  "view.cues.noCueActivity": "No cue-enabled {activity} exercise activity configured / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u9192\u7684 {activity} \u904B\u52D5\u6D3B\u52D5\u3002",
-  "view.cues.empty": "No cues in {year} yet. Add one from a session note / {year} \u4EF2\u672A\u6709\u63D0\u793A\u3002\u55BA\u8A13\u7DF4\u7B46\u8A18\u52A0\u4E00\u689D\u5566\u3002",
+  "view.today.noSession": "\u5C1A\u672A\u8A18\u9304",
+  "view.cues.noCueActivity": "\u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4\u63D0\u9192\u7684 {activity} \u904B\u52D5\u6D3B\u52D5\u3002",
+  "view.cues.empty": "{year} \u4EF2\u672A\u6709\u63D0\u793A\u3002\u55BA\u8A13\u7DF4\u7B46\u8A18\u52A0\u4E00\u689D\u5566\u3002",
   "view.cues.repeats": "\xD7{count}",
-  "view.cueLog.cue": "Cue / \u63D0\u793A",
-  "view.cueLog.placeholder": "Keep the lead arm soft / \u524D\u81C2\u653E\u9B06\n**Tempo / \u7BC0\u594F** \u2014 count one-two",
-  "view.cueLog.add": "Add cue / \u52A0\u63D0\u793A",
-  "view.cueLog.needsSavedNote": "Save this note to add cues / \u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
+  "view.cueLog.cue": "\u63D0\u793A",
+  "view.cueLog.placeholder": "\u524D\u81C2\u653E\u9B06\n**Tempo\u7BC0\u594F** \u2014 count one-two",
+  "view.cueLog.add": "\u52A0\u63D0\u793A",
+  "view.cueLog.needsSavedNote": "\u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
   "view.bookShelf.summary": "{count} \u672C \xB7 {reading} \u672C\u95B1\u8B80\u4E2D \xB7 {finished} \u672C\u8B80\u5B8C",
-  "view.bookShelf.clickToOpen": "Click to open / \u64B3\u4E00\u4E0B\u958B\u555F",
-  "view.bookShelf.tapAgain": "Tap again to open / \u518D\u64B3\u4E00\u6B21\u958B\u555F",
-  "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
-  "view.bookShelf.empty": "No Reading items yet. Run New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
-  "view.bookShelf.emptyFiltered": "No Reading items with status / \u6C92\u6709\u72C0\u614B\u70BA {statuses} \u7684\u95B1\u8B80\u9805\u76EE\u3002",
-  "view.bookShelf.invalidStatuses": "Unknown book shelf status values / \u672A\u77E5\u7684\u66F8\u67B6\u72C0\u614B\u503C: {statuses}",
-  "view.timer.needsSavedNote": "Timer can only run from a saved note / Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u57F7\u884C\u3002",
-  "view.timer.caption": "Timer / \u8A08\u6642",
+  "view.bookShelf.clickToOpen": "\u64B3\u4E00\u4E0B\u958B\u555F",
+  "view.bookShelf.tapAgain": "\u518D\u64B3\u4E00\u6B21\u958B\u555F",
+  "view.bookShelf.noActivity": "\u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
+  "view.bookShelf.empty": "\u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
+  "view.bookShelf.emptyFiltered": "\u6C92\u6709\u72C0\u614B\u70BA {statuses} \u7684\u95B1\u8B80\u9805\u76EE\u3002",
+  "view.bookShelf.invalidStatuses": "\u672A\u77E5\u7684\u66F8\u67B6\u72C0\u614B\u503C: {statuses}",
+  "view.timer.needsSavedNote": "Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u57F7\u884C\u3002",
+  "view.timer.caption": "\u8A08\u6642",
   "view.timer.minuteUnit": "\u5206\u9418",
   "view.timer.total": "\u7E3D\u8A08 {minutes} \u5206\u9418",
   "view.timer.duration": "\u6642\u9577 {minutes} \u5206\u9418",
   "view.timer.runningSince": "\u8A08\u6642\u4E2D \xB7 {time} \u958B\u59CB",
-  "view.timer.stop": "Stop / \u505C\u6B62",
-  "view.timer.resume": "Resume / \u7E7C\u7E8C",
-  "view.timer.discard": "Discard / \u653E\u68C4",
-  "view.timer.start": "Start / \u958B\u59CB",
-  "view.gymLog.needsSession": "Set log can only run from a saved gym session note / \u8981\u55BA\u5DF2\u5132\u5B58\u5605\u5065\u8EAB\u7B46\u8A18\u5148\u52A0\u5230\u7D44\u6578\u3002",
-  "view.gymLog.exercise": "Exercise / \u52D5\u4F5C",
-  "view.gymLog.weight": "Weight / \u91CD\u91CF",
-  "view.gymLog.reps": "Reps / \u6B21\u6578",
-  "view.gymLog.notes": "Notes / \u5099\u8A3B",
-  "view.gymLog.add": "Add set / \u52A0\u4E00\u7D44",
-  "view.gymLog.newExercise": "New exercise\u2026 / \u65B0\u52D5\u4F5C\u2026",
-  "view.gymLog.emptyCatalog": "No saved exercises yet. Choose New exercise\u2026 to add one / \u672A\u6709\u5B58\u904E\u52D5\u4F5C\u3002\u63C0\u300C\u65B0\u52D5\u4F5C\u2026\u300D\u52A0\u4E00\u500B\u3002",
-  "view.gymLog.customMuscle": "Custom\u2026 / \u81EA\u8A02\u2026",
-  "muscle.Chest": "Chest / \u80F8",
-  "muscle.Back": "Back / \u80CC",
-  "muscle.Shoulders": "Shoulders / \u80A9",
-  "muscle.Biceps": "Biceps / \u4E8C\u982D",
-  "muscle.Triceps": "Triceps / \u4E09\u982D",
-  "muscle.Quads": "Quads / \u80A1\u56DB\u982D",
-  "muscle.Hamstrings": "Hamstrings / \u817F\u5F8C\u8171",
-  "muscle.Glutes": "Glutes / \u81C0",
-  "muscle.Calves": "Calves / \u5C0F\u817F",
-  "muscle.Core": "Core / \u6838\u5FC3"
+  "view.timer.stop": "\u505C\u6B62",
+  "view.timer.resume": "\u7E7C\u7E8C",
+  "view.timer.discard": "\u653E\u68C4",
+  "view.timer.start": "\u958B\u59CB",
+  "view.gymLog.needsSession": "\u8981\u55BA\u5DF2\u5132\u5B58\u5605\u5065\u8EAB\u7B46\u8A18\u5148\u52A0\u5230\u7D44\u6578\u3002",
+  "view.gymLog.exercise": "\u52D5\u4F5C",
+  "view.gymLog.weight": "\u91CD\u91CF",
+  "view.gymLog.reps": "\u6B21\u6578",
+  "view.gymLog.notes": "\u5099\u8A3B",
+  "view.gymLog.add": "\u52A0\u4E00\u7D44",
+  "view.gymLog.newExercise": "\u65B0\u52D5\u4F5C\u2026",
+  "view.gymLog.emptyCatalog": "\u672A\u6709\u5B58\u904E\u52D5\u4F5C\u3002\u63C0\u300C\u65B0\u52D5\u4F5C\u2026\u300D\u52A0\u4E00\u500B\u3002",
+  "view.gymLog.customMuscle": "\u81EA\u8A02\u2026",
+  "muscle.Chest": "\u80F8",
+  "muscle.Back": "\u80CC",
+  "muscle.Shoulders": "\u80A9",
+  "muscle.Biceps": "\u4E8C\u982D",
+  "muscle.Triceps": "\u4E09\u982D",
+  "muscle.Quads": "\u80A1\u56DB\u982D",
+  "muscle.Hamstrings": "\u817F\u5F8C\u8171",
+  "muscle.Glutes": "\u81C0",
+  "muscle.Calves": "\u5C0F\u817F",
+  "muscle.Core": "\u6838\u5FC3",
+  "view.bookShelf.clickAgain": "\u518D\u64B3\u4E00\u6B21\u958B\u555F\u7B46\u8A18"
 };
 
 // src/i18n/index.ts
@@ -2438,7 +2440,7 @@ function ensureTrailingNewline(markdown) {
 }
 
 // src/core/cues.ts
-var REMINDERS_HEADING = /^(#{1,6})\s+(?:\S+\s+)?Reminders(?:\s*\/\s*.+)?\s*$/i;
+var REMINDERS_HEADING = /^(#{1,6})\s+(?:\S+\s+)?(?:Reminders(?:\s*\/\s*.+)?|提醒)\s*$/i;
 var HEADING = /^(#{1,6})\s+/;
 var BULLET = /^\s*[-*+]\s+(.+)$/;
 var EMPTY_BULLET = /^\s*[-*+]\s*$/;
@@ -4100,6 +4102,7 @@ function appendActivityLink(parent, link, cls = "atomic-dash-link", text = link.
   el.createSpan({ cls: "atomic-link-arrow", text: "\u2197" });
   el.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     void link.open();
   });
   return el;
@@ -4112,6 +4115,7 @@ function appendPathLink(parent, text, path, ctx, cls = "atomic-dash-link") {
   });
   link.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     void ctx.data.openPath(path);
   });
   return link;
@@ -4456,9 +4460,24 @@ function renderDashboardRecent(root, model, ctx) {
   for (const row of model.recent) {
     const line = card.createDiv({
       cls: "atomic-recent-row atomic-dash-recent-row",
-      attr: { "data-testid": "atomic-dashboard-recent-row", "data-path": row.path }
+      attr: {
+        "data-testid": "atomic-dashboard-recent-row",
+        "data-path": row.path,
+        role: "link",
+        tabindex: "0"
+      }
     });
     line.setCssProps({ "--atomic-c": row.activity.colors[2] });
+    const openNote = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      void ctx.data.openPath(row.path);
+    };
+    line.addEventListener("click", openNote);
+    line.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      openNote(event);
+    });
     const parsed = parseYmd(row.date);
     line.createSpan({
       cls: "atomic-recent-date",
@@ -4965,12 +4984,11 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
-var COVER_SPINE_WIDE_RATIO = 0.72;
 function coverObjectPosition(naturalWidth, naturalHeight) {
   if (!Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight) || naturalWidth <= 0 || naturalHeight <= 0) {
     return "center";
   }
-  return naturalWidth / naturalHeight > COVER_SPINE_WIDE_RATIO ? "right center" : "center";
+  return "center";
 }
 function bindCoverObjectPosition(img) {
   const apply = () => {
@@ -4982,19 +5000,30 @@ function bindCoverObjectPosition(img) {
   else img.addEventListener("load", apply, { once: true });
 }
 var LIFTED_CLASS = "is-lifted";
+var COVER_OPEN_CLASS = "is-cover-open";
 function hoverFinePointer(media) {
   return Boolean(media?.matches);
 }
 function bookClickOpensNote(options) {
-  return options.hoverFine || options.coverOpen;
+  if (options.coverOpen) return true;
+  return Boolean(options.hoverFine && options.reducedMotion);
 }
 function hoverFineMedia() {
   if (typeof window.matchMedia !== "function") return null;
-  return window.matchMedia("(hover: hover) and (pointer: fine)");
+  return window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)");
+}
+function prefersReducedMotion2() {
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 function closeLiftedBooks(root) {
   root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
     el.classList.remove(LIFTED_CLASS);
+  });
+}
+function closeOpenCovers(root) {
+  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(COVER_OPEN_CLASS);
   });
 }
 function shelfSummary(items, language) {
@@ -5006,15 +5035,15 @@ function shelfSummary(items, language) {
     finished
   });
 }
-function showBookReadout(readout, item, language, lifted) {
+function showBookReadout(readout, item, language, mode) {
   readout.empty();
   readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
   const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
   readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" \xB7 ") });
-  const hint = readout.createDiv({ cls: lifted ? "atomic-readout is-live" : "atomic-readout" });
-  hint.setText(
-    t(lifted ? "view.bookShelf.tapAgain" : "view.bookShelf.clickToOpen", language)
-  );
+  const again = mode === "again";
+  const hint = readout.createDiv({ cls: again ? "atomic-readout is-live" : "atomic-readout" });
+  const key = !again ? "view.bookShelf.clickToOpen" : hoverFinePointer(hoverFineMedia()) ? "view.bookShelf.clickAgain" : "view.bookShelf.tapAgain";
+  hint.setText(t(key, language));
 }
 function titleLengthClass(title) {
   const length = title.trim().length;
@@ -5029,21 +5058,30 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
       type: "button",
       "data-testid": "atomic-book",
       "data-title": item.title,
-      "data-status": item.status
+      "data-status": item.status,
+      "data-path": item.path
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
   const titleClass = titleLengthClass(item.title);
+  const pages = button.createDiv({ cls: "atomic-book-pages" });
+  pages.createDiv({
+    cls: ["atomic-book-pages-title", titleClass].filter(Boolean).join(" "),
+    text: item.title
+  });
+  const author = item.authors[0];
+  if (author) pages.createDiv({ cls: "atomic-book-pages-meta", text: author });
+  const face = button.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = button.createEl("img", {
+    const img = face.createEl("img", {
       cls: "atomic-book-cover",
       attr: { src: coverSrc, alt: "", draggable: "false" }
     });
     bindCoverObjectPosition(img);
   } else {
-    button.createDiv({
-      cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
+    face.createDiv({
+      cls: ["atomic-book-cover", "atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
       text: item.title
     });
   }
@@ -5064,25 +5102,40 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
   });
   button.addEventListener("pointerenter", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    showBookReadout(readout, item, language, false);
+    showBookReadout(readout, item, language, "preview");
+  });
+  button.addEventListener("pointerleave", () => {
+    if (!hoverFinePointer(hoverFineMedia())) return;
+    button.classList.remove(COVER_OPEN_CLASS);
+    const summary = readout.dataset.shelfSummary;
+    if (summary) readout.setText(summary);
   });
   button.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(LIFTED_CLASS);
-    if (!bookClickOpensNote({ hoverFine, coverOpen })) {
+    const coverOpen = hoverFine ? button.classList.contains(COVER_OPEN_CLASS) : button.classList.contains(LIFTED_CLASS);
+    if (!bookClickOpensNote({
+      hoverFine,
+      coverOpen,
+      reducedMotion: prefersReducedMotion2()
+    })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeLiftedBooks(shelf);
-      button.classList.add(LIFTED_CLASS);
-      showBookReadout(readout, item, language, true);
+      closeOpenCovers(shelf);
+      if (hoverFine) button.classList.add(COVER_OPEN_CLASS);
+      else button.classList.add(LIFTED_CLASS);
+      showBookReadout(readout, item, language, "again");
       return;
     }
     button.classList.remove(LIFTED_CLASS);
+    button.classList.remove(COVER_OPEN_CLASS);
     void data.openPath(item.path);
   });
 }
 function paintRows(frame, items, perRow, data, language, emptyText, ribbonColor, readout) {
   frame.empty();
+  readout.dataset.shelfSummary = shelfSummary(items, language);
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
     const scroll = frame.createDiv({

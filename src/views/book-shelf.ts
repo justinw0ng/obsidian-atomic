@@ -313,7 +313,8 @@ export function bookClickOpensNote(options: {
 
 function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
   if (typeof window.matchMedia !== "function") return null;
-  return window.matchMedia("(hover: hover) and (pointer: fine)");
+  // pointer:none is a virtual display with a mouse, not a coarse phone.
+  return window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)");
 }
 
 function prefersReducedMotion(): boolean {

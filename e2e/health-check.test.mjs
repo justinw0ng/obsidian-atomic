@@ -46,6 +46,38 @@ async function shot(driver, name) {
   }
 }
 
+/** Phone checks set mobile emulation. Put the pointer back before desktop clicks. */
+async function restoreDesktopPointer(driver, viewport) {
+  try {
+    await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
+  } catch {
+    if (viewport) {
+      await driver.executeScript(
+        `window.resizeTo(arguments[0], arguments[1])`,
+        viewport.width,
+        viewport.height,
+      );
+    }
+  }
+  try {
+    await driver.sendDevToolsCommand("Emulation.setTouchEmulationEnabled", {
+      enabled: false,
+    });
+  } catch {
+    // Older DevTools builds omit touch emulation.
+  }
+  try {
+    await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
+      features: [
+        { name: "hover", value: "hover" },
+        { name: "pointer", value: "fine" },
+      ],
+    });
+  } catch {
+    // Older DevTools builds omit emulated media features.
+  }
+}
+
 function assertNoCssMask(metrics, label) {
   assert.match(String(metrics.maskImage), /^(none)?$/, `${label} must not set mask-image`);
   assert.match(
@@ -498,15 +530,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         assert.equal(phoneLightbox.paddingLeft, phoneLightbox.sourcePaddingLeft);
         assert.match(String(phoneLightbox.sheetBgImage), /linear-gradient/);
       } finally {
-        try {
-          await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
-        } catch {
-          await driver.executeScript(
-            `window.resizeTo(arguments[0], arguments[1])`,
-            desktopViewport.width,
-            desktopViewport.height,
-          );
-        }
+        await restoreDesktopPointer(driver, desktopViewport);
       }
 
       await openVaultFile(driver, E2E_FILES.gymCues);
@@ -1327,15 +1351,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         assert.ok(report.ringTop >= -0.5, `today ring clipped on the top (${report.ringTop})`);
         assert.ok(report.ringBottom >= -0.5, `today ring clipped on the bottom (${report.ringBottom})`);
       } finally {
-        try {
-          await driver.sendDevToolsCommand("Emulation.clearDeviceMetricsOverride", {});
-        } catch {
-          await driver.executeScript(
-            `window.resizeTo(arguments[0], arguments[1])`,
-            desktopViewport.width,
-            desktopViewport.height,
-          );
-        }
+        await restoreDesktopPointer(driver, desktopViewport);
         await driver.executeScript(`
           const plugin = app.plugins.getPlugin("atomic-tracker");
           plugin.settings.language = "en";
@@ -1639,68 +1655,89 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
 
   it("shows a short What's new notice after a version change and does not nag", async () => {
     await check(driver, "update-note", async () => {
-      await driver.executeScript(`
-        const plugin = app.plugins.getPlugin("atomic-tracker");
-        plugin.settings.language = "en";
-        plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
-        plugin.promptUpdateNoteIfNeeded();
-      `);
-      await waitCss(driver, '[data-testid="atomic-update-note-notice"]');
-      const englishNotice = await waitForNotice(driver, "What's new in");
-      assert.match(String(englishNotice), /dashboard/i);
-      assert.match(String(englishNotice), /book shelf/);
-      const leftoverModals = await driver.findElements(
-        By.css('[data-testid="atomic-update-note-modal"]'),
-      );
-      assert.equal(leftoverModals.length, 0);
-      const current = await driver.executeScript(
-        `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
-      );
-      await driver.wait(async () => {
-        const seen = await driver.executeScript(
-          `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+      try {
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "en";
+          plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
+          plugin.promptUpdateNoteIfNeeded();
+        `);
+        await waitCss(driver, '[data-testid="atomic-update-note-notice"]');
+        const englishNotice = await waitForNotice(driver, "What's new in");
+        assert.match(String(englishNotice), /dashboard/i);
+        assert.match(String(englishNotice), /book shelf/);
+        const leftoverModals = await driver.findElements(
+          By.css('[data-testid="atomic-update-note-modal"]'),
         );
-        return seen === current;
-      }, 8000);
-
-      await driver.executeScript(`
-        const plugin = app.plugins.getPlugin("atomic-tracker");
-        plugin.settings.language = "zh-Hant-en";
-        plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
-        plugin.promptUpdateNoteIfNeeded();
-      `);
-      const cantoneseNotice = await waitForNotice(driver, "書架");
-      assert.match(String(cantoneseNotice), /cue card/);
-      assert.match(String(cantoneseNotice), /Dashboard/);
-      assert.match(String(cantoneseNotice), /What's new in/);
-
-      await driver.executeScript(`
-        const plugin = app.plugins.getPlugin("atomic-tracker");
-        plugin.settings.language = "en";
-      `);
-      await driver.wait(async () => {
-        const seen = await driver.executeScript(
-          `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+        assert.equal(leftoverModals.length, 0);
+        const current = await driver.executeScript(
+          `return app.plugins.getPlugin("atomic-tracker").manifest.version`,
         );
-        return seen === current;
-      }, 8000);
-      await driver.executeScript(`
-        document.querySelectorAll('[data-testid="atomic-update-note-notice"]').forEach((el) => el.remove());
-        app.plugins.getPlugin("atomic-tracker").promptUpdateNoteIfNeeded();
-      `);
-      const leftover = await driver.findElements(
-        By.css('[data-testid="atomic-update-note-notice"]'),
-      );
-      assert.equal(leftover.length, 0);
+        await driver.wait(async () => {
+          const seen = await driver.executeScript(
+            `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+          );
+          return seen === current;
+        }, 8000);
+
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "zh-Hant-en";
+          plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
+          plugin.promptUpdateNoteIfNeeded();
+        `);
+        const cantoneseNotice = await waitForNotice(driver, "書架");
+        assert.match(String(cantoneseNotice), /cue card/);
+        assert.match(String(cantoneseNotice), /Dashboard/);
+        assert.match(String(cantoneseNotice), /更新說明/);
+        assert.doesNotMatch(String(cantoneseNotice), /What's new in/);
+
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "en";
+        `);
+        await driver.wait(async () => {
+          const seen = await driver.executeScript(
+            `return app.plugins.getPlugin("atomic-tracker").settings.lastSeenUpdateNoteVersion`,
+          );
+          return seen === current;
+        }, 8000);
+        await driver.executeScript(`
+          document.querySelectorAll('[data-testid="atomic-update-note-notice"]').forEach((el) => el.remove());
+          app.plugins.getPlugin("atomic-tracker").promptUpdateNoteIfNeeded();
+        `);
+        const leftover = await driver.findElements(
+          By.css('[data-testid="atomic-update-note-notice"]'),
+        );
+        assert.equal(leftover.length, 0);
+      } finally {
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          plugin.settings.language = "en";
+          return plugin.refreshAll();
+        `);
+      }
     });
   });
 
   it("opens a book cover on click, then the note", async () => {
     await check(driver, "book-cover-open", async () => {
+      await restoreDesktopPointer(driver);
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(
         driver,
         '[data-testid="atomic-book"][data-title="Currently Reading"]',
+      );
+      const pointer = await driver.executeScript(`
+        return {
+          hover: window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)").matches,
+          reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        };
+      `);
+      assert.equal(
+        pointer.hover,
+        true,
+        `a desktop pointer opens the cover ${JSON.stringify(pointer)}`,
       );
       const clickBook = () => driver.executeScript(`
         document.querySelector(
@@ -1708,16 +1745,31 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         ).click();
       `);
       await clickBook();
+      if (pointer.reduced) {
+        await driver.wait(async () => {
+          const path = await driver.executeScript(
+            `return app.workspace.getActiveFile()?.path || ""`,
+          );
+          return path === E2E_FILES.readingCurrent;
+        }, 8000);
+        return;
+      }
       const opened = await driver.executeScript(`
         const book = document.querySelector(
           '[data-testid="atomic-book"][data-title="Currently Reading"]'
         );
         return {
           cover: book?.classList.contains("is-cover-open") === true,
+          lifted: book?.classList.contains("is-lifted") === true,
+          className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
         };
       `);
-      assert.equal(opened.cover, true, "the first click opens the cover");
+      assert.equal(
+        opened.cover,
+        true,
+        `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
+      );
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {

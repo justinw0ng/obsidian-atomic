@@ -252,7 +252,7 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
 });
 
 test("fine pointers pop a book, then open the cover on click", () => {
-  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
+  const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine), (pointer: none)");
   assert.ok(hoverAt > 0);
   const hover = styles.slice(hoverAt, styles.indexOf("}", styles.indexOf("is-cover-open::after", hoverAt)));
   assert.match(hover, /perspective\(700px\)/);
