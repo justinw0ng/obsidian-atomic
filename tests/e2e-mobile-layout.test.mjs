@@ -245,6 +245,16 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
     styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
   );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book\s*\{[^}]*flex:\s*0 0 var\(--atomic-book-w\)/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover-title\s*\{[^}]*overflow-wrap:\s*anywhere/s,
+  );
+  assert.match(styles, /\.atomic-book-cover-title\.is-title-sm/);
+  assert.match(styles, /\.atomic-book-cover-title\.is-title-xs/);
 });
 
 test("fine pointers tilt a book; touch uses a lift instead of a cover flip", () => {

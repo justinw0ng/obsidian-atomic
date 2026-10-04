@@ -1582,9 +1582,13 @@
   --sx: 30%;
   --sy: 18%;
   position: relative;
-  flex: none;
+  flex: 0 0 var(--atomic-book-w);
   width: var(--atomic-book-w);
+  min-width: 0;
+  max-width: var(--atomic-book-w);
   height: var(--atomic-book-h);
+  white-space: normal;
+  overflow: visible;
   margin-bottom: -4px;
   padding: 0;
   border: 0;
@@ -1600,6 +1604,11 @@
     box-shadow var(--atomic-t-move) var(--atomic-ease);
   cursor: pointer;
   z-index: 1;
+}
+
+/* Cover text and the image must not grow the button or steal its click. */
+.fitness-plugin .atomic-book * {
+  pointer-events: none;
 }
 
 .fitness-plugin .atomic-book-cover {
@@ -2373,13 +2382,33 @@
 }
 
 .fitness-plugin .atomic-book-cover-title {
+  position: absolute;
+  inset: 8px 6px;
+  z-index: 1;
   display: flex;
-  align-items: flex-end;
-  height: 100%;
-  padding: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.2;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--atomic-ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  overflow: hidden;
+}
+
+.fitness-plugin .atomic-book-cover-title.is-title-sm {
+  font-size: 8px;
+  inset: 7px 5px;
+}
+
+.fitness-plugin .atomic-book-cover-title.is-title-xs {
+  font-size: 7px;
+  line-height: 1.1;
+  inset: 6px 4px;
 }
 
 .fitness-plugin .fitness-actions button {
