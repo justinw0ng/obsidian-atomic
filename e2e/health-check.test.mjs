@@ -364,6 +364,24 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       `);
       assert.equal(headings, 0);
 
+      // The fan layout (228px cards) is what clips a long cue. A short
+      // window with the sidebar open is under the 600px stack breakpoint,
+      // and the same sentence then fits in four lines.
+      await driver.executeScript(`
+        app.workspace.leftSplit?.collapse?.();
+        app.workspace.rightSplit?.collapse?.();
+      `);
+      await driver.wait(async () => {
+        const ready = await driver.executeScript(`
+          const host = document.querySelector('[data-testid="atomic-cues"]');
+          const meta = document.querySelector('[data-testid="atomic-cue-card"] .atomic-cue-meta');
+          const width = host ? host.getBoundingClientRect().width : 0;
+          const opacity = meta ? Number(getComputedStyle(meta).opacity) : 1;
+          return width > 600 && opacity < 0.01;
+        `);
+        return ready;
+      }, 8000);
+
       const before = await cueCardMetrics(driver, 2);
       assert.ok(before.clamped, "a long cue should be clipped at rest");
       assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
@@ -791,6 +809,34 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         By.css('[data-testid="atomic-heatmap"][data-activity="reading"]'),
       );
       assert.equal(readingOnGymGolf.length, 0);
+
+      const weekday = await driver.executeScript(`
+        const heat = document.querySelector('[data-testid="atomic-heatmap"]');
+        const labels = [...heat.querySelectorAll(".atomic-heat-days span")];
+        const cells = [...heat.querySelectorAll(".atomic-heat-cells .atomic-heat-cell")].slice(0, 7);
+        const language = app.plugins.getPlugin("atomic-tracker").settings.language;
+        const centers = labels.map((span, index) => {
+          const mark = span.getBoundingClientRect();
+          const cell = cells[index]?.getBoundingClientRect();
+          if (!cell) return 99;
+          return Math.abs((mark.top + mark.height / 2) - (cell.top + cell.height / 2));
+        });
+        return {
+          language,
+          marks: labels.map((span) => span.textContent || ""),
+          maxDelta: centers.length ? Math.max(...centers) : 99,
+        };
+      `);
+      assert.equal(weekday.marks.length, 7, `expected 7 weekday labels ${JSON.stringify(weekday)}`);
+      assert.ok(
+        weekday.maxDelta < 3,
+        `weekday labels should sit on their rows: ${JSON.stringify(weekday)}`,
+      );
+      if (weekday.language === "zh-Hant-en") {
+        assert.deepEqual(weekday.marks, ["日", "一", "二", "三", "四", "五", "六"]);
+      } else {
+        assert.deepEqual(weekday.marks, ["S", "M", "T", "W", "T", "F", "S"]);
+      }
     });
   });
 
@@ -802,6 +848,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
 
       await openVaultFile(driver, E2E_FILES.heatmapGrid);
       await waitCss(driver, ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]");
+      const gridGap = await driver.executeScript(`
+        const grid = document.querySelector(".fitness-heatmap-grid");
+        if (!grid) return "";
+        const style = getComputedStyle(grid);
+        return style.columnGap || style.gap || "";
+      `);
+      assert.equal(String(gridGap), "40px", `heatmap blocks need a visible gap: ${gridGap}`);
       await assertHiddenScrollports(
         driver,
         ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]",
@@ -1781,6 +1834,36 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `a desktop pointer opens the cover ${JSON.stringify(pointer)}`,
       );
+      const ribbon = await driver.executeScript(`
+        const book = document.querySelector(
+          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+        );
+        const tab = book?.querySelector(".atomic-book-ribbon");
+        if (!book || !tab) return null;
+        const bookBox = book.getBoundingClientRect();
+        const tabBox = tab.getBoundingClientRect();
+        const scroll = book.closest('[data-testid="atomic-bookshelf-scroll"]');
+        const scrollBox = scroll?.getBoundingClientRect();
+        const style = getComputedStyle(tab);
+        return {
+          hang: tabBox.bottom - bookBox.bottom,
+          opacity: style.opacity,
+          height: tabBox.height,
+          inside: scrollBox ? tabBox.bottom <= scrollBox.bottom + 1 : false,
+        };
+      `);
+      assert.ok(ribbon, "a reading book should paint a bookmark");
+      assert.ok(ribbon.height > 8, `bookmark should have a tail ${JSON.stringify(ribbon)}`);
+      assert.notEqual(ribbon.opacity, "0");
+      assert.ok(
+        ribbon.hang > 8,
+        `bookmark should stick out below a closed book ${JSON.stringify(ribbon)}`,
+      );
+      assert.equal(
+        ribbon.inside,
+        true,
+        `bookmark tail should stay inside the shelf scroll ${JSON.stringify(ribbon)}`,
+      );
       const clickBook = () => driver.executeScript(`
         document.querySelector(
           '[data-testid="atomic-book"][data-title="Currently Reading"]'
@@ -1800,10 +1883,15 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const book = document.querySelector(
           '[data-testid="atomic-book"][data-title="Currently Reading"]'
         );
+        const face = book?.querySelector(".atomic-book-face");
+        const cover = book?.querySelector(".atomic-book-cover");
         return {
           cover: book?.classList.contains("is-cover-open") === true,
           className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
+          coverText: (cover?.textContent || "").trim(),
+          coverOpacity: cover ? getComputedStyle(cover).opacity : "",
+          filter: face ? getComputedStyle(face).filter : "",
         };
       `);
       assert.equal(
@@ -1811,6 +1899,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
       );
+      assert.match(
+        String(opened.filter),
+        /invert\(/,
+        `opened cover should invert the original face ${JSON.stringify(opened)}`,
+      );
+      assert.match(
+        String(opened.filter),
+        /blur\(/,
+        `opened cover should blur the original face ${JSON.stringify(opened)}`,
+      );
+      assert.equal(opened.coverOpacity, "1", "the original cover stays visible when open");
+      assert.match(opened.coverText, /Currently Reading/);
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {
