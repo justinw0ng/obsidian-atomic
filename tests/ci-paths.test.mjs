@@ -60,8 +60,9 @@ test("e2e.yml runs npm run test:e2e on pull_request opened, synchronize, and reo
   assert.match(e2e, /obsidianmd\/obsidian-releases/);
   assert.match(e2e, /obsidian_\*?_amd64\.deb/);
   assert.match(e2e, /node-version: "22"/);
-  assert.match(e2e, /xvfb-run/);
+  assert.match(e2e, /ATOMIC_E2E_REQUIRED:\s*"1"/);
   assert.doesNotMatch(e2e, /SKIP_E2E/);
+  assert.doesNotMatch(e2e, /\|\| true/);
 });
 
 test("AGENTS.md still requires agents to run test:e2e and notes CI also runs it", () => {
