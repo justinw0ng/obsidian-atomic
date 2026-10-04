@@ -2,6 +2,10 @@
  * Live gym-log shots for the README hero.
  * Paste them into the same desktop and phone chrome as the daily banner.
  *
+ * Desktop keeps the stacked timer and gym-set wells, then the reminder /
+ * cue-log form and example cue cards. Phone stays the first compact frame:
+ * timer + gym set only, hole-sized, no reminder stack or cue list.
+ *
  * Run: npm run docs:gym-hero
  */
 import { spawnSync } from "node:child_process";
@@ -134,6 +138,9 @@ function runSeed() {
   if (result.status !== 0) {
     throw new Error(`seed failed: ${(result.stderr || result.stdout || "").trim()}`);
   }
+}
+
+function writeGymHeroNote({ includeCues }) {
   const notePath = join(VAULT, GYM_NOTE);
   let markdown = readFileSync(notePath, "utf8");
   if (!markdown.includes("```atomic-timer")) {
@@ -142,21 +149,28 @@ function runSeed() {
       `# Gym — 2026-08-11\n\n${E2E_TIMER_FENCE}\n\n`,
     );
   }
-  const reminders = `## Reminders
+  const reminders = includeCues
+    ? `## Reminders
 
 ${E2E_CUE_LOG_FENCE}
 
 ${GYM_HERO_CUES.map((cue) => `- ${cue}`).join("\n")}
-`;
+`
+    : "## Reminders\n\n";
   if (!/## Reminders/.test(markdown)) {
     throw new Error(`Missing Reminders heading in ${GYM_NOTE}`);
   }
   markdown = markdown.replace(/## Reminders\n[\s\S]*$/, reminders);
-  if (!markdown.includes("```atomic-timer") || !markdown.includes("```atomic-cue-log")) {
+  if (!markdown.includes("```atomic-timer")) {
     throw new Error(`Could not stage the gym hero note at ${GYM_NOTE}`);
   }
-  for (const cue of GYM_HERO_CUES) {
-    if (!markdown.includes(cue)) throw new Error(`Missing gym hero cue: ${cue}`);
+  if (includeCues) {
+    if (!markdown.includes("```atomic-cue-log")) {
+      throw new Error(`Could not add the cue-log to ${GYM_NOTE}`);
+    }
+    for (const cue of GYM_HERO_CUES) {
+      if (!markdown.includes(cue)) throw new Error(`Missing gym hero cue: ${cue}`);
+    }
   }
   writeFileSync(notePath, markdown);
 }
@@ -217,35 +231,22 @@ function trimShotWhitespace(path) {
   }
 }
 
-async function fitPhoneWindowToNote(driver) {
-  await resizeWindow(driver, MOBILE.width, MOBILE.height);
-  await openGymNote(driver);
-  const needed = await driver.executeScript(`
-    const sizer = document.querySelector(".markdown-preview-sizer");
-    if (!sizer) return 0;
-    return Math.ceil(Math.max(sizer.scrollHeight || 0, sizer.getBoundingClientRect().height));
-  `);
-  const height = Math.min(2200, Math.max(MOBILE.height, Number(needed) + 220));
-  if (height > MOBILE.height) {
-    await resizeWindow(driver, MOBILE.width, height);
-    await openGymNote(driver);
-  }
-}
-
-async function openGymNote(driver) {
+async function openGymNote(driver, { waitForCues }) {
   await openPreviewNote(driver, GYM_NOTE);
   await hideNoteProperties(driver);
   await hideCaptureScrollbars(driver, GYM_HERO_CSS);
   await waitCss(driver, '[data-testid="atomic-timer"]');
   await waitCss(driver, '[data-testid="atomic-gym-log"]');
-  await waitCss(driver, '[data-testid="atomic-cue-log"]');
-  await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
-  await driver.wait(async () => {
-    const count = await driver.executeScript(
-      `return document.querySelectorAll('[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]').length`,
-    );
-    return count >= GYM_HERO_CUES.length;
-  }, 20000);
+  if (waitForCues) {
+    await waitCss(driver, '[data-testid="atomic-cue-log"]');
+    await waitCss(driver, '[data-testid="atomic-cue-log-existing"]');
+    await driver.wait(async () => {
+      const count = await driver.executeScript(
+        `return document.querySelectorAll('[data-testid="atomic-cue-log"] [data-testid="atomic-cue-card"]').length`,
+      );
+      return count >= GYM_HERO_CUES.length;
+    }, 20000);
+  }
   await driver.executeScript(`return document.fonts.ready`);
   await driver.executeScript(`
     document.querySelector('[data-testid="atomic-timer"]')
@@ -270,18 +271,11 @@ function composeGymHero(desktopPath, mobilePath) {
   const framedDesktop = join(SHOT_DIR, "gym-framed-desktop.png");
   const framedMobile = join(SHOT_DIR, "gym-framed-phone.png");
   const paddedDesktop = join(SHOT_DIR, "gym-padded-desktop.png");
-  const paddedMobile = join(SHOT_DIR, "gym-padded-phone.png");
   padHeroContent({
     scene: "daily",
     kind: "desktop",
     content: desktopPath,
     out: paddedDesktop,
-  });
-  padHeroContent({
-    scene: "daily",
-    kind: "phone",
-    content: mobilePath,
-    out: paddedMobile,
   });
   frameHeroContent({
     scene: "daily",
@@ -292,7 +286,7 @@ function composeGymHero(desktopPath, mobilePath) {
   frameHeroContent({
     scene: "daily",
     kind: "phone",
-    content: paddedMobile,
+    content: mobilePath,
     out: framedMobile,
   });
   return composeDeviceHero({
@@ -321,6 +315,7 @@ async function main() {
   const built = ensureDocsBundle(["atomic-gym-log", "atomic-timer", "atomic-cue-log"]);
   try {
     runSeed();
+    writeGymHeroNote({ includeCues: true });
     installCaptureTheme();
     patchCaptureAppearance();
     const launched = await launchObsidian(VAULT, GYM_NOTE);
@@ -330,9 +325,11 @@ async function main() {
       await waitForPlugin(driver);
       await dismissTrustDialog(driver);
       await resizeWindow(driver, DESKTOP.width, DESKTOP.height);
-      await openGymNote(driver);
+      await openGymNote(driver, { waitForCues: true });
       const desktop = await captureNamed(driver, "gym_hero_desktop");
-      await fitPhoneWindowToNote(driver);
+      writeGymHeroNote({ includeCues: false });
+      await resizeWindow(driver, MOBILE.width, MOBILE.height);
+      await openGymNote(driver, { waitForCues: false });
       const mobile = await captureNamed(driver, "gym_hero_mobile");
       const hero = composeGymHero(desktop, mobile);
       publishStills({
