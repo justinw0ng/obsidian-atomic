@@ -109,7 +109,13 @@ export function assertSafeE2eVaultPath(vaultPath) {
   }
 }
 
-function readingItem({ title, status, totalMin, timeLog }) {
+/**
+ * Remote cover so the health check can measure the image box.
+ * The image does not need to load; the element box comes from the shelf CSS.
+ */
+const E2E_COVER = "https://example.invalid/e2e-cover.png";
+
+function readingItem({ title, status, totalMin, timeLog, cover = "" }) {
   return `---
 type: atomic-item
 domain: hobby
@@ -119,7 +125,7 @@ authors:
   - ""
 description: ""
 pages:
-cover: ""
+cover: "${cover}"
 tags:
   - books
 spine_color:
@@ -447,6 +453,7 @@ export function seedE2eVault(options = {}) {
       title: "Finished Book",
       status: "finished",
       totalMin: 0,
+      cover: E2E_COVER,
       timeLog: "",
     }),
   );

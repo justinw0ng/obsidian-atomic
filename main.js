@@ -4845,8 +4845,8 @@ async function renderDashboard(el, data, activityTypes, year, language, timezone
 var DEFAULT_BOOK_WIDTH_PX = 96;
 var DEFAULT_BOOK_HEIGHT_PX = 150;
 var MIN_BOOK_WIDTH_PX = 56;
-var BOOK_GAP_PX = 6;
-var ROW_PADDING_PX = 20;
+var BOOK_GAP_PX = 12;
+var ROW_PADDING_PX = 28;
 var MIN_BOOKS_PER_ROW = 3;
 var DEFAULT_BOOK_SHELF_SCALE = 1;
 var MIN_BOOK_SHELF_SCALE = 0.25;
@@ -4869,13 +4869,14 @@ function bookHeightForWidth(width) {
   if (!Number.isFinite(width) || width <= 0) return DEFAULT_BOOK_HEIGHT_PX;
   return Math.round(width * DEFAULT_BOOK_HEIGHT_PX / DEFAULT_BOOK_WIDTH_PX);
 }
-function bookWidthForContainer(containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX, minWidth = MIN_BOOK_WIDTH_PX, maxWidth = DEFAULT_BOOK_WIDTH_PX) {
-  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return maxWidth;
+function bookWidthForContainer(containerWidth, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX, _minWidth = MIN_BOOK_WIDTH_PX, maxWidth = DEFAULT_BOOK_WIDTH_PX) {
+  const preferred = Math.max(1, maxWidth);
+  if (!Number.isFinite(containerWidth) || containerWidth <= 0) return preferred;
   const available = Math.max(0, containerWidth - padding);
-  const widthForMinCount = (available - (MIN_BOOKS_PER_ROW - 1) * gap) / MIN_BOOKS_PER_ROW;
-  if (widthForMinCount >= maxWidth) return maxWidth;
-  if (widthForMinCount >= minWidth) return Math.floor(widthForMinCount);
-  return minWidth;
+  const gaps = (MIN_BOOKS_PER_ROW - 1) * gap;
+  const fitThree = (available - gaps) / MIN_BOOKS_PER_ROW;
+  if (!Number.isFinite(fitThree) || fitThree >= preferred) return preferred;
+  return Math.max(1, Math.floor(fitThree));
 }
 function booksPerRow(containerWidth, bookWidth = DEFAULT_BOOK_WIDTH_PX, gap = BOOK_GAP_PX, padding = ROW_PADDING_PX) {
   if (!Number.isFinite(containerWidth) || containerWidth <= 0) {
@@ -7698,7 +7699,7 @@ var import_obsidian12 = require("obsidian");
 
 // src/core/update-notes.json
 var update_notes_default = {
-  version: "1.5.2",
+  version: "1.5.4",
   body: {
     en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
     "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"

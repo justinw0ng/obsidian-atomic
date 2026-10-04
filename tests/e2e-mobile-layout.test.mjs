@@ -55,31 +55,52 @@ test("resolveBookShelfScale reads scale or ratio and clamps", () => {
   assert.deepEqual(scaledBookSize(0.5), { maxWidth: 48, minWidth: 28 });
 });
 
-test("bookWidthForContainer keeps default size on wide panes", () => {
-  assert.equal(bookWidthForContainer(900), DEFAULT_BOOK_WIDTH_PX);
-  assert.equal(bookHeightForWidth(DEFAULT_BOOK_WIDTH_PX), DEFAULT_BOOK_HEIGHT_PX);
+test("bookWidthForContainer keeps a small ratio and lets the row hold more than three", () => {
+  const width = bookWidthForContainer(900);
+  assert.equal(width, DEFAULT_BOOK_WIDTH_PX);
+  assert.ok(booksPerRow(900, width) > MIN_BOOKS_PER_ROW);
+  assert.equal(bookHeightForWidth(width), DEFAULT_BOOK_HEIGHT_PX);
 });
 
 test("bookWidthForContainer shrinks so three books fit on a phone pane", () => {
   const width = bookWidthForContainer(IPHONE_SE);
-  assert.ok(width <= DEFAULT_BOOK_WIDTH_PX);
-  assert.ok(width >= MIN_BOOK_WIDTH_PX);
-  const needed =
-    ROW_PADDING_PX + 3 * width + 2 * BOOK_GAP_PX;
+  const needed = ROW_PADDING_PX + 3 * width + 2 * BOOK_GAP_PX;
   assert.ok(
     needed <= IPHONE_SE,
     `three ${width}px books need ${needed}px, pane is ${IPHONE_SE}px`,
   );
+  assert.equal(rowNeedsHorizontalScroll(IPHONE_SE, width), false);
+  assert.equal(bookHeightForWidth(DEFAULT_BOOK_WIDTH_PX), DEFAULT_BOOK_HEIGHT_PX);
 });
 
-test("bookWidthForContainer floors at MIN_BOOK_WIDTH_PX on tiny panes", () => {
-  assert.equal(bookWidthForContainer(120), MIN_BOOK_WIDTH_PX);
-  assert.equal(rowNeedsHorizontalScroll(120, MIN_BOOK_WIDTH_PX), true);
+test("bookWidthForContainer keeps three books on a tiny pane", () => {
+  const width = bookWidthForContainer(120);
+  assert.ok(width < MIN_BOOK_WIDTH_PX);
+  const needed = ROW_PADDING_PX + 3 * width + 2 * BOOK_GAP_PX;
+  assert.ok(needed <= 120, `three ${width}px books need ${needed}px`);
+  assert.equal(rowNeedsHorizontalScroll(120, width), false);
 });
 
-test("bookWidthForContainer honors a scale ratio on wide panes", () => {
-  const { maxWidth, minWidth } = scaledBookSize(1.5);
-  assert.equal(bookWidthForContainer(900, undefined, undefined, minWidth, maxWidth), 144);
+test("bookWidthForContainer caps a large ratio so three books stay on the row", () => {
+  const { maxWidth, minWidth } = scaledBookSize(4);
+  assert.equal(maxWidth, 384);
+  const width = bookWidthForContainer(900, undefined, undefined, minWidth, maxWidth);
+  assert.ok(width < maxWidth);
+  const needed = ROW_PADDING_PX + 3 * width + 2 * BOOK_GAP_PX;
+  assert.ok(needed <= 900, `three ${width}px books need ${needed}px`);
+  assert.equal(booksPerRow(900, width), MIN_BOOKS_PER_ROW);
+  assert.equal(rowNeedsHorizontalScroll(900, width), false);
+
+  const scaled = scaledBookSize(1.5);
+  assert.equal(
+    bookWidthForContainer(0, undefined, undefined, scaled.minWidth, scaled.maxWidth),
+    144,
+  );
+  assert.equal(
+    bookWidthForContainer(900, undefined, undefined, scaled.minWidth, scaled.maxWidth),
+    144,
+  );
+  assert.ok(booksPerRow(900, 144) > MIN_BOOKS_PER_ROW);
   assert.equal(bookHeightForWidth(144), 225);
 });
 
@@ -290,6 +311,25 @@ test("cover images fill the book face from the center", () => {
   assert.match(filled.body, /max-width:\s*none/);
   assert.match(filled.body, /height:\s*100%/);
   assert.match(filled.body, /image-rendering:\s*auto/);
+  assert.doesNotMatch(filled.selectors, /markdown-preview-view/);
+  const reading = cssRule(
+    styles,
+    ".markdown-preview-view .fitness-plugin button.atomic-book img.atomic-book-cover",
+  );
+  assert.ok(reading, "reading mode needs its own cover rule");
+  assert.match(reading.body, /top:\s*0/);
+  assert.match(reading.body, /bottom:\s*0/);
+  assert.match(reading.body, /object-fit:\s*cover/);
+  assert.match(reading.body, /max-width:\s*none/);
+  assert.doesNotMatch(reading.body, /invert\(/);
+  const readingButton = cssRule(
+    styles,
+    ".markdown-preview-view .fitness-plugin button.atomic-book",
+  );
+  assert.match(readingButton.body, /display:\s*block/);
+  assert.match(readingButton.body, /padding:\s*0/);
+  assert.doesNotMatch(styles, /scroll-snap-type/);
+  assert.doesNotMatch(styles, /--atomic-book-w:\s*84px/);
 });
 
 test("an open cover keeps its colors and the reading ribbon hangs out at rest", () => {
