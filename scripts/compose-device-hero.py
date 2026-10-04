@@ -246,14 +246,19 @@ def compose_preframed(
     phone_image = fit_inside(mobile, 360, 676)
     desktop_radius = max(8, round(desktop_image.width * 0.008))
     phone_radius = max(28, round(phone_image.width * 64 / 412))
+    desktop_x = 36
     canvas = paste_framed(
         canvas,
         desktop_image,
-        (36, 162),
+        (desktop_x, 162),
         desktop_radius,
         42,
     ).convert("RGB")
-    phone_x = min(1236, WIDTH - 28 - phone_image.width)
+    # Same overlap on every banner: the phone covers the window's right corner
+    # and the empty gap between the two frames closes.
+    phone_overlap = 28
+    phone_x = desktop_x + desktop_image.width - phone_overlap
+    phone_x = min(phone_x, WIDTH - 20 - phone_image.width)
     canvas = paste_framed(
         canvas,
         phone_image,
