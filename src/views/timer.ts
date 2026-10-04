@@ -11,8 +11,14 @@ import {
   updateTimerFrontmatter,
 } from "../core/hobby";
 import { isStaleBlockRender } from "../util/block-render";
+import { appendRoll, setRoll } from "./digit-roll";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { promptText } from "../util/prompt-text.ts";
+
+type TimerPaintOptions = {
+  /** Idle total to show first, then roll to the logged minutes. */
+  rollFrom?: string;
+};
 
 async function modifyCurrentNote(
   plugin: FitnessPlugin,
@@ -62,8 +68,9 @@ function paintTimer(
   plugin: FitnessPlugin,
   el: HTMLElement,
   sourcePath: string,
+  options?: TimerPaintOptions,
 ): void {
-  void renderAtomicTimer(plugin, el, sourcePath);
+  void renderAtomicTimer(plugin, el, sourcePath, undefined, options);
 }
 
 export async function renderAtomicTimer(
@@ -71,6 +78,7 @@ export async function renderAtomicTimer(
   el: HTMLElement,
   sourcePath: string,
   generation?: number,
+  options?: TimerPaintOptions,
 ): Promise<void> {
   const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
   if (isStaleBlockRender(el, generation)) {
@@ -157,7 +165,9 @@ export async function renderAtomicTimer(
               new Notice(
                 t("notice.timerLogged", plugin.settings.language, { minutes }),
               );
-              paintTimer(plugin, el, sourcePath);
+              paintTimer(plugin, el, sourcePath, {
+                rollFrom: String(displayedTimerMinutes(readTimerFrontmatter(latest))),
+              });
               return;
             }
             case "item": {
@@ -173,6 +183,7 @@ export async function renderAtomicTimer(
                 plugin.settings.language,
               );
               if (note === null) return;
+              const before = displayedTimerMinutes(itemFrontmatter);
               const result = stopTimer({
                 markdown: latest,
                 startedAtIso: itemFrontmatter.timerStartedAt,
@@ -185,7 +196,7 @@ export async function renderAtomicTimer(
                   minutes: result.minutes,
                 }),
               );
-              paintTimer(plugin, el, sourcePath);
+              paintTimer(plugin, el, sourcePath, { rollFrom: String(before) });
               return;
             }
             default: {
@@ -213,7 +224,14 @@ export async function renderAtomicTimer(
   }
 
   appendCatalogLabel(caption, t("view.timer.caption", language));
-  clock.appendText(String(minutes));
+  const shown = options?.rollFrom ?? String(minutes);
+  const roll = appendRoll(clock, shown);
+  if (options?.rollFrom != null && options.rollFrom !== String(minutes)) {
+    const view = clock.ownerDocument.defaultView;
+    const apply = (): void => setRoll(roll, String(minutes), true);
+    if (view?.requestAnimationFrame) view.requestAnimationFrame(apply);
+    else apply();
+  }
   clock.createSpan({ cls: "atomic-unit", text: t("view.timer.minuteUnit", language) });
   actions
     .createEl("button", {

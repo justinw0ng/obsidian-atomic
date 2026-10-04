@@ -4356,8 +4356,9 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
     ["", "M", "", "W", "", "F", ""].forEach((s) => days.append(h("span", null, s)));
     const totalMin = Object.values(daily).reduce((x, y) => x + y, 0);
     const nDays = Object.keys(daily).length;
-    const def = `${nDays} days · ${Math.round(totalMin / 60)} h`;
-    let read = def;
+    const hours = Math.round(totalMin / 60);
+    const def = `${nDays} days · ${hours} h`;
+    let read = [roll(String(nDays)), " days · ", roll(String(hours)), " h"];
     if (opts.hover != null) {
       const m = Math.floor(opts.hover / 100), d = opts.hover % 100;
       const date = new Date(Date.UTC(D.YEAR, m, d));
@@ -4389,8 +4390,8 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
   function today() {
     const A = D.activities;
     const rows = [
-      ["gym", [h("strong", null, "57"), " min · 880 kg"], true],
-      ["golf", [h("strong", null, "97"), " min · felt good"], true],
+      ["gym", [h("strong", null, roll("57")), " min · 880 kg"], true],
+      ["golf", [h("strong", null, roll("97")), " min · felt good"], true],
       ["guitar", "No session yet", false],
       ["reading", "No session yet", false],
     ];
@@ -4628,6 +4629,18 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
 
   function moveMs(el) {
     return reduced(el) ? 0 : 560;
+  }
+
+  // After the reels are on the page: same setRoll path as a year switch.
+  // roll() still paints the final value so stills and ?board= stay put.
+  function playRolls(root) {
+    if (!root || reduced(root)) return;
+    root.querySelectorAll(".atomic-roll").forEach((el) => {
+      const text = el.getAttribute("aria-label");
+      if (!text) return;
+      el.replaceChildren();
+      U.setRoll(el, text, true);
+    });
   }
 
   function setReadout(el, content, live) {
@@ -4892,7 +4905,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
     setTimeout(() => t.remove(), 1600);
   }
 
-  window.INTERACT = { wireDashboard, wireHeatmap, scrollHeatToToday, wireShelf, wireCues, openLightbox, wireTimer, wireGymLog, toast };
+  window.INTERACT = { wireDashboard, wireHeatmap, scrollHeatToToday, wireShelf, wireCues, openLightbox, wireTimer, wireGymLog, playRolls, toast };
 })();
 
 </script>
@@ -5209,7 +5222,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
       ),
       h("div", { class: "spec-grid", style: { "grid-template-columns": "1.35fr 1fr" } },
         cell("Components", "wells, ink primary, confirm in place", comps),
-        cell("Rolling number", "year switch 2025 → 2026, rightmost first", h("div", null, frames, h("p", { class: "spec-p" }, "Clipped digit reels: overflow does the clipping, no mask fades. Tabular figures so nothing shifts. Rolls only when a value changes (year switch, timer stop), never on first paint. Reduced motion swaps instantly."), h("div", { class: "spec-h", style: { "margin-top": "26px" } }, h("b", null, "Settings row"), h("span", null, "8 curated colours · delete confirms in place")), settingsRow)),
+        cell("Rolling number", "year switch 2025 → 2026, rightmost first", h("div", null, frames, h("p", { class: "spec-p" }, "Clipped digit reels: overflow does the clipping, no mask fades. Tabular figures so nothing shifts. The play mock rolls dashboard stats and heatmap counts after they land on the page, then again on a year switch or timer stop. Stills and ?board= keep the final value. Reduced motion swaps instantly."), h("div", { class: "spec-h", style: { "margin-top": "26px" } }, h("b", null, "Settings row"), h("span", null, "8 curated colours · delete confirms in place")), settingsRow)),
       ),
     );
     return board({ id: "01", title: "The system", sub: "Tokens and components the plugin would use. Everything is built from Obsidian variables (--text-normal, --background-primary, --font-interface, --font-monospace, --interactive-accent) plus a handful of Atomic tokens, so any theme still looks like itself.", meta: ["atomic.css · bans pass", "Light + dark", "DPR 2"], stage: sheet });
@@ -5719,7 +5732,13 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
     dashboard() {
       const dash = U.dashboard({});
       const fs = frames([{ title: "Dashboard", crumbs: ["atomics", "Dashboard"], content: dash, status: "1 property" }]);
-      return { fs, wire: () => I.wireDashboard(dash) };
+      return {
+        fs,
+        wire: () => {
+          I.wireDashboard(dash);
+          requestAnimationFrame(() => I.playRolls(dash));
+        },
+      };
     },
 
     daily() {
@@ -5737,6 +5756,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
         wire: () => {
           heats.forEach((x) => I.wireHeatmap(x));
           I.scrollHeatToToday(fs[0].host);
+          requestAnimationFrame(() => I.playRolls(fs[0].host));
         },
       };
     },
@@ -5758,6 +5778,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
           I.wireShelf(s, { touch: state.view === "phone" });
           I.wireHeatmap(heat);
           I.scrollHeatToToday(fs[0].host);
+          requestAnimationFrame(() => I.playRolls(heat));
         },
       };
     },

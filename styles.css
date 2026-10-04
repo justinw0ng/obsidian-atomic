@@ -544,6 +544,10 @@
   font-variant-numeric: lining-nums tabular-nums;
 }
 
+.fitness-plugin .atomic-glyph {
+  display: inline-block;
+}
+
 .fitness-plugin .atomic-digit {
   position: relative;
   display: inline-block;
