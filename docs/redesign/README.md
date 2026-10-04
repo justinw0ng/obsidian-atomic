@@ -31,7 +31,7 @@ Obsidian `PluginSettingTab` / `getSettingDefinitions()` (1.13+).
 
 | Row | What it is |
 |-----|------------|
-| Language | Dropdown: English (`en`) or Traditional Chinese (`zh-Hant-en`). Chinese UI is Traditional Chinese only. |
+| Language | Dropdown: English (`en`) or Traditional Chinese (`zh-Hant-en`). Chinese UI is Traditional Chinese only. A stored `Gym / 健身` name shows one half. |
 | Timezone | Text, IANA id |
 | Dashboard path | Text, vault-relative |
 | Exercise types | Heading, then one **activity row + color row** per exercise |

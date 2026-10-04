@@ -1147,6 +1147,48 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
+  it("shows one language for a stored bilingual activity name", async () => {
+    await check(driver, "activity-label-one-language", async () => {
+      await openVaultFile(driver, E2E_FILES.dashboard);
+      await waitCss(
+        driver,
+        '[data-testid="atomic-dashboard-activity"][data-activity="gym"]',
+      );
+      try {
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          const gym = plugin.settings.activityTypes.find((activity) => activity.id === "gym");
+          gym.label = "🏋️ Gym / 健身";
+          plugin.settings.language = "zh-Hant-en";
+          return plugin.refreshAll();
+        `);
+        let name = "";
+        try {
+          await driver.wait(async () => {
+            name = await driver.executeScript(`
+              const row = document.querySelector(
+                '[data-testid="atomic-dashboard-activity"][data-activity="gym"] .atomic-name'
+              );
+              return row ? row.textContent.trim() : "";
+            `);
+            return name === "🏋️ 健身";
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(name)}`);
+        }
+        assert.equal(name.includes("/"), false);
+      } finally {
+        await driver.executeScript(`
+          const plugin = app.plugins.getPlugin("atomic-tracker");
+          const gym = plugin.settings.activityTypes.find((activity) => activity.id === "gym");
+          if (gym) gym.label = "Gym";
+          plugin.settings.language = "en";
+          return plugin.refreshAll();
+        `);
+      }
+    });
+  });
+
   it("switches the dashboard year in place", async () => {
     await check(driver, "dashboard-year", async () => {
       const year = today.slice(0, 4);

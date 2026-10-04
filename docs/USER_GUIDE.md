@@ -35,7 +35,7 @@ Atomic writes today’s note at the Daily Notes **New file location** (vault roo
 
 To reuse that layout every day, run **Create daily note template**. That writes the Daily Notes **Template file location** if set; otherwise `Atomic daily note.md` in the Templates folder, or the vault root when that folder is unset (Obsidian `{{date}}` tokens). Setup is in [examples/README.md](../examples/README.md#use-the-daily-note-template). You can still copy [`examples/daily-notes/2026-08-11.md`](../examples/daily-notes/2026-08-11.md) if you want a filled sample.
 
-Turn on **Gym**, **Golf**, and **Reading** under **Settings → Atomic Tracker** if those buttons are missing. One color picker per habit sets the four heatmap shades. Language is English or Traditional Chinese. Traditional Chinese shows one language.
+Turn on **Gym**, **Golf**, and **Reading** under **Settings → Atomic Tracker** if those buttons are missing. One color picker per habit sets the four heatmap shades. Language is English or Traditional Chinese. Traditional Chinese shows one language. A stored activity name such as Gym / 健身 shows Gym in English and 健身 in Traditional Chinese.
 
 ![Atomic Tracker settings](./images/07-settings-atomic.gif)
 

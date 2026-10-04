@@ -20,6 +20,7 @@ import { nowYear, resolveBlockYear } from "../dates";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 import { exerciseActivities, hobbyActivities } from "../util/activity-types";
+import { labelForLanguage } from "../util/bilingual-label";
 import { appendCatalogLabel } from "./catalog-label";
 import {
   activityLinks,
@@ -166,9 +167,12 @@ function appendHoursMinutes(
 
 function splitText(
   cards: DashboardActivityCard[],
+  language: Language,
   pick: (card: DashboardActivityCard) => number,
 ): string {
-  return cards.map((card) => `${card.activity.label} ${formatCount(pick(card))}`).join(" · ");
+  return cards
+    .map((card) => `${labelForLanguage(card.activity.label, language)} ${formatCount(pick(card))}`)
+    .join(" · ");
 }
 
 function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRenderContext): void {
@@ -183,7 +187,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
   if (exercise.length) {
     const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
     sessions.value.setText(formatCount(model.totalSessions));
-    appendCatalogLabel(sessions.hint, splitText(exercise, (card) => card.count));
+    appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
 
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx);
@@ -204,7 +208,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
     });
     const setTableLabels = exercise
       .filter((card) => card.volumeKg != null)
-      .map((card) => card.activity.label)
+      .map((card) => labelForLanguage(card.activity.label, ctx.language))
       .join(" · ");
     appendCatalogLabel(
       volume.hint,
@@ -217,7 +221,7 @@ function renderKpis(root: HTMLElement, model: DashboardModel, ctx: DashboardRend
     appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx);
     appendCatalogLabel(
       habit.hint,
-      `${splitText(hobbies, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`,
+      `${splitText(hobbies, ctx.language, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`,
     );
   }
 }
@@ -336,7 +340,7 @@ function renderActivityRow(
   const name = row.createDiv({ cls: "atomic-ledger-name" });
   const title = name.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: activity.label });
+  title.createSpan({ text: labelForLanguage(activity.label, ctx.language) });
   const kind = name.createDiv({ cls: "atomic-caption" });
 
   switch (card.domain) {

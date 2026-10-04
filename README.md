@@ -40,7 +40,7 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…
 - Book shelf: hover pops a book, click opens the cover, and the next click opens the note. A cover image fills the book when its width does not match. On the dashboard, click a recent session row to open that note.
 
-Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese (`zh-Hant-en`). Traditional Chinese shows one language. Changing language never rewrites existing notes. Saved language is kept on existing installs.
+Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese (`zh-Hant-en`). Traditional Chinese shows one language. A stored activity name such as `🏋️ Gym / 健身` shows `🏋️ Gym` in English and `🏋️ 健身` in Traditional Chinese. Changing language never rewrites existing notes. Saved language is kept on existing installs.
 
 ## Default vault layout
 

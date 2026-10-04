@@ -9,6 +9,7 @@ import {
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, DayActivity } from "../types";
 import { exerciseActivities } from "../util/activity-types";
+import { labelForLanguage } from "../util/bilingual-label";
 import { isStaleBlockRender } from "../util/block-render";
 import { appendCatalogLabel, appendInlineCatalog } from "./catalog-label";
 
@@ -123,7 +124,7 @@ export async function renderTodaySessions(
     }
     const name = line.createSpan({ cls: "atomic-name" });
     name.createSpan({ cls: "atomic-dot" });
-    name.createSpan({ text: activity.label });
+    name.createSpan({ text: labelForLanguage(activity.label, language) });
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     if (session) {
       sum.createEl("strong", { text: String(session.minutes) });

@@ -12,6 +12,8 @@ import { ymdInZone } from "../dates";
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { labelForLanguage } from "../util/bilingual-label.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { promptText } from "../util/prompt-text.ts";
 import { suggestItem } from "../util/suggest-item";
 
@@ -122,7 +124,7 @@ export async function createActivitySession(
     await data.openPath(target);
     new Notice(
       t("notice.openedExistingSession", language, {
-        activity: activity.label,
+        activity: labelForLanguage(activity.label, language),
         path: target,
       }),
     );
@@ -138,7 +140,7 @@ export async function createActivitySession(
   await data.openPath(target);
   new Notice(
     t("notice.createdSession", language, {
-      activity: activity.label,
+      activity: labelForLanguage(activity.label, language),
       path: target,
     }),
   );

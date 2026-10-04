@@ -3,6 +3,7 @@ import type { VaultDataSource } from "../data/vault-source";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType } from "../types";
+import { labelForLanguage } from "../util/bilingual-label";
 import { showNotice } from "../util/notice";
 import { promptText } from "../util/prompt-text";
 import { buildHobbyItemPath, readingItemMarkdown } from "./hobby-item";
@@ -37,7 +38,7 @@ async function createItemNote(
 ): Promise<void> {
   const title = await promptText(
     app,
-    t(copy.titleKey, language, { label: activity.label }),
+    t(copy.titleKey, language, { label: labelForLanguage(activity.label, language) }),
     "",
     language,
   );
@@ -49,7 +50,7 @@ async function createItemNote(
       await data.openPath(path);
       showNotice(
         t(copy.openedKey, language, {
-          label: activity.label,
+          label: labelForLanguage(activity.label, language),
           path,
         }),
       );
@@ -63,7 +64,7 @@ async function createItemNote(
     await data.openPath(path);
     showNotice(
       t(copy.createdKey, language, {
-        label: activity.label,
+        label: labelForLanguage(activity.label, language),
         path,
       }),
     );

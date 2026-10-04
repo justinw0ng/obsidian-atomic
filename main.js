@@ -1943,6 +1943,43 @@ function resolvePropertyOptions(property, context) {
   ) ?? null;
 }
 
+// src/util/bilingual-label.ts
+var LEADING_EMOJI = /^(\p{Extended_Pictographic}\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?)*)\s+/u;
+function splitCatalogLabel(text) {
+  const match = /^([^/]+?) \/ ([^/]+)$/u.exec(text);
+  if (!match) return { primary: text, secondary: null };
+  const secondary = match[2];
+  if (!secondary || !/\p{Script=Han}/u.test(secondary)) {
+    return { primary: text, secondary: null };
+  }
+  return { primary: match[1] ?? text, secondary };
+}
+function labelForLanguage(text, language) {
+  const { primary, secondary } = splitCatalogLabel(text);
+  if (!secondary) return text;
+  if (!language.startsWith("zh")) return primary.trim();
+  const emoji = LEADING_EMOJI.exec(primary)?.[1] ?? "";
+  const chinese = secondary.trim();
+  return emoji ? `${emoji} ${chinese}` : chinese;
+}
+function applyLabelEdit(stored, edited, language) {
+  const next = edited.trim();
+  if (!next) return stored;
+  const { primary, secondary } = splitCatalogLabel(stored);
+  if (!secondary) return next;
+  const emoji = LEADING_EMOJI.exec(primary)?.[1] ?? "";
+  const english = primary.replace(LEADING_EMOJI, "").trim();
+  const prefix = emoji ? `${emoji} ` : "";
+  if (language.startsWith("zh")) {
+    if (!/\p{Script=Han}/u.test(next)) return next;
+    const chinese = next.replace(LEADING_EMOJI, "").trim();
+    return `${prefix}${english} / ${chinese}`;
+  }
+  const englishNext = next.replace(LEADING_EMOJI, "").trim();
+  if (!englishNext) return stored;
+  return `${prefix}${englishNext} / ${secondary.trim()}`;
+}
+
 // src/util/yaml.ts
 function yamlScalar(value) {
   const escaped = String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/\t/g, "\\t");
@@ -1950,6 +1987,9 @@ function yamlScalar(value) {
 }
 
 // src/core/session-note.ts
+function sessionHeading(activity, date, language) {
+  return `# ${labelForLanguage(activity.label, language)} \u2014 ${date}`;
+}
 function gymBody(activity, date, location, locationDetail, weightUnit, language) {
   const muscleHints = MUSCLES.map((muscle) => t(`muscle.${muscle}`, language));
   return `---
@@ -1963,7 +2003,7 @@ location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
-# ${activity.label} \u2014 ${date}
+${sessionHeading(activity, date, language)}
 
 <!-- \u{1F4AA} ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
 
@@ -1990,7 +2030,7 @@ club: []
 felt:
 ---
 
-# ${activity.label} \u2014 ${date}
+${sessionHeading(activity, date, language)}
 
 <!-- ${t("template.golfLocationHint", language)} -->
 <!-- ${t("template.golfFocusHint", language)} -->
@@ -2013,7 +2053,7 @@ timer_started_at:
 location:
 ---
 
-# ${activity.label} \u2014 ${date}
+${sessionHeading(activity, date, language)}
 
 ${defaultAtomicBlockFence("atomic-timer", language)}${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
@@ -2177,7 +2217,7 @@ async function createActivitySession(app, data, activity, timezone, language) {
     await data.openPath(target);
     new import_obsidian3.Notice(
       t("notice.openedExistingSession", language, {
-        activity: activity.label,
+        activity: labelForLanguage(activity.label, language),
         path: target
       })
     );
@@ -2188,7 +2228,7 @@ async function createActivitySession(app, data, activity, timezone, language) {
   await data.openPath(target);
   new import_obsidian3.Notice(
     t("notice.createdSession", language, {
-      activity: activity.label,
+      activity: labelForLanguage(activity.label, language),
       path: target
     })
   );
@@ -2253,7 +2293,7 @@ var READING_COPY = {
 async function createItemNote(app, data, activity, language, copy) {
   const title = await promptText(
     app,
-    t(copy.titleKey, language, { label: activity.label }),
+    t(copy.titleKey, language, { label: labelForLanguage(activity.label, language) }),
     "",
     language
   );
@@ -2264,7 +2304,7 @@ async function createItemNote(app, data, activity, language, copy) {
       await data.openPath(path);
       showNotice(
         t(copy.openedKey, language, {
-          label: activity.label,
+          label: labelForLanguage(activity.label, language),
           path
         })
       );
@@ -2277,7 +2317,7 @@ async function createItemNote(app, data, activity, language, copy) {
     await data.openPath(path);
     showNotice(
       t(copy.createdKey, language, {
-        label: activity.label,
+        label: labelForLanguage(activity.label, language),
         path
       })
     );
@@ -2418,7 +2458,7 @@ function renderActions(el, plugin) {
     const button = root.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
     const dot = button.createSpan({ cls: "atomic-dot" });
     dot.setCssProps({ "--atomic-c": activity.colors[2] });
-    button.createSpan({ text: activity.label });
+    button.createSpan({ text: labelForLanguage(activity.label, plugin.settings.language) });
     button.addEventListener("click", () => {
       if (activity.domain === "hobby" && activity.noteModel === "item") {
         void plugin.createHobbyItem(activity);
@@ -3098,7 +3138,7 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
   });
   root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
   root.style.setProperty("--atomic-c", activityType.colors[2]);
-  root.setAttr("data-activity-label", activityType.label);
+  root.setAttr("data-activity-label", labelForLanguage(activityType.label, language));
   if (!cards.length) {
     root.createEl("p", {
       text: t("view.cues.empty", language, { year }),
@@ -3729,41 +3769,12 @@ function buildDashboardModel(input) {
   };
 }
 
-// src/util/bilingual-label.ts
-function splitCatalogLabel(text) {
-  const match = /^([^/]+?) \/ ([^/]+)$/u.exec(text);
-  if (!match) return { primary: text, secondary: null };
-  const secondary = match[2];
-  if (!secondary || !/\p{Script=Han}/u.test(secondary)) {
-    return { primary: text, secondary: null };
-  }
-  return { primary: match[1] ?? text, secondary };
-}
-
 // src/views/catalog-label.ts
-function appendInlineCatalog(parent, text) {
-  const { primary, secondary } = splitCatalogLabel(text);
-  parent.appendText(primary);
-  if (!secondary) return;
-  parent.createSpan({
-    cls: "atomic-inline-zh",
-    text: secondary,
-    attr: { lang: "zh-Hant-HK" }
-  });
-}
 function appendCatalogLabel(parent, text) {
-  const { primary, secondary } = splitCatalogLabel(text);
-  if (!secondary) {
-    parent.appendText(primary);
-    return;
-  }
-  const label = parent.createSpan({ cls: "atomic-label" });
-  label.createSpan({ cls: "atomic-label-en", text: primary });
-  label.createSpan({
-    cls: "atomic-label-zh",
-    text: secondary,
-    attr: { lang: "zh-Hant-HK" }
-  });
+  parent.appendText(text);
+}
+function appendInlineCatalog(parent, text) {
+  parent.appendText(text);
 }
 
 // src/util/month-chart.ts
@@ -3797,7 +3808,7 @@ function cueActivities(activityTypes) {
   return exerciseActivities(activityTypes).filter(isCueHostActivity);
 }
 function cuesHostMarkdown(activity, language = "en") {
-  return `# ${activity.label}
+  return `# ${labelForLanguage(activity.label, language)}
 
 ${defaultAtomicBlockFence("atomic-cues", language, {
     activity: activity.id
@@ -4069,7 +4080,9 @@ function activityLinks(card, ctx) {
   if (card.domain === "exercise" && activity.supportsCues) {
     const path = cuePathForActivity(activity);
     links.push({
-      text: t("view.dashboard.cues", ctx.language, { activity: activity.label }),
+      text: t("view.dashboard.cues", ctx.language, {
+        activity: labelForLanguage(activity.label, ctx.language)
+      }),
       path,
       color,
       open: () => openCuesHostFile(ctx.data, activity, ctx.language)
@@ -4193,14 +4206,17 @@ function appendEmpty(parent, text) {
 function kg(value, ctx) {
   return `${formatKg(value)} ${t("view.dashboard.kgUnit", ctx.language)}`;
 }
+function shownActivity(column, ctx) {
+  return labelForLanguage(column.activity.label, ctx.language);
+}
 function columnHeader(column, ctx) {
   switch (column.kind) {
     case "sessions":
-      return column.activity.label;
+      return shownActivity(column, ctx);
     case "volume":
-      return t("view.dashboard.volumeHeader", ctx.language, { activity: column.activity.label });
+      return t("view.dashboard.volumeHeader", ctx.language, { activity: shownActivity(column, ctx) });
     case "minutes":
-      return t("view.dashboard.minutesHeader", ctx.language, { activity: column.activity.label });
+      return t("view.dashboard.minutesHeader", ctx.language, { activity: shownActivity(column, ctx) });
     default: {
       const exhaustive = column.kind;
       return exhaustive;
@@ -4226,13 +4242,13 @@ function sectionReadout(section) {
   if (readout == null || !readout.instanceOf(HTMLElement)) return null;
   return readout;
 }
-function appendChartLegend(parent, columns) {
+function appendChartLegend(parent, columns, ctx) {
   const legend = parent.createDiv({ cls: "atomic-legend" });
   for (const column of columns) {
     const item = legend.createSpan();
     const dot = item.createSpan({ cls: "atomic-dot" });
     dot.setCssProps({ "--atomic-c": column.activity.colors[2] });
-    item.appendText(column.activity.label);
+    item.appendText(shownActivity(column, ctx));
   }
 }
 function appendMonthlyChart(card, columns, ctx, readout, year) {
@@ -4270,8 +4286,9 @@ function appendMonthlyChart(card, columns, ctx, readout, year) {
         const seg = col.createSpan({ cls: "atomic-chart-seg" });
         seg.style.setProperty("--atomic-c", column.activity.colors[2]);
         seg.style.setProperty("--v", (value / max).toFixed(3));
-        seg.setAttr("title", `${column.activity.label} \xB7 ${name}: ${formatCount(value)}`);
-        parts.push(`${column.activity.label} ${formatCount(value)}`);
+        const activityName = shownActivity(column, ctx);
+        seg.setAttr("title", `${activityName} \xB7 ${name}: ${formatCount(value)}`);
+        parts.push(`${activityName} ${formatCount(value)}`);
       }
     }
     const label = labels.createSpan();
@@ -4322,7 +4339,7 @@ function renderDashboardMonthly(root, model, ctx) {
     attr: { "data-testid": "atomic-dashboard-monthly" }
   });
   if (sessionColumns.length > 0 && readout) {
-    appendChartLegend(titleWrap, sessionColumns);
+    appendChartLegend(titleWrap, sessionColumns, ctx);
     card.addClass("atomic-chart");
     appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
     const details = section.createEl("details", { cls: "atomic-quiet-toggle" });
@@ -4485,7 +4502,7 @@ function renderDashboardRecent(root, model, ctx) {
     });
     const what = line.createSpan({ cls: "atomic-name" });
     what.createSpan({ cls: "atomic-dot" });
-    appendPathLink(what, row.activity.label, row.path, ctx, "atomic-link");
+    appendPathLink(what, labelForLanguage(row.activity.label, ctx.language), row.path, ctx, "atomic-link");
     const parts = recentParts(row, ctx);
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     sum.createEl("strong", { text: parts.minutes });
@@ -4594,8 +4611,8 @@ function appendHoursMinutes(target, totalMinutes, ctx) {
     text: t("view.dashboard.minuteUnitShort", ctx.language)
   });
 }
-function splitText(cards, pick) {
-  return cards.map((card) => `${card.activity.label} ${formatCount(pick(card))}`).join(" \xB7 ");
+function splitText(cards, language, pick) {
+  return cards.map((card) => `${labelForLanguage(card.activity.label, language)} ${formatCount(pick(card))}`).join(" \xB7 ");
 }
 function renderKpis(root, model, ctx) {
   const grid = root.createDiv({ cls: "atomic-kpis" });
@@ -4608,7 +4625,7 @@ function renderKpis(root, model, ctx) {
   if (exercise.length) {
     const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
     sessions.value.setText(formatCount(model.totalSessions));
-    appendCatalogLabel(sessions.hint, splitText(exercise, (card) => card.count));
+    appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx);
     time.hint.createSpan({
@@ -4625,7 +4642,7 @@ function renderKpis(root, model, ctx) {
       cls: "atomic-unit",
       text: t("view.dashboard.kgUnit", ctx.language)
     });
-    const setTableLabels = exercise.filter((card) => card.volumeKg != null).map((card) => card.activity.label).join(" \xB7 ");
+    const setTableLabels = exercise.filter((card) => card.volumeKg != null).map((card) => labelForLanguage(card.activity.label, ctx.language)).join(" \xB7 ");
     appendCatalogLabel(
       volume.hint,
       `${t("view.dashboard.setTableRows", ctx.language)} \xB7 ${setTableLabels}`
@@ -4636,7 +4653,7 @@ function renderKpis(root, model, ctx) {
     appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx);
     appendCatalogLabel(
       habit.hint,
-      `${splitText(hobbies, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`
+      `${splitText(hobbies, ctx.language, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`
     );
   }
 }
@@ -4730,7 +4747,7 @@ function renderActivityRow(grid, card, ctx) {
   const name = row.createDiv({ cls: "atomic-ledger-name" });
   const title = name.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: activity.label });
+  title.createSpan({ text: labelForLanguage(activity.label, ctx.language) });
   const kind = name.createDiv({ cls: "atomic-caption" });
   switch (card.domain) {
     case "exercise":
@@ -5559,7 +5576,7 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
   const head = wrap.createDiv({ cls: "atomic-heat-head" });
   const title = head.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
-  title.createSpan({ text: activity.label });
+  title.createSpan({ text: labelForLanguage(activity.label, language) });
   head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
   const body = wrap.createDiv({ cls: "atomic-heat-body" });
   const dayLabels = body.createDiv({ cls: "atomic-heat-days atomic-caption" });
@@ -6647,7 +6664,7 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
     }
     const name = line.createSpan({ cls: "atomic-name" });
     name.createSpan({ cls: "atomic-dot" });
-    name.createSpan({ text: activity.label });
+    name.createSpan({ text: labelForLanguage(activity.label, language) });
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     if (session2) {
       sum.createEl("strong", { text: String(session2.minutes) });
@@ -8036,16 +8053,18 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
     return [
       {
         kind: "custom",
-        name: activity.label,
+        name: labelForLanguage(activity.label, language),
         desc: t("settings.activityId", language, { id: activity.id }),
-        aliases: [activity.id],
+        aliases: [activity.id, activity.label],
         paint: (setting) => {
           this.paintActivityControls(setting, activity, options);
         }
       },
       {
         kind: "custom",
-        name: t("settings.baseColor", language, { label: activity.label }),
+        name: t("settings.baseColor", language, {
+          label: labelForLanguage(activity.label, language)
+        }),
         desc: t("settings.baseColorDesc", language),
         aliases: [activity.id, "color"],
         paint: (setting) => {
@@ -8171,9 +8190,9 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
       testId: "atomic-setting-enabled"
     });
     setting.addText((text) => {
-      text.setPlaceholder(t("settings.labelPlaceholder", language)).setValue(activity.label).onChange(async (value) => {
-        const label = value.trim();
-        if (!label) return;
+      text.setPlaceholder(t("settings.labelPlaceholder", language)).setValue(labelForLanguage(activity.label, language)).onChange(async (value) => {
+        const label = applyLabelEdit(activity.label, value, language);
+        if (!value.trim() || label === activity.label) return;
         activity.label = label;
         await this.saveAndRefresh();
       });
@@ -8320,7 +8339,9 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
   confirmDeleteActivity(activity) {
     const language = this.plugin.settings.language;
     new ConfirmDeleteActivityModal(this.app, {
-      message: t("settings.deleteConfirm", language, { label: activity.label }),
+      message: t("settings.deleteConfirm", language, {
+        label: labelForLanguage(activity.label, language)
+      }),
       confirmLabel: t("settings.delete", language),
       cancelLabel: t("modal.cancel", language),
       onConfirm: () => {
@@ -8336,7 +8357,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
     this.redrawSettings();
     new import_obsidian13.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
-        label: activity.label
+        label: labelForLanguage(activity.label, this.plugin.settings.language)
       })
     );
   }
@@ -8682,7 +8703,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
       this.app,
       t(placeholderKey, this.settings.language),
       activities,
-      (activity) => activity.label
+      (activity) => labelForLanguage(activity.label, this.settings.language)
     );
   }
   chooseExerciseActivity() {

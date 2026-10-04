@@ -10,6 +10,7 @@ import {
 import { parseYmd, weekdayDateForLanguage } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
+import { labelForLanguage } from "../util/bilingual-label";
 import { isFutureMonth, stackedMonthPeak } from "../util/month-chart";
 import { appendCatalogLabel, appendInlineCatalog } from "./catalog-label";
 import {
@@ -29,14 +30,18 @@ function kg(value: number, ctx: DashboardRenderContext): string {
   return `${formatKg(value)} ${t("view.dashboard.kgUnit", ctx.language)}`;
 }
 
+function shownActivity(column: DashboardMonthlyColumn, ctx: DashboardRenderContext): string {
+  return labelForLanguage(column.activity.label, ctx.language);
+}
+
 function columnHeader(column: DashboardMonthlyColumn, ctx: DashboardRenderContext): string {
   switch (column.kind) {
     case "sessions":
-      return column.activity.label;
+      return shownActivity(column, ctx);
     case "volume":
-      return t("view.dashboard.volumeHeader", ctx.language, { activity: column.activity.label });
+      return t("view.dashboard.volumeHeader", ctx.language, { activity: shownActivity(column, ctx) });
     case "minutes":
-      return t("view.dashboard.minutesHeader", ctx.language, { activity: column.activity.label });
+      return t("view.dashboard.minutesHeader", ctx.language, { activity: shownActivity(column, ctx) });
     default: {
       const exhaustive: never = column.kind;
       return exhaustive;
@@ -69,13 +74,17 @@ function sectionReadout(section: HTMLElement): HTMLElement | null {
   return readout;
 }
 
-function appendChartLegend(parent: HTMLElement, columns: DashboardMonthlyColumn[]): void {
+function appendChartLegend(
+  parent: HTMLElement,
+  columns: DashboardMonthlyColumn[],
+  ctx: DashboardRenderContext,
+): void {
   const legend = parent.createDiv({ cls: "atomic-legend" });
   for (const column of columns) {
     const item = legend.createSpan();
     const dot = item.createSpan({ cls: "atomic-dot" });
     dot.setCssProps({ "--atomic-c": column.activity.colors[2] });
-    item.appendText(column.activity.label);
+    item.appendText(shownActivity(column, ctx));
   }
 }
 
@@ -120,8 +129,9 @@ function appendMonthlyChart(
         const seg = col.createSpan({ cls: "atomic-chart-seg" });
         seg.style.setProperty("--atomic-c", column.activity.colors[2]);
         seg.style.setProperty("--v", (value / max).toFixed(3));
-        seg.setAttr("title", `${column.activity.label} · ${name}: ${formatCount(value)}`);
-        parts.push(`${column.activity.label} ${formatCount(value)}`);
+        const activityName = shownActivity(column, ctx);
+        seg.setAttr("title", `${activityName} · ${name}: ${formatCount(value)}`);
+        parts.push(`${activityName} ${formatCount(value)}`);
       }
     }
     const label = labels.createSpan();
@@ -182,7 +192,7 @@ export function renderDashboardMonthly(
     attr: { "data-testid": "atomic-dashboard-monthly" },
   });
   if (sessionColumns.length > 0 && readout) {
-    appendChartLegend(titleWrap, sessionColumns);
+    appendChartLegend(titleWrap, sessionColumns, ctx);
     card.addClass("atomic-chart");
     appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
     const details = section.createEl("details", { cls: "atomic-quiet-toggle" });
@@ -378,7 +388,7 @@ export function renderDashboardRecent(
     });
     const what = line.createSpan({ cls: "atomic-name" });
     what.createSpan({ cls: "atomic-dot" });
-    appendPathLink(what, row.activity.label, row.path, ctx, "atomic-link");
+    appendPathLink(what, labelForLanguage(row.activity.label, ctx.language), row.path, ctx, "atomic-link");
     const parts = recentParts(row, ctx);
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     sum.createEl("strong", { text: parts.minutes });

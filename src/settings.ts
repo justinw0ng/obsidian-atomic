@@ -18,6 +18,7 @@ import {
   createExerciseActivityType,
   createHobbyActivityType,
 } from "./util/activity-types";
+import { applyLabelEdit, labelForLanguage } from "./util/bilingual-label";
 import { shadesFromBaseColor } from "./util/colors";
 import { isSafeVaultFolder } from "./util/vault-path";
 import { runGymLogSetup } from "./commands/gym-log-setup";
@@ -301,16 +302,18 @@ export class FitnessSettingTab extends PluginSettingTab {
     return [
       {
         kind: "custom",
-        name: activity.label,
+        name: labelForLanguage(activity.label, language),
         desc: t("settings.activityId", language, { id: activity.id }),
-        aliases: [activity.id],
+        aliases: [activity.id, activity.label],
         paint: (setting) => {
           this.paintActivityControls(setting, activity, options);
         },
       },
       {
         kind: "custom",
-        name: t("settings.baseColor", language, { label: activity.label }),
+        name: t("settings.baseColor", language, {
+          label: labelForLanguage(activity.label, language),
+        }),
         desc: t("settings.baseColorDesc", language),
         aliases: [activity.id, "color"],
         paint: (setting) => {
@@ -456,10 +459,10 @@ export class FitnessSettingTab extends PluginSettingTab {
     setting.addText((text) => {
       text
         .setPlaceholder(t("settings.labelPlaceholder", language))
-        .setValue(activity.label)
+        .setValue(labelForLanguage(activity.label, language))
         .onChange(async (value) => {
-          const label = value.trim();
-          if (!label) return;
+          const label = applyLabelEdit(activity.label, value, language);
+          if (!value.trim() || label === activity.label) return;
           activity.label = label;
           await this.saveAndRefresh();
         });
@@ -630,7 +633,9 @@ export class FitnessSettingTab extends PluginSettingTab {
   private confirmDeleteActivity(activity: ActivityType): void {
     const language = this.plugin.settings.language;
     new ConfirmDeleteActivityModal(this.app, {
-      message: t("settings.deleteConfirm", language, { label: activity.label }),
+      message: t("settings.deleteConfirm", language, {
+        label: labelForLanguage(activity.label, language),
+      }),
       confirmLabel: t("settings.delete", language),
       cancelLabel: t("modal.cancel", language),
       onConfirm: () => {
@@ -647,7 +652,7 @@ export class FitnessSettingTab extends PluginSettingTab {
     this.redrawSettings();
     new Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
-        label: activity.label,
+        label: labelForLanguage(activity.label, this.plugin.settings.language),
       }),
     );
   }

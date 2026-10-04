@@ -5,6 +5,8 @@ import type { ActivityType } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { cuePathForActivity, exerciseActivities } from "../util/activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { labelForLanguage } from "../util/bilingual-label.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { showNotice } from "../util/notice.ts";
@@ -24,7 +26,7 @@ export function cuesHostMarkdown(
   activity: ActivityType,
   language: Language = "en",
 ): string {
-  return `# ${activity.label}\n\n${defaultAtomicBlockFence("atomic-cues", language, {
+  return `# ${labelForLanguage(activity.label, language)}\n\n${defaultAtomicBlockFence("atomic-cues", language, {
     activity: activity.id,
   })}`;
 }

@@ -163,8 +163,8 @@
 }
 
 /*
-  Bilingual labels (zh-Hant-en): English line, then the Chinese line,
-  muted. Units and inline phrases join with a space, never a slash.
+  One language per label. Painters do not add a second line.
+  These rules keep an older second line muted if markup still carries it.
 */
 .fitness-plugin .atomic-label {
   display: inline-flex;

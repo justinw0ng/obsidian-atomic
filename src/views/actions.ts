@@ -1,5 +1,6 @@
 import type FitnessPlugin from "../main";
 import { actionActivities } from "../util/action-activities";
+import { labelForLanguage } from "../util/bilingual-label";
 
 export function renderActions(el: HTMLElement, plugin: FitnessPlugin): void {
   el.empty();
@@ -12,7 +13,7 @@ export function renderActions(el: HTMLElement, plugin: FitnessPlugin): void {
     const button = root.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
     const dot = button.createSpan({ cls: "atomic-dot" });
     dot.setCssProps({ "--atomic-c": activity.colors[2] });
-    button.createSpan({ text: activity.label });
+    button.createSpan({ text: labelForLanguage(activity.label, plugin.settings.language) });
     button.addEventListener("click", () => {
       if (activity.domain === "hobby" && activity.noteModel === "item") {
         void plugin.createHobbyItem(activity);

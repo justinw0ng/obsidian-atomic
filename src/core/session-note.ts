@@ -8,7 +8,13 @@ import type { ActivityType } from "../types";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { defaultAtomicBlockFence } from "../util/codeblock-defaults.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { labelForLanguage } from "../util/bilingual-label.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { yamlScalar } from "../util/yaml.ts";
+
+function sessionHeading(activity: ActivityType, date: string, language: Language): string {
+  return `# ${labelForLanguage(activity.label, language)} — ${date}`;
+}
 
 export function gymBody(
   activity: ActivityType,
@@ -30,7 +36,7 @@ location_detail: ${yamlScalar(locationDetail)}
 weight_unit: ${weightUnit}
 ---
 
-# ${activity.label} — ${date}
+${sessionHeading(activity, date, language)}
 
 <!-- 💪 ${t("template.gymMuscles", language)}: ${muscleHints.join(", ")} -->
 
@@ -58,7 +64,7 @@ club: []
 felt:
 ---
 
-# ${activity.label} — ${date}
+${sessionHeading(activity, date, language)}
 
 <!-- ${t("template.golfLocationHint", language)} -->
 <!-- ${t("template.golfFocusHint", language)} -->
@@ -86,7 +92,7 @@ timer_started_at:
 location:
 ---
 
-# ${activity.label} — ${date}
+${sessionHeading(activity, date, language)}
 
 ${defaultAtomicBlockFence("atomic-timer", language)}${activity.supportsCues ? `
 ## ${t("template.reminders", language)}
