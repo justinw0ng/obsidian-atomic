@@ -163,22 +163,43 @@
   flex-shrink: 0;
 }
 
-.fitness-plugin .fitness-legend-swatch {
-  border: 1px solid var(--background-modifier-border);
-}
-
 .fitness-plugin .fitness-cell {
-  border: 1px solid var(--background-modifier-border);
+  border: none;
+  background: var(--atomic-empty);
+  transition: transform var(--atomic-t-press) var(--atomic-ease);
 }
 
-/* Ring sits on the cell (same outer size). Black in light, white in dark. */
+.fitness-plugin .fitness-cell.is-future {
+  background: var(--atomic-future);
+}
+
+.fitness-plugin .fitness-cell[data-l="1"] {
+  background: color-mix(in oklab, var(--atomic-c) 28%, var(--atomic-paper));
+}
+
+.fitness-plugin .fitness-cell[data-l="2"] {
+  background: color-mix(in oklab, var(--atomic-c) 52%, var(--atomic-paper));
+}
+
+.fitness-plugin .fitness-cell[data-l="3"] {
+  background: color-mix(in oklab, var(--atomic-c) 78%, var(--atomic-paper));
+}
+
+.fitness-plugin .fitness-cell[data-l="4"] {
+  background: var(--atomic-c);
+}
+
+/* Ring sits on the cell (same outer size) using the page and ink tokens. */
 .fitness-plugin .fitness-cell.is-today {
-  border: 1.5px solid #000;
-  box-shadow: none;
+  box-shadow:
+    0 0 0 1.5px var(--atomic-paper),
+    0 0 0 2.75px var(--atomic-ink);
 }
 
 .theme-dark .fitness-plugin .fitness-cell.is-today {
-  border-color: #fff;
+  box-shadow:
+    0 0 0 1.5px var(--atomic-paper),
+    0 0 0 2.75px var(--atomic-ink);
 }
 
 .fitness-plugin .fitness-cell.is-faded {
@@ -190,7 +211,7 @@
 }
 
 .fitness-plugin .fitness-cell.is-link:hover {
-  outline: 1px solid var(--interactive-accent);
+  transform: scale(1.35);
 }
 
 .fitness-plugin .fitness-month-row {

@@ -17,6 +17,7 @@ export type HeatmapDayCell = {
   fullDate: string;
   isCurrentYear: boolean;
   isToday: boolean;
+  isFuture: boolean;
   y: number;
   m: number;
   d: number;
@@ -123,6 +124,7 @@ export function buildHeatmapWeeks(params: {
         fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
         isCurrentYear: cursor.y === year,
         isToday: dateStr === todayStr,
+        isFuture: cursor.y === year && dateStr > todayStr,
         y: cursor.y,
         m: cursor.m,
         d: cursor.d,
@@ -205,6 +207,7 @@ function cellClass(day: HeatmapDayCell): string {
   let cls = "fitness-cell";
   if (day.isToday) cls += " is-today";
   if (!day.isCurrentYear) cls += " is-faded";
+  else if (day.isFuture) cls += " is-future";
   if (day.path) cls += " is-link";
   return cls;
 }

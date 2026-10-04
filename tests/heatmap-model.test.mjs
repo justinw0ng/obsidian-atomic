@@ -92,7 +92,12 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
   assert.equal(today.dataset.path, 'atomics/exercise/Gym/2026/a"b.md');
   assert.equal(today.dataset.minutes, "30");
   assert.equal(today.dataset.ymd, "2026-01-01");
+  assert.equal(today.dataset.l, "2");
   assert.equal(parent.children.at(-1), pad);
+  const future = created.find((el) => String(el.className).includes("is-future"));
+  assert.ok(future);
+  assert.ok(future.dataset.ymd > "2026-01-01");
+  assert.equal(String(today.className).includes("is-future"), false);
 });
 
 test("appendHeatmapWeeks keeps year-grid DOM volume bounded", () => {

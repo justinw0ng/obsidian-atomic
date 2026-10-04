@@ -82,7 +82,7 @@ export async function renderAtomicCueLog(
     },
   });
   const addButton = row.createEl("button", {
-    cls: "mod-cta",
+    cls: "atomic-btn is-primary",
     text: t("view.cueLog.add", language),
     attr: { "data-testid": "atomic-cue-log-add" },
   });
