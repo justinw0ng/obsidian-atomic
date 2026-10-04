@@ -5895,6 +5895,37 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
 
 </script>
 <script id="js-main">
+function boardElement(id) {
+  switch (id) {
+    case "00":
+      return window.BOARDS["00"]();
+    case "01":
+      return window.BOARDS["01"]();
+    case "02":
+      return window.BOARDS["02"]();
+    case "03":
+      return window.BOARDS["03"]();
+    case "04":
+      return window.BOARDS["04"]();
+    case "05":
+      return window.BOARDS["05"]();
+    case "06":
+      return window.BOARDS["06"]();
+    case "07":
+      return window.BOARDS["07"]();
+    case "08":
+      return window.BOARDS["08"]();
+    case "09":
+      return window.BOARDS["09"]();
+    case "10":
+      return window.BOARDS["10"]();
+    case "11":
+      return window.BOARDS["11"]();
+    default:
+      return null;
+  }
+}
+
 (async function () {
   const params = new URLSearchParams(location.search);
   const id = params.get("board");
@@ -5904,7 +5935,11 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
     return;
   }
   document.body.classList.add("is-board");
-  const el = window.BOARDS[id]();
+  const el = boardElement(id);
+  if (!el) {
+    window.PLAY.start(root);
+    return;
+  }
   root.append(el);
   await document.fonts.ready;
   await Promise.all(Array.from(document.images).map((im) => (im.complete ? 0 : new Promise((r) => (im.onload = im.onerror = r)))));
