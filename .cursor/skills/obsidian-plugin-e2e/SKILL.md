@@ -44,7 +44,7 @@ Stop and fix before the next phase if any of these fail.
 6. `npm test`, `npm run typecheck`, or `npm run build` fails.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
 8. Release tag is `v1.2.3` or assets omit `main.js` / `manifest.json`.
-9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear or security-audit has not run on the diff vs the default branch, or REQUEST CHANGES / risk items are still open with no fix or written rationale.
+9. Planned code is done and you are about to mark the PR ready, but Thermo-Nuclear has not run on the diff vs the default branch, or security-audit has not run on that diff, or REQUEST CHANGES / risk items / confirmed security-audit findings are still open with no fix or written rationale.
 10. Plugin source uses `globalThis`, Notice `noticeEl`, raw core-plugin `any`, or unused `*Covered` aliases. Follow [obsidian-api-hygiene.md](references/obsidian-api-hygiene.md).
 
 Computer-use is not the health check. `npm run test:e2e` is. Use computer-use only after Selenium fails and you have screenshots under the e2e artifact dir.
@@ -146,7 +146,7 @@ After planned code changes are done and `npm test` / `typecheck` are green, befo
 
 1. Run a **Thermo-Nuclear Code Quality Review** from `.cursor/skills/thermo-nuclear-code-quality-review/SKILL.md` on the PR diff vs the default branch (`main`). Load that in-repo skill file directly. This is structural/maintainability risk, not a second functional QA pass.
 2. Run a **security-audit** from `.cursor/skills/security-audit/SKILL.md` on the same PR diff. This is the security review. Use the skill's focused-review / guidance mode unless the change is an explicit full-repo audit request. Do not treat Thermo-Nuclear as a substitute for security-audit, or the reverse.
-3. Treat REQUEST CHANGES / risk items as blocking. Fix at root on the same branch, rethink if findings cluster, or dismiss with a written rationale on the PR.
+3. Treat REQUEST CHANGES / risk items / confirmed security-audit findings as blocking. Fix at root on the same branch, rethink if findings cluster, or dismiss with a written rationale on the PR.
 4. Re-run Thermo-Nuclear and security-audit only when the code diff materially changed after those fixes. Skip for pure comment/docs-only unless asked.
 5. This gate is in addition to Copilot / CodeRabbit / CI. It does not replace them.
 
@@ -174,7 +174,7 @@ A change is done when:
 3. New UI has `data-testid` hooks and Selenium coverage (or a source-level hook test if the flow is not yet in the health check).
 4. Docs the user would hit are updated (`README.md`, `docs/USER_GUIDE.md`, examples). Mockups under `docs/mockups/` do not replace E2E.
 5. You did not commit an accidental `main.js` rebuild unless the release is supposed to include it.
-6. Thermo-Nuclear and security-audit ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items are fixed at root, or dismissed with a written rationale on the PR.
+6. Thermo-Nuclear and security-audit ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items / confirmed security-audit findings are fixed at root, or dismissed with a written rationale on the PR.
 
 ## Atomic map
 

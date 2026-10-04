@@ -22,6 +22,22 @@ function markdownFiles(dir) {
   return out;
 }
 
+function allFiles(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...allFiles(path));
+    else out.push(path);
+  }
+  return out;
+}
+
+function relativeNames(dir) {
+  return allFiles(dir)
+    .map((path) => path.slice(dir.length + 1))
+    .sort();
+}
+
 function relativeLinks(markdown) {
   const links = [];
   const re = /\[[^\]]*\]\(([^)]+)\)/g;
@@ -140,6 +156,9 @@ test("security-audit skill is pinned to the Cloudflare default-branch commit", (
   assert.match(pin, /https:\/\/github\.com\/cloudflare\/security-audit-skill/);
   assert.match(pin, /c1c8a8c1471069fb0e188eeaff69b8e8db6564a8/);
   assert.match(pin, /default branch/i);
+  assert.match(pin, /security-audit\.LICENSE/);
+  assert.match(read(".cursor/skills/security-audit.LICENSE"), /MIT License/);
+  assert.match(read(".cursor/skills/security-audit.LICENSE"), /Cloudflare, Inc\./);
 });
 
 test("thermo-nuclear skill is pinned to the cursor/plugins default-branch commit", () => {
@@ -148,6 +167,44 @@ test("thermo-nuclear skill is pinned to the cursor/plugins default-branch commit
   assert.match(pin, /thermo-nuclear-code-quality-review/);
   assert.match(pin, /e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a/);
   assert.match(pin, /default branch/i);
+});
+
+test("vendored security-audit pack matches the pinned file set and relative links", () => {
+  const dir = join(root, ".cursor/skills/security-audit");
+  assert.deepEqual(relativeNames(dir), [
+    "AI-AND-LLM.md",
+    "ATTACK-CLASSES.md",
+    "CLIENT-SIDE.md",
+    "CLOUD-AND-DEPLOYMENT.md",
+    "DATA-ISOLATION-AND-LIFECYCLE.md",
+    "DESKTOP-MOBILE-AND-LOCAL-IPC.md",
+    "HUNTING.md",
+    "MEMORY-SAFETY-AND-BINARY.md",
+    "PROTOCOLS-RPC-AND-MESSAGING.md",
+    "RECONNAISSANCE.md",
+    "RESOURCE-EXHAUSTION-AND-AVAILABILITY.md",
+    "SKILL.md",
+    "SUPPLY-CHAIN-AND-RELEASE.md",
+    "VALIDATION-AND-REPORTING.md",
+    "WEB-PROTOCOL-AND-AUTH.md",
+    "report-schema.json",
+    "validate-coverage-ledger.cjs",
+    "validate-coverage-ledger.test.cjs",
+    "validate-findings.cjs",
+    "validate-findings.test.cjs",
+  ]);
+  for (const file of markdownFiles(dir)) {
+    const text = readFileSync(file, "utf8");
+    for (const href of relativeLinks(text)) {
+      const target = resolve(dirname(file), href);
+      assert.ok(existsSync(target), `${file} links to missing ${href}`);
+    }
+  }
+});
+
+test("vendored thermo-nuclear pack is the pinned SKILL.md only", () => {
+  const dir = join(root, ".cursor/skills/thermo-nuclear-code-quality-review");
+  assert.deepEqual(relativeNames(dir), ["SKILL.md"]);
 });
 
 test("skill and AGENTS.md ban instanceof Element and redundant type assertions", () => {
@@ -190,6 +247,7 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
   for (const text of [skill, agents]) {
     assert.match(text, /Thermo-Nuclear Code Quality Review/);
     assert.match(text, /REQUEST CHANGES/);
+    assert.match(text, /confirmed security-audit findings/);
     assert.match(text, /CodeRabbit/);
     assert.match(text, /security-audit/);
     assert.match(text, /\.cursor\/skills\/security-audit\/SKILL\.md/);
