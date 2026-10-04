@@ -712,7 +712,7 @@ button {
 
   Concept: your notes are the desk. Atomic keeps a quiet ledger and puts a
   few real objects on it. Four materials:
-    PAPER  data     hairline rules, no fills, no shadows, no boxes
+    PAPER  data     thin rules, no fills, no shadows, no boxes
     WELL   controls one step off the surface it sits on, no border/shadow
     OBJECT things   cue cards, books, the plank: the only shadow/tilt/texture
     GLASS  floating the lightbox read-out, one at a time, solid fallback
@@ -1123,7 +1123,7 @@ button {
   color: var(--atomic-ink);
 }
 
-/* DialKit-style value row: label left, value right, value drawn as fill. */
+/* Value row: label left, value right, value drawn as fill. */
 .fitness-plugin .atomic-fill-row {
   position: relative;
   display: flex;
@@ -1432,7 +1432,7 @@ button {
   background: var(--atomic-rule);
 }
 
-/* Monthly: stacked columns on hairline gridlines. */
+/* Monthly: stacked columns on thin gridlines. */
 .fitness-plugin .atomic-chart {
   position: relative;
   display: grid;
@@ -5022,11 +5022,11 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
         "div",
         { class: "dir-tiles" },
         tile("A", "Ledger", h("span", { class: "tag-rec" }, "● Recommended"), tileA, [
-          h("p", null, h("b", null, "Feels like: "), "a well-kept notebook. Hairline rules, mono read-outs, ink numbers; colour only where data is. A few real objects (cards, books) carry all the warmth."),
+          h("p", null, h("b", null, "Feels like: "), "a well-kept notebook. Thin rules, mono read-outs, ink numbers; colour only where data is. A few real objects (cards, books) carry all the warmth."),
           h("p", null, h("b", null, "Why: "), "sits inside any Obsidian theme, light or dark, without fighting it; numbers stay the loudest thing; scales from a 390 px phone to a 1900 px pane."),
         ]),
         tile("B", "Instrument", h("span", { class: "tag-plain" }, "Explored"), tileB, [
-          h("p", null, h("b", null, "Feels like: "), "a DialKit / synth panel. Dark floating panels, value rows, phosphor dot matrix, all mono."),
+          h("p", null, h("b", null, "Feels like: "), "a dark instrument panel. Dark floating panels, value rows, a dot matrix, all mono."),
           h("p", null, h("b", null, "Refused: "), "dev-tool cold for a habit app, ignores the user's theme, every label shouts in mono caps, light mode becomes a grey box in a white note."),
         ]),
         tile("C", "Scrapbook", h("span", { class: "tag-plain" }, "Explored"), tileC, [
@@ -5072,7 +5072,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
     const glassDemo = h("div", { class: "fitness-plugin", style: { position: "relative", "z-index": "1" } }, h("div", { class: "atomic-glass" }, h("span", { class: "atomic-readout" }, "Golf · 11 Aug · ×3"), h("span", { class: "atomic-readout" }, h("kbd", null, "esc"))));
     const mat = (name, demo, rule) => h("div", { class: "mat" }, h("div", { class: "mat-demo" }, demo), h("div", { class: "mat-name" }, name), h("div", { class: "mat-rule" }, rule));
     const materials = h("div", { style: { display: "grid", "grid-template-columns": "repeat(4, 1fr)", gap: "22px" } },
-      mat("Paper · data", paperDemo, "Hairline rules only. No fills, no shadows, no boxes. Dashboard, heatmap, recent."),
+      mat("Paper · data", paperDemo, "Thin rules only. No fills, no shadows, no boxes. Dashboard, heatmap, recent."),
       mat("Well · controls", wellDemo, "One step off its surface: ink fill on paper, paper inside a well. No border, no shadow."),
       mat("Object · things", objectDemo, "Cards, books, the plank. The only things with shadow, texture, tilt, colour."),
       mat("Glass · floating", h("div", { style: { position: "relative", width: "100%", height: "100%", display: "flex", "align-items": "center", "justify-content": "center" } }, glassBg, glassDemo), "Blur + 1px specular rim, solid fallback. One at a time, never on the note."),
@@ -5157,7 +5157,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
         h("div", { class: "atomic-field", style: { width: "150px" } }, h("span", { class: "atomic-field-label" }, "Weight"), h("span", { class: "atomic-field-value" }, "60"), h("span", { class: "atomic-field-suffix" }, "kg")),
         h("div", { class: "atomic-field", style: { width: "220px" } }, h("span", { class: "atomic-field-label" }, "Exercise"), h("span", { class: "atomic-field-value" }, "Bench · Chest"), U.icon("chevD", "atomic-field-chevron")),
       ),
-      h("div", { class: "comp-row", style: { "align-items": "stretch" } }, h("div", { class: "comp-label" }, "Fill rows (DialKit) · quiet links"),
+      h("div", { class: "comp-row", style: { "align-items": "stretch" } }, h("div", { class: "comp-label" }, "Fill rows · quiet links"),
         h("div", { class: "atomic-stack", style: { width: "300px", "margin-top": "0", "--atomic-c": A.gym.color } }, h("div", { class: "atomic-fill-row", style: { "--v": 1 } }, h("span", null, "Chest"), h("span", { class: "atomic-fill-row-value" }, "24,960 kg · 52")), h("div", { class: "atomic-fill-row", style: { "--v": 0.385 } }, h("span", null, "Shoulders"), h("span", { class: "atomic-fill-row-value" }, "9,600 kg · 38"))),
         h("div", { style: { display: "flex", "flex-direction": "column", gap: "10px", "margin-left": "24px", "justify-content": "center" } }, U.link("Gym cues"), U.link("Book shelf", { preview: true }), U.link("Aug 11", { arrow: "→" })),
       ),
@@ -5197,7 +5197,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
           h("div", { style: { display: "grid", "grid-template-columns": "1fr 1fr", gap: "14px", "margin-top": "14px" } }, palette("light"), palette("dark")),
           h("div", { class: "type-meta", style: { margin: "16px 0 8px" } }, "Heatmap ramp in dark mode — before: mixes toward white, so the least active day is the brightest. After: mixes toward the page."),
           h("div", { style: { display: "grid", "grid-template-columns": "1fr 1fr", gap: "14px" } },
-            h("div", null, rampStrip("dark", oldRamp), h("div", { class: "type-meta", style: { "margin-top": "6px" } }, "Before · GitHub greens, inverted on dark")),
+            h("div", null, rampStrip("dark", oldRamp), h("div", { class: "type-meta", style: { "margin-top": "6px" } }, "Before · the old green ramp, inverted on dark")),
             h("div", null, rampStrip("dark", null), h("div", { class: "type-meta", style: { "margin-top": "6px" } }, "After · color-mix(in oklab, base n%, page)")),
           ),
         )),
@@ -5235,11 +5235,11 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
       notes: [
         { a: "stepper", pos: "l", t: "Year is a well control", p: "‹ 2026 › sits in a soft ink well. The “2026 overview” h2 is dropped; the note title already says Dashboard, and the range is a mono read-out." },
         { a: "jumps", pos: "l", dx: -4, t: "Jump links are quiet text", p: "No pills, no coloured borders. Ink-2 with ↗; accent appears only on hover and focus." },
-        { a: "kpi-1", pos: "tl", dy: 4, t: "One ruled KPI row", p: "Four columns split by hairlines. A 12 px sentence-case label, a 34 px number at regular weight, a hint. Digits roll when the year changes." },
+        { a: "kpi-1", pos: "tl", dy: 4, t: "One ruled KPI row", p: "Four columns split by thin rules. A 12 px sentence-case label, a 34 px number at regular weight, a hint. Digits roll when the year changes." },
         { a: "row-gym", pos: "l", t: "Activities are ledger rows", p: "Dot + name + kind, count, time, one detail, 12-month bars, last-session link. The colour dot replaces the emoji icon and the 3 px top bar." },
-        { a: "bars-golf", pos: "tr", t: "Months tell the truth", p: "Past months are bars, a zero month would be a 2 px stub, future months (Sep–Dec) are a hairline tick." },
+        { a: "bars-golf", pos: "tr", t: "Months tell the truth", p: "Past months are bars, a zero month would be a 2 px stub, future months (Sep–Dec) are a thin tick." },
         { a: "chart-hot", pos: "t", t: "Hover answers in the read-out", p: "Stacked Gym + Golf columns. Pointing at May dims the rest and the read-out at the right of the section title says May · Gym 13 · Golf 14 · 27 sessions. No floating tooltip; aria-labels stay." },
-        { a: "muscles", pos: "tl", t: "Muscles as fill rows", p: "DialKit-style: name left, mono value right, the value drawn as a tinted fill. No separate bar track." },
+        { a: "muscles", pos: "tl", t: "Muscles as fill rows", p: "Name left, mono value right, the value drawn as a tinted fill. No separate bar track." },
         { a: "felt", pos: "tl", t: "Golf focus + felt", p: "Dot-leader list and one 3-part bar in the Golf ramp (good / ok / bad)." },
         { a: "recent", pos: "tl", t: "Recent without file paths", p: "Date, activity, minutes and the one fact that matters. The row opens the note; an arrow appears on hover." },
       ],
@@ -5256,7 +5256,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
       dark: true,
       stage: win,
       notes: [
-        { a: "kpis", pos: "tl", t: "Hairlines adapt for free", p: "rule = text 11 %, rule-strong = text 22 %. Nothing is hard-coded grey, so custom themes keep their own contrast." },
+        { a: "kpis", pos: "tl", t: "Thin rules adapt for free", p: "rule = text 11 %, rule-strong = text 22 %. Nothing is hard-coded grey, so custom themes keep their own contrast." },
         { a: "row-reading", pos: "l", t: "Palette tuned for both modes", p: "Moss, clay, ink blue and plum keep ≥ 3 : 1 against #1e1e1e and #ffffff, so the same hex works in both themes." },
         { a: "chart", pos: "tl", t: "Data colour, never chrome colour", p: "Columns, dots, fills and bars are the only coloured pixels on the page." },
         { a: "recent-hot", pos: "l", t: "Row hover is a fill, not a lift", p: "fill-1 background + arrow; no shadow on paper." },
@@ -5289,7 +5289,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
     return board({
       id: "04",
       title: "Dashboard · phone",
-      sub: "390 × 844 pt, rendered at 3×. Container queries on the pane (not the viewport) turn the ledger into stacked blocks and the KPI row into a 2 × 2 with a hairline cross. Nothing is hidden on phone; it just stacks.",
+      sub: "390 × 844 pt, rendered at 3×. Container queries on the pane (not the viewport) turn the ledger into stacked blocks and the KPI row into a 2 × 2 with a thin cross. Nothing is hidden on phone; it just stacks.",
       meta: ["iPhone 15 size", "Container queries", "Bilingual proof"],
       stage,
       after: (el) => {
@@ -5302,7 +5302,7 @@ window.ATOMIC_BEFORE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB3kAAAV1CA
       },
       notesBelow: true,
       notes: [
-        { a: "kpis", nth: 0, pos: "tl", t: "KPI 2 × 2, hairline cross", p: "Same label / number / hint stack; numbers drop to 30 px so “214h 58m” never wraps." },
+        { a: "kpis", nth: 0, pos: "tl", t: "KPI 2 × 2, thin cross", p: "Same label / number / hint stack; numbers drop to 30 px so “214h 58m” never wraps." },
         { a: "row-gym", nth: 0, pos: "tl", t: "Activities stack", p: "Name and last link on top, count · time · detail, then full-width month bars with initials." },
         { a: "monthly-readout", nth: 1, pos: "l", dx: -2, t: "Tap reads, like hover", p: "Columns keep the desktop rhythm, months shorten to initials. Tapping May lights it and the read-out under the title answers." },
         { a: "muscles", nth: 1, pos: "tl", t: "Fill rows fit as-is", p: "Name left, value right; the fill is the bar. No horizontal scroll anywhere." },
