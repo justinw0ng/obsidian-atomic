@@ -285,6 +285,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const properties = src("src/properties/property-select.ts");
   assert.match(properties, /"data-testid": "atomic-property-select"/);
+  assert.match(
+    properties,
+    /if \(existing\?\.instanceOf\(HTMLSelectElement\)\) \{[\s\S]*?hideNativeEditors\(valueContainer\)/,
+  );
   assert.match(properties, /mutationTouchesPropertyUi/);
   assert.match(properties, /\.metadata-property/);
   assert.match(properties, /\.bases-td/);

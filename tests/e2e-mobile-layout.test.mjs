@@ -269,6 +269,12 @@ test("cover images apply coverObjectPosition after load", () => {
     src,
     /function bindCoverObjectPosition[\s\S]*?addEventListener\("load", apply, \{ once: true \}/,
   );
+  assert.match(src, /"--atomic-cover-position":\s*coverObjectPosition/);
+  assert.doesNotMatch(src, /"object-position"\s*:/);
+  assert.match(
+    styles,
+    /object-position:\s*var\(--atomic-cover-position,\s*center\)/,
+  );
 });
 
 /** The rule whose selector list includes `selector` exactly, or null. */
@@ -468,11 +474,22 @@ test("phone cue cards do not expand in-flow; tap uses the lightbox", () => {
   assert.match(phone, /--atomic-cue-drop:\s*0px/);
   const body = cssRule(phone, ".fitness-plugin .atomic-cue-body");
   assert.match(body.body, /transition:\s*none/);
+  assert.match(body.body, /min-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
+  assert.match(body.body, /max-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
   const hoverBody = cssRule(
     phone,
     ".fitness-plugin .atomic-cue-card:hover .atomic-cue-body",
   );
   assert.match(hoverBody.body, /--atomic-cue-wash:\s*1/);
+  assert.match(hoverBody.body, /max-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
+  assert.doesNotMatch(styles, /calc\(2 \* var\(--atomic-cue-line\)\)/);
+  const cueList = styles.slice(styles.lastIndexOf("@container (max-width: 600px)"));
+  assert.match(cueList, /min-height:\s*calc\(4 \* var\(--atomic-cue-line\)\)/);
+  const cueText = cssRule(
+    styles,
+    ".fitness-plugin .atomic-cue-text p",
+  );
+  assert.match(cueText.body, /margin:\s*0/);
   const flyCard = cssRule(
     styles,
     ".fitness-plugin.atomic-cue-lightbox > .atomic-cue-card.atomic-cue-lightbox-card",
@@ -511,6 +528,19 @@ test("reminder and gym controls share a well and wrap with the note", () => {
     styles,
     /@container \(max-width:\s*560px\)\s*\{[^}]*\.atomic-cue-log-fields/s,
   );
+});
+
+test("session property selects read as the value", () => {
+  const select = cssRule(styles, ".metadata-property-value > .atomic-property-select");
+  assert.ok(select, "note property select has its own rule");
+  assert.match(select.body, /background-color:\s*transparent/);
+  assert.match(select.body, /border:\s*0/);
+  assert.match(select.body, /min-width:\s*0/);
+  const hidden = cssRule(
+    styles,
+    ".metadata-property-value > .atomic-property-native-hidden",
+  );
+  assert.match(hidden.body, /display:\s*none/);
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {

@@ -460,10 +460,20 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         }, 8000);
         await driver.wait(async () => {
           const rest = await cueCardMetrics(driver, 0);
-          return rest && rest.clamped && rest.lift < 4 && !rest.isOpen;
+          return rest && rest.bodyHeight >= 80 && rest.lift < 4 && !rest.isOpen;
         }, 8000);
+        const phoneRest = await cueCardMetrics(driver, 0);
+        const phoneCard = await driver.findElement(By.css('[data-testid="atomic-cue-card"]'));
+        await driver.actions({ async: false }).move({ origin: phoneCard }).perform();
         const phoneHover = await cueCardMetrics(driver, 0);
-        assert.ok(phoneHover.clamped, "phone hover must not expand a card");
+        assert.ok(
+          phoneHover.bodyHeight <= phoneRest.bodyHeight + 1,
+          `phone hover must not expand a card: ${phoneRest.bodyHeight} -> ${phoneHover.bodyHeight}`,
+        );
+        assert.ok(
+          phoneHover.bodyHeight >= 80,
+          "the stacked cue list previews several lines",
+        );
         assertNoCssMask(phoneHover, "phone hover cue body");
         assert.equal(phoneHover.fadeOpacity, 1, "phone hover keeps the bottom wash");
 
@@ -1357,6 +1367,45 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         driver,
         'select[data-testid="atomic-property-select"][data-property="weight_unit"]',
       );
+      const propertyUi = await driver.executeScript(`
+        const names = ["location", "weight_unit"];
+        return names.map((name) => {
+          const select = document.querySelector(
+            'select[data-testid="atomic-property-select"][data-property="' + name + '"]',
+          );
+          const value = select && select.closest(".metadata-property-value");
+          if (!select || !value) return { name, missing: true };
+          const style = getComputedStyle(select);
+          const natives = [...value.children].filter((el) => el !== select);
+          const selectBox = select.getBoundingClientRect();
+          const visibleNative = natives.some((el) => {
+            const box = el.getBoundingClientRect();
+            return getComputedStyle(el).display !== "none" && box.width > 1 && box.height > 1
+              && box.left < selectBox.right - 1 && box.right > selectBox.left + 1;
+          });
+          return {
+            name,
+            nativeDisplays: natives.map((el) => getComputedStyle(el).display),
+            background: style.backgroundColor,
+            borderTop: style.borderTopWidth,
+            visibleNative,
+          };
+        });
+      `);
+      for (const row of propertyUi) {
+        assert.equal(row.missing, undefined, `${row.name} select is missing`);
+        assert.equal(row.visibleNative, false, `${row.name} native value overlaps the select`);
+        assert.ok(
+          row.nativeDisplays.every((display) => display === "none"),
+          `${row.name} native editor stays hidden: ${JSON.stringify(row)}`,
+        );
+        assert.equal(row.borderTop, "0px", `${row.name} select has no box`);
+        assert.match(
+          String(row.background),
+          /rgba?\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)|transparent/,
+          `${row.name} select reads as the property value`,
+        );
+      }
     });
   });
 

@@ -263,6 +263,7 @@ function injectPropertySelect(
     : readNativeValue(valueContainer);
 
   if (existing?.instanceOf(HTMLSelectElement)) {
+    if (!forBases) hideNativeEditors(valueContainer);
     syncExistingSelect(existing, spec, currentValue, spec.values[0] ?? "");
     return;
   }

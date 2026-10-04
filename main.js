@@ -4975,7 +4975,7 @@ function coverObjectPosition(naturalWidth, naturalHeight) {
 function bindCoverObjectPosition(img) {
   const apply = () => {
     img.setCssProps({
-      "object-position": coverObjectPosition(img.naturalWidth, img.naturalHeight)
+      "--atomic-cover-position": coverObjectPosition(img.naturalWidth, img.naturalHeight)
     });
   };
   if (img.complete) apply();
@@ -7476,6 +7476,7 @@ function injectPropertySelect(app, getLanguage, property, spec, valueContainer, 
   const existing = valueContainer.querySelector(`.${SELECT_CLASS}`);
   const currentValue = forBases ? (valueContainer.querySelector(".metadata-input-longtext")?.textContent ?? "").replace(/\s+/g, " ").trim() : readNativeValue(valueContainer);
   if (existing?.instanceOf(HTMLSelectElement)) {
+    if (!forBases) hideNativeEditors(valueContainer);
     syncExistingSelect(existing, spec, currentValue, spec.values[0] ?? "");
     return;
   }
