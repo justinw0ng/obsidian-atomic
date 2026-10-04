@@ -145,7 +145,14 @@ export async function renderBlock(
       }
       case "atomic-today": {
         const dateStr = resolveTodayDate(opts, sourcePath, tz);
-        renderTodaySessions(el, data, activityTypes, dateStr, language);
+        await renderTodaySessions(
+          el,
+          data,
+          activityTypes,
+          dateStr,
+          language,
+          ctx.generation,
+        );
         break;
       }
       case "atomic-dashboard": {

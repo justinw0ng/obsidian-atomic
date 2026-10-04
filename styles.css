@@ -5,13 +5,6 @@
 */
 
 .fitness-plugin {
-  --atomic-heatmap-cell: 10px;
-  --atomic-heatmap-gap: 3px;
-  --atomic-heatmap-week-pad: 0px;
-  --atomic-heatmap-week-col: calc(
-    var(--atomic-heatmap-cell) + 2 * var(--atomic-heatmap-week-pad)
-  );
-  --atomic-heatmap-day-label: 16px;
   --atomic-book-width: 96px;
   --atomic-book-height: 150px;
   --atomic-book-gap: 12px;
@@ -123,131 +116,10 @@
   contain: layout;
 }
 
-.fitness-plugin .fitness-heatmap-grid .fitness-heatmap {
+.fitness-plugin .fitness-heatmap-grid > .atomic-heatmap {
   margin-bottom: 0;
   min-width: 0;
   max-width: 100%;
-}
-
-.fitness-plugin .fitness-heatmap {
-  font-family: var(--font-interface);
-  margin-bottom: 18px;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  contain: layout;
-}
-
-.fitness-plugin .fitness-heatmap-title {
-  margin: 0 0 8px 0;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.fitness-plugin .fitness-heatmap-legend {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-  font-family: var(--font-monospace);
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.fitness-plugin .fitness-cell,
-.fitness-plugin .fitness-legend-swatch {
-  width: var(--atomic-heatmap-cell);
-  height: var(--atomic-heatmap-cell);
-  border-radius: 50%;
-  box-sizing: border-box;
-  flex-shrink: 0;
-}
-
-.fitness-plugin .fitness-cell {
-  border: none;
-}
-
-.fitness-plugin .fitness-cell.is-faded {
-  opacity: 0.3;
-}
-
-.fitness-plugin .fitness-cell.is-link {
-  cursor: pointer;
-}
-
-
-.fitness-plugin .fitness-month-row {
-  display: flex;
-  margin-bottom: 4px;
-  flex-wrap: nowrap;
-  gap: var(--atomic-heatmap-gap);
-}
-
-.fitness-plugin .fitness-month-label {
-  font-size: 8px;
-  color: var(--text-muted);
-  width: var(--atomic-heatmap-week-col);
-  text-align: center;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.fitness-plugin .fitness-month-spacer {
-  width: var(--atomic-heatmap-week-col);
-  flex-shrink: 0;
-}
-
-.fitness-plugin .fitness-heatmap-body {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.fitness-plugin .fitness-heatmap-scroll {
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 2px 4px 3px 0;
-}
-
-.fitness-plugin .fitness-day-labels {
-  display: flex;
-  flex-direction: column;
-  gap: var(--atomic-heatmap-gap);
-  width: var(--atomic-heatmap-day-label);
-  flex-shrink: 0;
-  align-self: flex-end;
-  padding-bottom: 3px;
-}
-
-.fitness-plugin .fitness-day-label {
-  font-size: 8px;
-  text-align: right;
-  height: var(--atomic-heatmap-cell);
-  line-height: var(--atomic-heatmap-cell);
-  color: var(--text-muted);
-}
-
-.fitness-plugin .fitness-weeks {
-  display: flex;
-  gap: var(--atomic-heatmap-gap);
-  padding-right: 6px;
-}
-
-.fitness-plugin .fitness-weeks-end-pad {
-  flex: 0 0 8px;
-  width: 8px;
-  height: 1px;
-}
-
-.fitness-plugin .fitness-week {
-  display: flex;
-  flex-direction: column;
-  gap: var(--atomic-heatmap-gap);
-  padding: var(--atomic-heatmap-week-pad);
 }
 
 /* ------------------------------------------------------------- type roles */
@@ -374,6 +246,17 @@
 .fitness-plugin .atomic-link:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--atomic-focus);
+}
+
+/* Names inside a row stay ink. Jump links outside a name stay muted. */
+.fitness-plugin .atomic-name .atomic-link {
+  color: inherit;
+  font-weight: inherit;
+}
+
+.fitness-plugin .atomic-name .atomic-link:hover,
+.fitness-plugin .atomic-name .atomic-link.is-preview {
+  color: var(--atomic-link-hover);
 }
 
 /* --------------------------------------------------------------- controls */
@@ -1311,9 +1194,12 @@
 
 /* --------------------------------------------------------------- heatmap */
 
-.fitness-plugin.atomic-heatmap {
+.fitness-plugin.atomic-heatmap,
+.fitness-plugin .atomic-heatmap {
   --atomic-heat-cell: 10px;
   --atomic-heat-gap: 3px;
+  --atomic-heat-label: 16px;
+  --atomic-heat-label-gap: 6px;
   margin: 0 0 28px;
 }
 
@@ -1331,8 +1217,8 @@
 */
 .fitness-plugin .atomic-heat-body {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
-  gap: 0 6px;
+  grid-template-columns: var(--atomic-heat-label) minmax(0, 1fr);
+  gap: 0 var(--atomic-heat-label-gap);
 }
 
 .fitness-plugin .atomic-heat-scroll {
@@ -1351,7 +1237,7 @@
 
 .fitness-plugin .atomic-heat-months {
   display: grid;
-  grid-template-columns: repeat(53, var(--atomic-heat-cell));
+  grid-template-columns: repeat(var(--atomic-heat-weeks, 53), var(--atomic-heat-cell));
   gap: 0 var(--atomic-heat-gap);
   height: 16px;
   margin-bottom: 4px;
@@ -1381,61 +1267,57 @@
   gap: var(--atomic-heat-gap);
 }
 
-.fitness-plugin .atomic-heat-cell,
-.fitness-plugin .fitness-cell {
-  width: var(--atomic-heat-cell, var(--atomic-heatmap-cell));
-  height: var(--atomic-heat-cell, var(--atomic-heatmap-cell));
+.fitness-plugin .atomic-heat-cell {
+  width: var(--atomic-heat-cell);
+  height: var(--atomic-heat-cell);
   border-radius: 50%;
   background: var(--atomic-empty);
   transition: transform var(--atomic-t-press) var(--atomic-ease);
+}
+
+.fitness-plugin .atomic-heat-cell.is-link {
+  cursor: pointer;
 }
 
 .fitness-plugin .atomic-heat-cell.is-pad {
   visibility: hidden;
 }
 
-.fitness-plugin .atomic-heat-cell.is-future,
-.fitness-plugin .fitness-cell.is-future {
+.fitness-plugin .atomic-heat-cell.is-future {
   background: var(--atomic-future);
 }
 
 /* Levels mix toward the page, so "least" is always closest to the paper. */
-.fitness-plugin .atomic-heat-cell[data-l="1"],
-.fitness-plugin .fitness-cell[data-l="1"] {
+.fitness-plugin .atomic-heat-cell[data-l="1"] {
   background: color-mix(in oklab, var(--atomic-c) 28%, var(--atomic-paper));
 }
 
-.fitness-plugin .atomic-heat-cell[data-l="2"],
-.fitness-plugin .fitness-cell[data-l="2"] {
+.fitness-plugin .atomic-heat-cell[data-l="2"] {
   background: color-mix(in oklab, var(--atomic-c) 52%, var(--atomic-paper));
 }
 
-.fitness-plugin .atomic-heat-cell[data-l="3"],
-.fitness-plugin .fitness-cell[data-l="3"] {
+.fitness-plugin .atomic-heat-cell[data-l="3"] {
   background: color-mix(in oklab, var(--atomic-c) 78%, var(--atomic-paper));
 }
 
-.fitness-plugin .atomic-heat-cell[data-l="4"],
-.fitness-plugin .fitness-cell[data-l="4"] {
+.fitness-plugin .atomic-heat-cell[data-l="4"] {
   background: var(--atomic-c);
 }
 
-.fitness-plugin .atomic-heat-cell.is-today,
-.fitness-plugin .fitness-cell.is-today {
+.fitness-plugin .atomic-heat-cell.is-today {
   box-shadow:
     0 0 0 1.5px var(--atomic-paper),
     0 0 0 2.75px var(--atomic-ink);
 }
 
-.theme-dark .fitness-plugin .fitness-cell.is-today {
+.theme-dark .fitness-plugin .atomic-heat-cell.is-today {
   box-shadow:
     0 0 0 1.5px var(--atomic-paper),
     0 0 0 2.75px var(--atomic-ink);
 }
 
 .fitness-plugin .atomic-heat-cell:hover,
-.fitness-plugin .atomic-heat-cell.is-preview,
-.fitness-plugin .fitness-cell.is-link:hover {
+.fitness-plugin .atomic-heat-cell.is-preview {
   transform: scale(1.35);
 }
 
@@ -1444,8 +1326,12 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
-  padding-left: 22px;
-  width: max-content;
+  padding-left: calc(var(--atomic-heat-label) + var(--atomic-heat-label-gap));
+  width: calc(
+    var(--atomic-heat-label) + var(--atomic-heat-label-gap) +
+      var(--atomic-heat-weeks, 53) * (var(--atomic-heat-cell) + var(--atomic-heat-gap)) -
+      var(--atomic-heat-gap)
+  );
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -1717,11 +1603,17 @@
 }
 
 .fitness-plugin .atomic-book-cover {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
+  max-height: none;
   object-fit: cover;
+  object-position: center;
   border-radius: inherit;
+  pointer-events: none;
 }
 
 /*
@@ -1732,6 +1624,7 @@
 .fitness-plugin .atomic-book::before {
   content: "";
   position: absolute;
+  z-index: 1;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -1753,6 +1646,7 @@
 .fitness-plugin .atomic-book::after {
   content: "";
   position: absolute;
+  z-index: 2;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
@@ -2398,8 +2292,7 @@
   }
 
   .fitness-plugin .atomic-btn:active,
-  .fitness-plugin .atomic-heat-cell:hover,
-  .fitness-plugin .fitness-cell.is-link:hover {
+  .fitness-plugin .atomic-heat-cell:hover {
     transform: none;
   }
 
@@ -2537,7 +2430,7 @@
     animation: none;
   }
 
-  .fitness-plugin .fitness-cell.is-link:hover {
+  .fitness-plugin .atomic-heat-cell:hover {
     transform: none;
   }
 }

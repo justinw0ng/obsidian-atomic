@@ -23,6 +23,7 @@ import {
   HEATMAP_CELL_PX,
   HEATMAP_DAY_LABEL_PX,
   HEATMAP_GAP_PX,
+  HEATMAP_LABEL_GAP_PX,
   HEATMAP_SCROLL_PAD_PX,
   HEATMAP_WEEK_PAD_PX,
   heatmapBodyMinWidth,
@@ -122,25 +123,25 @@ test("measureElementWidth walks parents when the frame is 0 (iOS first paint)", 
   assert.equal(measureElementWidth(null, 0), 0);
 });
 
-test("heatmap year grid is narrower than the old 16px cells", () => {
+test("heatmap year grid uses 10px cells and a 3px gap", () => {
   const weeks = 53;
   const width = heatmapWeeksWidth(weeks);
   const oldWidth = weeks * 16 + (weeks - 1) * 2;
   assert.ok(width < oldWidth);
-  assert.equal(HEATMAP_CELL_PX, 11);
-  assert.equal(HEATMAP_GAP_PX, 1);
-  assert.equal(HEATMAP_WEEK_PAD_PX, 1);
-  assert.equal(heatmapWeekColumnPx(), HEATMAP_CELL_PX + 2 * HEATMAP_WEEK_PAD_PX);
+  assert.equal(HEATMAP_CELL_PX, 10);
+  assert.equal(HEATMAP_GAP_PX, 3);
+  assert.equal(HEATMAP_WEEK_PAD_PX, 0);
+  assert.equal(HEATMAP_DAY_LABEL_PX, 16);
+  assert.equal(HEATMAP_LABEL_GAP_PX, 6);
+  assert.equal(HEATMAP_SCROLL_PAD_PX, 0);
+  assert.equal(heatmapWeekColumnPx(), HEATMAP_CELL_PX);
+  assert.equal(heatmapTrackWidth(weeks), weeks * 10 + (weeks - 1) * 3);
+  assert.equal(width, heatmapTrackWidth(weeks));
   assert.equal(
-    heatmapTrackWidth(weeks),
-    weeks * heatmapWeekColumnPx() + (weeks - 1) * HEATMAP_GAP_PX,
+    heatmapBodyMinWidth(weeks),
+    HEATMAP_DAY_LABEL_PX + HEATMAP_LABEL_GAP_PX + width,
   );
   assert.ok(heatmapNeedsHorizontalScroll(IPHONE_SE, weeks));
-  assert.ok(
-    heatmapBodyMinWidth(weeks) ===
-      HEATMAP_DAY_LABEL_PX + heatmapWeeksWidth(weeks),
-  );
-  assert.ok(HEATMAP_SCROLL_PAD_PX >= 3);
 });
 
 test("hobbyItemFromFileCache includes files before metadata is ready", () => {
@@ -232,6 +233,14 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.doesNotMatch(styles, /clip-path\s*:/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
   assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*position:\s*absolute/s,
+  );
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*inset:\s*0/s,
+  );
   assert.match(
     styles,
     /\.fitness-plugin \.atomic-book-cover\s*\{[^}]*object-fit:\s*cover/s,
@@ -478,37 +487,29 @@ test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring
     styles,
     /pre\.atomic-block-host[\s\S]*overflow-x:\s*hidden/,
   );
-  assert.match(styles, /--atomic-heatmap-cell:\s*10px/);
-  assert.match(styles, /--atomic-heatmap-week-pad:\s*0px/);
-  assert.match(styles, /--atomic-heatmap-week-col:/);
+  assert.match(styles, /--atomic-heat-cell:\s*10px/);
+  assert.match(styles, /--atomic-heat-gap:\s*3px/);
+  assert.match(styles, /--atomic-heat-weeks/);
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-month-row\s*\{[^}]*gap:\s*var\(--atomic-heatmap-gap\)/s,
+    /\.fitness-plugin \.atomic-heat-months\s*\{[^}]*repeat\(var\(--atomic-heat-weeks,\s*53\)/s,
   );
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-month-label\s*\{[^}]*width:\s*var\(--atomic-heatmap-week-col\)/s,
+    /\.fitness-plugin \.atomic-heat-cells\s*\{[^}]*grid-auto-flow:\s*column/s,
   );
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-month-spacer\s*\{[^}]*width:\s*var\(--atomic-heatmap-week-col\)/s,
-  );
-  assert.match(
-    styles,
-    /\.fitness-plugin \.fitness-week\s*\{[^}]*padding:\s*var\(--atomic-heatmap-week-pad\)/s,
+    /\.fitness-plugin \.atomic-heat-body\s*\{[^}]*grid-template-columns:\s*var\(--atomic-heat-label\)/s,
   );
   assert.match(styles, /--atomic-book-width:\s*96px/);
   assert.match(
     styles,
-    /\.fitness-plugin \.fitness-heatmap-body\s*\{[^}]*min-width:\s*0/s,
+    /\.fitness-plugin \.atomic-heat-scroll\s*\{[^}]*overflow-x:\s*auto/s,
   );
-  assert.match(
-    styles,
-    /\.fitness-plugin \.fitness-heatmap-scroll\s*\{[^}]*overflow-x:\s*auto/s,
-  );
-  assert.match(styles, /\.theme-dark[^{]*\.fitness-cell\.is-today/);
-  assert.match(styles, /\.fitness-cell\.is-today[^}]*box-shadow/s);
-  assert.match(styles, /\.fitness-weeks-end-pad\s*\{/);
+  assert.match(styles, /\.theme-dark[^{]*\.atomic-heat-cell\.is-today/);
+  assert.match(styles, /\.atomic-heat-cell\.is-today[^}]*box-shadow/s);
+  assert.doesNotMatch(styles, /\.fitness-weeks-end-pad\s*\{/);
   assert.match(
     styles,
     /\.atomic-book-row-books\s*\{[^}]*overflow-x:\s*auto/s,

@@ -11,7 +11,7 @@ import { parseYmd, weekdayDateForLanguage } from "../dates";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { t } from "../i18n/index.ts";
 import { isFutureMonth, stackedMonthPeak } from "../util/month-chart";
-import { appendCatalogLabel } from "./catalog-label";
+import { appendCatalogLabel, appendInlineCatalog } from "./catalog-label";
 import {
   appendPathLink,
   appendSectionTitle,
@@ -69,6 +69,16 @@ function sectionReadout(section: HTMLElement): HTMLElement | null {
   return readout;
 }
 
+function appendChartLegend(parent: HTMLElement, columns: DashboardMonthlyColumn[]): void {
+  const legend = parent.createDiv({ cls: "atomic-legend" });
+  for (const column of columns) {
+    const item = legend.createSpan();
+    const dot = item.createSpan({ cls: "atomic-dot" });
+    dot.setCssProps({ "--atomic-c": column.activity.colors[2] });
+    item.appendText(column.activity.label);
+  }
+}
+
 function appendMonthlyChart(
   card: HTMLElement,
   columns: DashboardMonthlyColumn[],
@@ -76,14 +86,6 @@ function appendMonthlyChart(
   readout: HTMLElement,
   year: number,
 ): void {
-  const legend = card.createDiv({ cls: "atomic-legend" });
-  for (const column of columns) {
-    const item = legend.createSpan();
-    const dot = item.createSpan({ cls: "atomic-dot" });
-    dot.style.setProperty("--atomic-c", column.activity.colors[2]);
-    item.appendText(column.activity.label);
-  }
-
   const max = chartMax(columns, year, ctx.timezone);
   const axis = card.createDiv({ cls: "atomic-chart-y atomic-caption" });
   for (const mark of [0, 0.5, 1]) {
@@ -180,9 +182,13 @@ export function renderDashboardMonthly(
     attr: { "data-testid": "atomic-dashboard-monthly" },
   });
   if (sessionColumns.length > 0 && readout) {
+    const titleWrap = section.querySelector(".atomic-section-head")?.firstElementChild;
+    if (titleWrap?.instanceOf(HTMLElement)) {
+      appendChartLegend(titleWrap, sessionColumns);
+    }
     card.addClass("atomic-chart");
     appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
-    const details = card.createEl("details", { cls: "atomic-quiet-toggle" });
+    const details = section.createEl("details", { cls: "atomic-quiet-toggle" });
     details.createEl("summary", { text: t("view.dashboard.showMonthlyTable", ctx.language) });
     appendMonthlyTable(details, model, ctx);
     return;
@@ -307,17 +313,23 @@ export function renderDashboardDetails(
   renderGolfFocus(columns, model, ctx);
 }
 
-function recentSummary(row: DashboardRecentRow, ctx: DashboardRenderContext): string {
-  const parts = [t("view.dashboard.minutesShort", ctx.language, { minutes: formatCount(row.minutes) })];
-  if (row.volumeKg != null && row.volumeKg > 0) parts.push(kg(row.volumeKg, ctx));
+function recentParts(
+  row: DashboardRecentRow,
+  ctx: DashboardRenderContext,
+): { minutes: string; extra: string } {
+  const extras: string[] = [];
+  if (row.volumeKg != null && row.volumeKg > 0) extras.push(kg(row.volumeKg, ctx));
   if (row.felt) {
-    parts.push(
+    extras.push(
       t("view.dashboard.feltSummary", ctx.language, {
         felt: t(FELT_LABEL_KEY[row.felt], ctx.language),
       }),
     );
   }
-  return parts.join(" · ");
+  return {
+    minutes: formatCount(row.minutes),
+    extra: extras.join(" · "),
+  };
 }
 
 export function renderDashboardRecent(
@@ -344,7 +356,7 @@ export function renderDashboardRecent(
       cls: "atomic-recent-row atomic-dash-recent-row",
       attr: { "data-testid": "atomic-dashboard-recent-row", "data-path": row.path },
     });
-    line.style.setProperty("--atomic-c", row.activity.colors[2]);
+    line.setCssProps({ "--atomic-c": row.activity.colors[2] });
     const parsed = parseYmd(row.date);
     line.createSpan({
       cls: "atomic-recent-date",
@@ -355,7 +367,15 @@ export function renderDashboardRecent(
     const what = line.createSpan({ cls: "atomic-name" });
     what.createSpan({ cls: "atomic-dot" });
     appendPathLink(what, row.activity.label, row.path, ctx, "atomic-link");
-    line.createSpan({ cls: "atomic-recent-sum", text: recentSummary(row, ctx) });
+    const parts = recentParts(row, ctx);
+    const sum = line.createSpan({ cls: "atomic-recent-sum" });
+    sum.createEl("strong", { text: parts.minutes });
+    sum.appendText(" ");
+    appendInlineCatalog(sum, t("view.dashboard.minuteWord", ctx.language));
+    if (parts.extra) {
+      sum.createSpan({ cls: "is-extra", text: ` · ${parts.extra}` });
+    }
+    line.createSpan({ cls: "atomic-recent-sub", text: parts.extra });
     line.createSpan({ cls: "atomic-recent-arrow", text: "→" });
   }
 }

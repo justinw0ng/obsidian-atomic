@@ -14,13 +14,12 @@ import {
   buildHeatmapWeeks,
   heatmapActivityKey,
   heatmapLayoutKey,
-  heatmapMonthSlots,
+  heatmapMonthPlacements,
   sameHeatmapPaintState,
-  type HeatmapMonthSlot,
   type HeatmapPaintState,
 } from "../util/heatmap-model";
 import { measureElementWidth } from "../util/element-width";
-import { scrollLeftToAlignRight } from "../util/heatmap-scroll";
+import { scrollLeftToRevealToday } from "../util/heatmap-scroll";
 import { PaintMemo } from "../util/paint-memo";
 
 type HeatmapObserverRegistry = {
@@ -42,9 +41,10 @@ function cleanupHeatmapObservers(container: HTMLElement): void {
   heatmapObserverRegistry.delete(container);
 }
 
-const DAY_NAMES: Record<Language, string[]> = {
-  en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  "zh-Hant-en": ["日", "一", "二", "三", "四", "五", "六"],
+/** Mon / Wed / Fri only, so a 16px label column stays one glyph wide. */
+const DOW_MARKS: Record<Language, readonly string[]> = {
+  en: ["", "M", "", "W", "", "F", ""],
+  "zh-Hant-en": ["", "一", "", "三", "", "五", ""],
 };
 
 function wireHeatmapScroll(
@@ -55,18 +55,33 @@ function wireHeatmapScroll(
   let expectedScrollLeft: number | null = null;
 
   const applyTodayAlign = () => {
-    const todayWeek = scrollEl.querySelector<HTMLElement>(".is-today-week");
-    if (!todayWeek) return;
-
-    const targetRightPx =
-      todayWeek.getBoundingClientRect().right -
-      scrollEl.getBoundingClientRect().left +
-      scrollEl.scrollLeft;
-    const nextScrollLeft = scrollLeftToAlignRight(
-      scrollEl.scrollWidth,
-      scrollEl.clientWidth,
-      targetRightPx,
-    );
+    const today = scrollEl.querySelector(".atomic-heat-cell.is-today");
+    if (!today?.instanceOf(HTMLElement)) return;
+    const todayRect = today.getBoundingClientRect();
+    if (todayRect.width <= 0) return;
+    const scrollRect = scrollEl.getBoundingClientRect();
+    const todayLeft = todayRect.left - scrollRect.left + scrollEl.scrollLeft;
+    const sample = scrollEl.querySelectorAll(".atomic-heat-cells > .atomic-heat-cell");
+    let pitch = todayRect.width + 3;
+    const first = sample[0];
+    const nextColumn = sample[7];
+    if (first?.instanceOf(HTMLElement) && nextColumn?.instanceOf(HTMLElement)) {
+      const delta = nextColumn.getBoundingClientRect().left - first.getBoundingClientRect().left;
+      if (delta > 0) pitch = delta;
+    }
+    const monthStarts: number[] = [];
+    scrollEl.querySelectorAll(".atomic-heat-months > span").forEach((node) => {
+      if (!node.instanceOf(HTMLElement)) return;
+      monthStarts.push(node.getBoundingClientRect().left - scrollRect.left + scrollEl.scrollLeft);
+    });
+    const nextScrollLeft = scrollLeftToRevealToday({
+      scrollWidth: scrollEl.scrollWidth,
+      clientWidth: scrollEl.clientWidth,
+      todayLeft,
+      todayWidth: todayRect.width,
+      pitch,
+      monthStarts,
+    });
 
     expectedScrollLeft = nextScrollLeft;
     scrollEl.scrollLeft = nextScrollLeft;
@@ -115,42 +130,12 @@ function wireHeatmapCellClicks(weeksEl: HTMLElement, data: VaultDataSource): voi
   weeksEl.addEventListener("click", (event) => {
     const target = htmlElementFromTarget(event.target);
     if (!target) return;
-    const cell = target.closest(".fitness-cell.is-link");
+    const cell = target.closest(".atomic-heat-cell.is-link");
     const path = cell?.getAttribute("data-path");
     if (!path) return;
     event.preventDefault();
     void data.openPath(path);
   });
-}
-
-function appendHeatmapMonthSlot(
-  monthRow: HTMLElement,
-  slot: HeatmapMonthSlot,
-): void {
-  switch (slot.kind) {
-    case "label":
-      monthRow.createDiv({
-        cls: "fitness-month-label",
-        text: slot.text,
-        attr: {
-          "data-testid": "atomic-heatmap-month",
-          "data-month": String(slot.month),
-        },
-      });
-      return;
-    case "spacer": {
-      const attr: Record<string, string> = {
-        "data-testid": "atomic-heatmap-month-spacer",
-      };
-      if (slot.month != null) attr["data-month"] = String(slot.month);
-      monthRow.createDiv({ cls: "fitness-month-spacer", attr });
-      return;
-    }
-    default: {
-      const _exhaustive: never = slot;
-      return _exhaustive;
-    }
-  }
 }
 
 function renderOneHeatmap(
@@ -163,8 +148,14 @@ function renderOneHeatmap(
   registry: HeatmapObserverRegistry,
   activityMap: Map<string, DayActivity>,
 ): void {
+  const weeks = buildHeatmapWeeks({
+    year,
+    todayStr: ymdInZone(new Date(), timezone),
+    language,
+    activityMap,
+  });
   const wrap = root.createDiv({
-    cls: "fitness-heatmap",
+    cls: "atomic-heatmap",
     attr: {
       "data-testid": "atomic-heatmap",
       "data-activity": activity.id,
@@ -172,75 +163,78 @@ function renderOneHeatmap(
   });
   // Paint off-document so ~370 cell createDivs do not mutate the live tree.
   wrap.detach();
-  wrap.style.setProperty("--atomic-c", activity.colors[2]);
+  wrap.setCssProps({
+    "--atomic-c": activity.colors[2],
+    "--atomic-heat-weeks": String(weeks.length),
+  });
   const head = wrap.createDiv({ cls: "atomic-heat-head" });
   const title = head.createSpan({ cls: "atomic-name" });
   title.createSpan({ cls: "atomic-dot" });
   title.createSpan({ text: activity.label });
   head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
 
-  const weeks = buildHeatmapWeeks({
-    year,
-    todayStr: ymdInZone(new Date(), timezone),
-    language,
-    activityMap,
-  });
-
-  const body = wrap.createDiv({ cls: "fitness-heatmap-body" });
-  const dayLabels = body.createDiv({ cls: "fitness-day-labels" });
-  for (const d of DAY_NAMES[language]) {
-    dayLabels.createDiv({ cls: "fitness-day-label", text: d });
+  const body = wrap.createDiv({ cls: "atomic-heat-body" });
+  const dayLabels = body.createDiv({ cls: "atomic-heat-days atomic-caption" });
+  for (const mark of DOW_MARKS[language]) {
+    dayLabels.createSpan({ text: mark });
   }
 
   const scroll = body.createDiv({
-    cls: "fitness-heatmap-scroll atomic-scrollport",
+    cls: "atomic-heat-scroll fitness-heatmap-scroll atomic-scrollport",
     attr: { "data-testid": "atomic-heatmap-scroll" },
   });
-  const monthRow = scroll.createDiv({ cls: "fitness-month-row" });
-  for (const slot of heatmapMonthSlots(weeks, language)) {
-    appendHeatmapMonthSlot(monthRow, slot);
+  const grid = scroll.createDiv({ cls: "atomic-heat-grid" });
+  const monthRow = grid.createDiv({ cls: "atomic-heat-months atomic-caption" });
+  for (const placement of heatmapMonthPlacements(weeks, language)) {
+    const label = monthRow.createSpan({
+      text: placement.text,
+      attr: {
+        "data-testid": "atomic-heatmap-month",
+        "data-month": String(placement.month),
+        "data-week": String(placement.week),
+      },
+    });
+    label.setCssProps({ "--w": String(placement.week) });
   }
 
-  const weeksEl = scroll.createDiv({ cls: "fitness-weeks" });
+  const cells = grid.createDiv({ cls: "atomic-heat-cells" });
   appendHeatmapWeeks(
-    weeksEl,
+    cells,
     weeks,
     activity.colors,
     t("view.heatmap.tooltip", language),
     t("view.heatmap.tooltipOpen", language),
   );
-  wireHeatmapCellClicks(weeksEl, data);
+  wireHeatmapCellClicks(cells, data);
   wireHeatmapReadout(wrap, language);
   wireHeatmapScroll(scroll, registry);
 
-  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend atomic-heat-legend" });
+  const foot = wrap.createDiv({ cls: "atomic-heat-foot" });
+  foot.createSpan({
+    cls: "atomic-caption",
+    text: t("view.heatmap.byDuration", language),
+  });
+  const legend = foot.createDiv({ cls: "atomic-heat-legend" });
   legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.less", language) });
-  legend.createDiv({ cls: "fitness-legend-swatch fitness-cell", attr: { "data-l": "0" } });
+  legend.createSpan({ cls: "atomic-heat-cell", attr: { "data-l": "0" } });
   activity.colors.forEach((_, level) => {
-    legend.createDiv({
-      cls: "fitness-legend-swatch fitness-cell",
+    legend.createSpan({
+      cls: "atomic-heat-cell",
       attr: { "data-l": String(level + 1) },
     });
   });
   legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.more", language) });
-  legend.createSpan({
-    cls: "atomic-caption",
-    text: t("view.heatmap.byDuration", language),
-  });
   root.appendChild(wrap);
 }
 
 function wireHeatmapReadout(wrap: HTMLElement, language: Language): void {
   const readout = wrap.querySelector(".atomic-heat-readout");
   if (!readout?.instanceOf(HTMLElement)) return;
-  const cells = Array.from(
-    wrap.querySelectorAll(".fitness-cell.is-link, .fitness-cell[data-minutes]"),
-  );
+  const cells = Array.from(wrap.querySelectorAll(".atomic-heat-cells .atomic-heat-cell"));
   let days = 0;
   let minutes = 0;
   for (const cell of cells) {
     if (!cell.instanceOf(HTMLElement)) continue;
-    if (cell.classList.contains("fitness-legend-swatch")) continue;
     const value = Number(cell.getAttribute("data-minutes") || "0");
     if (value > 0) {
       days += 1;
@@ -257,8 +251,8 @@ function wireHeatmapReadout(wrap: HTMLElement, language: Language): void {
   wrap.addEventListener("pointerover", (event) => {
     const target = htmlElementFromTarget(event.target);
     if (!target) return;
-    const cell = target.closest(".fitness-cell");
-    if (!cell?.instanceOf(HTMLElement) || cell.classList.contains("fitness-legend-swatch")) return;
+    const cell = target.closest(".atomic-heat-cells .atomic-heat-cell");
+    if (!cell?.instanceOf(HTMLElement)) return;
     const title = cell.getAttribute("title");
     if (title) readout.setText(title);
   });

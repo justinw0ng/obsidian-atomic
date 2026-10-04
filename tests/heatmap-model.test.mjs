@@ -6,7 +6,7 @@ import {
   appendHeatmapWeeks,
   buildHeatmapWeeks,
   formatHeatmapTooltip,
-  heatmapMonthSlots,
+  heatmapMonthPlacements,
   sameHeatmapPaintState,
 } from "../src/util/heatmap-model.ts";
 
@@ -82,22 +82,23 @@ test("appendHeatmapWeeks paints cells with dataset hooks", () => {
     "{date}: {minutes} min - click to open",
   );
   const today = created.find((el) => el.dataset.testid === "atomic-heatmap-today");
-  const pad = created.find((el) => el.className === "fitness-weeks-end-pad");
-  const todayWeek = created.find((el) => el.className.includes("is-today-week"));
+  const pad = created.find((el) => el.className === "atomic-heat-cell is-pad");
   const cellTestIds = created.filter((el) => el.dataset.testid === "atomic-heatmap-cell");
   assert.ok(today);
   assert.ok(pad);
-  assert.ok(todayWeek);
+  assert.match(today.className, /atomic-heat-cell/);
+  assert.match(today.className, /is-today/);
+  assert.match(today.className, /is-link/);
   assert.equal(cellTestIds.length, 0);
   assert.equal(today.dataset.path, 'atomics/exercise/Gym/2026/a"b.md');
   assert.equal(today.dataset.minutes, "30");
   assert.equal(today.dataset.ymd, "2026-01-01");
   assert.equal(today.dataset.l, "2");
-  assert.equal(parent.children.at(-1), pad);
   const future = created.find((el) => String(el.className).includes("is-future"));
   assert.ok(future);
   assert.ok(future.dataset.ymd > "2026-01-01");
   assert.equal(String(today.className).includes("is-future"), false);
+  assert.equal(future.dataset.l, undefined);
 });
 
 test("appendHeatmapWeeks keeps year-grid DOM volume bounded", () => {
@@ -117,56 +118,51 @@ test("appendHeatmapWeeks keeps year-grid DOM volume bounded", () => {
     "{date}: {minutes} min - click to open",
   );
   const cells = created.filter((el) =>
-    String(el.className).includes("fitness-cell"),
+    String(el.className).includes("atomic-heat-cell"),
   );
   const today = created.filter((el) => el.dataset.testid === "atomic-heatmap-today");
   assert.ok(weeks.length >= 52);
   assert.ok(weeks.length <= 54);
   assert.equal(weeks.flat().length, cells.length);
-  assert.ok(
-    created.length <= weeks.length * 8 + 5,
-    `week painter used ${created.length} nodes for ${weeks.length} weeks`,
-  );
+  assert.equal(created.length, cells.length + 1);
   assert.equal(today.length, 1);
 });
 
-test("September 6 2026 sits under 9月, not 10月", () => {
+test("September 6 2026 sits under the 9月 span, not 10月", () => {
   const weeks = buildHeatmapWeeks({
     year: 2026,
     todayStr: "2026-09-06",
     language: "zh-Hant-en",
     activityMap: new Map(),
   });
-  const slots = heatmapMonthSlots(weeks, "zh-Hant-en");
-  assert.equal(slots.length, weeks.length);
-  const todayIndex = weeks.findIndex((week) => week.some((day) => day.isToday));
-  assert.ok(todayIndex >= 0);
-  const today = weeks[todayIndex].find((day) => day.isToday);
+  const placements = heatmapMonthPlacements(weeks, "zh-Hant-en");
+  assert.equal(placements.length, 12);
+  const days = weeks.flat();
+  const todayIndex = days.findIndex((day) => day.isToday);
+  const today = days[todayIndex];
   assert.equal(today.date, "2026-09-06");
   assert.equal(today.m, 9);
-  const slot = slots[todayIndex];
-  assert.equal(slot.kind, "label");
-  assert.equal(slot.month, 9);
-  assert.equal(slot.text, monthShortZh(2026, 9, 6));
-  const octoberIndex = slots.findIndex(
-    (entry) => entry.kind === "label" && entry.month === 10,
-  );
-  assert.ok(octoberIndex > todayIndex);
+  const todayWeek = Math.floor(todayIndex / 7) + 1;
+  const september = placements.find((entry) => entry.month === 9);
+  const october = placements.find((entry) => entry.month === 10);
+  assert.equal(september.text, monthShortZh(2026, 9, 1));
+  assert.ok(september.week <= todayWeek);
+  assert.ok(october.week > todayWeek);
 });
 
-test("month slots keep one column per week for English labels", () => {
+test("month labels mark the first week of each month", () => {
   const weeks = buildHeatmapWeeks({
     year: 2026,
     todayStr: "2026-09-06",
     language: "en",
     activityMap: new Map(),
   });
-  const slots = heatmapMonthSlots(weeks, "en");
-  assert.equal(slots.length, weeks.length);
-  const todayIndex = weeks.findIndex((week) => week.some((day) => day.isToday));
-  assert.equal(slots[todayIndex].kind, "label");
-  assert.equal(slots[todayIndex].month, 9);
-  assert.equal(slots[todayIndex].text, monthShortEn(2026, 9, 6));
+  const placements = heatmapMonthPlacements(weeks, "en");
+  assert.equal(placements.length, 12);
+  const september = placements.find((entry) => entry.month === 9);
+  assert.equal(september.text, monthShortEn(2026, 9, 1));
+  assert.ok(september.week >= 1);
+  assert.ok(placements.every((entry, index) => index === 0 || entry.week > placements[index - 1].week));
 });
 
 test("heatmap tooltip formatting stays literal", () => {

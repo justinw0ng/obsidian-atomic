@@ -1107,34 +1107,31 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           '[data-testid="atomic-heatmap"][data-activity="reading"]',
         );
         const today = heatmap.querySelector('[data-testid="atomic-heatmap-today"]');
-        const week = today.closest('.fitness-week');
-        const weeks = [...heatmap.querySelectorAll('.fitness-week')];
-        const index = weeks.indexOf(week);
-        const slot = heatmap.querySelector('.fitness-month-row').children[index];
-        const weekLeft = week.getBoundingClientRect().left;
-        const slotLeft = slot.getBoundingClientRect().left;
-        return {
-          ymd: today.getAttribute('data-ymd'),
-          slotMonth: slot.getAttribute('data-month'),
-          dx: Math.abs(weekLeft - slotLeft),
-        };
+        const cells = [...heatmap.querySelectorAll('.atomic-heat-cells > .atomic-heat-cell')];
+        const index = cells.indexOf(today);
+        const todayWeek = Math.floor(index / 7) + 1;
+        const ymd = today.getAttribute('data-ymd') || '';
+        const month = Number(ymd.slice(5, 7));
+        const labels = [...heatmap.querySelectorAll('[data-testid="atomic-heatmap-month"]')];
+        const label = labels.find((node) => Number(node.getAttribute('data-month')) === month);
+        const labelWeek = label ? Number(label.getAttribute('data-week')) : 0;
+        const next = labels.find((node) => Number(node.getAttribute('data-week')) > labelWeek);
+        const nextWeek = next ? Number(next.getAttribute('data-week')) : todayWeek + 1;
+        const anchor = cells[(labelWeek - 1) * 7];
+        const dx = label && anchor
+          ? Math.abs(label.getBoundingClientRect().left - anchor.getBoundingClientRect().left)
+          : 999;
+        return { ymd, todayWeek, labelWeek, nextWeek, dx };
       `);
       assert.ok(result.ymd, "today cell is missing data-ymd");
-      const todayMonth = Number(result.ymd.slice(5, 7));
-      const slotMonth = Number(result.slotMonth);
+      assert.ok(result.labelWeek >= 1, `today month label is missing (${result.ymd})`);
       assert.ok(
-        Number.isFinite(slotMonth) && slotMonth > 0,
-        `today column is missing data-month (ymd=${result.ymd})`,
-      );
-      assert.ok(
-        slotMonth === todayMonth ||
-          slotMonth === todayMonth - 1 ||
-          (todayMonth === 1 && slotMonth === 12),
-        `today ${result.ymd} sits under month ${slotMonth}`,
+        result.labelWeek <= result.todayWeek && result.nextWeek > result.todayWeek,
+        `today week ${result.todayWeek} is outside ${result.labelWeek}–${result.nextWeek} (${result.ymd})`,
       );
       assert.ok(
         result.dx < 2,
-        `month slot and today week differ by ${result.dx}px`,
+        `month label and its week differ by ${result.dx}px`,
       );
     });
   });

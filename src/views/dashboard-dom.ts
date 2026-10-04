@@ -123,9 +123,10 @@ export function appendActivityLink(
 ): HTMLAnchorElement {
   const el = parent.createEl("a", {
     cls,
-    text,
     attr: { href: "#", "data-testid": "atomic-dashboard-link", "data-path": link.path },
   });
+  el.appendText(text);
+  el.createSpan({ cls: "atomic-link-arrow", text: "↗" });
   el.addEventListener("click", (event) => {
     event.preventDefault();
     void link.open();

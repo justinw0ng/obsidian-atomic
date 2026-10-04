@@ -60,7 +60,7 @@ test("language option labels exist", () => {
 
 test("english catalog drops the Chinese half", () => {
   assert.equal(en["settings.timezone"], "Timezone");
-  assert.equal(en["view.today.title"], "🗂️ Today’s sessions");
+  assert.equal(en["view.today.title"], "Today");
   assert.doesNotMatch(en["settings.timezone"], /\/|時區/);
 });
 

@@ -1,22 +1,22 @@
-/** Heatmap cell geometry. Keep in sync with `--atomic-heatmap-*` in styles.css. */
+/** Heatmap cell geometry. Keep in sync with `--atomic-heat-*` in styles.css. */
 
-export const HEATMAP_CELL_PX = 11;
-export const HEATMAP_GAP_PX = 1;
-export const HEATMAP_WEEK_PAD_PX = 1;
-export const HEATMAP_DAY_LABEL_PX = 22;
-export const HEATMAP_SCROLL_PAD_PX = 4;
+export const HEATMAP_CELL_PX = 10;
+export const HEATMAP_GAP_PX = 3;
+export const HEATMAP_WEEK_PAD_PX = 0;
+export const HEATMAP_DAY_LABEL_PX = 16;
+export const HEATMAP_LABEL_GAP_PX = 6;
+export const HEATMAP_SCROLL_PAD_PX = 0;
 
-/** Week column width: cell plus `.fitness-week` horizontal padding. */
+/** One week column: the cell, plus any horizontal pad around it. */
 export function heatmapWeekColumnPx(): number {
   return HEATMAP_CELL_PX + 2 * HEATMAP_WEEK_PAD_PX;
 }
 
-/** Shared track width for month slots and week columns (gap between columns). */
+/** Year strip width: cells plus the gap between columns. */
 export function heatmapTrackWidth(weekCount: number): number {
   if (!Number.isFinite(weekCount) || weekCount <= 0) return 0;
-  return (
-    weekCount * heatmapWeekColumnPx() + (weekCount - 1) * HEATMAP_GAP_PX
-  );
+  const columns = Math.floor(weekCount);
+  return columns * HEATMAP_CELL_PX + (columns - 1) * HEATMAP_GAP_PX;
 }
 
 export function heatmapWeeksWidth(weekCount: number): number {
@@ -25,7 +25,7 @@ export function heatmapWeeksWidth(weekCount: number): number {
 }
 
 export function heatmapBodyMinWidth(weekCount: number): number {
-  return HEATMAP_DAY_LABEL_PX + heatmapWeeksWidth(weekCount);
+  return HEATMAP_DAY_LABEL_PX + HEATMAP_LABEL_GAP_PX + heatmapWeeksWidth(weekCount);
 }
 
 /** True when the year grid is wider than the pane and must scroll, not clip. */

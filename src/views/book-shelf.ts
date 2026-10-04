@@ -284,10 +284,9 @@ export function coverObjectPosition(
 
 function bindCoverObjectPosition(img: HTMLImageElement): void {
   const apply = (): void => {
-    img.style.objectPosition = coverObjectPosition(
-      img.naturalWidth,
-      img.naturalHeight,
-    );
+    img.setCssProps({
+      "object-position": coverObjectPosition(img.naturalWidth, img.naturalHeight),
+    });
   };
   if (img.complete) apply();
   else img.addEventListener("load", apply, { once: true });

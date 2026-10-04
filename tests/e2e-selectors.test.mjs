@@ -28,7 +28,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(heatmap, /atomic-scrollport/);
   assert.match(heatmap, /"atomic-heatmap-month"/);
   assert.match(heatmap, /appendHeatmapWeeks/);
-  assert.match(heatmap, /heatmapMonthSlots/);
+  assert.match(heatmap, /heatmapMonthPlacements/);
   assert.match(heatmap, /wrap\.detach\(\)/);
   assert.doesNotMatch(heatmap, /innerHTML/);
 
@@ -37,7 +37,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(heatmapModel, /"atomic-heatmap-cell"/);
   assert.match(heatmapModel, /"data-ymd"/);
   assert.match(heatmapModel, /appendHeatmapWeeks/);
-  assert.match(heatmapModel, /export function heatmapMonthSlots/);
+  assert.match(heatmapModel, /export function heatmapMonthPlacements/);
   assert.match(heatmapModel, /createDiv\(/);
   assert.doesNotMatch(heatmapModel, /createElement\(/);
   assert.doesNotMatch(heatmapModel, /createDocumentFragment\(/);
