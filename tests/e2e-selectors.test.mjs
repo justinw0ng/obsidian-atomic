@@ -248,6 +248,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(settings, /atomic-setting-folder/);
   assert.match(settings, /atomic-setting-cues/);
   assert.match(settings, /atomic-setting-delete/);
+  assert.match(settings, /atomic-setting-shades-label/);
   assert.match(settings, /atomic-setting-add-hobby/);
   assert.match(settings, /atomic-setting-gym-import/);
   assert.match(settings, /atomic-setting-gym-exercises/);
@@ -283,6 +284,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-setting-gym-exercises/);
   assert.match(health, /atomic-setting-enabled-label/);
   assert.match(health, /atomic-setting-folder-label/);
+  assert.match(health, /atomic-setting-shades-label/);
   assert.match(health, /atomic-gym-log-setup-modal/);
   assert.match(health, /atomic-gym-log-setup-later/);
   assert.match(health, /promptGymLogSetupIfPending/);

@@ -7409,12 +7409,6 @@ function wrapLastSettingControl(setting, options) {
   });
   field.appendChild(last);
 }
-function syncActivityDisabledClass(activityEl, disabled) {
-  activityEl.toggleClass("is-disabled", disabled);
-  const colors = activityEl.nextElementSibling;
-  if (!colors?.classList.contains("atomic-setting-colors")) return;
-  colors.classList.toggle("is-disabled", disabled);
-}
 function isFunction(value) {
   return typeof value === "function";
 }
@@ -7729,7 +7723,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
     setting.addToggle((toggle) => {
       toggle.setTooltip(t("settings.enabledTooltip", language)).setValue(activity.enabled !== false).onChange(async (value) => {
         activity.enabled = value;
-        syncActivityDisabledClass(setting.settingEl, !value);
+        setting.settingEl.toggleClass("is-disabled", !value);
         await this.saveAndRefresh();
       });
       toggle.toggleEl.setAttr("aria-label", t("settings.enabledLabel", language));
@@ -7797,9 +7791,6 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
   }
   paintColorControls(setting, activity) {
     setting.setClass("atomic-setting-colors");
-    if (activity.enabled === false) {
-      setting.settingEl.addClass("is-disabled");
-    }
     setting.addColorPicker(
       (picker) => picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
@@ -7876,7 +7867,8 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
     });
     row.createSpan({
       cls: "atomic-setting-field-label",
-      text: t("settings.heatmapShades", this.plugin.settings.language)
+      text: t("settings.heatmapShades", this.plugin.settings.language),
+      attr: { "data-testid": "atomic-setting-shades-label" }
     });
     for (const color of activity.colors) {
       const swatch = row.createDiv({

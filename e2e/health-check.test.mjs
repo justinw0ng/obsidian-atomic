@@ -1477,7 +1477,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         );
         assert.equal(swatches.length, 4);
         const shadeLabel = await colors.findElement(
-          By.css(".atomic-setting-field-label"),
+          By.css('[data-testid="atomic-setting-shades-label"]'),
         );
         assert.equal(await shadeLabel.getText(), "Heatmap shades");
       }

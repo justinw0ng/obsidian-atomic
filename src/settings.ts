@@ -30,8 +30,6 @@ function styleDestructiveButton(button: ButtonComponent): void {
 
 /** Caption the last painted control. Use a div, not a label: a label around
  *  Obsidian's checkbox-container can fire the toggle twice. */
-/** Caption the last painted control. Use a div, not a label: a label around
- *  Obsidian's checkbox-container can fire the toggle twice. */
 function wrapLastSettingControl(
   setting: Setting,
   options: { label: string; testId: string; action?: boolean },
@@ -53,13 +51,6 @@ function wrapLastSettingControl(
     attr: { "data-testid": `${options.testId}-label` },
   });
   field.appendChild(last);
-}
-
-function syncActivityDisabledClass(activityEl: HTMLElement, disabled: boolean): void {
-  activityEl.toggleClass("is-disabled", disabled);
-  const colors = activityEl.nextElementSibling;
-  if (!colors?.classList.contains("atomic-setting-colors")) return;
-  colors.classList.toggle("is-disabled", disabled);
 }
 
 function isFunction(
@@ -452,7 +443,7 @@ export class FitnessSettingTab extends PluginSettingTab {
         .setValue(activity.enabled !== false)
         .onChange(async (value) => {
           activity.enabled = value;
-          syncActivityDisabledClass(setting.settingEl, !value);
+          setting.settingEl.toggleClass("is-disabled", !value);
           await this.saveAndRefresh();
         });
       toggle.toggleEl.setAttr("aria-label", t("settings.enabledLabel", language));
@@ -535,9 +526,6 @@ export class FitnessSettingTab extends PluginSettingTab {
 
   private paintColorControls(setting: Setting, activity: ActivityType): void {
     setting.setClass("atomic-setting-colors");
-    if (activity.enabled === false) {
-      setting.settingEl.addClass("is-disabled");
-    }
     setting.addColorPicker((picker) =>
       picker.setValue(activity.baseColor || activity.colors[2]).onChange(async (value) => {
         activity.baseColor = value;
@@ -627,6 +615,7 @@ export class FitnessSettingTab extends PluginSettingTab {
     row.createSpan({
       cls: "atomic-setting-field-label",
       text: t("settings.heatmapShades", this.plugin.settings.language),
+      attr: { "data-testid": "atomic-setting-shades-label" },
     });
     for (const color of activity.colors) {
       const swatch = row.createDiv({
