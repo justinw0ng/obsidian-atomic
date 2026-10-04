@@ -15,6 +15,14 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 ![Dashboard on desktop and phone](docs/images/atomic-dashboard-hero.png)
 
+## Gym log
+
+1. Open a gym session note.
+2. Press Start on the session timer.
+3. Pick an exercise, enter weight and reps, then click Add set.
+
+![Gym log on desktop and phone](docs/images/atomic-gym-hero.png)
+
 ## Cue cards
 
 1. Open a cue page, for example `atomics/exercise/Golf/Cues.md`.

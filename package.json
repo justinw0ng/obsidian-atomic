@@ -14,6 +14,7 @@
     "docs:user-guide-screenshots": "node scripts/capture-user-guide-screenshots.mjs",
     "docs:hero-gif": "python3 scripts/animate-hero-gif.py",
     "docs:cue-hero": "node scripts/capture-cue-hero.mjs",
+    "docs:gym-hero": "node scripts/capture-gym-hero.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

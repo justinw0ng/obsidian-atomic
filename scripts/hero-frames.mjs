@@ -45,6 +45,34 @@ export function ensureHeroShells() {
   return manifest;
 }
 
+export function padHeroContent({ scene, kind, content, out }) {
+  const manifest = ensureHeroShells();
+  const name = `${scene}-${kind === "phone" ? "phone" : "desktop"}`;
+  const hole = manifest.shells[name].hole;
+  mkdirSync(dirname(out), { recursive: true });
+  const result = spawnSync(
+    "python3",
+    [
+      join(ROOT, "scripts/pad-hero-content.py"),
+      "--src",
+      content,
+      "--out",
+      out,
+      "--aspect-width",
+      String(hole.width),
+      "--aspect-height",
+      String(hole.height),
+    ],
+    { encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    throw new Error(`pad hero content failed: ${(result.stderr || result.stdout || "").trim()}`);
+  }
+  if (!existsSync(out)) throw new Error(`Failed to write ${out}`);
+  console.log((result.stdout || "").trim() || `Wrote ${out}`);
+  return out;
+}
+
 export function frameHeroContent({ scene, kind, content, out }) {
   ensureHeroShells();
   mkdirSync(dirname(out), { recursive: true });
