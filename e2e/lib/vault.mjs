@@ -109,11 +109,11 @@ export function assertSafeE2eVaultPath(vaultPath) {
   }
 }
 
-/** 60×90 cover with a red edge so reading-mode layout can measure the image box. */
-const E2E_COVER_PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAADwAAABaCAIAAABrM6JiAAAAaklEQVR42u3bQREAIAgAQeIQ0WDEIYwVfCruzAXYAhed+VwBDX2IXtXXBg0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ39F9pjCz0AvQEVxwrKcFv7WwAAAABJRU5ErkJggg==",
-  "base64",
-);
+/**
+ * Remote cover so the health check can measure the image box.
+ * The image does not need to load; the element box comes from the shelf CSS.
+ */
+const E2E_COVER = "https://example.invalid/e2e-cover.png";
 
 function readingItem({ title, status, totalMin, timeLog, cover = "" }) {
   return `---
@@ -438,9 +438,6 @@ export function seedE2eVault(options = {}) {
   write(join(vault, "atomics/exercise/Golf/Cues.md"), "# Golf Cues\n");
   write(join(vault, "atomics/exercise/Gym/Cues.md"), "# Gym Cues\n");
 
-  const coverPath = "atomics/hobbies/Reading/Covers/current.png";
-  ensureDir(dirname(join(vault, coverPath)));
-  writeFileSync(join(vault, coverPath), E2E_COVER_PNG);
   write(
     join(vault, E2E_FILES.readingCurrent),
     readingItem({
@@ -448,7 +445,6 @@ export function seedE2eVault(options = {}) {
       status: "reading",
       totalMin: 25,
       timeLog: `- ${today} | 25 min | seeded`,
-      cover: coverPath,
     }),
   );
   write(
@@ -457,6 +453,7 @@ export function seedE2eVault(options = {}) {
       title: "Finished Book",
       status: "finished",
       totalMin: 0,
+      cover: E2E_COVER,
       timeLog: "",
     }),
   );

@@ -123,13 +123,17 @@ function measureShelfRow(driver, scale) {
   );
 }
 
-function measureCoverInset(driver) {
-  return driver.executeScript(`
+function measureCoverInset(driver, mode) {
+  return driver.executeScript(
+    `
+    const scope = arguments[0] === "reading"
+      ? ".workspace-leaf.mod-active .markdown-preview-view "
+      : ".workspace-leaf.mod-active .markdown-source-view ";
     const book = document.querySelector(
-      '[data-testid="atomic-book"][data-title="Currently Reading"]',
+      scope + '[data-testid="atomic-book"][data-title="Finished Book"]',
     );
     const img = book?.querySelector("img.atomic-book-cover");
-    if (!book || !img) return { img: false };
+    if (!book || !img) return { img: false, mode: arguments[0] };
     const bookBox = book.getBoundingClientRect();
     const imgBox = img.getBoundingClientRect();
     const face = book.querySelector(".atomic-book-face");
@@ -145,7 +149,9 @@ function measureCoverInset(driver) {
         bottom: bookBox.bottom - imgBox.bottom,
       },
     };
-  `);
+    `,
+    mode,
+  );
 }
 
 function assertCoverFillsBook(cover, mode) {
@@ -2079,7 +2085,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(
         driver,
-        '[data-testid="atomic-book"][data-title="Currently Reading"]',
+        '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
       );
       const pointer = await driver.executeScript(`
         return {
@@ -2094,7 +2100,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       );
       const ribbon = await driver.executeScript(`
         const book = document.querySelector(
-          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
         );
         const tab = book?.querySelector(".atomic-book-ribbon");
         if (!book || !tab) return null;
@@ -2124,7 +2130,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       );
       const clickBook = () => driver.executeScript(`
         document.querySelector(
-          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
         ).click();
       `);
       await clickBook();
@@ -2139,7 +2145,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       }
       const opened = await driver.executeScript(`
         const book = document.querySelector(
-          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
         );
         const face = book?.querySelector(".atomic-book-face");
         const cover = book?.querySelector(".atomic-book-cover");
@@ -2148,8 +2154,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
           coverText: (cover?.textContent || "").trim(),
+          coverClass: cover?.className || "",
+          coverTag: cover?.tagName || "",
           coverOpacity: cover ? getComputedStyle(cover).opacity : "",
           filter: face ? getComputedStyle(face).filter : "",
+          books: document.querySelectorAll('[data-testid="atomic-book"]').length,
         };
       `);
       assert.equal(
@@ -2168,7 +2177,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         `opened cover should blur the original face ${JSON.stringify(opened)}`,
       );
       assert.equal(opened.coverOpacity, "1", "the original cover stays visible when open");
-      assert.match(opened.coverText, /Currently Reading/);
+      assert.match(
+        opened.coverText,
+        /Currently Reading/,
+        `open cover should keep the title ${JSON.stringify(opened)}`,
+      );
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {
@@ -2217,14 +2230,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       );
 
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
-      await waitCss(driver, 'img.atomic-book-cover');
-      const editCover = await measureCoverInset(driver);
+      await waitCss(driver, '.workspace-leaf.mod-active .markdown-source-view img.atomic-book-cover');
+      const editCover = await measureCoverInset(driver, "edit");
       assert.ok(editCover?.img, "edit mode should paint a cover image");
       assertCoverFillsBook(editCover, "edit");
 
       await setMarkdownMode(driver, "preview");
-      await waitCss(driver, ".markdown-preview-view img.atomic-book-cover");
-      const readingCover = await measureCoverInset(driver);
+      await waitCss(driver, ".workspace-leaf.mod-active .markdown-preview-view img.atomic-book-cover");
+      const readingCover = await measureCoverInset(driver, "reading");
       assert.equal(readingCover?.preview, true);
       assertCoverFillsBook(readingCover, "reading");
       await shot(driver, "shelf-reading-mode");
