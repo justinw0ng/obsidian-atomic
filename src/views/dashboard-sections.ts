@@ -351,9 +351,24 @@ export function renderDashboardRecent(
   for (const row of model.recent) {
     const line = card.createDiv({
       cls: "atomic-recent-row atomic-dash-recent-row",
-      attr: { "data-testid": "atomic-dashboard-recent-row", "data-path": row.path },
+      attr: {
+        "data-testid": "atomic-dashboard-recent-row",
+        "data-path": row.path,
+        role: "link",
+        tabindex: "0",
+      },
     });
     line.setCssProps({ "--atomic-c": row.activity.colors[2] });
+    const openNote = (event: Event): void => {
+      event.preventDefault();
+      event.stopPropagation();
+      void ctx.data.openPath(row.path);
+    };
+    line.addEventListener("click", openNote);
+    line.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      openNote(event);
+    });
     const parsed = parseYmd(row.date);
     line.createSpan({
       cls: "atomic-recent-date",

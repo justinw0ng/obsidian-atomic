@@ -129,6 +129,7 @@ export function appendActivityLink(
   el.createSpan({ cls: "atomic-link-arrow", text: "↗" });
   el.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     void link.open();
   });
   return el;
@@ -148,6 +149,7 @@ export function appendPathLink(
   });
   link.addEventListener("click", (event) => {
     event.preventDefault();
+    event.stopPropagation();
     void ctx.data.openPath(path);
   });
   return link;

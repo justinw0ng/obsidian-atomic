@@ -1180,7 +1180,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await waitCss(driver, '[data-testid="atomic-dashboard-recent-row"]');
       await driver.executeScript(`
         document.querySelector(
-          '[data-testid="atomic-dashboard-recent-row"][data-path=${JSON.stringify(gymPath)}] a'
+          '[data-testid="atomic-dashboard-recent-row"][data-path=${JSON.stringify(gymPath)}]'
         ).click();
       `);
       await driver.wait(async () => {
@@ -1231,7 +1231,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
-  it("keeps bilingual heatmap captions on one line in a narrow pane", async () => {
+  it("keeps Traditional Chinese heatmap captions on one line in a narrow pane", async () => {
     await check(driver, "heatmap-foot-narrow", async () => {
       const desktopViewport = await driver.executeScript(
         `return { width: window.innerWidth, height: window.innerHeight }`,
@@ -1692,6 +1692,40 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         By.css('[data-testid="atomic-update-note-notice"]'),
       );
       assert.equal(leftover.length, 0);
+    });
+  });
+
+  it("opens a book cover on click, then the note", async () => {
+    await check(driver, "book-cover-open", async () => {
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(
+        driver,
+        '[data-testid="atomic-book"][data-title="Currently Reading"]',
+      );
+      const clickBook = () => driver.executeScript(`
+        document.querySelector(
+          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+        ).click();
+      `);
+      await clickBook();
+      const opened = await driver.executeScript(`
+        const book = document.querySelector(
+          '[data-testid="atomic-book"][data-title="Currently Reading"]'
+        );
+        return {
+          cover: book?.classList.contains("is-cover-open") === true,
+          path: app.workspace.getActiveFile()?.path || "",
+        };
+      `);
+      assert.equal(opened.cover, true, "the first click opens the cover");
+      assert.equal(opened.path, E2E_FILES.bookshelfAll);
+      await clickBook();
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === E2E_FILES.readingCurrent;
+      }, 8000);
     });
   });
 

@@ -251,13 +251,17 @@ test("flat books paint a cover crease and hang a reading ribbon", () => {
   assert.match(styles, /\.atomic-book-cover-title\.is-title-xs/);
 });
 
-test("fine pointers tilt a book; touch uses a lift instead of a cover flip", () => {
+test("fine pointers pop a book, then open the cover on click", () => {
   const hoverAt = styles.indexOf("@media (hover: hover) and (pointer: fine)");
   assert.ok(hoverAt > 0);
-  const hover = styles.slice(hoverAt, hoverAt + 800);
+  const hover = styles.slice(hoverAt, styles.indexOf("}", styles.indexOf("is-cover-open::after", hoverAt)));
   assert.match(hover, /perspective\(700px\)/);
   assert.match(hover, /rotateY\(calc\(var\(--px\)/);
+  assert.match(hover, /\.atomic-book\.is-cover-open \.atomic-book-face/);
+  assert.match(hover, /rotateY\(-112deg\)/);
   assert.match(styles, /\.atomic-book\.is-lifted\s*\{[^}]*translateY\(-10px\)/s);
+  assert.match(styles, /min-width:\s*100%/);
+  assert.match(styles, /min-height:\s*100%/);
   assert.doesNotMatch(styles, /rotateY\(-155deg\)/);
   assert.doesNotMatch(styles, /atomic-book-spine/);
 });

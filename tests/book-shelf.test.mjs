@@ -207,9 +207,13 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
   );
 });
 
-test("bookClickOpensNote waits for a second tap on coarse pointers", () => {
-  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), true);
+test("bookClickOpensNote opens the cover before the note on a fine pointer", () => {
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), false);
   assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: true }), true);
+  assert.equal(
+    bookClickOpensNote({ hoverFine: true, coverOpen: false, reducedMotion: true }),
+    true,
+  );
   assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: false }), false);
   assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: true }), true);
 });
@@ -220,13 +224,11 @@ test("hoverFinePointer follows the hover+fine media query", () => {
   assert.equal(hoverFinePointer({ matches: true }), true);
 });
 
-test("coverObjectPosition crops wide 3D mockups to the front face", () => {
-  // Upright 2:3 (and the shelf face ~80×124) stay centered.
+test("coverObjectPosition centers a user cover when its width does not match the book", () => {
   assert.equal(coverObjectPosition(400, 600), "center");
   assert.equal(coverObjectPosition(80, 124), "center");
-  // Photos / 3D renders that include a left spine are wider than 2:3.
-  assert.equal(coverObjectPosition(500, 600), "right center");
-  assert.equal(coverObjectPosition(510, 600), "right center");
+  assert.equal(coverObjectPosition(1600, 900), "center");
+  assert.equal(coverObjectPosition(200, 600), "center");
   assert.equal(coverObjectPosition(0, 600), "center");
   assert.equal(coverObjectPosition(400, 0), "center");
 });

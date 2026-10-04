@@ -86,7 +86,7 @@ columns: 2
 
 1. Command palette → **Open dashboard**, or open `atomics/Dashboard.md`.
 2. Step the year. Read the totals row, then one row per habit.
-3. Use the links for cue pages, Bases, and the book shelf. The monthly chart is under the rows.
+3. Use the links for cue pages, Bases, and the book shelf. Click a recent session to open that note. The monthly chart is under the rows.
 
 ![Year dashboard](./images/atomic-dashboard.gif)
 
@@ -126,6 +126,14 @@ Atomic creates that host when it is missing — when the plugin loads, when you 
 
 ![Cue cards](./images/atomic-cue-log.gif)
 
+On a gym session, a golf session, or a reading item, some properties are a dropdown.
+
+1. Open the note. Properties are at the top.
+2. Read location, felt, status, or weight unit. You see one value and a chevron.
+3. For location, choose **Custom…** when the place is not in the list.
+
+![Session properties](./images/atomic-property-select.gif)
+
 ---
 
 ## Reading
@@ -146,7 +154,7 @@ Those minutes fill the reading heatmap. The idle well shows the saved total.
 2. Click it (or tap on a phone) to enlarge it in the center.
 3. Click outside, press Esc, or click the large card again to put it back.
 
-The card grows with the writing and scrolls if it is taller than the window. The rest of the page blurs. The page does not dim.
+On a narrow pane the list shows four lines of each cue. The first line sits on the first rule. The card in the list does not grow. The large card grows with the writing and scrolls if it is taller than the window. The rest of the page blurs. The page does not dim.
 
 ![Cue card hover lift](./images/atomic-cues-hover.gif)
 
@@ -154,8 +162,13 @@ The card grows with the writing and scrolls if it is taller than the window. The
 
 The shelf on today’s note is your books.
 
-1. Hover a cover (or tap once on a phone). The line under the shelf names the book.
-2. Click the cover (or tap again) to open the book note.
+1. Hover a cover. The book pops up. The line under the shelf names the book.
+2. Click the cover. The cover opens.
+3. Click the book again to open the note.
+
+On a phone, tap once to lift the book. Tap again to open the note.
+
+A cover you add fills the book. If the picture is wider or narrower than the book, it scales until the book face is full.
 
 ![Book shelf](./images/atomic-book-shelf.gif)
 

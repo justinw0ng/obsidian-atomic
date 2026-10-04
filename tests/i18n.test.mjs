@@ -53,9 +53,18 @@ test("settings activity field labels exist", () => {
 });
 
 test("language option labels exist", () => {
-  assert.ok(en["settings.languageOption.zh-Hant-en"]);
-  assert.ok(en["settings.languageOption.en"]);
-  assert.ok(zhHantEn["settings.languageOption.zh-Hant-en"]);
+  assert.equal(en["settings.languageOption.zh-Hant-en"], "Traditional Chinese");
+  assert.equal(en["settings.languageOption.en"], "English");
+  assert.equal(zhHantEn["settings.languageOption.zh-Hant-en"], "繁體中文");
+});
+
+test("zh-Hant-en catalog is Traditional Chinese without a second language", () => {
+  for (const [key, value] of Object.entries(zhHantEn)) {
+    if (key === "view.today.summary") continue;
+    assert.doesNotMatch(value, / \/ /, `${key} still shows two languages: ${value}`);
+  }
+  assert.match(zhHantEn["template.reminders"], /提醒/);
+  assert.doesNotMatch(zhHantEn["template.reminders"], /Reminders/);
 });
 
 test("english catalog drops the Chinese half", () => {

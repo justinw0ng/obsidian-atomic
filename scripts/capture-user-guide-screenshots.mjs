@@ -85,6 +85,7 @@ const OUTPUTS = {
   cues: "atomic-cues-hover.gif",
   cueLog: "atomic-cue-log.gif",
   cuePopup: "atomic-cue-popup.gif",
+  properties: "atomic-property-select.gif",
 };
 
 const DASHBOARD_DESKTOP = { width: 1920, height: 1400 };
@@ -139,20 +140,12 @@ async function openCover(driver, title) {
     if (!book) return { ok: false, error: "missing book", count: books.length };
     book.scrollIntoView({ block: "center", inline: "nearest" });
     book.classList.add("is-cover-open");
-    book.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
-    const cover = book.querySelector(".atomic-book-cover");
-    const volume = book.querySelector(".atomic-book-volume");
-    for (const el of [book, cover, volume]) {
+    const face = book.querySelector(".atomic-book-face");
+    for (const el of [book, face]) {
       if (!el) continue;
       el.style.setProperty("transition", "none", "important");
     }
-    if (cover) {
-      cover.style.setProperty("opacity", "0", "important");
-    }
-    book.style.setProperty("position", "relative", "important");
-    book.style.setProperty("top", "-8px", "important");
-    book.style.setProperty("z-index", "6", "important");
-    return { ok: true, title: book.getAttribute("data-title") };
+    return { ok: true, open: book.classList.contains("is-cover-open"), title: book.getAttribute("data-title") };
     `,
     title,
   );
@@ -570,6 +563,54 @@ async function captureCuesHoverGif(driver) {
   assembleGif(dir, OUTPUTS.cues, { durationMs: 140, holdFirst: 2, holdLast: 3 });
 }
 
+async function capturePropertySelectGif(driver) {
+  await resizeWindow(driver, 980, 720);
+  await openPreviewNote(driver, FILES.gymSession);
+  await driver.executeScript(`
+    if (app.vault?.setConfig) app.vault.setConfig("propertiesInDocument", "visible");
+    for (const el of document.querySelectorAll(
+      ".metadata-container, .metadata-properties-heading, .metadata-add-button",
+    )) {
+      el.style.removeProperty("display");
+    }
+  `);
+  await waitCss(
+    driver,
+    'select[data-testid="atomic-property-select"][data-property="location"]',
+  );
+  await waitCss(
+    driver,
+    'select[data-testid="atomic-property-select"][data-property="weight_unit"]',
+  );
+  await scrollBlockIntoView(driver, ".metadata-properties");
+  await hideCaptureScrollbars(driver);
+  await parkMouse(driver);
+  const dir = frameDir("property-select");
+  await grabHold(driver, dir, 0, 2, 180);
+  await driver.executeScript(`
+    const select = document.querySelector(
+      'select[data-testid="atomic-property-select"][data-property="weight_unit"]'
+    );
+    if (!select) return;
+    select.value = "lb";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  `);
+  await driver.wait(async () => {
+    const value = await driver.executeScript(`
+      return document.querySelector(
+        'select[data-testid="atomic-property-select"][data-property="weight_unit"]'
+      )?.value || "";
+    `);
+    return value === "lb";
+  }, 8000);
+  await hideCaptureScrollbars(driver);
+  await parkMouse(driver);
+  await scrollBlockIntoView(driver, ".metadata-properties");
+  await grabHold(driver, dir, 2, 2, 200);
+  assembleGif(dir, OUTPUTS.properties, { durationMs: 420, holdFirst: 1, holdLast: 2 });
+  await resizeWindow(driver, 1920, 1200);
+}
+
 async function captureCueLogGif(driver) {
   await openPreviewNote(driver, FILES.golfToday);
   await waitCss(driver, '[data-testid="atomic-cue-log-add"]');
@@ -651,6 +692,7 @@ async function main() {
       ["today", captureTodayGif],
       ["cues", captureCuesHoverGif],
       ["cueLog", captureCueLogGif],
+      ["properties", capturePropertySelectGif],
       ["timer", captureReadingTimerGif],
       ["sessionTimer", captureSessionTimerGif],
       ["gymLog", captureGymLogGif],

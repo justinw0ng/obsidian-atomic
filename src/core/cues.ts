@@ -14,8 +14,8 @@ export type CueCard = {
   lastSeen: string;
 };
 
-/** `## 💡 Reminders`, `### Reminders / 提醒`, and plain `## Reminders`. */
-const REMINDERS_HEADING = /^(#{1,6})\s+(?:\S+\s+)?Reminders(?:\s*\/\s*.+)?\s*$/i;
+/** `## 💡 Reminders`, `### Reminders / 提醒`, `## 💡 提醒`, and plain `## Reminders`. */
+const REMINDERS_HEADING = /^(#{1,6})\s+(?:\S+\s+)?(?:Reminders(?:\s*\/\s*.+)?|提醒)\s*$/i;
 const HEADING = /^(#{1,6})\s+/;
 const BULLET = /^\s*[-*+]\s+(.+)$/;
 const EMPTY_BULLET = /^\s*[-*+]\s*$/;
