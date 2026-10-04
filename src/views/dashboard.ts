@@ -357,7 +357,7 @@ function renderActivityRow(
 
 function renderActivities(root: HTMLElement, model: DashboardModel, ctx: DashboardRenderContext): void {
   if (!model.activities.length) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language),

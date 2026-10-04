@@ -132,6 +132,6 @@ export async function renderTodaySessions(
     } else {
       sum.setText(t("view.today.noSession", language));
     }
-    line.createSpan({ cls: "atomic-recent-arrow", text: session ? "→" : "" });
+    line.createSpan({ cls: "atomic-recent-arrow", text: session?.path ? "→" : "" });
   }
 }

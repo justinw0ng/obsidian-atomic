@@ -2,6 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { markSessionEmbed, sessionEmbedSlot } from "../src/util/session-embed.ts";
 
+function matches(el, selector) {
+  return selector.split(",").some((part) => {
+    const token = part.trim();
+    if (token.startsWith(".")) return el.classList.contains(token.slice(1));
+    const attr = token.match(/^\[class\*='([^']+)'\]$/);
+    return attr ? el.className.includes(attr[1]) : false;
+  });
+}
+
 function node(className, children = [], text = "") {
   const el = {
     className,
@@ -14,6 +23,17 @@ function node(className, children = [], text = "") {
         for (const token of tokens) set.add(token);
         el.className = [...set].join(" ");
       },
+      contains(token) {
+        return el.className.split(/\s+/).filter(Boolean).includes(token);
+      },
+    },
+    closest(selector) {
+      let current = el;
+      while (current) {
+        if (matches(current, selector)) return current;
+        current = current.parentElement;
+      }
+      return null;
     },
   };
   for (const child of children) child.parentElement = el;

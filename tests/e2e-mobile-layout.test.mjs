@@ -24,13 +24,10 @@ import {
   HEATMAP_DAY_LABEL_PX,
   HEATMAP_GAP_PX,
   HEATMAP_LABEL_GAP_PX,
-  HEATMAP_SCROLL_PAD_PX,
-  HEATMAP_WEEK_PAD_PX,
+  HEATMAP_PITCH_PX,
   heatmapBodyMinWidth,
   heatmapNeedsHorizontalScroll,
   heatmapTrackWidth,
-  heatmapWeekColumnPx,
-  heatmapWeeksWidth,
 } from "../src/util/heatmap-metrics.ts";
 import { hobbyItemFromFileCache } from "../src/util/hobby-item-scan.ts";
 import { parseCoverRef } from "../src/views/book-shelf.ts";
@@ -125,18 +122,15 @@ test("measureElementWidth walks parents when the frame is 0 (iOS first paint)", 
 
 test("heatmap year grid uses 10px cells and a 3px gap", () => {
   const weeks = 53;
-  const width = heatmapWeeksWidth(weeks);
+  const width = heatmapTrackWidth(weeks);
   const oldWidth = weeks * 16 + (weeks - 1) * 2;
   assert.ok(width < oldWidth);
   assert.equal(HEATMAP_CELL_PX, 10);
   assert.equal(HEATMAP_GAP_PX, 3);
-  assert.equal(HEATMAP_WEEK_PAD_PX, 0);
+  assert.equal(HEATMAP_PITCH_PX, 13);
   assert.equal(HEATMAP_DAY_LABEL_PX, 16);
   assert.equal(HEATMAP_LABEL_GAP_PX, 6);
-  assert.equal(HEATMAP_SCROLL_PAD_PX, 0);
-  assert.equal(heatmapWeekColumnPx(), HEATMAP_CELL_PX);
-  assert.equal(heatmapTrackWidth(weeks), weeks * 10 + (weeks - 1) * 3);
-  assert.equal(width, heatmapTrackWidth(weeks));
+  assert.equal(width, weeks * 10 + (weeks - 1) * 3);
   assert.equal(
     heatmapBodyMinWidth(weeks),
     HEATMAP_DAY_LABEL_PX + HEATMAP_LABEL_GAP_PX + width,

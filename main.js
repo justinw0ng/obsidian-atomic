@@ -1789,14 +1789,14 @@ function parseStatusTokens(statusOption) {
   return statusOption.split(",").map((token) => token.trim()).filter((token) => token.length > 0);
 }
 function resolveBookShelfStatuses(statusOption) {
-  const tokens2 = parseStatusTokens(statusOption);
-  if (tokens2.length === 0 || tokens2.some((token) => token.toLowerCase() === "all")) {
+  const tokens = parseStatusTokens(statusOption);
+  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
     return { statuses: null, invalidStatuses: [] };
   }
   const statuses = [];
   const invalidStatuses = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const token of tokens2) {
+  for (const token of tokens) {
     const key = token.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -2356,74 +2356,36 @@ function enqueueBlockRender(el, work) {
 }
 
 // src/util/session-embed.ts
-var NOTE_COLUMN = /(?:^|\s)(?:cm-sizer|markdown-preview-sizer)(?:\s|$)/;
-var PREVIEW_SECTION = /markdown-preview-section/;
-var STOP = /markdown-preview-view|markdown-source-view|cm-scroller|workspace-leaf/;
-var WRAPPER = /code-block|codeblock|cm-embed-block|internal-embed|(?:^|\s)el-pre(?:\s|$)/;
-function sessionSlotClass(kind) {
+var EMBED_SLOT = ".cm-embed-block, .cm-preview-code-block, .internal-embed, .el-pre, .codeblock, [class*='code-block']";
+var NOTE_COLUMN = ".cm-sizer, .markdown-preview-sizer";
+function slotClass(kind) {
   return kind === "timer" ? "atomic-embed-slot-timer" : "atomic-embed-slot-gym";
 }
-function tokens(className) {
-  return className.split(/\s+/).filter(Boolean);
-}
-function hasToken(className, token) {
-  return tokens(className).includes(token);
-}
-function childrenOf(node) {
-  return Array.from(node.children);
-}
 function rowSlot(chosen) {
-  if (!chosen) return null;
   const parent = chosen.parentElement;
-  if (parent && hasToken(parent.className, "cm-line")) return parent;
+  if (parent?.classList.contains("cm-line")) return parent;
   return chosen;
 }
 function sessionEmbedSlot(start) {
-  let node = start;
-  let wrapper = null;
-  for (let depth = 0; depth < 12 && node?.parentElement; depth += 1) {
-    const parent = node.parentElement;
-    const parentClass = parent.className ?? "";
-    if (STOP.test(parentClass)) break;
-    if (WRAPPER.test(node.className ?? "")) wrapper = node;
-    if (NOTE_COLUMN.test(parentClass)) {
-      const chosen = WRAPPER.test(node.className ?? "") ? node : wrapper;
-      return rowSlot(chosen);
-    }
-    if (PREVIEW_SECTION.test(parentClass)) return rowSlot(node);
-    node = parent;
-  }
-  return rowSlot(wrapper);
-}
-function noteColumn(slot) {
-  let node = slot.parentElement;
-  for (let depth = 0; depth < 12 && node; depth += 1) {
-    if (NOTE_COLUMN.test(node.className ?? "")) return node;
-    if (STOP.test(node.className ?? "")) return null;
-    node = node.parentElement;
-  }
-  return null;
+  const wrapper = start.closest(EMBED_SLOT);
+  return wrapper ? rowSlot(wrapper) : null;
 }
 function isEmptyGap(node) {
   if ((node.textContent ?? "").trim() !== "") return false;
-  const name = node.className ?? "";
-  return !hasToken(name, "atomic-embed-slot") && !hasToken(name, "cm-embed-block");
+  return !node.classList.contains("atomic-embed-slot") && !node.classList.contains("cm-embed-block");
 }
 function pairSessionSlots(slot) {
   const parent = slot.parentElement;
   if (!parent) return;
-  const kids = childrenOf(parent);
-  const timer = kids.find((el) => hasToken(el.className, "atomic-embed-slot-timer"));
-  const gym = kids.find((el) => hasToken(el.className, "atomic-embed-slot-gym"));
+  const kids = Array.from(parent.children);
+  const timer = kids.find((el) => el.classList.contains("atomic-embed-slot-timer"));
+  const gym = kids.find((el) => el.classList.contains("atomic-embed-slot-gym"));
   if (!timer || !gym) return;
-  const from = kids.indexOf(timer);
-  const to = kids.indexOf(gym);
-  const start = Math.min(from, to);
-  const end = Math.max(from, to);
+  const start = Math.min(kids.indexOf(timer), kids.indexOf(gym));
+  const end = Math.max(kids.indexOf(timer), kids.indexOf(gym));
   for (let index = start + 1; index < end; index += 1) {
     const between = kids[index];
-    if (!between || between === timer || between === gym) continue;
-    if (!isEmptyGap(between)) return;
+    if (between && !isEmptyGap(between)) return;
   }
   parent.classList.add("atomic-note-paired");
   for (let index = start + 1; index < end; index += 1) {
@@ -2438,8 +2400,8 @@ function markSessionEmbed(start, kind) {
   if (kind === "timer") start.classList.add("atomic-timer-host");
   const slot = sessionEmbedSlot(start);
   if (!slot) return;
-  slot.classList.add("atomic-embed-slot", sessionSlotClass(kind));
-  noteColumn(slot)?.classList.add("atomic-note-column");
+  slot.classList.add("atomic-embed-slot", slotClass(kind));
+  slot.closest(NOTE_COLUMN)?.classList.add("atomic-note-column");
   pairSessionSlots(slot);
 }
 
@@ -4162,7 +4124,7 @@ function appendSectionTitle(parent, title, meta) {
   appendCatalogLabel(caption, title);
   const readout = head.createDiv({ cls: "atomic-readout" });
   appendCatalogLabel(readout, meta);
-  return section;
+  return { section, titleWrap };
 }
 function appendBars(parent, bars, variant) {
   for (const bar of bars) {
@@ -4345,7 +4307,7 @@ function appendMonthlyTable(parent, model, ctx) {
 }
 function renderDashboardMonthly(root, model, ctx) {
   if (!model.monthlyColumns.length) return;
-  const section = appendSectionTitle(
+  const { section, titleWrap } = appendSectionTitle(
     root,
     t("view.dashboard.monthly", ctx.language),
     t("view.dashboard.monthlyMeta", ctx.language)
@@ -4356,10 +4318,7 @@ function renderDashboardMonthly(root, model, ctx) {
     attr: { "data-testid": "atomic-dashboard-monthly" }
   });
   if (sessionColumns.length > 0 && readout) {
-    const titleWrap = section.querySelector(".atomic-section-head")?.firstElementChild;
-    if (titleWrap?.instanceOf(HTMLElement)) {
-      appendChartLegend(titleWrap, sessionColumns);
-    }
+    appendChartLegend(titleWrap, sessionColumns);
     card.addClass("atomic-chart");
     appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
     const details = section.createEl("details", { cls: "atomic-quiet-toggle" });
@@ -4372,7 +4331,7 @@ function renderDashboardMonthly(root, model, ctx) {
 function renderMuscles(parent, model, ctx) {
   if (!model.muscles) return;
   const { activity, rows } = model.muscles;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.muscles", ctx.language),
     t("view.dashboard.byVolumeSets", ctx.language)
@@ -4433,7 +4392,7 @@ function appendFelt(parent, felt, ctx) {
 function renderGolfFocus(parent, model, ctx) {
   if (!model.golfFocus) return;
   const { activity, sessions, tags } = model.golfFocus;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.golfFocus", ctx.language),
     t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) })
@@ -4481,7 +4440,7 @@ function recentParts(row, ctx) {
 }
 function renderDashboardRecent(root, model, ctx) {
   if (!model.activities.some((card2) => card2.domain === "exercise")) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.recentSessions", ctx.language),
     t("view.dashboard.recentMeta", ctx.language, { count: model.recent.length })
@@ -4771,7 +4730,7 @@ function renderActivityRow(grid, card, ctx) {
 }
 function renderActivities(root, model, ctx) {
   if (!model.activities.length) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language)
@@ -5263,8 +5222,8 @@ function parseActivityTokens(activityOption) {
 }
 function resolveHeatmapActivities(activityTypes, activityOption) {
   const enabled = enabledActivities(activityTypes);
-  const tokens2 = parseActivityTokens(activityOption);
-  if (tokens2.length === 0 || tokens2.some((token) => token.toLowerCase() === "all")) {
+  const tokens = parseActivityTokens(activityOption);
+  if (tokens.length === 0 || tokens.some((token) => token.toLowerCase() === "all")) {
     return { activities: enabled, invalidIds: [] };
   }
   const byId = new Map(
@@ -5273,7 +5232,7 @@ function resolveHeatmapActivities(activityTypes, activityOption) {
   const activities = [];
   const invalidIds = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const token of tokens2) {
+  for (const token of tokens) {
     const key = token.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -5448,7 +5407,20 @@ function cellClass(day) {
   return parts.join(" ");
 }
 
+// src/util/heatmap-metrics.ts
+var HEATMAP_CELL_PX = 10;
+var HEATMAP_GAP_PX = 3;
+var HEATMAP_PITCH_PX = HEATMAP_CELL_PX + HEATMAP_GAP_PX;
+
 // src/util/heatmap-scroll.ts
+function heatmapRevealOffsets(todayColumn, monthColumns) {
+  return {
+    todayLeft: todayColumn * HEATMAP_PITCH_PX,
+    todayWidth: HEATMAP_CELL_PX,
+    pitch: HEATMAP_PITCH_PX,
+    monthStarts: monthColumns.map((column) => column * HEATMAP_PITCH_PX)
+  };
+}
 function scrollLeftToRevealToday(params) {
   const { scrollWidth, clientWidth, todayLeft, todayWidth, pitch, monthStarts } = params;
   if (!Number.isFinite(scrollWidth) || !Number.isFinite(clientWidth) || !Number.isFinite(todayLeft) || !Number.isFinite(todayWidth) || !Number.isFinite(pitch) || scrollWidth < 0 || clientWidth < 0 || pitch < 0) {
@@ -5479,36 +5451,16 @@ var DOW_MARKS = {
   en: ["", "M", "", "W", "", "F", ""],
   "zh-Hant-en": ["", "\u4E00", "", "\u4E09", "", "\u4E94", ""]
 };
-function wireHeatmapScroll(scrollEl, registry) {
+function wireHeatmapScroll(scrollEl, registry, todayColumn, monthColumns) {
   let userHasScrolled = false;
   let expectedScrollLeft = null;
+  const offsets = heatmapRevealOffsets(todayColumn, monthColumns);
   const applyTodayAlign = () => {
-    const today = scrollEl.querySelector(".atomic-heat-cell.is-today");
-    if (!today?.instanceOf(HTMLElement)) return;
-    const todayRect = today.getBoundingClientRect();
-    if (todayRect.width <= 0) return;
-    const scrollRect = scrollEl.getBoundingClientRect();
-    const todayLeft = todayRect.left - scrollRect.left + scrollEl.scrollLeft;
-    const sample = scrollEl.querySelectorAll(".atomic-heat-cells > .atomic-heat-cell");
-    let pitch = todayRect.width + 3;
-    const first = sample[0];
-    const nextColumn = sample[7];
-    if (first?.instanceOf(HTMLElement) && nextColumn?.instanceOf(HTMLElement)) {
-      const delta = nextColumn.getBoundingClientRect().left - first.getBoundingClientRect().left;
-      if (delta > 0) pitch = delta;
-    }
-    const monthStarts = [];
-    scrollEl.querySelectorAll(".atomic-heat-months > span").forEach((node) => {
-      if (!node.instanceOf(HTMLElement)) return;
-      monthStarts.push(node.getBoundingClientRect().left - scrollRect.left + scrollEl.scrollLeft);
-    });
+    if (todayColumn < 0) return;
     const nextScrollLeft = scrollLeftToRevealToday({
       scrollWidth: scrollEl.scrollWidth,
       clientWidth: scrollEl.clientWidth,
-      todayLeft,
-      todayWidth: todayRect.width,
-      pitch,
-      monthStarts
+      ...offsets
     });
     expectedScrollLeft = nextScrollLeft;
     scrollEl.scrollLeft = nextScrollLeft;
@@ -5590,8 +5542,9 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
     attr: { "data-testid": "atomic-heatmap-scroll" }
   });
   const grid = scroll.createDiv({ cls: "atomic-heat-grid" });
+  const monthPlacements = heatmapMonthPlacements(weeks, language);
   const monthRow = grid.createDiv({ cls: "atomic-heat-months atomic-caption" });
-  for (const placement of heatmapMonthPlacements(weeks, language)) {
+  for (const placement of monthPlacements) {
     const label = monthRow.createSpan({
       text: placement.text,
       attr: {
@@ -5612,7 +5565,9 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
   );
   wireHeatmapCellClicks(cells, data);
   wireHeatmapReadout(wrap, language);
-  wireHeatmapScroll(scroll, registry);
+  const todayColumn = weeks.findIndex((week) => week.some((day) => day.isToday));
+  const monthColumns = monthPlacements.map((placement) => placement.week - 1);
+  wireHeatmapScroll(scroll, registry, todayColumn, monthColumns);
   const foot = wrap.createDiv({ cls: "atomic-heat-foot" });
   foot.createSpan({
     cls: "atomic-caption",
@@ -6672,7 +6627,7 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
     } else {
       sum.setText(t("view.today.noSession", language));
     }
-    line.createSpan({ cls: "atomic-recent-arrow", text: session2 ? "\u2192" : "" });
+    line.createSpan({ cls: "atomic-recent-arrow", text: session2?.path ? "\u2192" : "" });
   }
 }
 

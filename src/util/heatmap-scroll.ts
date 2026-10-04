@@ -1,29 +1,17 @@
-/**
- * Compute scrollLeft so that targetRightPx aligns with the right edge of the scrollport.
- * Returns 0 when content does not overflow or inputs are invalid.
- */
-export function scrollLeftToAlignRight(
-  scrollWidth: number,
-  clientWidth: number,
-  targetRightPx: number,
-): number {
-  if (
-    !Number.isFinite(scrollWidth) ||
-    !Number.isFinite(clientWidth) ||
-    !Number.isFinite(targetRightPx) ||
-    scrollWidth < 0 ||
-    clientWidth < 0
-  ) {
-    return 0;
-  }
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { HEATMAP_CELL_PX, HEATMAP_PITCH_PX } from "./heatmap-metrics.ts";
 
-  if (scrollWidth <= clientWidth) {
-    return 0;
-  }
-
-  const maxScrollLeft = scrollWidth - clientWidth;
-  const desired = targetRightPx - clientWidth;
-  return Math.min(Math.max(desired, 0), maxScrollLeft);
+/** Column offsets for the scrollport. `todayColumn` and `monthColumns` are 0-based. */
+export function heatmapRevealOffsets(
+  todayColumn: number,
+  monthColumns: readonly number[],
+): { todayLeft: number; todayWidth: number; pitch: number; monthStarts: number[] } {
+  return {
+    todayLeft: todayColumn * HEATMAP_PITCH_PX,
+    todayWidth: HEATMAP_CELL_PX,
+    pitch: HEATMAP_PITCH_PX,
+    monthStarts: monthColumns.map((column) => column * HEATMAP_PITCH_PX),
+  };
 }
 
 /**

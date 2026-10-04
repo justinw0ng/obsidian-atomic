@@ -157,7 +157,7 @@ export function appendSectionTitle(
   parent: HTMLElement,
   title: string,
   meta: string,
-): HTMLElement {
+): { section: HTMLElement; titleWrap: HTMLElement } {
   const section = parent.createDiv({ cls: "atomic-section" });
   const head = section.createDiv({ cls: "atomic-section-head" });
   const titleWrap = head.createDiv();
@@ -165,7 +165,7 @@ export function appendSectionTitle(
   appendCatalogLabel(caption, title);
   const readout = head.createDiv({ cls: "atomic-readout" });
   appendCatalogLabel(readout, meta);
-  return section;
+  return { section, titleWrap };
 }
 
 /**

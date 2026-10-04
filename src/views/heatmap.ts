@@ -19,7 +19,7 @@ import {
   type HeatmapPaintState,
 } from "../util/heatmap-model";
 import { measureElementWidth } from "../util/element-width";
-import { scrollLeftToRevealToday } from "../util/heatmap-scroll";
+import { heatmapRevealOffsets, scrollLeftToRevealToday } from "../util/heatmap-scroll";
 import { PaintMemo } from "../util/paint-memo";
 
 type HeatmapObserverRegistry = {
@@ -50,37 +50,19 @@ const DOW_MARKS: Record<Language, readonly string[]> = {
 function wireHeatmapScroll(
   scrollEl: HTMLElement,
   registry: HeatmapObserverRegistry,
+  todayColumn: number,
+  monthColumns: readonly number[],
 ): void {
   let userHasScrolled = false;
   let expectedScrollLeft: number | null = null;
+  const offsets = heatmapRevealOffsets(todayColumn, monthColumns);
 
   const applyTodayAlign = () => {
-    const today = scrollEl.querySelector(".atomic-heat-cell.is-today");
-    if (!today?.instanceOf(HTMLElement)) return;
-    const todayRect = today.getBoundingClientRect();
-    if (todayRect.width <= 0) return;
-    const scrollRect = scrollEl.getBoundingClientRect();
-    const todayLeft = todayRect.left - scrollRect.left + scrollEl.scrollLeft;
-    const sample = scrollEl.querySelectorAll(".atomic-heat-cells > .atomic-heat-cell");
-    let pitch = todayRect.width + 3;
-    const first = sample[0];
-    const nextColumn = sample[7];
-    if (first?.instanceOf(HTMLElement) && nextColumn?.instanceOf(HTMLElement)) {
-      const delta = nextColumn.getBoundingClientRect().left - first.getBoundingClientRect().left;
-      if (delta > 0) pitch = delta;
-    }
-    const monthStarts: number[] = [];
-    scrollEl.querySelectorAll(".atomic-heat-months > span").forEach((node) => {
-      if (!node.instanceOf(HTMLElement)) return;
-      monthStarts.push(node.getBoundingClientRect().left - scrollRect.left + scrollEl.scrollLeft);
-    });
+    if (todayColumn < 0) return;
     const nextScrollLeft = scrollLeftToRevealToday({
       scrollWidth: scrollEl.scrollWidth,
       clientWidth: scrollEl.clientWidth,
-      todayLeft,
-      todayWidth: todayRect.width,
-      pitch,
-      monthStarts,
+      ...offsets,
     });
 
     expectedScrollLeft = nextScrollLeft;
@@ -184,8 +166,9 @@ function renderOneHeatmap(
     attr: { "data-testid": "atomic-heatmap-scroll" },
   });
   const grid = scroll.createDiv({ cls: "atomic-heat-grid" });
+  const monthPlacements = heatmapMonthPlacements(weeks, language);
   const monthRow = grid.createDiv({ cls: "atomic-heat-months atomic-caption" });
-  for (const placement of heatmapMonthPlacements(weeks, language)) {
+  for (const placement of monthPlacements) {
     const label = monthRow.createSpan({
       text: placement.text,
       attr: {
@@ -207,7 +190,9 @@ function renderOneHeatmap(
   );
   wireHeatmapCellClicks(cells, data);
   wireHeatmapReadout(wrap, language);
-  wireHeatmapScroll(scroll, registry);
+  const todayColumn = weeks.findIndex((week) => week.some((day) => day.isToday));
+  const monthColumns = monthPlacements.map((placement) => placement.week - 1);
+  wireHeatmapScroll(scroll, registry, todayColumn, monthColumns);
 
   const foot = wrap.createDiv({ cls: "atomic-heat-foot" });
   foot.createSpan({

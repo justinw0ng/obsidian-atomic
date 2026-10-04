@@ -171,7 +171,7 @@ export function renderDashboardMonthly(
   ctx: DashboardRenderContext,
 ): void {
   if (!model.monthlyColumns.length) return;
-  const section = appendSectionTitle(
+  const { section, titleWrap } = appendSectionTitle(
     root,
     t("view.dashboard.monthly", ctx.language),
     t("view.dashboard.monthlyMeta", ctx.language),
@@ -182,10 +182,7 @@ export function renderDashboardMonthly(
     attr: { "data-testid": "atomic-dashboard-monthly" },
   });
   if (sessionColumns.length > 0 && readout) {
-    const titleWrap = section.querySelector(".atomic-section-head")?.firstElementChild;
-    if (titleWrap?.instanceOf(HTMLElement)) {
-      appendChartLegend(titleWrap, sessionColumns);
-    }
+    appendChartLegend(titleWrap, sessionColumns);
     card.addClass("atomic-chart");
     appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
     const details = section.createEl("details", { cls: "atomic-quiet-toggle" });
@@ -203,7 +200,7 @@ function renderMuscles(
 ): void {
   if (!model.muscles) return;
   const { activity, rows } = model.muscles;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.muscles", ctx.language),
     t("view.dashboard.byVolumeSets", ctx.language),
@@ -275,7 +272,7 @@ function renderGolfFocus(
 ): void {
   if (!model.golfFocus) return;
   const { activity, sessions, tags } = model.golfFocus;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.golfFocus", ctx.language),
     t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) }),
@@ -338,7 +335,7 @@ export function renderDashboardRecent(
   ctx: DashboardRenderContext,
 ): void {
   if (!model.activities.some((card) => card.domain === "exercise")) return;
-  const section = appendSectionTitle(
+  const { section } = appendSectionTitle(
     root,
     t("view.dashboard.recentSessions", ctx.language),
     t("view.dashboard.recentMeta", ctx.language, { count: model.recent.length }),
