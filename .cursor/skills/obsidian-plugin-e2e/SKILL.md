@@ -147,8 +147,9 @@ After planned code changes are done and `npm test` / `typecheck` are green, befo
 1. Run a **Thermo-Nuclear Code Quality Review** from `.cursor/skills/thermo-nuclear-code-quality-review/SKILL.md` on the PR diff vs the default branch (`main`). Load that in-repo skill file directly. This is structural/maintainability risk, not a second functional QA pass.
 2. Run a **security-audit** from `.cursor/skills/security-audit/SKILL.md` on the same PR diff. This is the security review. Use the skill's focused-review / guidance mode unless the change is an explicit full-repo audit request. Do not treat Thermo-Nuclear as a substitute for security-audit, or the reverse.
 3. Treat REQUEST CHANGES / risk items / confirmed security-audit findings as blocking. Fix at root on the same branch, rethink if findings cluster, or dismiss with a written rationale on the PR.
-4. Re-run Thermo-Nuclear and security-audit only when the code diff materially changed after those fixes. Skip for pure comment/docs-only unless asked.
-5. This gate is in addition to Copilot / CodeRabbit / CI. It does not replace them.
+4. Write both review results on the PR with `.cursor/skills/i-have-adhd/SKILL.md` and `.agents/skills/wait-what/SKILL.md` (ASD-STE100, Atomic Tracker terms).
+5. Re-run Thermo-Nuclear and security-audit only when the code diff materially changed after those fixes. Skip for pure comment/docs-only unless asked.
+6. This gate is in addition to Copilot / CodeRabbit / CI. It does not replace them.
 
 ## 6. Ship
 
@@ -174,7 +175,7 @@ A change is done when:
 3. New UI has `data-testid` hooks and Selenium coverage (or a source-level hook test if the flow is not yet in the health check).
 4. Docs the user would hit are updated (`README.md`, `docs/USER_GUIDE.md`, examples). Mockups under `docs/mockups/` do not replace E2E.
 5. You did not commit an accidental `main.js` rebuild unless the release is supposed to include it.
-6. Thermo-Nuclear and security-audit ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items / confirmed security-audit findings are fixed at root, or dismissed with a written rationale on the PR.
+6. Thermo-Nuclear and security-audit ran on the PR diff vs `main` (skip only for pure comment/docs-only unless asked). REQUEST CHANGES / risk items / confirmed security-audit findings are fixed at root, or dismissed with a written rationale on the PR. Both review results are on the PR in i-have-adhd + wait-what form.
 
 ## Atomic map
 

@@ -151,6 +151,15 @@ test("AGENTS.md points at the vendored thermo-nuclear skill", () => {
   assert.match(skill, /^name:\s*thermo-nuclear-code-quality-review\s*$/m);
 });
 
+test("AGENTS.md points at i-have-adhd and wait-what for PR review results", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /\.cursor\/skills\/i-have-adhd\/SKILL\.md/);
+  assert.match(agents, /\.agents\/skills\/wait-what\/SKILL\.md/);
+  const skill = read(".cursor/skills/i-have-adhd/SKILL.md");
+  assert.ok(skill.startsWith("---\n"), "i-have-adhd SKILL.md must start with YAML frontmatter");
+  assert.match(skill, /^name:\s*i-have-adhd\s*$/m);
+});
+
 test("security-audit skill is pinned to the Cloudflare default-branch commit", () => {
   const pin = read(".cursor/skills/security-audit.SOURCE.md");
   assert.match(pin, /https:\/\/github\.com\/cloudflare\/security-audit-skill/);
@@ -207,6 +216,24 @@ test("vendored thermo-nuclear pack is the pinned SKILL.md only", () => {
   assert.deepEqual(relativeNames(dir), ["SKILL.md"]);
 });
 
+test("i-have-adhd skill is pinned to the ayghri default-branch commit", () => {
+  const pin = read(".cursor/skills/i-have-adhd.SOURCE.md");
+  assert.match(pin, /https:\/\/github\.com\/ayghri\/i-have-adhd/);
+  assert.match(pin, /839872f9d1cd634fed642b4589ce7226199cc15f/);
+  assert.match(pin, /default branch/i);
+  assert.match(read(".cursor/skills/i-have-adhd.LICENSE"), /MIT License/);
+  assert.match(read(".cursor/skills/i-have-adhd.LICENSE"), /Ayoub Ghriss/);
+});
+
+test("vendored i-have-adhd pack matches the pinned file set", () => {
+  const dir = join(root, ".cursor/skills/i-have-adhd");
+  assert.deepEqual(relativeNames(dir), [
+    "SKILL.md",
+    "agents/gemini.toml",
+    "agents/openai.yaml",
+  ]);
+});
+
 test("skill and AGENTS.md ban instanceof Element and redundant type assertions", () => {
   const skill = read(".cursor/skills/obsidian-plugin-e2e/SKILL.md");
   const review = read(".cursor/skills/obsidian-plugin-e2e/references/plugin-review.md");
@@ -252,11 +279,15 @@ test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", ()
     assert.match(text, /security-audit/);
     assert.match(text, /\.cursor\/skills\/security-audit\/SKILL\.md/);
     assert.match(text, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
+    assert.match(text, /\.cursor\/skills\/i-have-adhd\/SKILL\.md/);
+    assert.match(text, /\.agents\/skills\/wait-what\/SKILL\.md/);
   }
   assert.match(cloud, /Thermo-Nuclear Code Quality Review/);
   assert.match(cloud, /security-audit/);
   assert.match(cloud, /\.cursor\/skills\/security-audit\/SKILL\.md/);
   assert.match(cloud, /\.cursor\/skills\/thermo-nuclear-code-quality-review\/SKILL\.md/);
+  assert.match(cloud, /\.cursor\/skills\/i-have-adhd\/SKILL\.md/);
+  assert.match(cloud, /\.agents\/skills\/wait-what\/SKILL\.md/);
 });
 
 test("skill and AGENTS.md keep hero banner capture rules", () => {
