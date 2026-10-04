@@ -7427,8 +7427,8 @@ var import_obsidian12 = require("obsidian");
 var update_notes_default = {
   version: "1.4.7",
   body: {
-    en: "The dashboard, heatmaps, cue cards, book shelf, and timers have a new look. Numbers sit on a quiet ledger, books tilt on the shelf, and cue cards open larger when you tap them.",
-    "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u8A2D\u8A08\u3002\u6578\u5B57\u6392\u5F97\u6E05\u695A\u5572\uFF0C\u66F8\u55BA\u66F8\u67B6\u4E0A\u9762\u6703\u8DDF\u4F4F\u4F60\u90C1\uFF0C\u64B3 cue card \u6703\u653E\u5927\u7747\u3002"
+    en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
+    "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"
   }
 };
 
