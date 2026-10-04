@@ -2075,10 +2075,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
       );
-      assert.match(
+      assert.doesNotMatch(
         String(opened.filter),
         /invert\(/,
-        `opened cover should invert the original face ${JSON.stringify(opened)}`,
+        `opened cover keeps the original colors ${JSON.stringify(opened)}`,
       );
       assert.match(
         String(opened.filter),
