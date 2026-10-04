@@ -602,21 +602,12 @@ test("reminder and gym controls share a well and wrap with the note", () => {
   assert.match(styles, /\.fitness-plugin\.atomic-gym-log\s*\{[^}]*width:\s*100%/s);
   assert.match(styles, /\.fitness-plugin\.atomic-timer\s*\{[^}]*max-width:\s*560px/s);
   assert.match(styles, /container-name:\s*atomic-note/);
+  assert.doesNotMatch(styles, /@container atomic-note \(min-width:\s*1280px\)/);
+  assert.doesNotMatch(styles, /--atomic-session-card-height/);
+  assert.doesNotMatch(styles, /--atomic-pair-gap/);
   assert.match(
     styles,
-    /@container atomic-note \(min-width:\s*1280px\)\s*\{[^}]*atomic-embed-slot-timer/s,
-  );
-  assert.match(
-    styles,
-    /atomic-note-paired \.fitness-plugin\.atomic-cue-log \.atomic-cue-log-compose\s*\{[^}]*width:\s*calc\(50% - var\(--atomic-pair-gap\)\)/s,
-  );
-  assert.match(
-    styles,
-    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log\s*\{[^}]*max-width:\s*none/s,
-  );
-  assert.match(
-    styles,
-    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log\s*\{[^}]*height:\s*var\(--atomic-session-card-height\)/s,
+    /atomic-note-paired \.fitness-plugin\.atomic-timer,\s*\n\s*\.atomic-note-paired \.fitness-plugin\.atomic-gym-log/s,
   );
   assert.match(
     styles,

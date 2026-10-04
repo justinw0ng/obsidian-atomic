@@ -689,18 +689,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(cueLayout.overlap, false, "add cue must not cover the reminder field");
       assert.equal(cueLayout.label, "", "the reminder field has no title; Add cue names it");
       assert.equal(cueLayout.well, true);
-      if (cueLayout.noteW >= 1280 && cueLayout.gymW > 0) {
-        assert.ok(
-          Math.abs(cueLayout.composeW - cueLayout.gymW) <= 8,
-          `reminder composer should match the gym set row: ${JSON.stringify(cueLayout)}`,
-        );
-        assert.ok(
-          cueLayout.composeW < cueLayout.noteW * 0.7,
-          `reminder composer must not span the note: ${JSON.stringify(cueLayout)}`,
-        );
+      if (cueLayout.gymW > 0) {
         assert.ok(
           cueLayout.composeW > cueLayout.exerciseW + 48,
-          `reminder composer should match the whole gym row, not one field: ${JSON.stringify(cueLayout)}`,
+          `reminder composer should match the gym row, not one field: ${JSON.stringify(cueLayout)}`,
         );
       }
 
@@ -1842,20 +1834,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       if (sessionLayout.noteW >= 1280) {
         assert.equal(
           sessionLayout.sameRow,
-          true,
-          `timer and gym log should share a row on a wide note: ${JSON.stringify(sessionLayout)}`,
-        );
-        assert.ok(
-          Math.abs(sessionLayout.timerH - sessionLayout.gymH) <= 1,
-          `gym set row should match the timer height: ${JSON.stringify(sessionLayout)}`,
-        );
-        assert.ok(
-          sessionLayout.gap >= 0 && sessionLayout.gap <= 20,
-          `timer and gym set row should sit close: ${JSON.stringify(sessionLayout)}`,
-        );
-        assert.ok(
-          sessionLayout.timerW > 560,
-          `timer should grow into the wide note: ${JSON.stringify(sessionLayout)}`,
+          false,
+          `timer and gym log should stay on separate rows: ${JSON.stringify(sessionLayout)}`,
         );
       }
 

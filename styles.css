@@ -1605,7 +1605,7 @@
   height: 36px;
 }
 
-/* A wide note puts the timer and the gym log on one row. Narrow notes stack them. */
+/* Timer and gym log stay on separate rows. A narrow note stretches both. */
 .atomic-embed-stretch {
   display: block;
   width: 100%;
@@ -1631,10 +1631,6 @@
 .atomic-note-column {
   container-type: inline-size;
   container-name: atomic-note;
-  /* One gap shared by the timer slot and the gym slot. */
-  --atomic-pair-gap: 8px;
-  /* Timer well: vertical padding, caption, row gap, and the 34px clock. */
-  --atomic-session-card-height: calc(14px + 16px + 6px + (34px * 1.15) + 14px);
 }
 
 @container atomic-timer-host (max-width: 420px) {
@@ -1648,53 +1644,6 @@
 
   .fitness-plugin .atomic-timer-head {
     flex-wrap: wrap;
-  }
-}
-
-@container atomic-note (min-width: 1280px) {
-  .atomic-note-paired .atomic-embed-slot-timer,
-  .atomic-note-paired .atomic-embed-slot-gym {
-    display: inline-block;
-    width: calc(50% - var(--atomic-pair-gap));
-    vertical-align: top;
-    margin-left: 0;
-    padding: 0;
-  }
-
-  .atomic-note-paired .atomic-embed-slot-timer {
-    margin-right: var(--atomic-pair-gap);
-  }
-
-  .atomic-note-paired .atomic-embed-gap {
-    display: none;
-  }
-
-  .atomic-note-paired .fitness-plugin.atomic-timer,
-  .atomic-note-paired .fitness-plugin.atomic-gym-log {
-    box-sizing: border-box;
-    width: 100%;
-    max-width: none;
-    height: var(--atomic-session-card-height);
-    margin: 12px 0 16px;
-    padding: 14px 10px;
-  }
-
-  .atomic-note-paired .fitness-plugin.atomic-gym-log {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .atomic-note-paired .fitness-plugin.atomic-gym-log .atomic-gym-log-fields {
-    width: 100%;
-  }
-
-  /* The composer matches the gym set row, not the full note. */
-  .atomic-note-paired .fitness-plugin.atomic-cue-log .atomic-cue-log-compose {
-    box-sizing: border-box;
-    width: calc(50% - var(--atomic-pair-gap));
-    max-width: calc(50% - var(--atomic-pair-gap));
-    padding: 14px 10px;
   }
 }
 
