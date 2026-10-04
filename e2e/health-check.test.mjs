@@ -1867,17 +1867,13 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         );
         const face = book?.querySelector(".atomic-book-face");
         const cover = book?.querySelector(".atomic-book-cover");
-        const image = book?.querySelector("img.atomic-book-cover");
-        const dark = document.body.classList.contains("theme-dark");
         return {
           cover: book?.classList.contains("is-cover-open") === true,
-          hasCover: book?.classList.contains("has-cover") === true,
           className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
-          dark,
-          face: face ? getComputedStyle(face).backgroundColor : "",
+          coverText: (cover?.textContent || "").trim(),
           coverOpacity: cover ? getComputedStyle(cover).opacity : "",
-          filter: image ? getComputedStyle(image).filter : "",
+          filter: face ? getComputedStyle(face).filter : "",
         };
       `);
       assert.equal(
@@ -1885,18 +1881,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         true,
         `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
       );
-      if (opened.hasCover) {
-        assert.match(String(opened.filter), /invert\(/, `opened artwork should invert ${JSON.stringify(opened)}`);
-        assert.match(String(opened.filter), /blur\(/, `opened artwork should blur ${JSON.stringify(opened)}`);
-        assert.equal(opened.coverOpacity, "1", "an opened cover image stays visible");
-      } else {
-        assert.equal(
-          opened.face,
-          opened.dark ? "rgb(0, 0, 0)" : "rgb(255, 255, 255)",
-          `a book with no cover image uses a flat face ${JSON.stringify(opened)}`,
-        );
-        assert.equal(opened.coverOpacity, "0", "a plain open cover hides the title");
-      }
+      assert.match(
+        String(opened.filter),
+        /invert\(/,
+        `opened cover should invert the original face ${JSON.stringify(opened)}`,
+      );
+      assert.match(
+        String(opened.filter),
+        /blur\(/,
+        `opened cover should blur the original face ${JSON.stringify(opened)}`,
+      );
+      assert.equal(opened.coverOpacity, "1", "the original cover stays visible when open");
+      assert.match(opened.coverText, /Currently Reading/);
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {
