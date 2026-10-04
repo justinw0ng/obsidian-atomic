@@ -38,6 +38,17 @@ export function isStaleBlockRender(el: object, generation: number): boolean {
   return generations.get(el) !== generation;
 }
 
+/**
+ * Reading view often runs the first await on a detached tree, then attaches
+ * the same host. `el.isConnected` must not keep the pending shell.
+ */
+export function shouldCommitBlockPaint(
+  el: object,
+  generation?: number,
+): boolean {
+  return generation === undefined || !isStaleBlockRender(el, generation);
+}
+
 export function currentBlockGeneration(el: object): number {
   return generations.get(el) ?? 0;
 }

@@ -12,6 +12,7 @@ import {
   invalidateBlockRenderIfCurrent,
   isStaleBlockRender,
   mountAtomicBlockShell,
+  shouldCommitBlockPaint,
 } from "../src/util/block-render.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -66,6 +67,15 @@ test("beginBlockRender increments and isStaleBlockRender detects superseded rend
   const second = beginBlockRender(el);
   assert.equal(isStaleBlockRender(el, first), true);
   assert.equal(isStaleBlockRender(el, second), false);
+});
+
+test("shouldCommitBlockPaint keeps a detached reading-view host paintable", () => {
+  const detached = { isConnected: false };
+  const generation = beginBlockRender(detached);
+  assert.equal(shouldCommitBlockPaint(detached, generation), true);
+  assert.equal(shouldCommitBlockPaint(detached), true);
+  beginBlockRender(detached);
+  assert.equal(shouldCommitBlockPaint(detached, generation), false);
 });
 
 test("enqueueBlockRender skips a stale queued render", async () => {

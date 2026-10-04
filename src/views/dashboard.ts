@@ -405,7 +405,7 @@ export async function renderDashboard(
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
   const input = await collectDashboardInput(data, activityTypes, year);
-  if (!el.isConnected || renderGeneration.get(el) !== generation) return;
+  if (renderGeneration.get(el) !== generation) return;
 
   if (dashboardPaint.shouldSkip(el, dashboardPaintState(input, language))) return;
   const model = buildDashboardModel(input);

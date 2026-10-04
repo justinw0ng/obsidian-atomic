@@ -9,10 +9,12 @@ import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { By, Key } from "selenium-webdriver";
 import {
+  E2E_CUE_LOG_FENCE,
   E2E_DAILY_NOTES_FOLDER,
   E2E_DAILY_NOTE_TEMPLATE,
   E2E_FILES,
   E2E_TEMPLATES_FOLDER,
+  E2E_TIMER_FENCE,
   seedE2eVault,
 } from "./lib/vault.mjs";
 import {
@@ -2253,6 +2255,90 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(readingCover?.preview, true);
       assertCoverFillsBook(readingCover, "reading");
       await shot(driver, "shelf-reading-mode");
+      await setMarkdownMode(driver, "source");
+    });
+  });
+
+  it("renders session blocks in reading mode instead of the pending bar", async () => {
+    await check(driver, "reading-mode-blocks", async () => {
+      const path = "atomics/exercise/Golf/2026/2026-09-12.md";
+      const bilingual = `---
+type: session
+date: 2026-09-12
+activity: golf
+duration_min:
+timer_started_at:
+location:
+focus: []
+club: []
+felt:
+---
+
+# ⛳ Golf / 高爾夫 — 2026-09-12
+
+${E2E_TIMER_FENCE}
+
+## 💡 Reminders / 提醒
+
+${E2E_CUE_LOG_FENCE}
+`;
+      const written = await driver.executeAsyncScript(
+        `
+        const path = arguments[0];
+        const markdown = arguments[1];
+        const done = arguments[2];
+        const existing = app.vault.getAbstractFileByPath(path);
+        const write = existing
+          ? app.vault.modify(existing, markdown)
+          : app.vault.create(path, markdown);
+        write.then(
+          () => done({ ok: true }),
+          (err) => done({ ok: false, error: String(err) }),
+        );
+        `,
+        path,
+        bilingual,
+      );
+      assert.equal(written?.ok, true, written?.error);
+
+      await openVaultFile(driver, path);
+      await setMarkdownMode(driver, "preview");
+      await waitCss(driver, ".markdown-preview-view [data-testid='atomic-timer']");
+      await waitCss(driver, ".markdown-preview-view [data-testid='atomic-cue-log']");
+
+      const state = await driver.executeScript(`
+        const preview = document.querySelector(".markdown-preview-view");
+        return {
+          pending: preview?.querySelectorAll(".atomic-block-pending").length ?? -1,
+          timer: Boolean(preview?.querySelector("[data-testid='atomic-timer']")),
+          cueLog: Boolean(preview?.querySelector("[data-testid='atomic-cue-log']")),
+        };
+      `);
+      assert.equal(state.timer, true);
+      assert.equal(state.cueLog, true);
+      assert.equal(state.pending, 0, `reading mode left pending shells: ${JSON.stringify(state)}`);
+
+      const saved = await driver.executeAsyncScript(
+        `
+        const path = arguments[0];
+        const done = arguments[1];
+        const file = app.vault.getAbstractFileByPath(path);
+        if (!file) {
+          done({ ok: false, error: "missing " + path });
+          return;
+        }
+        app.vault.read(file).then(
+          (text) => done({ ok: true, text }),
+          (err) => done({ ok: false, error: String(err) }),
+        );
+        `,
+        path,
+      );
+      assert.equal(saved?.ok, true, saved?.error);
+      assert.match(String(saved.text), /⛳ Golf \/ 高爾夫 — 2026-09-12/);
+      assert.match(String(saved.text), /💡 Reminders \/ 提醒/);
+
+      await shot(driver, "reading-mode-blocks");
       await setMarkdownMode(driver, "source");
     });
   });

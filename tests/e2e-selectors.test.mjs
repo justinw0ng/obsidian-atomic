@@ -351,6 +351,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(health, /Templates\/Atomic daily note\.md/);
   assert.match(health, /atomic-actions/);
   assert.match(health, /atomic-today/);
+  assert.match(health, /reading-mode-blocks/);
+  assert.match(health, /atomic-block-pending/);
+  assert.match(health, /Golf \/ 高爾夫/);
 
   const e2eVault = src("e2e/lib/vault.mjs");
   assert.match(e2eVault, /E2E_DAILY_NOTES_FOLDER = "Journal"/);
