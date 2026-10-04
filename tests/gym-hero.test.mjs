@@ -52,6 +52,8 @@ test("gym hero capture uses the shared device chrome and stacked live wells", ()
   assert.match(src, /atomic-cue-log/);
   assert.match(src, /writeGymHeroNote\(\{ includeCues: false \}\)/);
   assert.match(src, /waitForCues: false/);
+  assert.match(src, /hideContentAfterSetTable/);
+  assert.doesNotMatch(src, /: "## Reminders\\n\\n"/);
   assert.doesNotMatch(src, /fitPhoneWindowToNote/);
   assert.match(src, /E2E_TIMER_FENCE/);
   assert.match(src, /E2E_CUE_LOG_FENCE/);

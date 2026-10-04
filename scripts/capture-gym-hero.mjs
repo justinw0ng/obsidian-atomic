@@ -4,7 +4,8 @@
  *
  * Desktop keeps the stacked timer and gym-set wells, then the reminder /
  * cue-log form and example cue cards. Phone stays the first compact frame:
- * timer + gym set only, hole-sized, no reminder stack or cue list.
+ * timer + gym set + set table only. The phone crop ends after Squat / Bench.
+ * No Reminders heading, cue form, cue cards, or bullet list.
  *
  * Run: npm run docs:gym-hero
  */
@@ -156,7 +157,7 @@ ${E2E_CUE_LOG_FENCE}
 
 ${GYM_HERO_CUES.map((cue) => `- ${cue}`).join("\n")}
 `
-    : "## Reminders\n\n";
+    : "";
   if (!/## Reminders/.test(markdown)) {
     throw new Error(`Missing Reminders heading in ${GYM_NOTE}`);
   }
@@ -256,6 +257,28 @@ async function openGymNote(driver, { waitForCues }) {
   await sleep(400);
 }
 
+async function hideContentAfterSetTable(driver) {
+  const removed = await driver.executeScript(`
+    const preview = document.querySelector(".markdown-preview-view")
+      || document.querySelector(".markdown-reading-view");
+    if (!preview) return 0;
+    const table = preview.querySelector("table");
+    if (!table) return 0;
+    let count = 0;
+    let node = table.nextElementSibling;
+    while (node) {
+      const next = node.nextElementSibling;
+      node.remove();
+      count += 1;
+      node = next;
+    }
+    return count;
+  `);
+  if (typeof removed !== "number") {
+    throw new Error("could not hide content after the gym set table");
+  }
+}
+
 async function captureNamed(driver, name) {
   await driver.executeScript(
     `document.querySelectorAll(".notice, .tooltip").forEach((el) => el.remove())`,
@@ -271,11 +294,18 @@ function composeGymHero(desktopPath, mobilePath) {
   const framedDesktop = join(SHOT_DIR, "gym-framed-desktop.png");
   const framedMobile = join(SHOT_DIR, "gym-framed-phone.png");
   const paddedDesktop = join(SHOT_DIR, "gym-padded-desktop.png");
+  const paddedMobile = join(SHOT_DIR, "gym-padded-phone.png");
   padHeroContent({
     scene: "daily",
     kind: "desktop",
     content: desktopPath,
     out: paddedDesktop,
+  });
+  padHeroContent({
+    scene: "daily",
+    kind: "phone",
+    content: mobilePath,
+    out: paddedMobile,
   });
   frameHeroContent({
     scene: "daily",
@@ -286,7 +316,7 @@ function composeGymHero(desktopPath, mobilePath) {
   frameHeroContent({
     scene: "daily",
     kind: "phone",
-    content: mobilePath,
+    content: paddedMobile,
     out: framedMobile,
   });
   return composeDeviceHero({
@@ -330,6 +360,7 @@ async function main() {
       writeGymHeroNote({ includeCues: false });
       await resizeWindow(driver, MOBILE.width, MOBILE.height);
       await openGymNote(driver, { waitForCues: false });
+      await hideContentAfterSetTable(driver);
       const mobile = await captureNamed(driver, "gym_hero_mobile");
       const hero = composeGymHero(desktop, mobile);
       publishStills({
