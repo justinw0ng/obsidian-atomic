@@ -3,8 +3,7 @@ import { durationToLevel } from "../core.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { addDays, formatYmd, fullDateForLanguage, monthShortForLanguage, weekdaySun0 } from "../dates.ts";
 import type { Language } from "../i18n/types";
-// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { EMPTY_CELL, type ActivityType, type DayActivity } from "../types.ts";
+import type { ActivityType, DayActivity } from "../types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { activityPaintKey } from "./activity-types.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -176,6 +175,7 @@ export function appendHeatmapWeeks(
   tooltip: string,
   tooltipOpen: string,
 ): void {
+  void colors;
   for (const week of weeks) {
     const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
     const weekEl = parent.createDiv({
@@ -194,18 +194,11 @@ export function appendHeatmapWeeks(
       };
       if (day.isToday) attr["data-testid"] = "atomic-heatmap-today";
       if (day.path) attr["data-path"] = day.path;
-      const cell = weekEl.createDiv({ cls: cellClass(day), attr });
-      cell.style.backgroundColor = day.isCurrentYear
-        ? colorForLevel(colors, day.level)
-        : EMPTY_CELL;
+      attr["data-l"] = String(day.isCurrentYear ? day.level : 0);
+      weekEl.createDiv({ cls: cellClass(day), attr });
     }
   }
   parent.createDiv({ cls: "fitness-weeks-end-pad" });
-}
-
-function colorForLevel(colors: readonly string[], level: number): string {
-  if (!level) return EMPTY_CELL;
-  return colors[level - 1] || colors[colors.length - 1] || EMPTY_CELL;
 }
 
 function cellClass(day: HeatmapDayCell): string {

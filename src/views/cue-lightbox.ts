@@ -103,8 +103,10 @@ function openCueLightbox(source: HTMLElement): void {
   source.setAttr("aria-expanded", "true");
   session = { source, overlay, card, view, onKey };
 
+  appendCueLightboxReadout(source, overlay);
   const place = (): void => {
     overlay.addClass("is-placed");
+    overlay.addClass("is-settled");
     card.focus();
   };
   if (prefersReducedMotion(view)) {
@@ -114,6 +116,18 @@ function openCueLightbox(source: HTMLElement): void {
   view.requestAnimationFrame(() => {
     view.requestAnimationFrame(place);
   });
+}
+
+function appendCueLightboxReadout(source: HTMLElement, overlay: HTMLElement): void {
+  const root = source.closest(".atomic-cues");
+  const activity = root?.getAttribute("data-activity-label") || root?.getAttribute("data-activity") || "";
+  const meta = source.querySelector(".atomic-cue-meta")?.textContent?.trim() || "";
+  const repeats = source.querySelector(".atomic-cue-repeats")?.textContent?.trim() || "";
+  const parts = [activity, meta, repeats].filter((part) => part.length > 0);
+  const readout = overlay.createDiv({ cls: "atomic-glass atomic-cue-lightbox-readout" });
+  readout.createSpan({ cls: "atomic-readout", text: parts.join(" · ") });
+  const hint = readout.createSpan({ cls: "atomic-readout is-hint" });
+  hint.createEl("kbd", { text: "esc" });
 }
 
 function prefersReducedMotion(view: Window): boolean {
@@ -130,6 +144,8 @@ function copyCuePaperVars(
   const sourceStyle = view.getComputedStyle(source);
   const tint = sourceStyle.getPropertyValue("--atomic-cue-tint").trim();
   if (tint) card.style.setProperty("--atomic-cue-tint", tint);
+  const color = sourceStyle.getPropertyValue("--atomic-c").trim();
+  if (color) card.style.setProperty("--atomic-c", color);
   const root = source.closest(".atomic-cues");
   if (!root) return;
   const accent = view.getComputedStyle(root).getPropertyValue("--atomic-cue-accent").trim();

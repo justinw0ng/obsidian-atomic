@@ -1,7 +1,7 @@
 {
   "version": "1.4.7",
   "body": {
-    "en": "You can create daily notes or templates from the command palette.",
-    "zh-Hant": "而家可以用 command palette create daily note 或者 template。"
+    "en": "The dashboard, heatmaps, cue cards, book shelf, and timers have a new look. Numbers sit on a quiet ledger, books tilt on the shelf, and cue cards open larger when you tap them.",
+    "zh-Hant": "Atomic 個樣新咗 — Dashboard、Heat Map、cue cards、書架同 timer 都改咗設計。數字排得清楚啲，書喺書架上面會跟住你郁，撳 cue card 會放大睇。"
   }
 }

@@ -92,6 +92,8 @@ export async function renderCues(
     attr: { "data-testid": "atomic-cues", "data-activity": activity },
   });
   root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
+  root.style.setProperty("--atomic-c", activityType.colors[2]);
+  root.setAttr("data-activity-label", activityType.label);
 
   if (!cards.length) {
     root.createEl("p", {
@@ -107,6 +109,9 @@ export async function renderCues(
       appendCueCard(fan, card, { ...host, component }, language),
     ),
   );
+  for (const card of painted) {
+    card.style.setProperty("--atomic-c", activityType.colors[2]);
+  }
   bindCueCardFan(painted);
 }
 

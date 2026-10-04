@@ -337,7 +337,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.equal(before.metaOpacity, 0, "the meta row is hidden at rest");
       assert.equal(before.ariaExpanded, "false");
       assertNoCssMask(before, "resting cue body");
-      assert.equal(before.fadeHeight, "15px");
+      assert.equal(before.fadeHeight, "14px");
       assert.equal(before.fadeOpacity, 1, "resting cue keeps the bottom wash");
 
       await driver.executeScript(`
@@ -792,6 +792,39 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       assert.match(String(gymMonthMinutes), /^[1-9]\d+$/);
 
       await waitCss(driver, '[data-testid="atomic-dashboard-monthly"] details');
+      const monthlyTables = await driver.findElements(
+        By.css('[data-testid="atomic-dashboard-monthly"] table'),
+      );
+      assert.equal(monthlyTables.length, 1);
+      const chartCols = await driver.executeScript(`
+        return [...document.querySelectorAll('[data-testid="atomic-dashboard-month-col"]')].map((col) => ({
+          month: Number(col.getAttribute("data-month")),
+          future: col.classList.contains("is-future"),
+          segs: col.querySelectorAll(".atomic-chart-seg").length,
+          sum: [...col.querySelectorAll(".atomic-chart-seg")].reduce(
+            (total, seg) => total + (Number(seg.style.getPropertyValue("--v")) || 0),
+            0,
+          ),
+        }));
+      `);
+      assert.equal(chartCols.length, 12);
+      for (const col of chartCols) {
+        assert.ok(col.sum <= 1.001, `month ${col.month} segments exceed the plot`);
+        if (col.month > Number(month)) {
+          assert.equal(col.future, true);
+          assert.equal(col.segs, 0);
+        } else {
+          assert.equal(col.future, false);
+          assert.equal(col.segs, 2);
+        }
+      }
+      if (Number(month) < 12) {
+        const futureBar = await waitCss(
+          driver,
+          `[data-testid="atomic-dashboard-activity"][data-activity="gym"] [data-testid="atomic-dashboard-month-bar"][data-month="${Number(month) + 1}"]`,
+        );
+        assert.match(await futureBar.getAttribute("class"), /is-future/);
+      }
       const musclesText = await driver.executeScript(
         `return document.querySelector('[data-testid="atomic-dashboard-muscles"]')?.textContent || ""`,
       );
@@ -1332,8 +1365,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
       `);
       await waitCss(driver, '[data-testid="atomic-update-note-notice"]');
       const englishNotice = await waitForNotice(driver, "What's new in");
-      assert.match(String(englishNotice), /command palette/i);
-      assert.match(String(englishNotice), /daily notes/);
+      assert.match(String(englishNotice), /dashboard/i);
+      assert.match(String(englishNotice), /book shelf/);
       const leftoverModals = await driver.findElements(
         By.css('[data-testid="atomic-update-note-modal"]'),
       );
@@ -1354,9 +1387,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         plugin.settings.lastSeenUpdateNoteVersion = "0.0.0";
         plugin.promptUpdateNoteIfNeeded();
       `);
-      const cantoneseNotice = await waitForNotice(driver, "而家可以用");
-      assert.match(String(cantoneseNotice), /create daily note/);
-      assert.match(String(cantoneseNotice), /command palette/);
+      const cantoneseNotice = await waitForNotice(driver, "書架");
+      assert.match(String(cantoneseNotice), /cue card/);
+      assert.match(String(cantoneseNotice), /Dashboard/);
       assert.match(String(cantoneseNotice), /What's new in/);
 
       await driver.executeScript(`
@@ -1406,7 +1439,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined }, ()
         );
         return frame && getComputedStyle(frame).getPropertyValue('--atomic-book-width').trim();
       `);
-      assert.equal(scaledWidth, "120px");
+      assert.equal(scaledWidth, "144px");
     });
   });
 

@@ -4,7 +4,6 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  bookDetailFixedPosition,
   booksPerRow,
   buildBookShelfItems,
   chunkItems,
@@ -244,12 +243,12 @@ test("titleLengthClass shrinks type for long book titles", () => {
 test("booksPerRow and chunkItems wrap to multiple shelf rows by width", () => {
   assert.equal(booksPerRow(0), 3);
   assert.equal(booksPerRow(100), 3);
-  // Never wrap below 3; 20 + 3*80 + 2*6 = 272
-  assert.equal(booksPerRow(272), 3);
-  // 20 + 4*80 + 3*6 = 358
-  assert.equal(booksPerRow(358), 4);
-  // 20 + 8*80 + 7*6 = 702
-  assert.equal(booksPerRow(702), 8);
+  // Never wrap below 3; 20 + 3*96 + 2*6 = 320
+  assert.equal(booksPerRow(320), 3);
+  // 20 + 4*96 + 3*6 = 422
+  assert.equal(booksPerRow(422), 4);
+  // 20 + 8*96 + 7*6 = 830
+  assert.equal(booksPerRow(830), 8);
 
   assert.deepEqual(chunkItems([], 3), [[]]);
   assert.deepEqual(
@@ -306,32 +305,16 @@ test("unclipBookShelfAncestors opens codeblock overflow and stops at the note sc
   assert.equal(scroller.style.overflow, "auto");
 });
 
-test("bookDetailFixedPosition centers the bubble above the book", () => {
-  assert.deepEqual(
-    bookDetailFixedPosition({
-      bookTop: 200,
-      bookLeft: 40,
-      bookWidth: 108,
-      gap: 8,
-    }),
-    { left: 94, top: 192 },
-  );
-});
-
-test("book shelf ports hover details to document.body", () => {
+test("book shelf reads the title under the plank and opens the note", () => {
   const source = readFileSync(
     join(repoRoot, "src/views/book-shelf.ts"),
     "utf8",
   );
-  assert.match(source, /ownerDocument/);
-  assert.match(source, /appendChild\(detail\)/);
-  assert.match(source, /bookDetailFixedPosition/);
-  assert.match(source, /is-ported/);
-  assert.match(
-    source,
-    /if\s*\(\s*!button\.isConnected\s*\)\s*\{[^}]*hide\(\)/s,
-  );
-  assert.match(source, /portal\.hide\(\)[\s\S]*?openPath/);
+  assert.match(source, /atomic-shelf-readout/);
+  assert.match(source, /showBookReadout/);
+  assert.match(source, /data\.openPath\(item\.path\)/);
+  assert.doesNotMatch(source, /bookDetailFixedPosition/);
+  assert.doesNotMatch(source, /is-ported/);
 });
 
 test("sameBookShelfPaintState skips equal built items even on a new array", () => {
@@ -449,31 +432,13 @@ test("book shelf skip uses cached files and throttles layout", () => {
   assert.doesNotMatch(heatmapModel, /sameBookShelfPaintState/);
 });
 
-test("book shelf CSS lets cover hover reach the book button and keeps the title bubble visible", () => {
-  assert.match(
-    stylesCss,
-    /\.fitness-plugin\s+\.atomic-book\s+\*\s*\{[^}]*pointer-events:\s*none/s,
-  );
-  assert.match(
-    stylesCss,
-    /img\.atomic-book-cover-image[^{]*\{[^}]*pointer-events:\s*none/s,
-  );
+test("book shelf CSS tilts the cover and reads the book out under the plank", () => {
+  assert.match(stylesCss, /\.atomic-shelf-readout/);
+  assert.match(stylesCss, /\.atomic-plank/);
+  assert.match(stylesCss, /perspective\(700px\)/);
+  assert.match(stylesCss, /\.atomic-book-ribbon::before/);
+  assert.doesNotMatch(stylesCss, /rotateY\(-155deg\)/);
   assert.doesNotMatch(stylesCss, /:has\(/);
   assert.doesNotMatch(stylesCss, /!important/);
-  assert.match(
-    stylesCss,
-    /\.atomic-book-detail\.is-ported[^{]*\{[^}]*position:\s*fixed/s,
-  );
-  assert.match(
-    stylesCss,
-    /\.theme-dark[\s\S]*?\.atomic-book-detail[\s\S]*?background:\s*#fff/,
-  );
-  assert.match(
-    stylesCss,
-    /\.theme-dark[\s\S]*?\.atomic-book-detail[\s\S]*?color:\s*#111/,
-  );
-  assert.match(
-    stylesCss,
-    /\.atomic-book-detail::after[^{]*\{[^}]*border-top-color/s,
-  );
+  assert.doesNotMatch(stylesCss, /atomic-book-detail/);
 });

@@ -150,91 +150,6 @@ export function unclipBookShelfAncestors(
   }
 }
 
-/** Viewport coords for a title bubble centered above a book. */
-export function bookDetailFixedPosition(args: {
-  bookTop: number;
-  bookLeft: number;
-  bookWidth: number;
-  gap?: number;
-}): { left: number; top: number } {
-  const gap = args.gap ?? 8;
-  return {
-    left: args.bookLeft + args.bookWidth / 2,
-    top: args.bookTop - gap,
-  };
-}
-
-const activeDetailHides = new Set<() => void>();
-
-function hideAllPortedDetails(): void {
-  for (const hide of [...activeDetailHides]) hide();
-}
-
-function bindBookDetailPortal(
-  button: HTMLElement,
-  detail: HTMLElement,
-): { show: () => void; hide: () => void } {
-  const doc = button.ownerDocument;
-  let ported = false;
-
-  const place = (): void => {
-    if (!ported) return;
-    if (!button.isConnected) {
-      hide();
-      return;
-    }
-    const rect = button.getBoundingClientRect();
-    const pos = bookDetailFixedPosition({
-      bookTop: rect.top,
-      bookLeft: rect.left,
-      bookWidth: rect.width,
-    });
-    detail.setCssStyles({
-      left: `${pos.left}px`,
-      top: `${pos.top}px`,
-    });
-  };
-
-  const hide = (): void => {
-    if (!ported) return;
-    ported = false;
-    activeDetailHides.delete(hide);
-    doc.removeEventListener("scroll", place, true);
-    if (typeof window !== "undefined") {
-      window.removeEventListener("resize", place);
-    }
-    detail.classList.remove("is-ported");
-    detail.setCssStyles({ left: "", top: "" });
-    if (button.isConnected) button.appendChild(detail);
-    else detail.remove();
-  };
-
-  const show = (): void => {
-    const body = doc.body;
-    if (!body) return;
-    if (ported) {
-      place();
-      return;
-    }
-    hideAllPortedDetails();
-    ported = true;
-    activeDetailHides.add(hide);
-    detail.classList.add("is-ported");
-    body.appendChild(detail);
-    place();
-    doc.addEventListener("scroll", place, true);
-    if (typeof window !== "undefined") {
-      window.addEventListener("resize", place);
-    }
-  };
-
-  button.addEventListener("pointerenter", show);
-  button.addEventListener("pointerleave", hide);
-  button.addEventListener("focus", show);
-  button.addEventListener("blur", hide);
-  return { show, hide };
-}
-
 function asString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -378,7 +293,7 @@ function bindCoverObjectPosition(img: HTMLImageElement): void {
   else img.addEventListener("load", apply, { once: true });
 }
 
-const COVER_OPEN_CLASS = "is-cover-open";
+const LIFTED_CLASS = "is-lifted";
 
 export function hoverFinePointer(
   media: Pick<MediaQueryList, "matches"> | null | undefined,
@@ -395,14 +310,40 @@ export function bookClickOpensNote(options: {
 }
 
 function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
-  if (typeof matchMedia !== "function") return null;
-  return matchMedia("(hover: hover) and (pointer: fine)");
+  if (typeof window.matchMedia !== "function") return null;
+  return window.matchMedia("(hover: hover) and (pointer: fine)");
 }
 
-function closeOpenCovers(root: ParentNode): void {
-  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
-    el.classList.remove(COVER_OPEN_CLASS);
+function closeLiftedBooks(root: ParentNode): void {
+  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
+    el.classList.remove(LIFTED_CLASS);
   });
+}
+
+function shelfSummary(items: readonly BookShelfItem[], language: Language): string {
+  const reading = items.filter((item) => item.status === "reading").length;
+  const finished = items.filter((item) => item.status === "finished").length;
+  return t("view.bookShelf.summary", language, {
+    count: items.length,
+    reading,
+    finished,
+  });
+}
+
+function showBookReadout(
+  readout: HTMLElement,
+  item: BookShelfItem,
+  language: Language,
+  lifted: boolean,
+): void {
+  readout.empty();
+  readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
+  const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
+  readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" · ") });
+  const hint = readout.createDiv({ cls: lifted ? "atomic-readout is-live" : "atomic-readout" });
+  hint.setText(
+    t(lifted ? "view.bookShelf.tapAgain" : "view.bookShelf.clickToOpen", language),
+  );
 }
 
 /** Smaller cover/page type for long titles so they wrap inside the book face. */
@@ -418,6 +359,8 @@ function createBook(
   item: BookShelfItem,
   data: VaultDataSource,
   language: Language,
+  ribbonColor: string,
+  readout: HTMLElement,
 ): void {
   const button = parent.createEl("button", {
     cls: "atomic-book",
@@ -430,69 +373,56 @@ function createBook(
     },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
+  button.style.setProperty("--px", "0");
+  button.style.setProperty("--py", "0");
 
   const titleClass = titleLengthClass(item.title);
-  const volume = button.createDiv({ cls: "atomic-book-volume" });
-  const pages = volume.createDiv({ cls: "atomic-book-pages" });
-  pages.createDiv({
-    cls: ["atomic-book-page-title", titleClass].filter(Boolean).join(" "),
-    text: item.title,
-  });
-  pages.createDiv({
-    cls: "atomic-book-page-author",
-    text: item.authors[0] || item.status,
-  });
-
-  const cover = volume.createDiv({ cls: "atomic-book-cover" });
-  const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = face.createEl("img", {
-      cls: "atomic-book-cover-image",
-      attr: { src: coverSrc, alt: "" },
+    const img = button.createEl("img", {
+      cls: "atomic-book-cover",
+      attr: { src: coverSrc, alt: "", draggable: "false" },
     });
     bindCoverObjectPosition(img);
   } else {
-    face.createDiv({
+    button.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
       text: item.title,
     });
   }
-  cover.createDiv({ cls: "atomic-book-cover-inside" });
-  cover.createDiv({ cls: "atomic-book-cover-sleeve" });
-
-  const spine = volume.createDiv({ cls: "atomic-book-spine" });
-  spine.createDiv({
-    cls: ["atomic-book-spine-title", titleClass].filter(Boolean).join(" "),
-    text: item.title,
-  });
-
-  const detail = button.createDiv({ cls: "atomic-book-detail" });
-  detail.createDiv({ cls: "atomic-book-detail-title", text: item.title });
-  detail.createDiv({
-    cls: "atomic-book-detail-author",
-    text: item.authors.join(", ") || item.status,
-  });
-  if (item.description) {
-    detail.createDiv({
-      cls: "atomic-book-detail-description",
-      text: item.description,
-    });
+  if (item.status === "reading") {
+    const ribbon = button.createSpan({ cls: "atomic-book-ribbon" });
+    ribbon.style.setProperty("--atomic-c", ribbonColor);
   }
 
-  const portal = bindBookDetailPortal(button, detail);
+  button.addEventListener("pointermove", (event) => {
+    if (!hoverFinePointer(hoverFineMedia())) return;
+    const rect = button.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
+    const py = (event.clientY - rect.top) / rect.height - 0.5;
+    button.style.setProperty("--px", px.toFixed(3));
+    button.style.setProperty("--py", py.toFixed(3));
+    button.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
+    button.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
+  });
+  button.addEventListener("pointerenter", () => {
+    if (!hoverFinePointer(hoverFineMedia())) return;
+    showBookReadout(readout, item, language, false);
+  });
+
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    const coverOpen = button.classList.contains(LIFTED_CLASS);
     if (!bookClickOpensNote({ hoverFine, coverOpen })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeOpenCovers(shelf);
-      button.classList.add(COVER_OPEN_CLASS);
-      portal.show();
+      closeLiftedBooks(shelf);
+      button.classList.add(LIFTED_CLASS);
+      showBookReadout(readout, item, language, true);
       return;
     }
-    portal.hide();
+    button.classList.remove(LIFTED_CLASS);
     void data.openPath(item.path);
   });
 }
@@ -504,32 +434,38 @@ function paintRows(
   data: VaultDataSource,
   language: Language,
   emptyText: string,
+  ribbonColor: string,
+  readout: HTMLElement,
 ): void {
-  hideAllPortedDetails();
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
-    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
-    const books = row.createDiv({
-      cls: "atomic-book-row-books atomic-scrollport",
+    const scroll = frame.createDiv({
+      cls: "atomic-book-row-books atomic-shelf-scroll atomic-scrollport",
       attr: { "data-testid": "atomic-bookshelf-scroll" },
     });
+    const row = scroll.createDiv({ cls: "atomic-book-shelf-row atomic-shelf-row" });
     if (!rowItems.length) {
-      books.createDiv({
+      row.createDiv({
         cls: "atomic-book-empty",
         text: emptyText,
       });
     } else {
-      for (const item of rowItems) createBook(books, item, data, language);
+      for (const item of rowItems) {
+        createBook(row, item, data, language, ribbonColor, readout);
+      }
     }
-    row.createDiv({ cls: "atomic-book-shelf-plank" });
+    scroll.createDiv({ cls: "atomic-book-shelf-plank atomic-plank" });
   }
+  readout.setText(shelfSummary(items, language));
 }
 
 function applyBookSize(frame: HTMLElement, bookWidth: number): void {
   const height = bookHeightForWidth(bookWidth);
   frame.style.setProperty("--atomic-book-width", `${bookWidth}px`);
   frame.style.setProperty("--atomic-book-height", `${height}px`);
+  frame.style.setProperty("--atomic-book-w", `${bookWidth}px`);
+  frame.style.setProperty("--atomic-book-h", `${height}px`);
 }
 
 export function renderBookShelf(
@@ -569,13 +505,12 @@ export function renderBookShelf(
     windowListeners.delete(el);
   }
   cancelBookShelfLayout(el);
-  hideAllPortedDetails();
   el.empty();
   // Keep hover title bubbles visible above books (preview codeblocks often clip).
   unclipBookShelfAncestors(el);
 
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-book-shelf",
+    cls: "fitness-plugin atomic-book-shelf atomic-shelf",
     attr: {
       "data-testid": "atomic-bookshelf",
       "data-scale": String(scale),
@@ -605,6 +540,9 @@ export function renderBookShelf(
         })
       : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
+  const readout = root.createDiv({ cls: "atomic-shelf-readout" });
+  readout.setText(shelfSummary(items, language));
+  const ribbonColor = activity.colors[2];
   let lastKey = "";
 
   const layout = (): void => {
@@ -625,7 +563,7 @@ export function renderBookShelf(
     if (key === lastKey && frame.childElementCount > 0) return;
     lastKey = key;
     applyBookSize(frame, bookWidth);
-    paintRows(frame, items, perRow, data, language, emptyText);
+    paintRows(frame, items, perRow, data, language, emptyText, ribbonColor, readout);
   };
 
   layout();

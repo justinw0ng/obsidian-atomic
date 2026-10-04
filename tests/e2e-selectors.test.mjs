@@ -150,7 +150,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(cueCard, /syncExpanded/);
   assert.doesNotMatch(cueCard, /is-open/);
   assert.match(cueCard, /"atomic-cue-text"/);
-  assert.match(cueCard, /"atomic-cue-repeats"/);
+  assert.match(cueCard, /atomic-cue-meta/);
+  assert.match(cueCard, /atomic-cue-repeats/);
   assert.match(cueCard, /MarkdownRenderer\.render/);
   assert.match(cueCard, /cueTextNeedsMarkdown/);
   assert.match(cueCard, /host\.component/);
@@ -227,6 +228,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(dashboard, /innerHTML/);
   const dashboardSections = src("src/views/dashboard-sections.ts");
   assert.match(dashboardSections, /"atomic-dashboard-monthly"/);
+  assert.match(dashboardSections, /"atomic-dashboard-month-col"/);
+  assert.match(dashboardSections, /stackedMonthPeak/);
   assert.match(dashboardSections, /"atomic-dashboard-muscles"/);
   assert.match(dashboardSections, /"atomic-dashboard-golf-focus"/);
   assert.match(dashboardSections, /"atomic-dashboard-recent"/);
@@ -292,7 +295,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /waitForNotice/);
   assert.match(health, /promptUpdateNoteIfNeeded/);
   assert.match(health, /language = "zh-Hant-en"/);
-  assert.match(health, /而家可以用/);
+  assert.match(health, /書架/);
   assert.match(health, /atomic-dashboard-kpi/);
   assert.match(health, /atomic-dashboard-activity/);
   assert.match(health, /atomic-dashboard-year-prev/);

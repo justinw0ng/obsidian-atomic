@@ -6,6 +6,7 @@ import {
   monthShortForLanguage,
   parseYmd,
 } from "../dates";
+import { calendarMonth, isFutureMonth } from "../util/month-chart";
 import { openCuesHostFile } from "../exercise/cues-host";
 import { BOOK_SHELF_HOST_REL } from "../hobbies/book-shelf-host";
 import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
@@ -13,10 +14,13 @@ import { READING_BOOKSHELF_REL } from "../hobbies/reading-bookshelf";
 import { t } from "../i18n/index.ts";
 import type { Language } from "../i18n/types";
 import { cuePathForActivity } from "../util/activity-types";
+import { appendCatalogLabel } from "./catalog-label";
 
 export type DashboardRenderContext = {
   data: VaultDataSource;
   language: Language;
+  timezone: string;
+  year: number;
 };
 
 export type DashboardBar = {
@@ -28,6 +32,8 @@ export type DashboardBar = {
   title?: string;
   /** Extra data-* hooks; merged with `title` when present. */
   attrs?: Record<string, string>;
+  /** Later months in the viewed year draw a tick instead of a bar. */
+  future?: boolean;
 };
 
 /** Quick-link chip/foot item. `open` is required so cues can ensure-then-open without teaching `appendPathLink`. */
@@ -61,6 +67,16 @@ function compactMonthLabel(index: number, ctx: DashboardRenderContext): string {
 export function localDate(ymd: string, ctx: DashboardRenderContext): string {
   const parsed = parseYmd(ymd);
   return parsed ? fullDateForLanguage(parsed.y, parsed.m, parsed.d, ctx.language) : ymd;
+}
+
+/** Ledger range caption: "Jan 2", not a long weekday sentence. */
+export function shortDate(ymd: string, ctx: DashboardRenderContext): string {
+  const parsed = parseYmd(ymd);
+  if (!parsed) return ymd;
+  if (ctx.language === "en") {
+    return `${monthShortEn(parsed.y, parsed.m, parsed.d)} ${parsed.d}`;
+  }
+  return `${parsed.m}月${parsed.d}日`;
 }
 
 /** Quick links an activity exposes: cues for exercise, Bases and book shelf for Reading. */
@@ -140,15 +156,20 @@ export function appendSectionTitle(
   parent: HTMLElement,
   title: string,
   meta: string,
-): void {
-  const row = parent.createDiv({ cls: "atomic-dash-section-title" });
-  row.createEl("h3", { text: title });
-  row.createSpan({ cls: "atomic-dash-meta", text: meta });
+): HTMLElement {
+  const section = parent.createDiv({ cls: "atomic-section" });
+  const head = section.createDiv({ cls: "atomic-section-head" });
+  const titleWrap = head.createDiv();
+  const caption = titleWrap.createDiv({ cls: "atomic-caption" });
+  appendCatalogLabel(caption, title);
+  const readout = head.createDiv({ cls: "atomic-readout" });
+  appendCatalogLabel(readout, meta);
+  return section;
 }
 
 /**
  * Draw one row of bars; `variant` picks the size family in styles.css.
- * A zero value always renders flat (the `.is-zero` stub), whatever `height` says.
+ * A zero value renders the `.is-zero` stub. A future month renders `.is-future`.
  */
 export function appendBars(
   parent: HTMLElement,
@@ -156,15 +177,21 @@ export function appendBars(
   variant: "spark" | "month" | "column",
 ): void {
   for (const bar of bars) {
-    const active = bar.value > 0;
+    const future = variant === "month" && bar.future === true;
+    const active = bar.value > 0 && !future;
+    const stub = future ? " is-future" : active ? "" : " is-zero";
     const attr: Record<string, string> = { ...bar.attrs };
     if (bar.title) attr.title = bar.title;
     const el = parent.createSpan({
-      cls: `atomic-dash-bar is-${variant}${active ? "" : " is-zero"}`,
+      cls: `atomic-dash-bar is-${variant}${stub}${variant === "month" ? " atomic-bar" : ""}`,
       attr: Object.keys(attr).length ? attr : undefined,
     });
-    el.style.height = active ? `${bar.height}%` : "0";
-    if (active && bar.color) el.style.background = bar.color;
+    if (variant === "month") {
+      if (!future) el.style.setProperty("--v", active ? (bar.height / 100).toFixed(3) : "0");
+    } else {
+      el.style.height = active ? `${bar.height}%` : "0";
+      if (active && bar.color) el.style.background = bar.color;
+    }
   }
 }
 
@@ -180,6 +207,7 @@ export function monthBars(
     height: heights[index],
     color,
     title: `${monthLabel(index, ctx)}: ${formatHours(value)}`,
+    future: isFutureMonth(ctx.year, index, ctx.timezone),
     attrs: {
       "data-testid": "atomic-dashboard-month-bar",
       "data-month": String(index + 1),
@@ -197,12 +225,19 @@ export function appendMonthBars(
   ctx: DashboardRenderContext,
 ): void {
   const bars = parent.createDiv({
-    cls: "atomic-dash-bars",
+    cls: "atomic-dash-bars atomic-months",
     attr: { title, "data-testid": "atomic-dashboard-activity-bars" },
   });
+  bars.style.setProperty("--atomic-c", color);
   appendBars(bars, monthBars(values, color, ctx), "month");
-  const labels = parent.createDiv({ cls: "atomic-dash-months" });
+  const today = calendarMonth(ctx.timezone);
+  const labels = parent.createDiv({ cls: "atomic-month-initials atomic-caption" });
   for (let i = 0; i < 12; i++) {
-    labels.createSpan({ text: compactMonthLabel(i, ctx) });
+    const text = compactMonthLabel(i, ctx);
+    if (ctx.year === today.year && i === today.month) {
+      labels.createSpan({ cls: "is-now", text });
+    } else {
+      labels.createSpan({ text });
+    }
   }
 }
