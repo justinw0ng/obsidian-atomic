@@ -5296,12 +5296,26 @@ function resolveHeatmapActivities(activityTypes, activityOption) {
   return { activities, invalidIds };
 }
 
+// src/util/heatmap-day-labels.ts
+function heatmapWeekdayLabels(language) {
+  switch (language) {
+    case "en":
+      return ["S", "M", "T", "W", "T", "F", "S"];
+    case "zh-Hant-en":
+      return ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
+    default: {
+      const exhaustive = language;
+      return exhaustive;
+    }
+  }
+}
+
 // src/util/heatmap-layout.ts
 var DEFAULT_ROWS = 1;
 var DEFAULT_COLUMNS = 1;
 var DEFAULT_MIN_COLUMN_WIDTH = 300;
 var DEFAULT_DEFAULT_SPAN = 1.2;
-var HEATMAP_GRID_GAP_PX = 12;
+var HEATMAP_GRID_GAP_PX = 40;
 function parsePositiveNumber(value, defaultValue) {
   if (!value) return defaultValue;
   const n = Number(value);
@@ -5493,10 +5507,6 @@ function cleanupHeatmapObservers(container) {
   registry.grid?.disconnect();
   heatmapObserverRegistry.delete(container);
 }
-var DOW_MARKS = {
-  en: ["", "M", "", "W", "", "F", ""],
-  "zh-Hant-en": ["", "\u4E00", "", "\u4E09", "", "\u4E94", ""]
-};
 function wireHeatmapScroll(scrollEl, registry, todayColumn, monthColumns) {
   let userHasScrolled = false;
   let expectedScrollLeft = null;
@@ -5580,7 +5590,7 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
   head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
   const body = wrap.createDiv({ cls: "atomic-heat-body" });
   const dayLabels = body.createDiv({ cls: "atomic-heat-days atomic-caption" });
-  for (const mark of DOW_MARKS[language]) {
+  for (const mark of heatmapWeekdayLabels(language)) {
     dayLabels.createSpan({ text: mark });
   }
   const scroll = body.createDiv({
@@ -7646,7 +7656,7 @@ var import_obsidian12 = require("obsidian");
 
 // src/core/update-notes.json
 var update_notes_default = {
-  version: "1.5.1",
+  version: "1.5.2",
   body: {
     en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
     "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"
