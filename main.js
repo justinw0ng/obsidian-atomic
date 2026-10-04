@@ -2925,7 +2925,7 @@ async function renderAtomicCueLog(plugin, el, host, generation) {
     }
   });
   const addButton = row.createEl("button", {
-    cls: "mod-cta",
+    cls: "atomic-btn is-primary",
     text: t("view.cueLog.add", language),
     attr: { "data-testid": "atomic-cue-log-add" }
   });
@@ -5235,6 +5235,7 @@ function buildHeatmapWeeks(params) {
         fullDate: fullDateForLanguage(cursor.y, cursor.m, cursor.d, language),
         isCurrentYear: cursor.y === year,
         isToday: dateStr === todayStr,
+        isFuture: cursor.y === year && dateStr > todayStr,
         y: cursor.y,
         m: cursor.m,
         d: cursor.d
@@ -5297,6 +5298,7 @@ function cellClass(day) {
   let cls = "fitness-cell";
   if (day.isToday) cls += " is-today";
   if (!day.isCurrentYear) cls += " is-faded";
+  else if (day.isFuture) cls += " is-future";
   if (day.path) cls += " is-link";
   return cls;
 }
