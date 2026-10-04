@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -26,7 +26,7 @@ function pixel(path, x, y) {
 
 test("frame-hero-content fills the magenta hole and keeps overlapping chrome", (t) => {
   try {
-    spawnSync("python3", ["-c", "from PIL import Image"], { stdio: "ignore" });
+    execFileSync("python3", ["-c", "from PIL import Image"], { stdio: "ignore" });
   } catch {
     t.skip("Pillow is not installed");
     return;
