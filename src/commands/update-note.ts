@@ -41,19 +41,12 @@ export function promptPendingUpdateNote(plugin: FitnessPlugin): void {
   void persistSeenUpdateNote(plugin);
 }
 
-/** `messageEl` is Obsidian 1.8.7. Older builds still expose `noticeEl`. */
-function updateNoteMessageEl(notice: Notice): HTMLElement {
-  if (requireApiVersion("1.8.7")) {
-    return notice.messageEl;
-  }
-  return notice.noticeEl;
-}
-
 function showUpdateNoteNotice(message: string): void {
   activeUpdateNotice?.hide();
   const notice = new Notice(message, UPDATE_NOTE_NOTICE_MS);
-  const messageEl = updateNoteMessageEl(notice);
-  messageEl.addClass("atomic-update-note-notice");
-  messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  if (requireApiVersion("1.8.7")) {
+    notice.messageEl.addClass("atomic-update-note-notice");
+    notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  }
   activeUpdateNotice = notice;
 }

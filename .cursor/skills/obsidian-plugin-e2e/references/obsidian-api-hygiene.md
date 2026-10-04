@@ -14,20 +14,21 @@ Atomic pattern: `src/commands/create-daily-note.ts` reads `moment` from `activeW
 
 ## Notice DOM (`obsidianmd/no-unsupported-api`)
 
-`Notice.messageEl` is Obsidian **1.8.7**. An unguarded read fails review while `minAppVersion` is 1.5.0.
+`Notice.messageEl` is Obsidian **1.8.7**. An unguarded read fails `obsidianmd/no-unsupported-api` while `minAppVersion` is 1.5.0.
 
-Guard it. On older builds use `noticeEl` (present since 0.9.7). Do not use `noticeEl` on 1.8.7+ and do not leave a bare `noticeEl` with no guard.
+Call it only inside `if (requireApiVersion("1.8.7"))`. The string passed to `new Notice` is the 1.5.0 path, so the text still shows when `messageEl` does not exist.
+
+Do not use `noticeEl`. It is deprecated, and `@typescript-eslint/no-deprecated` warns on every read. That warning is a review finding.
 
 ```ts
-function updateNoteMessageEl(notice: Notice): HTMLElement {
-  if (requireApiVersion("1.8.7")) {
-    return notice.messageEl;
-  }
-  return notice.noticeEl;
+const notice = new Notice(message, timeout);
+if (requireApiVersion("1.8.7")) {
+  notice.messageEl.addClass("atomic-update-note-notice");
+  notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
 }
 ```
 
-Atomic pattern: `src/commands/update-note.ts` puts `atomic-update-note-notice` / `data-testid` on that element.
+Atomic pattern: `src/commands/update-note.ts`.
 
 The same rule applies to every other Obsidian API whose `@since` is above `minAppVersion`. `requireApiVersion("x.y.z")` in an `if`, a `&&` test, or a ternary consequent is the guard review accepts. A guard version lower than `@since` still fails.
 
@@ -78,7 +79,7 @@ Do not leave unused `*Covered` (or similar) type aliases. Use them, or delete th
 | Ban | Lock |
 | --- | --- |
 | `globalThis` in `src/**` | `tests/e2e-selectors.test.mjs` (tree walk + cited files) |
-| unguarded `messageEl`, or `noticeEl` without `requireApiVersion("1.8.7")` | same file / `update-note.ts` |
+| `noticeEl` anywhere in `src/**`; `messageEl` outside `requireApiVersion("1.8.7")` | same file / `update-note.ts` |
 | static `style` literals (`setProperty` second arg, `style.prop = "…"`, `setAttribute("style")`) | same file |
 | `column-gap` / `column-count` / `columns` / `clip-path` / masks in `styles.css` | same file |
 | `activeWindow` at the moment call site | same file / `create-daily-note.ts` |

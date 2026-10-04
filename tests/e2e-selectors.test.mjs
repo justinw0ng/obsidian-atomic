@@ -122,9 +122,9 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(updateNote, /requireApiVersion\("1\.8\.7"\)/);
   assert.match(
     updateNote,
-    /if \(requireApiVersion\("1\.8\.7"\)\) \{\s*return notice\.messageEl;/,
+    /if \(requireApiVersion\("1\.8\.7"\)\) \{\s*notice\.messageEl\.addClass/,
   );
-  assert.match(updateNote, /return notice\.noticeEl;/);
+  assert.doesNotMatch(updateNote, /noticeEl/);
   assert.doesNotMatch(updateNote, /innerHTML/);
   assert.doesNotMatch(updateNote, /Modal/);
   assert.doesNotMatch(updateNote, /atomic-update-note-modal/);
@@ -402,20 +402,15 @@ test("plugin source bans globalThis, unguarded Notice DOM, and static style lite
       /\.setAttribute\(\s*["']style["']\s*,\s*["']/,
       `${file} sets a static style attribute`,
     );
-    if (/\.messageEl\b/.test(text)) {
-      assert.match(
-        text,
-        /requireApiVersion\(\s*["']1\.8\.7["']\s*\)/,
-        `${file} uses messageEl without requireApiVersion("1.8.7")`,
-      );
-    }
-    if (/\bnoticeEl\b/.test(text)) {
-      assert.match(
-        text,
-        /requireApiVersion\(\s*["']1\.8\.7["']\s*\)/,
-        `${file} uses noticeEl outside the 1.8.7 fallback`,
-      );
-      assert.match(text, /\.messageEl\b/, `${file} uses noticeEl without messageEl`);
-    }
+    assert.doesNotMatch(text, /\bnoticeEl\b/, `${file} uses deprecated noticeEl`);
+    const unguarded = text.replace(
+      /if \(requireApiVersion\("1\.8\.7"\)\) \{[\s\S]*?\n {2}\}/g,
+      "",
+    );
+    assert.doesNotMatch(
+      unguarded,
+      /\.messageEl\b/,
+      `${file} uses messageEl outside requireApiVersion("1.8.7")`,
+    );
   }
 });

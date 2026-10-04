@@ -52,7 +52,8 @@ Do not use lookbehind regexes if `isDesktopOnly` is false.
 | Avoid | Use |
 | --- | --- |
 | Obsidian API newer than `minAppVersion` (`obsidianmd/no-unsupported-api`) | `requireApiVersion` guard plus a 1.5.0 fallback. Do not raise `minAppVersion` just to silence the lint, and do not bump plugin `version` for it |
-| Unguarded `Notice.messageEl` (1.8.7) | `requireApiVersion("1.8.7")` then `messageEl`, else `noticeEl` |
+| Unguarded `Notice.messageEl` (1.8.7) | `requireApiVersion("1.8.7")` then `messageEl`. `new Notice(message)` is the 1.5.0 path |
+| `noticeEl` | Deprecated. `@typescript-eslint/no-deprecated` warns. Do not use it |
 | Global `app` / `window.app` in plugin source | `this.app` (the e2e harness may use `window.app`) |
 | `workspace.activeLeaf` | `getActiveViewOfType`, `activeEditor` |
 | `vault.modify` on a background file | `vault.process` |
@@ -75,7 +76,7 @@ Window APIs, Notice DOM, `minAppVersion` guards, static styles, partial CSS, cor
 - `setWarning` / `setDestructive` / recursive `display()` absent from settings
 - `getSettingDefinitions` present
 - `:has(`, `!important`, `scrollbar-width`, `column-gap` / `column-count` / `columns`, `clip-path`, `mask` / `-webkit-mask` absent from `styles.css`
-- `globalThis` absent from `src/**`; `messageEl` only behind `requireApiVersion("1.8.7")`; `noticeEl` only as that fallback; no static style literals; `activeWindow` / typed `getFormat` at the cited call sites
+- `globalThis` / `noticeEl` absent from `src/**`; `messageEl` only behind `requireApiVersion("1.8.7")`; no static style literals; `activeWindow` / typed `getFormat` at the cited call sites
 - unused `*Covered` aliases absent from `src/core/dashboard.ts` (`tests/dashboard-paint-state.test.mjs`)
 
 When review invents a new ban, add a `doesNotMatch` (or a `match` for the replacement) in that file in the same PR as the fix.

@@ -289,6 +289,7 @@ test("skill, AGENTS.md, and cloud.md lock Obsidian review checks from #108", () 
   assert.match(architecture, /requireApiVersion\("1\.8\.7"\)/);
   assert.match(architecture, /obsidian-api-hygiene\.md/);
   assert.match(skill, /noticeEl/);
+  assert.match(hygiene, /no-deprecated/);
 });
 
 test("skill and AGENTS.md require a Thermo-Nuclear review gate before ready", () => {

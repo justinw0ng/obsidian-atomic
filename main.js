@@ -7563,18 +7563,13 @@ function promptPendingUpdateNote(plugin) {
   showUpdateNoteNotice(message);
   void persistSeenUpdateNote(plugin);
 }
-function updateNoteMessageEl(notice) {
-  if ((0, import_obsidian12.requireApiVersion)("1.8.7")) {
-    return notice.messageEl;
-  }
-  return notice.noticeEl;
-}
 function showUpdateNoteNotice(message) {
   activeUpdateNotice?.hide();
   const notice = new import_obsidian12.Notice(message, UPDATE_NOTE_NOTICE_MS);
-  const messageEl = updateNoteMessageEl(notice);
-  messageEl.addClass("atomic-update-note-notice");
-  messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  if ((0, import_obsidian12.requireApiVersion)("1.8.7")) {
+    notice.messageEl.addClass("atomic-update-note-notice");
+    notice.messageEl.setAttr("data-testid", "atomic-update-note-notice");
+  }
   activeUpdateNotice = notice;
 }
 
