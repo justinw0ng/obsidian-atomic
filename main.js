@@ -428,6 +428,8 @@ var en = {
   "view.dashboard.recentSessions": "Recent sessions",
   "view.dashboard.recentMeta": "Latest {count} \xB7 click to open the note",
   "view.dashboard.noSessions": "No sessions yet",
+  "view.heatmap.summary": "{days} days \xB7 {minutes} min",
+  "view.heatmap.summaryHours": "{days} days \xB7 {hours} h {minutes} m",
   "view.heatmap.less": "Less",
   "view.heatmap.more": "More",
   "view.heatmap.byDuration": "by duration",
@@ -446,14 +448,19 @@ var en = {
   "view.cueLog.add": "Add cue",
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
   "view.bookShelf.open": "Open {title}",
+  "view.bookShelf.summary": "{count} books \xB7 {reading} reading \xB7 {finished} finished",
+  "view.bookShelf.clickToOpen": "Click to open",
+  "view.bookShelf.tapAgain": "Tap again to open",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
   "view.bookShelf.emptyFiltered": "No Reading items with status: {statuses}.",
   "view.bookShelf.invalidStatuses": "Unknown book shelf status values: {statuses}",
   "view.timer.needsSavedNote": "Timer can only run from a saved note.",
-  "view.timer.total": "Total: {minutes} min",
-  "view.timer.duration": "Duration: {minutes} min",
-  "view.timer.runningSince": "Timer running since {time}",
+  "view.timer.caption": "Timer",
+  "view.timer.minuteUnit": "min",
+  "view.timer.total": "Total {minutes} min",
+  "view.timer.duration": "Duration {minutes} min",
+  "view.timer.runningSince": "Running \xB7 since {time}",
   "view.timer.stop": "Stop",
   "view.timer.resume": "Resume",
   "view.timer.discard": "Discard",
@@ -731,6 +738,8 @@ var zhHantEn = {
   "view.dashboard.recentSessions": "Recent sessions / \u6700\u8FD1\u8A13\u7DF4",
   "view.dashboard.recentMeta": "Latest {count} \xB7 click to open the note / \u9EDE\u64CA\u958B\u555F\u7B46\u8A18",
   "view.dashboard.noSessions": "No sessions yet / \u5C1A\u672A\u8A18\u9304",
+  "view.heatmap.summary": "{days} \u65E5 \xB7 {minutes} \u5206\u9418",
+  "view.heatmap.summaryHours": "{days} \u65E5 \xB7 {hours} \u5C0F\u6642 {minutes} \u5206\u9418",
   "view.heatmap.less": "Less / \u5C11",
   "view.heatmap.more": "More / \u591A",
   "view.heatmap.byDuration": "by duration / \u6309\u6642\u9577",
@@ -749,14 +758,19 @@ var zhHantEn = {
   "view.cueLog.add": "Add cue / \u52A0\u63D0\u793A",
   "view.cueLog.needsSavedNote": "Save this note to add cues / \u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
   "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
+  "view.bookShelf.summary": "{count} \u672C \xB7 {reading} \u672C\u95B1\u8B80\u4E2D \xB7 {finished} \u672C\u8B80\u5B8C",
+  "view.bookShelf.clickToOpen": "Click to open / \u64B3\u4E00\u4E0B\u958B\u555F",
+  "view.bookShelf.tapAgain": "Tap again to open / \u518D\u64B3\u4E00\u6B21\u958B\u555F",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity} / \u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item / \u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
   "view.bookShelf.emptyFiltered": "No Reading items with status / \u6C92\u6709\u72C0\u614B\u70BA {statuses} \u7684\u95B1\u8B80\u9805\u76EE\u3002",
   "view.bookShelf.invalidStatuses": "Unknown book shelf status values / \u672A\u77E5\u7684\u66F8\u67B6\u72C0\u614B\u503C: {statuses}",
   "view.timer.needsSavedNote": "Timer can only run from a saved note / Timer \u53EA\u53EF\u5728\u5DF2\u5132\u5B58\u7684\u7B46\u8A18\u57F7\u884C\u3002",
-  "view.timer.total": "Total / \u7E3D\u8A08: {minutes} min / \u5206\u9418",
-  "view.timer.duration": "Duration / \u6642\u9577: {minutes} min / \u5206\u9418",
-  "view.timer.runningSince": "Timer running since / Timer \u958B\u59CB\u65BC {time}",
+  "view.timer.caption": "Timer / \u8A08\u6642",
+  "view.timer.minuteUnit": "\u5206\u9418",
+  "view.timer.total": "\u7E3D\u8A08 {minutes} \u5206\u9418",
+  "view.timer.duration": "\u6642\u9577 {minutes} \u5206\u9418",
+  "view.timer.runningSince": "\u8A08\u6642\u4E2D \xB7 {time} \u958B\u59CB",
   "view.timer.stop": "Stop / \u505C\u6B62",
   "view.timer.resume": "Resume / \u7E7C\u7E8C",
   "view.timer.discard": "Discard / \u653E\u68C4",
@@ -820,7 +834,6 @@ var BLUE = [
   "#2563eb",
   "#1e3a8a"
 ];
-var EMPTY_CELL = "#ebedf0";
 var DEFAULT_ACTIVITY_TYPES = [
   {
     id: "gym",
@@ -2337,7 +2350,10 @@ function renderActions(el, plugin) {
     attr: { "data-testid": "atomic-actions" }
   });
   for (const activity of actionActivities(plugin.settings.activityTypes)) {
-    const button = wrap.createEl("button", { text: activity.label });
+    const button = wrap.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
+    const dot = button.createSpan({ cls: "atomic-dot" });
+    dot.style.setProperty("--atomic-c", activity.colors[2]);
+    button.createSpan({ text: activity.label });
     button.addEventListener("click", () => {
       if (activity.domain === "hobby" && activity.noteModel === "item") {
         void plugin.createHobbyItem(activity);
@@ -2728,8 +2744,10 @@ function openCueLightbox(source) {
   });
   source.setAttr("aria-expanded", "true");
   session = { source, overlay, card, view, onKey };
+  appendCueLightboxReadout(source, overlay);
   const place = () => {
     overlay.addClass("is-placed");
+    overlay.addClass("is-settled");
     card.focus();
   };
   if (prefersReducedMotion(view)) {
@@ -2740,6 +2758,17 @@ function openCueLightbox(source) {
     view.requestAnimationFrame(place);
   });
 }
+function appendCueLightboxReadout(source, overlay) {
+  const root = source.closest(".atomic-cues");
+  const activity = root?.getAttribute("data-activity-label") || root?.getAttribute("data-activity") || "";
+  const meta = source.querySelector(".atomic-cue-meta")?.textContent?.trim() || "";
+  const repeats = source.querySelector(".atomic-cue-repeats")?.textContent?.trim() || "";
+  const parts = [activity, meta, repeats].filter((part) => part.length > 0);
+  const readout = overlay.createDiv({ cls: "atomic-glass atomic-cue-lightbox-readout" });
+  readout.createSpan({ cls: "atomic-readout", text: parts.join(" \xB7 ") });
+  const hint = readout.createSpan({ cls: "atomic-readout is-hint" });
+  hint.createEl("kbd", { text: "esc" });
+}
 function prefersReducedMotion(view) {
   return view.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -2749,6 +2778,8 @@ function copyCuePaperVars(source, overlay, card) {
   const sourceStyle = view.getComputedStyle(source);
   const tint = sourceStyle.getPropertyValue("--atomic-cue-tint").trim();
   if (tint) card.style.setProperty("--atomic-cue-tint", tint);
+  const color = sourceStyle.getPropertyValue("--atomic-c").trim();
+  if (color) card.style.setProperty("--atomic-c", color);
   const root = source.closest(".atomic-cues");
   if (!root) return;
   const accent = view.getComputedStyle(root).getPropertyValue("--atomic-cue-accent").trim();
@@ -2821,7 +2852,11 @@ async function appendCueCard(fan, card, host, language) {
     }
   });
   const sheet = el.createDiv({ cls: "atomic-cue-sheet" });
-  const body = sheet.createDiv({ cls: "atomic-cue-body" });
+  const meta = sheet.createDiv({ cls: "atomic-cue-meta" });
+  if (card.lastSeen) {
+    meta.setText(card.focus ? `${card.lastSeen} \xB7 ${card.focus}` : card.lastSeen);
+  }
+  const body = sheet.createDiv({ cls: "atomic-cue-body atomic-scrollport" });
   const text = body.createDiv({ cls: "atomic-cue-text" });
   if (cueTextNeedsMarkdown(card.text)) {
     await import_obsidian4.MarkdownRenderer.render(
@@ -2837,20 +2872,11 @@ async function appendCueCard(fan, card, host, language) {
     }
   }
   const count = card.count ?? 0;
-  if (card.lastSeen || count > 1) {
-    const meta = sheet.createDiv({ cls: "atomic-cue-meta" });
-    if (card.lastSeen) {
-      meta.createSpan({
-        cls: "atomic-cue-date",
-        text: card.focus ? `${card.lastSeen} \xB7 ${card.focus}` : card.lastSeen
-      });
-    }
-    if (count > 1) {
-      meta.createSpan({
-        cls: "atomic-cue-repeats",
-        text: t("view.cues.repeats", language, { count })
-      });
-    }
+  if (count > 1) {
+    el.createSpan({
+      cls: "atomic-cue-tab atomic-cue-repeats",
+      text: t("view.cues.repeats", language, { count })
+    });
   }
   return el;
 }
@@ -3005,6 +3031,8 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
     attr: { "data-testid": "atomic-cues", "data-activity": activity }
   });
   root.style.setProperty("--atomic-cue-accent", activityType.colors[2]);
+  root.style.setProperty("--atomic-c", activityType.colors[2]);
+  root.setAttr("data-activity-label", activityType.label);
   if (!cards.length) {
     root.createEl("p", {
       text: t("view.cues.empty", language, { year }),
@@ -3018,6 +3046,9 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
       (card) => appendCueCard(fan, card, { ...host, component }, language)
     )
   );
+  for (const card of painted) {
+    card.style.setProperty("--atomic-c", activityType.colors[2]);
+  }
   bindCueCardFan(painted);
 }
 async function collectCues(data, activityType, year) {
@@ -3632,6 +3663,56 @@ function buildDashboardModel(input) {
   };
 }
 
+// src/util/bilingual-label.ts
+function splitCatalogLabel(text) {
+  const match = /^([^/]+?) \/ ([^/]+)$/u.exec(text);
+  if (!match) return { primary: text, secondary: null };
+  const secondary = match[2];
+  if (!secondary || !/\p{Script=Han}/u.test(secondary)) {
+    return { primary: text, secondary: null };
+  }
+  return { primary: match[1] ?? text, secondary };
+}
+
+// src/views/catalog-label.ts
+function appendCatalogLabel(parent, text) {
+  const { primary, secondary } = splitCatalogLabel(text);
+  if (!secondary) {
+    parent.appendText(primary);
+    return;
+  }
+  const label = parent.createSpan({ cls: "atomic-label" });
+  label.createSpan({ cls: "atomic-label-en", text: primary });
+  label.createSpan({
+    cls: "atomic-label-zh",
+    text: secondary,
+    attr: { lang: "zh-Hant-HK" }
+  });
+}
+
+// src/util/month-chart.ts
+function calendarMonth(timeZone, now = /* @__PURE__ */ new Date()) {
+  const today = parseYmd(ymdInZone(now, timeZone));
+  if (!today) return { year: nowYear(timeZone), month: 0 };
+  return { year: today.y, month: today.m - 1 };
+}
+function isFutureMonth(viewYear, monthIndex, timeZone, now = /* @__PURE__ */ new Date()) {
+  const today = calendarMonth(timeZone, now);
+  if (viewYear > today.year) return true;
+  if (viewYear < today.year) return false;
+  return monthIndex > today.month;
+}
+function stackedMonthPeak(series) {
+  const months = Math.max(0, ...series.map((values) => values.length));
+  let peak = 0;
+  for (let month = 0; month < months; month++) {
+    let sum = 0;
+    for (const values of series) sum += values[month] ?? 0;
+    if (sum > peak) peak = sum;
+  }
+  return peak > 0 ? peak : 1;
+}
+
 // src/exercise/cues-host.ts
 function isCueHostActivity(activity) {
   return activity.domain === "exercise" && activity.supportsCues;
@@ -3897,9 +3978,13 @@ function monthLabel(index, ctx, year = 2e3) {
 function compactMonthLabel(index, ctx) {
   return ctx.language === "en" ? monthShortEn(2e3, index + 1, 1).slice(0, 1) : String(index + 1);
 }
-function localDate(ymd, ctx) {
+function shortDate(ymd, ctx) {
   const parsed = parseYmd(ymd);
-  return parsed ? fullDateForLanguage(parsed.y, parsed.m, parsed.d, ctx.language) : ymd;
+  if (!parsed) return ymd;
+  if (ctx.language === "en") {
+    return `${monthShortEn(parsed.y, parsed.m, parsed.d)} ${parsed.d}`;
+  }
+  return `${parsed.m}\u6708${parsed.d}\u65E5`;
 }
 function activityLinks(card, ctx) {
   const { activity } = card;
@@ -3957,21 +4042,32 @@ function appendPathLink(parent, text, path, ctx, cls = "atomic-dash-link") {
   return link;
 }
 function appendSectionTitle(parent, title, meta) {
-  const row = parent.createDiv({ cls: "atomic-dash-section-title" });
-  row.createEl("h3", { text: title });
-  row.createSpan({ cls: "atomic-dash-meta", text: meta });
+  const section = parent.createDiv({ cls: "atomic-section" });
+  const head = section.createDiv({ cls: "atomic-section-head" });
+  const titleWrap = head.createDiv();
+  const caption = titleWrap.createDiv({ cls: "atomic-caption" });
+  appendCatalogLabel(caption, title);
+  const readout = head.createDiv({ cls: "atomic-readout" });
+  appendCatalogLabel(readout, meta);
+  return section;
 }
 function appendBars(parent, bars, variant) {
   for (const bar of bars) {
-    const active = bar.value > 0;
+    const future = variant === "month" && bar.future === true;
+    const active = bar.value > 0 && !future;
+    const stub = future ? " is-future" : active ? "" : " is-zero";
     const attr = { ...bar.attrs };
     if (bar.title) attr.title = bar.title;
     const el = parent.createSpan({
-      cls: `atomic-dash-bar is-${variant}${active ? "" : " is-zero"}`,
+      cls: `atomic-dash-bar is-${variant}${stub}${variant === "month" ? " atomic-bar" : ""}`,
       attr: Object.keys(attr).length ? attr : void 0
     });
-    el.style.height = active ? `${bar.height}%` : "0";
-    if (active && bar.color) el.style.background = bar.color;
+    if (variant === "month") {
+      if (!future) el.style.setProperty("--v", active ? (bar.height / 100).toFixed(3) : "0");
+    } else {
+      el.style.height = active ? `${bar.height}%` : "0";
+      if (active && bar.color) el.style.background = bar.color;
+    }
   }
 }
 function monthBars(values, color, ctx) {
@@ -3981,6 +4077,7 @@ function monthBars(values, color, ctx) {
     height: heights[index],
     color,
     title: `${monthLabel(index, ctx)}: ${formatHours(value)}`,
+    future: isFutureMonth(ctx.year, index, ctx.timezone),
     attrs: {
       "data-testid": "atomic-dashboard-month-bar",
       "data-month": String(index + 1),
@@ -3990,27 +4087,24 @@ function monthBars(values, color, ctx) {
 }
 function appendMonthBars(parent, values, color, title, ctx) {
   const bars = parent.createDiv({
-    cls: "atomic-dash-bars",
+    cls: "atomic-dash-bars atomic-months",
     attr: { title, "data-testid": "atomic-dashboard-activity-bars" }
   });
+  bars.style.setProperty("--atomic-c", color);
   appendBars(bars, monthBars(values, color, ctx), "month");
-  const labels = parent.createDiv({ cls: "atomic-dash-months" });
+  const today = calendarMonth(ctx.timezone);
+  const labels = parent.createDiv({ cls: "atomic-month-initials atomic-caption" });
   for (let i = 0; i < 12; i++) {
-    labels.createSpan({ text: compactMonthLabel(i, ctx) });
+    const text = compactMonthLabel(i, ctx);
+    if (ctx.year === today.year && i === today.month) {
+      labels.createSpan({ cls: "is-now", text });
+    } else {
+      labels.createSpan({ text });
+    }
   }
 }
 
 // src/views/dashboard-sections.ts
-function appendCard(parent, testId, extraCls = "") {
-  return parent.createDiv({
-    cls: `atomic-dash-card ${extraCls}`.trim(),
-    attr: { "data-testid": testId }
-  });
-}
-function appendCardTitle(card, title, meta) {
-  const row = card.createEl("h4", { cls: "atomic-dash-card-title", text: title });
-  row.createSpan({ text: meta });
-}
 function appendEmpty(parent, text) {
   parent.createDiv({ cls: "atomic-dash-empty", text });
 }
@@ -4034,35 +4128,85 @@ function columnHeader(column, ctx) {
 function columnCell(column, index) {
   return column.kind === "volume" ? formatKg(column.values[index]) : formatCount(column.values[index]);
 }
-function appendMonthlyChart(card, columns, ctx) {
-  const legend = card.createDiv({ cls: "atomic-dash-legend" });
+function chartMax(columns, year, timeZone) {
+  return stackedMonthPeak(
+    columns.map(
+      (column) => column.values.map((value, month) => isFutureMonth(year, month, timeZone) ? 0 : value)
+    )
+  );
+}
+function chartTick(max, mark) {
+  const value = Math.round(max * mark * 10) / 10;
+  return formatCount(value);
+}
+function sectionReadout(section) {
+  const readout = section.querySelector(".atomic-readout");
+  if (readout == null || !readout.instanceOf(HTMLElement)) return null;
+  return readout;
+}
+function appendMonthlyChart(card, columns, ctx, readout, year) {
+  const legend = card.createDiv({ cls: "atomic-legend" });
   for (const column of columns) {
     const item = legend.createSpan();
-    item.createSpan({ cls: "atomic-dash-swatch" }).style.background = column.activity.colors[2];
+    const dot = item.createSpan({ cls: "atomic-dot" });
+    dot.style.setProperty("--atomic-c", column.activity.colors[2]);
     item.appendText(column.activity.label);
   }
-  legend.createSpan({
-    cls: "atomic-dash-legend-hint",
-    text: t("view.dashboard.monthlyTableHint", ctx.language)
-  });
-  const shared = barHeights(columns.flatMap((column) => column.values));
-  const cols = card.createDiv({ cls: "atomic-dash-cols", attr: { "aria-hidden": "true" } });
-  for (let month = 0; month < 12; month++) {
-    const col = cols.createDiv({ cls: "atomic-dash-col" });
-    appendBars(
-      col,
-      columns.map((column, columnIndex) => ({
-        value: column.values[month],
-        height: shared[columnIndex * 12 + month],
-        color: column.activity.colors[2],
-        title: `${column.activity.label} \xB7 ${monthLabel(month, ctx)}: ${formatCount(column.values[month])}`
-      })),
-      "column"
-    );
+  const max = chartMax(columns, year, ctx.timezone);
+  const axis = card.createDiv({ cls: "atomic-chart-y atomic-caption" });
+  for (const mark of [0, 0.5, 1]) {
+    axis.createSpan({
+      text: chartTick(max, mark),
+      attr: { style: `--y:${mark}` }
+    });
   }
-  const labels = card.createDiv({ cls: "atomic-dash-months atomic-dash-months-wide" });
+  const plot = card.createDiv({ cls: "atomic-chart-plot" });
+  for (const mark of [0, 0.5, 1]) {
+    plot.createSpan({
+      cls: mark === 0 ? "atomic-chart-grid is-base" : "atomic-chart-grid",
+      attr: { style: `--y:${mark}` }
+    });
+  }
+  const cols = plot.createDiv({ cls: "atomic-chart-cols", attr: { "aria-hidden": "true" } });
+  const labels = card.createDiv({ cls: "atomic-chart-x atomic-caption" });
   for (let month = 0; month < 12; month++) {
-    labels.createSpan({ text: monthLabel(month, ctx) });
+    const future = isFutureMonth(year, month, ctx.timezone);
+    const name = monthLabel(month, ctx, year);
+    const col = cols.createDiv({
+      cls: future ? "atomic-chart-col is-future" : "atomic-chart-col",
+      attr: {
+        "data-testid": "atomic-dashboard-month-col",
+        "data-month": String(month + 1)
+      }
+    });
+    const parts = [name];
+    if (!future) {
+      for (const column of columns) {
+        const value = column.values[month] ?? 0;
+        const seg = col.createSpan({ cls: "atomic-chart-seg" });
+        seg.style.setProperty("--atomic-c", column.activity.colors[2]);
+        seg.style.setProperty("--v", (value / max).toFixed(3));
+        seg.setAttr("title", `${column.activity.label} \xB7 ${name}: ${formatCount(value)}`);
+        parts.push(`${column.activity.label} ${formatCount(value)}`);
+      }
+    }
+    const label = labels.createSpan();
+    label.createSpan({ cls: "is-long", text: name });
+    label.createSpan({ cls: "is-short", text: name.slice(0, 1) });
+    if (future) continue;
+    const summary = parts.join(" \xB7 ");
+    col.addEventListener("pointerenter", () => {
+      card.addClass("is-reading");
+      col.addClass("is-hot");
+      label.addClass("is-hot");
+      readout.setText(summary);
+    });
+    col.addEventListener("pointerleave", () => {
+      card.removeClass("is-reading");
+      col.removeClass("is-hot");
+      label.removeClass("is-hot");
+      readout.setText(t("view.dashboard.monthlyMeta", ctx.language));
+    });
   }
 }
 function appendMonthlyTable(parent, model, ctx) {
@@ -4083,76 +4227,118 @@ function appendMonthlyTable(parent, model, ctx) {
 }
 function renderDashboardMonthly(root, model, ctx) {
   if (!model.monthlyColumns.length) return;
-  appendSectionTitle(
+  const section = appendSectionTitle(
     root,
     t("view.dashboard.monthly", ctx.language),
     t("view.dashboard.monthlyMeta", ctx.language)
   );
-  const card = appendCard(root, "atomic-dashboard-monthly", "atomic-dash-chart");
   const sessionColumns = model.monthlyColumns.filter((column) => column.kind === "sessions");
-  if (!sessionColumns.length) {
-    appendMonthlyTable(card, model, ctx);
+  const readout = sectionReadout(section);
+  const card = section.createDiv({
+    attr: { "data-testid": "atomic-dashboard-monthly" }
+  });
+  if (sessionColumns.length > 0 && readout) {
+    card.addClass("atomic-chart");
+    appendMonthlyChart(card, sessionColumns, ctx, readout, model.year);
+    const details = card.createEl("details", { cls: "atomic-quiet-toggle" });
+    details.createEl("summary", { text: t("view.dashboard.showMonthlyTable", ctx.language) });
+    appendMonthlyTable(details, model, ctx);
     return;
   }
-  appendMonthlyChart(card, sessionColumns, ctx);
-  const details = card.createEl("details");
-  details.createEl("summary", { text: t("view.dashboard.showMonthlyTable", ctx.language) });
-  appendMonthlyTable(details, model, ctx);
+  appendMonthlyTable(card, model, ctx);
 }
 function renderMuscles(parent, model, ctx) {
   if (!model.muscles) return;
   const { activity, rows } = model.muscles;
-  const card = appendCard(parent, "atomic-dashboard-muscles");
-  card.style.setProperty("--atomic-dash-accent", activity.colors[2]);
-  appendCardTitle(
-    card,
+  const section = appendSectionTitle(
+    parent,
     t("view.dashboard.muscles", ctx.language),
     t("view.dashboard.byVolumeSets", ctx.language)
   );
+  const card = section.createDiv({
+    cls: "atomic-stack",
+    attr: { "data-testid": "atomic-dashboard-muscles" }
+  });
+  card.style.setProperty("--atomic-c", activity.colors[2]);
   if (!rows.length) {
     appendEmpty(card, t("view.dashboard.noSetData", ctx.language));
     return;
   }
-  const rank = card.createDiv({ cls: "atomic-dash-rank" });
-  const widths = barHeights(rows.map((row) => row.volumeKg));
-  rows.forEach((row, index) => {
+  const peak = Math.max(1, ...rows.map((row) => row.volumeKg));
+  for (const row of rows) {
     const name = row.muscle || t("view.dashboard.unknownMuscle", ctx.language);
-    const line = rank.createDiv({ cls: "atomic-dash-rank-row" });
-    line.createSpan({ cls: "atomic-dash-rank-name", text: name, attr: { title: name } });
-    const fill = line.createSpan({ cls: "atomic-dash-rank-bar" }).createSpan({ cls: "atomic-dash-rank-fill" });
-    fill.style.width = `${widths[index]}%`;
-    const value = line.createSpan({ cls: "atomic-dash-rank-value" });
-    value.createEl("b", { text: kg(row.volumeKg, ctx) });
-    value.appendText(` \xB7 ${formatCount(row.sets)}`);
+    const line = card.createDiv({ cls: "atomic-fill-row" });
+    line.style.setProperty("--v", (row.volumeKg / peak).toFixed(3));
+    const label = line.createSpan({ attr: { title: name } });
+    appendCatalogLabel(label, name);
+    line.createSpan({
+      cls: "atomic-fill-row-value",
+      text: `${kg(row.volumeKg, ctx)} \xB7 ${formatCount(row.sets)}`
+    });
+  }
+}
+function feltClass(key) {
+  switch (key) {
+    case "good":
+      return "";
+    case "ok":
+      return "is-ok";
+    case "bad":
+      return "is-bad";
+    default: {
+      const exhaustive = key;
+      return exhaustive;
+    }
+  }
+}
+function appendFelt(parent, felt, ctx) {
+  const total = FELT_ORDER.reduce((sum, key) => sum + felt[key], 0);
+  const wrap = parent.createDiv({ cls: "atomic-felt" });
+  const bar = wrap.createDiv({
+    cls: "atomic-felt-bar",
+    attr: { title: t("view.dashboard.feltTitle", ctx.language) }
   });
+  const legend = wrap.createDiv({ cls: "atomic-legend atomic-hint" });
+  for (const key of FELT_ORDER) {
+    const seg = bar.createSpan({ cls: feltClass(key) });
+    seg.style.setProperty("--v", total > 0 ? (felt[key] / total).toFixed(3) : "0");
+    const item = legend.createSpan();
+    item.createSpan({ cls: `atomic-dot ${feltClass(key)}`.trim() });
+    appendCatalogLabel(item, t(FELT_LABEL_KEY[key], ctx.language));
+    item.appendText(` ${felt[key]}`);
+  }
 }
 function renderGolfFocus(parent, model, ctx) {
   if (!model.golfFocus) return;
   const { activity, sessions, tags } = model.golfFocus;
-  const card = appendCard(parent, "atomic-dashboard-golf-focus");
-  card.style.setProperty("--atomic-dash-accent", activity.colors[2]);
-  appendCardTitle(
-    card,
+  const section = appendSectionTitle(
+    parent,
     t("view.dashboard.golfFocus", ctx.language),
     t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) })
   );
+  const card = section.createDiv({
+    cls: "atomic-stack",
+    attr: { "data-testid": "atomic-dashboard-golf-focus" }
+  });
+  card.style.setProperty("--atomic-c", activity.colors[2]);
   if (!tags.length) {
     appendEmpty(card, t("view.dashboard.noFocusTags", ctx.language));
-    return;
+  } else {
+    for (const { tag, count } of tags) {
+      const line = card.createDiv({ cls: "atomic-leader-row" });
+      line.createSpan({ text: tag });
+      line.createSpan({ cls: "atomic-leader" });
+      line.createSpan({ cls: "atomic-leader-value", text: formatCount(count) });
+    }
   }
-  const list = card.createDiv({ cls: "atomic-dash-tags" });
-  tags.forEach(({ tag, count }, index) => {
-    const chip = list.createSpan({
-      cls: index < 2 ? "atomic-dash-tag is-large" : "atomic-dash-tag"
-    });
-    chip.createSpan({ cls: "atomic-dash-dot" });
-    chip.appendText(`${tag} `);
-    chip.createEl("b", { text: formatCount(count) });
-  });
+  const golf = model.activities.find(
+    (entry) => entry.domain === "exercise" && entry.activity.id === activity.id && entry.felt != null
+  );
+  if (golf?.felt) appendFelt(card, golf.felt, ctx);
 }
 function renderDashboardDetails(root, model, ctx) {
   if (!model.muscles && !model.golfFocus) return;
-  const columns = root.createDiv({ cls: "atomic-dash-columns" });
+  const columns = root.createDiv({ cls: "atomic-split" });
   renderMuscles(columns, model, ctx);
   renderGolfFocus(columns, model, ctx);
 }
@@ -4170,32 +4356,35 @@ function recentSummary(row, ctx) {
 }
 function renderDashboardRecent(root, model, ctx) {
   if (!model.activities.some((card2) => card2.domain === "exercise")) return;
-  appendSectionTitle(
+  const section = appendSectionTitle(
     root,
     t("view.dashboard.recentSessions", ctx.language),
     t("view.dashboard.recentMeta", ctx.language, { count: model.recent.length })
   );
-  const card = appendCard(root, "atomic-dashboard-recent", "atomic-dash-recent");
+  const card = section.createDiv({
+    cls: "atomic-recent",
+    attr: { "data-testid": "atomic-dashboard-recent" }
+  });
   if (!model.recent.length) {
     appendEmpty(card, t("view.dashboard.noSessions", ctx.language));
     return;
   }
   for (const row of model.recent) {
     const line = card.createDiv({
-      cls: "atomic-dash-recent-row",
+      cls: "atomic-recent-row atomic-dash-recent-row",
       attr: { "data-testid": "atomic-dashboard-recent-row", "data-path": row.path }
     });
-    line.style.setProperty("--atomic-dash-accent", row.activity.colors[2]);
+    line.style.setProperty("--atomic-c", row.activity.colors[2]);
     const parsed = parseYmd(row.date);
     line.createSpan({
-      cls: "atomic-dash-recent-date",
+      cls: "atomic-recent-date",
       text: parsed ? weekdayDateForLanguage(parsed.y, parsed.m, parsed.d, ctx.language) : row.date
     });
-    line.createSpan({ cls: "atomic-dash-dot" });
-    const what = line.createSpan({ cls: "atomic-dash-recent-what" });
-    appendPathLink(what, row.activity.label, row.path, ctx);
-    what.createSpan({ cls: "atomic-dash-recent-path", text: row.path });
-    line.createSpan({ cls: "atomic-dash-recent-summary", text: recentSummary(row, ctx) });
+    const what = line.createSpan({ cls: "atomic-name" });
+    what.createSpan({ cls: "atomic-dot" });
+    appendPathLink(what, row.activity.label, row.path, ctx, "atomic-link");
+    line.createSpan({ cls: "atomic-recent-sum", text: recentSummary(row, ctx) });
+    line.createSpan({ cls: "atomic-recent-arrow", text: "\u2192" });
   }
 }
 
@@ -4235,67 +4424,64 @@ async function collectDashboardInput(data, activityTypes, year) {
   return { year, exercise, hobbies };
 }
 function renderHeader(root, model, ctx, onYear) {
-  const header = root.createDiv({ cls: "atomic-dash-header" });
-  const title = header.createDiv({ cls: "atomic-dash-title" });
-  title.createEl("h2", { text: t("view.dashboard.overview", ctx.language, { year: model.year }) });
-  const subtitle = [];
-  if (model.firstDate && model.lastDate) {
-    subtitle.push(
-      t("view.dashboard.range", ctx.language, {
-        from: localDate(model.firstDate, ctx),
-        to: localDate(model.lastDate, ctx)
-      })
-    );
-  }
-  subtitle.push(
-    t("view.dashboard.sessionsCount", ctx.language, { count: formatCount(model.totalSessions) })
-  );
-  title.createSpan({ cls: "atomic-dash-subtitle", text: subtitle.join(" \xB7 ") });
-  const switcher = header.createDiv({ cls: "atomic-dash-year" });
+  const top = root.createDiv({ cls: "atomic-dash-top" });
+  const switcher = top.createDiv({ cls: "atomic-stepper" });
   const yearButton = (label, key, testId, target) => {
     const button = switcher.createEl("button", {
       text: label,
-      attr: { "aria-label": t(key, ctx.language), "data-testid": testId }
+      cls: "atomic-btn is-icon",
+      attr: { "aria-label": t(key, ctx.language), "data-testid": testId, type: "button" }
     });
     button.addEventListener("click", () => onYear(target));
   };
   yearButton("\u2039", "view.dashboard.prevYear", "atomic-dashboard-year-prev", model.year - 1);
-  switcher.createSpan({ text: String(model.year) });
+  switcher.createSpan({ cls: "atomic-stepper-value", text: String(model.year) });
   yearButton("\u203A", "view.dashboard.nextYear", "atomic-dashboard-year-next", model.year + 1);
-  const links = header.createDiv({ cls: "atomic-dash-links" });
+  const range = top.createDiv({ cls: "atomic-readout atomic-dash-range" });
+  if (model.firstDate && model.lastDate) {
+    appendCatalogLabel(
+      range,
+      t("view.dashboard.range", ctx.language, {
+        from: shortDate(model.firstDate, ctx),
+        to: shortDate(model.lastDate, ctx)
+      })
+    );
+    range.appendText(" \xB7 ");
+  }
+  appendCatalogLabel(
+    range,
+    t("view.dashboard.sessionsCount", ctx.language, { count: formatCount(model.totalSessions) })
+  );
+  const links = top.createDiv({ cls: "atomic-jumps" });
   for (const card of model.activities) {
     for (const link of activityLinks(card, ctx)) {
-      const chip = appendActivityLink(links, link, "atomic-dash-chip", "");
-      chip.createSpan({ cls: "atomic-dash-dot" }).style.background = link.color;
-      chip.appendText(link.text);
+      appendActivityLink(links, link, "atomic-link");
     }
   }
 }
 function appendKpiCard(grid, id, label) {
   const card = grid.createDiv({
-    cls: "atomic-dash-card atomic-dash-kpi",
+    cls: "atomic-kpi",
     attr: { "data-testid": "atomic-dashboard-kpi", "data-kpi": id }
   });
-  card.createDiv({ cls: "atomic-dash-kpi-label", text: label });
-  const value = card.createDiv({ cls: "atomic-dash-kpi-value" });
-  const hint = card.createDiv({ cls: "atomic-dash-kpi-hint" });
+  const caption = card.createDiv({ cls: "atomic-caption" });
+  appendCatalogLabel(caption, label);
+  const value = card.createDiv({ cls: "atomic-kpi-value atomic-dash-kpi-value" });
+  const hint = card.createDiv({ cls: "atomic-hint" });
   return { value, hint };
 }
 function appendHoursMinutes(target, totalMinutes, ctx) {
   const { hours, minutes } = splitHoursMinutes(totalMinutes);
   target.appendText(formatCount(hours));
-  target.createEl("small", { text: t("view.dashboard.hourUnitShort", ctx.language) });
-  target.appendText(` ${minutes}`);
-  target.createEl("small", { text: t("view.dashboard.minuteUnitShort", ctx.language) });
-}
-function appendSparkline(target, values) {
-  const spark = target.createSpan({ cls: "atomic-dash-spark" });
-  const heights = barHeights(values, 10);
-  appendBars(
-    spark,
-    values.map((value, index) => ({ value, height: heights[index] })),
-    "spark"
-  );
+  target.createSpan({
+    cls: "atomic-unit is-tight",
+    text: t("view.dashboard.hourUnitShort", ctx.language)
+  });
+  target.appendText(String(minutes).padStart(2, "0"));
+  target.createSpan({
+    cls: "atomic-unit",
+    text: t("view.dashboard.minuteUnitShort", ctx.language)
+  });
 }
 function splitText(cards, pick) {
   return cards.map((card) => `${card.activity.label} ${formatCount(pick(card))}`).join(" \xB7 ");
@@ -4311,8 +4497,7 @@ function renderKpis(root, model, ctx) {
   if (exercise.length) {
     const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
     sessions.value.setText(formatCount(model.totalSessions));
-    sessions.hint.createSpan({ text: splitText(exercise, (card) => card.count) });
-    appendSparkline(sessions.hint, model.sessionsByMonth);
+    appendCatalogLabel(sessions.hint, splitText(exercise, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx);
     time.hint.createSpan({
@@ -4325,114 +4510,103 @@ function renderKpis(root, model, ctx) {
   if (model.totalVolumeKg != null) {
     const volume = appendKpiCard(grid, "volume", t("view.dashboard.kpiVolume", ctx.language));
     volume.value.appendText(formatKg(model.totalVolumeKg));
-    volume.value.createEl("small", { text: t("view.dashboard.kgUnit", ctx.language) });
-    const setTableLabels = exercise.filter((card) => card.volumeKg != null).map((card) => card.activity.label).join(" \xB7 ");
-    volume.hint.createSpan({
-      text: `${t("view.dashboard.setTableRows", ctx.language)} \xB7 ${setTableLabels}`
+    volume.value.createSpan({
+      cls: "atomic-unit",
+      text: t("view.dashboard.kgUnit", ctx.language)
     });
-    appendSparkline(volume.hint, model.volumeByMonth);
+    const setTableLabels = exercise.filter((card) => card.volumeKg != null).map((card) => card.activity.label).join(" \xB7 ");
+    appendCatalogLabel(
+      volume.hint,
+      `${t("view.dashboard.setTableRows", ctx.language)} \xB7 ${setTableLabels}`
+    );
   }
   if (model.totalHabitMinutes != null) {
     const habit = appendKpiCard(grid, "habit-time", t("view.dashboard.kpiHabitTime", ctx.language));
     appendHoursMinutes(habit.value, model.totalHabitMinutes, ctx);
-    habit.hint.createSpan({
-      text: `${splitText(hobbies, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`
-    });
+    appendCatalogLabel(
+      habit.hint,
+      `${splitText(hobbies, (card) => card.minutes)} ${t("view.dashboard.unitMinutes", ctx.language)}`
+    );
   }
 }
-function appendStat(nums, value, unit) {
-  const num = nums.createDiv({ cls: "atomic-dash-num" });
-  num.createEl("b", { text: value });
-  num.createSpan({ text: unit });
+function appendStat(parent, value, unit) {
+  parent.appendText(value);
+  parent.createSpan({ cls: "atomic-unit", text: unit });
 }
-function appendFeltBar(card, felt, colors, ctx) {
-  const total = FELT_ORDER.reduce((sum, key) => sum + felt[key], 0);
-  const wrap = card.createDiv({ cls: "atomic-dash-felt-wrap" });
-  const bar = wrap.createDiv({
-    cls: "atomic-dash-felt",
-    attr: { title: t("view.dashboard.feltTitle", ctx.language) }
-  });
-  const legend = wrap.createDiv({ cls: "atomic-dash-felt-legend" });
-  const shade = { good: colors[2], ok: colors[1], bad: colors[0] };
-  for (const key of FELT_ORDER) {
-    if (total > 0) {
-      const seg = bar.createSpan({ cls: "atomic-dash-felt-seg" });
-      seg.style.width = `${felt[key] / total * 100}%`;
-      seg.style.background = shade[key];
-    }
-    const item = legend.createSpan();
-    item.createSpan({ cls: "atomic-dash-swatch" }).style.background = shade[key];
-    item.appendText(`${t(FELT_LABEL_KEY[key], ctx.language)} `);
-    item.createEl("b", { text: String(felt[key]) });
+function appendLedgerEnd(row, data, ctx, meta) {
+  const end = row.createDiv({ cls: "atomic-ledger-end" });
+  if (meta) {
+    const readout = end.createSpan({ cls: "atomic-readout" });
+    appendCatalogLabel(readout, meta);
+  }
+  for (const link of activityLinks(data, ctx)) {
+    appendActivityLink(end, link, "atomic-link");
   }
 }
-function appendActivityFoot(card, data, ctx, meta) {
-  const links = activityLinks(data, ctx);
-  if (!links.length && !meta) return;
-  const foot = card.createDiv({ cls: "atomic-dash-activity-foot" });
-  for (const link of links) appendActivityLink(foot, link);
-  if (meta) foot.createSpan({ cls: "atomic-dash-meta", text: meta });
-}
-function renderExerciseCard(card, data, ctx) {
-  const nums = card.createDiv({ cls: "atomic-dash-nums" });
-  appendStat(nums, formatCount(data.count), t("view.dashboard.unitSessions", ctx.language));
-  appendStat(nums, formatCount(data.minutes), t("view.dashboard.unitMinutes", ctx.language));
+function renderExerciseRow(row, data, ctx) {
+  const count = row.createDiv({ cls: "atomic-ledger-count atomic-stat" });
+  appendStat(count, formatCount(data.count), t("view.dashboard.unitSessions", ctx.language));
+  const time = row.createDiv({ cls: "atomic-ledger-time atomic-stat" });
+  appendHoursMinutes(time, data.minutes, ctx);
+  const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.volumeKg != null) {
-    appendStat(nums, formatCompactKg(data.volumeKg), t("view.dashboard.unitVolume", ctx.language));
+    appendStat(detail, formatCompactKg(data.volumeKg), t("view.dashboard.kgUnit", ctx.language));
   }
+  const bars = row.createDiv({ cls: "atomic-ledger-bars" });
+  bars.style.setProperty("--atomic-c", data.activity.colors[2]);
   appendMonthBars(
-    card,
+    bars,
     data.monthlyMinutes,
     data.activity.colors[2],
     t("view.dashboard.barsHours", ctx.language),
     ctx
   );
-  if (data.felt) appendFeltBar(card, data.felt, data.activity.colors, ctx);
-  appendActivityFoot(
-    card,
-    data,
-    ctx,
-    data.lastDate ? t("view.dashboard.lastSession", ctx.language, { date: localDate(data.lastDate, ctx) }) : null
-  );
+  appendLedgerEnd(row, data, ctx, data.lastDate ? shortDate(data.lastDate, ctx) : null);
 }
-function renderHobbyCard(card, data, ctx) {
-  const nums = card.createDiv({ cls: "atomic-dash-nums" });
-  appendStat(nums, formatCount(data.count), t("view.dashboard.unitItems", ctx.language));
-  appendStat(nums, formatCount(data.minutes), t("view.dashboard.unitMinutes", ctx.language));
+function renderHobbyRow(row, data, ctx) {
+  const count = row.createDiv({ cls: "atomic-ledger-count atomic-stat" });
+  appendStat(count, formatCount(data.count), t("view.dashboard.unitItems", ctx.language));
+  const time = row.createDiv({ cls: "atomic-ledger-time atomic-stat" });
+  appendHoursMinutes(time, data.minutes, ctx);
+  const detail = row.createDiv({ cls: "atomic-ledger-detail" });
   if (data.inProgress != null) {
-    appendStat(nums, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
+    appendStat(detail, formatCount(data.inProgress), t("view.dashboard.readingNow", ctx.language));
   }
+  const bars = row.createDiv({ cls: "atomic-ledger-bars" });
+  bars.style.setProperty("--atomic-c", data.activity.colors[2]);
   appendMonthBars(
-    card,
+    bars,
     data.monthlyMinutes,
     data.activity.colors[2],
     t("view.dashboard.barsHours", ctx.language),
     ctx
   );
-  appendActivityFoot(card, data, ctx, null);
+  appendLedgerEnd(row, data, ctx, null);
 }
-function renderActivityCard(grid, card, ctx) {
+function renderActivityRow(grid, card, ctx) {
   const { activity } = card;
-  const el = grid.createDiv({
-    cls: "atomic-dash-card atomic-dash-activity",
+  const row = grid.createDiv({
+    cls: "atomic-ledger-row",
     attr: {
       "data-testid": "atomic-dashboard-activity",
       "data-activity": activity.id,
       "data-count": String(card.count)
     }
   });
-  el.style.setProperty("--atomic-dash-accent", activity.colors[2]);
-  const head = el.createDiv({ cls: "atomic-dash-activity-head" });
-  head.createEl("h4", { text: activity.label });
-  const kind = head.createSpan({ cls: "atomic-dash-kind" });
+  row.style.setProperty("--atomic-c", activity.colors[2]);
+  const name = row.createDiv({ cls: "atomic-ledger-name" });
+  const title = name.createSpan({ cls: "atomic-name" });
+  title.createSpan({ cls: "atomic-dot" });
+  title.createSpan({ text: activity.label });
+  const kind = name.createDiv({ cls: "atomic-caption" });
   switch (card.domain) {
     case "exercise":
-      kind.setText(t("view.dashboard.domainExercise", ctx.language));
-      renderExerciseCard(el, card, ctx);
+      appendCatalogLabel(kind, t("view.dashboard.domainExercise", ctx.language));
+      renderExerciseRow(row, card, ctx);
       break;
     case "hobby":
-      kind.setText(t("view.dashboard.domainHabit", ctx.language));
-      renderHobbyCard(el, card, ctx);
+      appendCatalogLabel(kind, t("view.dashboard.domainHabit", ctx.language));
+      renderHobbyRow(row, card, ctx);
       break;
     default: {
       const exhaustive = card;
@@ -4442,15 +4616,15 @@ function renderActivityCard(grid, card, ctx) {
 }
 function renderActivities(root, model, ctx) {
   if (!model.activities.length) return;
-  appendSectionTitle(
+  const section = appendSectionTitle(
     root,
     t("view.dashboard.activities", ctx.language),
     t("view.dashboard.activitiesMeta", ctx.language)
   );
-  const grid = root.createDiv({ cls: "atomic-dash-activities" });
-  for (const card of model.activities) renderActivityCard(grid, card, ctx);
+  const ledger = section.createDiv({ cls: "atomic-ledger" });
+  for (const card of model.activities) renderActivityRow(ledger, card, ctx);
 }
-async function renderDashboard(el, data, activityTypes, year, language) {
+async function renderDashboard(el, data, activityTypes, year, language, timezone) {
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
   const input = await collectDashboardInput(data, activityTypes, year);
@@ -4462,9 +4636,9 @@ async function renderDashboard(el, data, activityTypes, year, language) {
     cls: "fitness-plugin atomic-dashboard",
     attr: { "data-testid": "atomic-dashboard", "data-year": String(year) }
   });
-  const ctx = { data, language };
+  const ctx = { data, language, timezone, year };
   const onYear = (nextYear) => {
-    void renderDashboard(el, data, activityTypes, nextYear, language);
+    void renderDashboard(el, data, activityTypes, nextYear, language, timezone);
   };
   renderHeader(root, model, ctx, onYear);
   renderKpis(root, model, ctx);
@@ -4475,8 +4649,8 @@ async function renderDashboard(el, data, activityTypes, year, language) {
 }
 
 // src/util/book-shelf-layout.ts
-var DEFAULT_BOOK_WIDTH_PX = 80;
-var DEFAULT_BOOK_HEIGHT_PX = 124;
+var DEFAULT_BOOK_WIDTH_PX = 96;
+var DEFAULT_BOOK_HEIGHT_PX = 150;
 var MIN_BOOK_WIDTH_PX = 56;
 var BOOK_GAP_PX = 6;
 var ROW_PADDING_PX = 20;
@@ -4601,74 +4775,6 @@ function unclipBookShelfAncestors(el, maxDepth = 8) {
     depth += 1;
   }
 }
-function bookDetailFixedPosition(args) {
-  const gap = args.gap ?? 8;
-  return {
-    left: args.bookLeft + args.bookWidth / 2,
-    top: args.bookTop - gap
-  };
-}
-var activeDetailHides = /* @__PURE__ */ new Set();
-function hideAllPortedDetails() {
-  for (const hide of [...activeDetailHides]) hide();
-}
-function bindBookDetailPortal(button, detail) {
-  const doc = button.ownerDocument;
-  let ported = false;
-  const place = () => {
-    if (!ported) return;
-    if (!button.isConnected) {
-      hide();
-      return;
-    }
-    const rect = button.getBoundingClientRect();
-    const pos = bookDetailFixedPosition({
-      bookTop: rect.top,
-      bookLeft: rect.left,
-      bookWidth: rect.width
-    });
-    detail.setCssStyles({
-      left: `${pos.left}px`,
-      top: `${pos.top}px`
-    });
-  };
-  const hide = () => {
-    if (!ported) return;
-    ported = false;
-    activeDetailHides.delete(hide);
-    doc.removeEventListener("scroll", place, true);
-    if (typeof window !== "undefined") {
-      window.removeEventListener("resize", place);
-    }
-    detail.classList.remove("is-ported");
-    detail.setCssStyles({ left: "", top: "" });
-    if (button.isConnected) button.appendChild(detail);
-    else detail.remove();
-  };
-  const show = () => {
-    const body = doc.body;
-    if (!body) return;
-    if (ported) {
-      place();
-      return;
-    }
-    hideAllPortedDetails();
-    ported = true;
-    activeDetailHides.add(hide);
-    detail.classList.add("is-ported");
-    body.appendChild(detail);
-    place();
-    doc.addEventListener("scroll", place, true);
-    if (typeof window !== "undefined") {
-      window.addEventListener("resize", place);
-    }
-  };
-  button.addEventListener("pointerenter", show);
-  button.addEventListener("pointerleave", hide);
-  button.addEventListener("focus", show);
-  button.addEventListener("blur", hide);
-  return { show, hide };
-}
 function asString(value) {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -4761,7 +4867,7 @@ function bindCoverObjectPosition(img) {
   if (img.complete) apply();
   else img.addEventListener("load", apply, { once: true });
 }
-var COVER_OPEN_CLASS = "is-cover-open";
+var LIFTED_CLASS = "is-lifted";
 function hoverFinePointer(media) {
   return Boolean(media?.matches);
 }
@@ -4769,13 +4875,32 @@ function bookClickOpensNote(options) {
   return options.hoverFine || options.coverOpen;
 }
 function hoverFineMedia() {
-  if (typeof matchMedia !== "function") return null;
-  return matchMedia("(hover: hover) and (pointer: fine)");
+  if (typeof window.matchMedia !== "function") return null;
+  return window.matchMedia("(hover: hover) and (pointer: fine)");
 }
-function closeOpenCovers(root) {
-  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
-    el.classList.remove(COVER_OPEN_CLASS);
+function closeLiftedBooks(root) {
+  root.querySelectorAll(`.atomic-book.${LIFTED_CLASS}`).forEach((el) => {
+    el.classList.remove(LIFTED_CLASS);
   });
+}
+function shelfSummary(items, language) {
+  const reading = items.filter((item) => item.status === "reading").length;
+  const finished = items.filter((item) => item.status === "finished").length;
+  return t("view.bookShelf.summary", language, {
+    count: items.length,
+    reading,
+    finished
+  });
+}
+function showBookReadout(readout, item, language, lifted) {
+  readout.empty();
+  readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
+  const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
+  readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" \xB7 ") });
+  const hint = readout.createDiv({ cls: lifted ? "atomic-readout is-live" : "atomic-readout" });
+  hint.setText(
+    t(lifted ? "view.bookShelf.tapAgain" : "view.bookShelf.clickToOpen", language)
+  );
 }
 function titleLengthClass(title) {
   const length = title.trim().length;
@@ -4783,7 +4908,7 @@ function titleLengthClass(title) {
   if (length > 22) return "is-title-sm";
   return "";
 }
-function createBook(parent, item, data, language) {
+function createBook(parent, item, data, language, ribbonColor, readout) {
   const button = parent.createEl("button", {
     cls: "atomic-book",
     attr: {
@@ -4795,92 +4920,85 @@ function createBook(parent, item, data, language) {
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
+  button.style.setProperty("--px", "0");
+  button.style.setProperty("--py", "0");
   const titleClass = titleLengthClass(item.title);
-  const volume = button.createDiv({ cls: "atomic-book-volume" });
-  const pages = volume.createDiv({ cls: "atomic-book-pages" });
-  pages.createDiv({
-    cls: ["atomic-book-page-title", titleClass].filter(Boolean).join(" "),
-    text: item.title
-  });
-  pages.createDiv({
-    cls: "atomic-book-page-author",
-    text: item.authors[0] || item.status
-  });
-  const cover = volume.createDiv({ cls: "atomic-book-cover" });
-  const face = cover.createDiv({ cls: "atomic-book-cover-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
-    const img = face.createEl("img", {
-      cls: "atomic-book-cover-image",
-      attr: { src: coverSrc, alt: "" }
+    const img = button.createEl("img", {
+      cls: "atomic-book-cover",
+      attr: { src: coverSrc, alt: "", draggable: "false" }
     });
     bindCoverObjectPosition(img);
   } else {
-    face.createDiv({
+    button.createDiv({
       cls: ["atomic-book-cover-title", titleClass].filter(Boolean).join(" "),
       text: item.title
     });
   }
-  cover.createDiv({ cls: "atomic-book-cover-inside" });
-  cover.createDiv({ cls: "atomic-book-cover-sleeve" });
-  const spine = volume.createDiv({ cls: "atomic-book-spine" });
-  spine.createDiv({
-    cls: ["atomic-book-spine-title", titleClass].filter(Boolean).join(" "),
-    text: item.title
-  });
-  const detail = button.createDiv({ cls: "atomic-book-detail" });
-  detail.createDiv({ cls: "atomic-book-detail-title", text: item.title });
-  detail.createDiv({
-    cls: "atomic-book-detail-author",
-    text: item.authors.join(", ") || item.status
-  });
-  if (item.description) {
-    detail.createDiv({
-      cls: "atomic-book-detail-description",
-      text: item.description
-    });
+  if (item.status === "reading") {
+    const ribbon = button.createSpan({ cls: "atomic-book-ribbon" });
+    ribbon.style.setProperty("--atomic-c", ribbonColor);
   }
-  const portal = bindBookDetailPortal(button, detail);
+  button.addEventListener("pointermove", (event) => {
+    if (!hoverFinePointer(hoverFineMedia())) return;
+    const rect = button.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
+    const py = (event.clientY - rect.top) / rect.height - 0.5;
+    button.style.setProperty("--px", px.toFixed(3));
+    button.style.setProperty("--py", py.toFixed(3));
+    button.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
+    button.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
+  });
+  button.addEventListener("pointerenter", () => {
+    if (!hoverFinePointer(hoverFineMedia())) return;
+    showBookReadout(readout, item, language, false);
+  });
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    const coverOpen = button.classList.contains(LIFTED_CLASS);
     if (!bookClickOpensNote({ hoverFine, coverOpen })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeOpenCovers(shelf);
-      button.classList.add(COVER_OPEN_CLASS);
-      portal.show();
+      closeLiftedBooks(shelf);
+      button.classList.add(LIFTED_CLASS);
+      showBookReadout(readout, item, language, true);
       return;
     }
-    portal.hide();
+    button.classList.remove(LIFTED_CLASS);
     void data.openPath(item.path);
   });
 }
-function paintRows(frame, items, perRow, data, language, emptyText) {
-  hideAllPortedDetails();
+function paintRows(frame, items, perRow, data, language, emptyText, ribbonColor, readout) {
   frame.empty();
   const rows = items.length ? chunkItems(items, perRow) : [[]];
   for (const rowItems of rows) {
-    const row = frame.createDiv({ cls: "atomic-book-shelf-row" });
-    const books = row.createDiv({
-      cls: "atomic-book-row-books atomic-scrollport",
+    const scroll = frame.createDiv({
+      cls: "atomic-book-row-books atomic-shelf-scroll atomic-scrollport",
       attr: { "data-testid": "atomic-bookshelf-scroll" }
     });
+    const row = scroll.createDiv({ cls: "atomic-book-shelf-row atomic-shelf-row" });
     if (!rowItems.length) {
-      books.createDiv({
+      row.createDiv({
         cls: "atomic-book-empty",
         text: emptyText
       });
     } else {
-      for (const item of rowItems) createBook(books, item, data, language);
+      for (const item of rowItems) {
+        createBook(row, item, data, language, ribbonColor, readout);
+      }
     }
-    row.createDiv({ cls: "atomic-book-shelf-plank" });
+    scroll.createDiv({ cls: "atomic-book-shelf-plank atomic-plank" });
   }
+  readout.setText(shelfSummary(items, language));
 }
 function applyBookSize(frame, bookWidth) {
   const height = bookHeightForWidth(bookWidth);
   frame.style.setProperty("--atomic-book-width", `${bookWidth}px`);
   frame.style.setProperty("--atomic-book-height", `${height}px`);
+  frame.style.setProperty("--atomic-book-w", `${bookWidth}px`);
+  frame.style.setProperty("--atomic-book-h", `${height}px`);
 }
 function renderBookShelf(el, data, activityTypes, options, language) {
   const scale = resolveBookShelfScale(options);
@@ -4910,11 +5028,10 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     windowListeners.delete(el);
   }
   cancelBookShelfLayout(el);
-  hideAllPortedDetails();
   el.empty();
   unclipBookShelfAncestors(el);
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-book-shelf",
+    cls: "fitness-plugin atomic-book-shelf atomic-shelf",
     attr: {
       "data-testid": "atomic-bookshelf",
       "data-scale": String(scale)
@@ -4939,6 +5056,9 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     statuses: statuses.join(", ")
   }) : t("view.bookShelf.empty", language);
   const frame = root.createDiv({ cls: "atomic-book-shelf-frame" });
+  const readout = root.createDiv({ cls: "atomic-shelf-readout" });
+  readout.setText(shelfSummary(items, language));
+  const ribbonColor = activity.colors[2];
   let lastKey = "";
   const layout = () => {
     const fallback = typeof window !== "undefined" && Number.isFinite(window.innerWidth) ? window.innerWidth : DEFAULT_BOOK_WIDTH_PX * 3 + BOOK_GAP_PX * 2 + ROW_PADDING_PX;
@@ -4955,7 +5075,7 @@ function renderBookShelf(el, data, activityTypes, options, language) {
     if (key === lastKey && frame.childElementCount > 0) return;
     lastKey = key;
     applyBookSize(frame, bookWidth);
-    paintRows(frame, items, perRow, data, language, emptyText);
+    paintRows(frame, items, perRow, data, language, emptyText, ribbonColor, readout);
   };
   layout();
   window.requestAnimationFrame(() => {
@@ -5148,6 +5268,7 @@ function heatmapMonthSlots(weeks, language) {
   return slots;
 }
 function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
+  void colors;
   for (const week of weeks) {
     const isTodayWeek = week.some((day) => day.isToday && day.isCurrentYear);
     const weekEl = parent.createDiv({
@@ -5166,15 +5287,11 @@ function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
       };
       if (day.isToday) attr["data-testid"] = "atomic-heatmap-today";
       if (day.path) attr["data-path"] = day.path;
-      const cell = weekEl.createDiv({ cls: cellClass(day), attr });
-      cell.style.backgroundColor = day.isCurrentYear ? colorForLevel(colors, day.level) : EMPTY_CELL;
+      attr["data-l"] = String(day.isCurrentYear ? day.level : 0);
+      weekEl.createDiv({ cls: cellClass(day), attr });
     }
   }
   parent.createDiv({ cls: "fitness-weeks-end-pad" });
-}
-function colorForLevel(colors, level) {
-  if (!level) return EMPTY_CELL;
-  return colors[level - 1] || colors[colors.length - 1] || EMPTY_CELL;
 }
 function cellClass(day) {
   let cls = "fitness-cell";
@@ -5256,10 +5373,15 @@ function wireHeatmapScroll(scrollEl, registry) {
     });
   });
 }
+function htmlElementFromTarget(target) {
+  if (target == null || !("instanceOf" in target)) return null;
+  const node = target;
+  return node.instanceOf(HTMLElement) ? node : null;
+}
 function wireHeatmapCellClicks(weeksEl, data) {
   weeksEl.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
+    const target = htmlElementFromTarget(event.target);
+    if (!target) return;
     const cell = target.closest(".fitness-cell.is-link");
     const path = cell?.getAttribute("data-path");
     if (!path) return;
@@ -5302,19 +5424,12 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
     }
   });
   wrap.detach();
-  wrap.createEl("h4", { cls: "fitness-heatmap-title", text: activity.label });
-  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend" });
-  legend.createSpan({ text: t("view.heatmap.less", language) });
-  legend.createDiv({ cls: "fitness-legend-swatch" }).style.background = EMPTY_CELL;
-  for (const c of activity.colors) {
-    const sw = legend.createDiv({ cls: "fitness-legend-swatch" });
-    sw.style.background = c;
-  }
-  legend.createSpan({ text: t("view.heatmap.more", language) });
-  legend.createSpan({
-    text: t("view.heatmap.byDuration", language),
-    attr: { style: "margin-left:8px" }
-  });
+  wrap.style.setProperty("--atomic-c", activity.colors[2]);
+  const head = wrap.createDiv({ cls: "atomic-heat-head" });
+  const title = head.createSpan({ cls: "atomic-name" });
+  title.createSpan({ cls: "atomic-dot" });
+  title.createSpan({ text: activity.label });
+  head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
   const weeks = buildHeatmapWeeks({
     year,
     todayStr: ymdInZone(/* @__PURE__ */ new Date(), timezone),
@@ -5343,8 +5458,56 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
     t("view.heatmap.tooltipOpen", language)
   );
   wireHeatmapCellClicks(weeksEl, data);
+  wireHeatmapReadout(wrap, language);
   wireHeatmapScroll(scroll, registry);
+  const legend = wrap.createDiv({ cls: "fitness-heatmap-legend atomic-heat-legend" });
+  legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.less", language) });
+  legend.createDiv({ cls: "fitness-legend-swatch fitness-cell", attr: { "data-l": "0" } });
+  activity.colors.forEach((_, level) => {
+    legend.createDiv({
+      cls: "fitness-legend-swatch fitness-cell",
+      attr: { "data-l": String(level + 1) }
+    });
+  });
+  legend.createSpan({ cls: "atomic-caption", text: t("view.heatmap.more", language) });
+  legend.createSpan({
+    cls: "atomic-caption",
+    text: t("view.heatmap.byDuration", language)
+  });
   root.appendChild(wrap);
+}
+function wireHeatmapReadout(wrap, language) {
+  const readout = wrap.querySelector(".atomic-heat-readout");
+  if (!readout?.instanceOf(HTMLElement)) return;
+  const cells = Array.from(
+    wrap.querySelectorAll(".fitness-cell.is-link, .fitness-cell[data-minutes]")
+  );
+  let days = 0;
+  let minutes = 0;
+  for (const cell of cells) {
+    if (!cell.instanceOf(HTMLElement)) continue;
+    if (cell.classList.contains("fitness-legend-swatch")) continue;
+    const value = Number(cell.getAttribute("data-minutes") || "0");
+    if (value > 0) {
+      days += 1;
+      minutes += value;
+    }
+  }
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  const summary = hours > 0 ? t("view.heatmap.summaryHours", language, { days, hours, minutes: rest }) : t("view.heatmap.summary", language, { days, minutes });
+  readout.setText(summary);
+  wrap.addEventListener("pointerover", (event) => {
+    const target = htmlElementFromTarget(event.target);
+    if (!target) return;
+    const cell = target.closest(".fitness-cell");
+    if (!cell?.instanceOf(HTMLElement) || cell.classList.contains("fitness-legend-swatch")) return;
+    const title = cell.getAttribute("title");
+    if (title) readout.setText(title);
+  });
+  wrap.addEventListener("pointerleave", () => {
+    readout.setText(summary);
+  });
 }
 function wireHeatmapGrid(gridEl, layout, activityCount, registry) {
   gridEl.style.gridTemplateRows = `repeat(${layout.rows}, auto)`;
@@ -5875,7 +6038,7 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
   el.empty();
   const language = plugin.settings.language;
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-gym-log",
+    cls: "fitness-plugin atomic-gym-log atomic-well",
     attr: { "data-testid": "atomic-gym-log" }
   });
   if (!sourcePath) {
@@ -5892,9 +6055,10 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
       text: t("view.gymLog.emptyCatalog", language)
     });
   }
-  const form = root.createDiv({ cls: "atomic-gym-log-row" });
-  const select = addField(form, t("view.gymLog.exercise", language)).createEl("select", {
-    cls: "dropdown",
+  const form = root.createDiv({ cls: "atomic-gym-log-fields" });
+  const exerciseField = addField(form, t("view.gymLog.exercise", language));
+  const select = exerciseField.createEl("select", {
+    cls: "dropdown atomic-field-value",
     attr: {
       "data-testid": "atomic-gym-log-exercise",
       "aria-label": t("view.gymLog.exercise", language)
@@ -5934,23 +6098,21 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
     t("view.gymLog.weight", language),
     "atomic-gym-log-weight"
   );
-  const repsInput = addTextField(
-    form,
-    t("view.gymLog.reps", language),
-    "atomic-gym-log-reps"
-  );
+  weightInput.parentElement?.createSpan({
+    cls: "atomic-field-suffix",
+    text: t("view.dashboard.kgUnit", language)
+  });
+  const repsInput = addRepsStepper(form, t("view.gymLog.reps", language));
   const notesInput = addTextField(
     form,
     t("view.gymLog.notes", language),
     "atomic-gym-log-notes"
   );
   notesInput.setAttr("placeholder", t("view.gymLog.notes", language));
-  const actions = form.createDiv({ cls: "atomic-gym-log-field" });
-  actions.createEl("label", { text: "\xA0" });
-  const addButton = actions.createEl("button", {
-    cls: "mod-cta",
+  const addButton = form.createEl("button", {
+    cls: "atomic-btn is-primary mod-cta",
     text: t("view.gymLog.add", language),
-    attr: { "data-testid": "atomic-gym-log-add" }
+    attr: { "data-testid": "atomic-gym-log-add", type: "button" }
   });
   select.addEventListener("change", () => {
     if (select.value !== NEW_EXERCISE_SENTINEL) {
@@ -6032,12 +6194,45 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
   });
 }
 function addField(parent, label) {
-  const field = parent.createDiv({ cls: "atomic-gym-log-field" });
-  field.createEl("label", { text: label });
+  const field = parent.createDiv({ cls: "atomic-field atomic-gym-log-field" });
+  const caption = field.createSpan({ cls: "atomic-field-label atomic-caption" });
+  caption.setText(label);
   return field;
+}
+function addRepsStepper(parent, label) {
+  const field = parent.createDiv({ cls: "atomic-stepper is-tall atomic-gym-log-field" });
+  field.createSpan({ cls: "atomic-stepper-label atomic-caption", text: label });
+  const input = field.createEl("input", {
+    cls: "atomic-stepper-value",
+    attr: {
+      type: "text",
+      inputmode: "numeric",
+      "data-testid": "atomic-gym-log-reps",
+      "aria-label": label
+    }
+  });
+  const step = (delta) => {
+    const current = Number.parseInt(input.value, 10);
+    const next = (Number.isFinite(current) ? current : 0) + delta;
+    input.value = String(Math.max(0, next));
+  };
+  const minus = field.createEl("button", {
+    text: "\u2212",
+    cls: "atomic-btn",
+    attr: { type: "button", "aria-label": label }
+  });
+  minus.addEventListener("click", () => step(-1));
+  field.insertBefore(minus, input);
+  field.createEl("button", {
+    text: "+",
+    cls: "atomic-btn",
+    attr: { type: "button", "aria-label": label }
+  }).addEventListener("click", () => step(1));
+  return input;
 }
 function addTextField(parent, label, testId) {
   return addField(parent, label).createEl("input", {
+    cls: "atomic-field-value",
     attr: {
       type: "text",
       "data-testid": testId,
@@ -6057,6 +6252,30 @@ async function modifyCurrentNote(plugin, sourcePath, updater) {
   await plugin.app.vault.process(file, updater);
   return true;
 }
+var timerClocks = /* @__PURE__ */ new WeakMap();
+function stopTimerClock(el) {
+  const id = timerClocks.get(el);
+  if (id == null) return;
+  window.clearInterval(id);
+  timerClocks.delete(el);
+}
+function localClock(iso) {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+function elapsedClock(iso, now = Date.now()) {
+  const started = new Date(iso).getTime();
+  if (Number.isNaN(started)) return "00:00";
+  const total = Math.max(0, Math.floor((now - started) / 1e3));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor(total % 3600 / 60);
+  const seconds = total % 60;
+  const pad = (value) => String(value).padStart(2, "0");
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
+}
 function paintTimer(plugin, el, sourcePath) {
   void renderAtomicTimer(plugin, el, sourcePath);
 }
@@ -6065,9 +6284,10 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
   if (!el.isConnected || generation !== void 0 && isStaleBlockRender(el, generation)) {
     return;
   }
+  stopTimerClock(el);
   el.empty();
   const root = el.createDiv({
-    cls: "fitness-plugin atomic-timer",
+    cls: "fitness-plugin atomic-timer atomic-well",
     attr: { "data-testid": "atomic-timer" }
   });
   if (!sourcePath) {
@@ -6078,24 +6298,36 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
     return;
   }
   const frontmatter = readTimerFrontmatter(markdown);
+  const language = plugin.settings.language;
   const totalKey = frontmatter.persistMode === "session" ? "view.timer.duration" : "view.timer.total";
-  root.createEl("p", {
-    text: t(totalKey, plugin.settings.language, {
-      minutes: displayedTimerMinutes(frontmatter)
-    }),
-    cls: "atomic-timer-total"
-  });
+  const minutes = displayedTimerMinutes(frontmatter);
+  const head = root.createDiv({ cls: "atomic-timer-head" });
+  const caption = head.createDiv({ cls: "atomic-timer-caption atomic-caption" });
+  const total = head.createDiv({ cls: "atomic-readout atomic-timer-total" });
+  appendCatalogLabel(total, t(totalKey, language, { minutes }));
+  const clock = root.createDiv({ cls: "atomic-timer-clock" });
   const actions = root.createDiv({ cls: "fitness-actions atomic-timer-actions" });
   if (frontmatter.timerStartedAt) {
-    root.createEl("p", {
-      cls: "atomic-timer-running",
-      text: t("view.timer.runningSince", plugin.settings.language, {
-        time: frontmatter.timerStartedAt
-      })
-    });
+    root.addClass("is-running");
+    const startedAt = frontmatter.timerStartedAt;
+    caption.createSpan({ cls: "atomic-pulse" });
+    appendCatalogLabel(
+      caption,
+      t("view.timer.runningSince", language, { time: localClock(startedAt) })
+    );
+    clock.setText(elapsedClock(startedAt));
+    const tick = window.setInterval(() => {
+      if (!clock.isConnected) {
+        stopTimerClock(el);
+        return;
+      }
+      clock.setText(elapsedClock(startedAt));
+    }, 1e3);
+    timerClocks.set(el, tick);
     actions.createEl("button", {
       text: t("view.timer.stop", plugin.settings.language),
-      attr: { "data-testid": "atomic-timer-stop" }
+      cls: "atomic-btn is-primary",
+      attr: { "data-testid": "atomic-timer-stop", type: "button" }
     }).addEventListener("click", () => {
       void (async () => {
         const file = plugin.data.getFileByPath(sourcePath);
@@ -6107,7 +6339,7 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
         const persistMode = readTimerFrontmatter(latest).persistMode;
         switch (persistMode) {
           case "session": {
-            let minutes = null;
+            let minutes2 = null;
             await plugin.app.vault.process(file, (current) => {
               const startedAtIso = readTimerFrontmatter(current).timerStartedAt;
               if (!startedAtIso) return current;
@@ -6116,15 +6348,15 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
                 startedAtIso,
                 stoppedAtIso: (/* @__PURE__ */ new Date()).toISOString()
               });
-              minutes = result.minutes;
+              minutes2 = result.minutes;
               return result.markdown;
             });
-            if (minutes === null) {
+            if (minutes2 === null) {
               new import_obsidian8.Notice(t("notice.timerNotRunning", plugin.settings.language));
               return;
             }
             new import_obsidian8.Notice(
-              t("notice.timerLogged", plugin.settings.language, { minutes })
+              t("notice.timerLogged", plugin.settings.language, { minutes: minutes2 })
             );
             paintTimer(plugin, el, sourcePath);
             return;
@@ -6165,14 +6397,9 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
       })();
     });
     actions.createEl("button", {
-      text: t("view.timer.resume", plugin.settings.language),
-      attr: { "data-testid": "atomic-timer-resume" }
-    }).addEventListener("click", () => {
-      new import_obsidian8.Notice(t("notice.timerAlreadyRunning", plugin.settings.language));
-    });
-    actions.createEl("button", {
       text: t("view.timer.discard", plugin.settings.language),
-      attr: { "data-testid": "atomic-timer-discard" }
+      cls: "atomic-btn is-quiet",
+      attr: { "data-testid": "atomic-timer-discard", type: "button" }
     }).addEventListener("click", () => {
       void (async () => {
         const written = await modifyCurrentNote(
@@ -6185,9 +6412,13 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
     });
     return;
   }
+  appendCatalogLabel(caption, t("view.timer.caption", language));
+  clock.appendText(String(minutes));
+  clock.createSpan({ cls: "atomic-unit", text: t("view.timer.minuteUnit", language) });
   actions.createEl("button", {
     text: t("view.timer.start", plugin.settings.language),
-    attr: { "data-testid": "atomic-timer-start" }
+    cls: "atomic-btn is-primary",
+    attr: { "data-testid": "atomic-timer-start", type: "button" }
   }).addEventListener("click", () => {
     void (async () => {
       const written = await modifyCurrentNote(
@@ -6320,7 +6551,8 @@ async function renderBlock(plugin, kind, source, el, ctx) {
           data,
           activityTypes,
           year,
-          language
+          language,
+          tz
         );
         break;
       }
@@ -7195,8 +7427,8 @@ var import_obsidian12 = require("obsidian");
 var update_notes_default = {
   version: "1.4.7",
   body: {
-    en: "You can create daily notes or templates from the command palette.",
-    "zh-Hant": "\u800C\u5BB6\u53EF\u4EE5\u7528 command palette create daily note \u6216\u8005 template\u3002"
+    en: "The dashboard, heatmaps, cue cards, book shelf, and timers have a new look. Numbers sit on a quiet ledger, books tilt on the shelf, and cue cards open larger when you tap them.",
+    "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u8A2D\u8A08\u3002\u6578\u5B57\u6392\u5F97\u6E05\u695A\u5572\uFF0C\u66F8\u55BA\u66F8\u67B6\u4E0A\u9762\u6703\u8DDF\u4F4F\u4F60\u90C1\uFF0C\u64B3 cue card \u6703\u653E\u5927\u7747\u3002"
   }
 };
 
