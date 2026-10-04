@@ -2,7 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
-import { e2eSkipReason, resolveDisplay, waitForCdpGone } from "../e2e/lib/obsidian.mjs";
+import {
+  assertRequiredE2eReady,
+  e2eSkipReason,
+  resolveDisplay,
+  waitForCdpGone,
+} from "../e2e/lib/obsidian.mjs";
 
 function listenHttp(handler) {
   const server = createServer(handler);
@@ -43,6 +48,24 @@ test("e2eSkipReason honors SKIP_E2E even when a display is available", () => {
     withEnv("DISPLAY", ":1", () => {
       assert.equal(e2eSkipReason(), "SKIP_E2E=1");
     });
+  });
+});
+
+test("assertRequiredE2eReady fails when CI requires e2e and the suite would skip", () => {
+  assert.throws(
+    () => assertRequiredE2eReady("Obsidian is not installed", true),
+    /E2E required but skipped: Obsidian is not installed/,
+  );
+  assert.doesNotThrow(() => assertRequiredE2eReady("", true));
+  assert.doesNotThrow(() => assertRequiredE2eReady("Obsidian is not installed", false));
+  withEnv("ATOMIC_E2E_REQUIRED", "1", () => {
+    assert.throws(
+      () => assertRequiredE2eReady("No X display (DISPLAY unset and no X11 socket)"),
+      /E2E required but skipped: No X display/,
+    );
+  });
+  withEnv("ATOMIC_E2E_REQUIRED", undefined, () => {
+    assert.doesNotThrow(() => assertRequiredE2eReady("Obsidian is not installed"));
   });
 });
 
@@ -104,6 +127,12 @@ test("waitForCdpGone returns after a live listener closes", async () => {
   });
   setTimeout(() => server.close(), 120);
   await waitForCdpGone(port, 2000);
+});
+
+test("openCommandPalette uses the command id so headless CI does not depend on Ctrl+P", () => {
+  const src = readFileSync(new URL("../e2e/lib/obsidian.mjs", import.meta.url), "utf8");
+  assert.match(src, /export async function openCommandPalette/);
+  assert.match(src, /command-palette:open/);
 });
 
 test("noticeTexts reads notices in one script to avoid stale elements", () => {

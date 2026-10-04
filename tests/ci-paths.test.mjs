@@ -43,8 +43,36 @@ test("ci.yml change detection uses the plugin source path list", () => {
   assert.match(ci, /git diff --name-only/);
   assert.match(ci, /^\s+tests\s*\\$/m);
   assert.match(ci, /^\s+e2e\s*\\$/m);
+  assert.match(ci, /\.github\/workflows\/e2e\.yml/);
   assert.match(ci, /\.github\/workflows\/release\.yml/);
   assert.doesNotMatch(ci, /\|\| true/);
+});
+
+test("e2e.yml runs npm run test:e2e on pull_request opened, synchronize, and reopened", () => {
+  const e2e = readFileSync(join(root, ".github/workflows/e2e.yml"), "utf8");
+  const onBlock = yamlKeyBlock(e2e, "", "on");
+  assert.match(onBlock, /pull_request:/);
+  assert.match(onBlock, /^\s+- opened$/m);
+  assert.match(onBlock, /^\s+- synchronize$/m);
+  assert.match(onBlock, /^\s+- reopened$/m);
+  assert.doesNotMatch(onBlock, /paths:/);
+  assert.match(e2e, /npm run test:e2e/);
+  assert.match(e2e, /obsidianmd\/obsidian-releases/);
+  assert.match(e2e, /obsidian_\*?_amd64\.deb/);
+  assert.match(e2e, /node-version: "22"/);
+  assert.match(e2e, /ATOMIC_E2E_REQUIRED:\s*"1"/);
+  assert.doesNotMatch(e2e, /SKIP_E2E/);
+  assert.doesNotMatch(e2e, /\|\| true/);
+});
+
+test("AGENTS.md still requires agents to run test:e2e and notes CI also runs it", () => {
+  const agents = readFileSync(join(root, "AGENTS.md"), "utf8");
+  assert.match(
+    agents,
+    /When Obsidian is installed \(or successfully installed\), also run `npm run test:e2e`/,
+  );
+  assert.match(agents, /\.github\/workflows\/e2e\.yml/);
+  assert.match(agents, /pull_request.*opened.*synchronize.*reopened/);
 });
 
 test("ci.yml does not bump versions or push commits", () => {

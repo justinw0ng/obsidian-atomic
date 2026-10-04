@@ -47,6 +47,7 @@ jobs:
             scripts/semver.mjs \
             .github/plugin-source-paths.txt \
             .github/workflows/ci.yml \
+            .github/workflows/e2e.yml \
             .github/workflows/release.yml \
             .github/workflows/codeql.yml)"
 

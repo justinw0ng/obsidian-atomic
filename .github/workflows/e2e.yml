@@ -1,0 +1,68 @@
+name: E2E
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Selenium health check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Obsidian
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y xvfb jq
+          # GitHub "latest" can be a mobile-only tag with no Linux .deb.
+          curl -sL \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/obsidianmd/obsidian-releases/releases?per_page=30" \
+            -o /tmp/obsidian-releases.json
+          DEB_URL="$(jq -r '[.[] | select(.draft == false and .prerelease == false) | .assets[] | select(.name | test("^obsidian_.*_amd64\\.deb$")) | .browser_download_url] | first' /tmp/obsidian-releases.json)"
+          if [ -z "${DEB_URL}" ] || [ "${DEB_URL}" = "null" ]; then
+            echo "Could not find the latest Linux obsidian_*_amd64.deb on obsidianmd/obsidian-releases."
+            jq -r '.[] | "\(.tag_name) \([.assets[].name] | join(", "))"' /tmp/obsidian-releases.json
+            exit 1
+          fi
+          curl -sL -o "/tmp/$(basename "${DEB_URL}")" "${DEB_URL}"
+          sudo apt-get install -y /tmp/obsidian_*_amd64.deb
+
+      - name: Run e2e
+        env:
+          ATOMIC_E2E_REQUIRED: "1"
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npm run test:e2e
+
+      - name: Upload e2e artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: atomic-e2e-artifacts
+          path: /tmp/atomic-e2e-artifacts
+          if-no-files-found: ignore
