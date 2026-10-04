@@ -58,7 +58,7 @@ test("e2e.yml runs npm run test:e2e on pull_request opened, synchronize, and reo
   assert.doesNotMatch(onBlock, /paths:/);
   assert.match(e2e, /npm run test:e2e/);
   assert.match(e2e, /obsidianmd\/obsidian-releases/);
-  assert.match(e2e, /obsidian_\.\*_amd64\.deb/);
+  assert.match(e2e, /obsidian_\*?_amd64\.deb/);
   assert.match(e2e, /node-version: "22"/);
   assert.match(e2e, /xvfb-run/);
   assert.doesNotMatch(e2e, /SKIP_E2E/);
