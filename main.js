@@ -2384,7 +2384,7 @@ function beginBlockRender(el) {
   return next;
 }
 function isStaleBlockRender(el, generation) {
-  return generations.get(el) !== generation;
+  return generation !== void 0 && generations.get(el) !== generation;
 }
 function currentBlockGeneration(el) {
   return generations.get(el) ?? 0;
@@ -3002,7 +3002,7 @@ var cueLogPaint = new PaintMemo(
 );
 async function renderAtomicCueLog(plugin, el, host, generation) {
   const markdown = host.sourcePath ? await plugin.data.readCachedBody(host.sourcePath) : "";
-  if (!el.isConnected || generation !== void 0 && isStaleBlockRender(el, generation)) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
   const language = plugin.settings.language;
@@ -4821,7 +4821,7 @@ async function renderDashboard(el, data, activityTypes, year, language, timezone
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
   const input = await collectDashboardInput(data, activityTypes, year);
-  if (!el.isConnected || renderGeneration.get(el) !== generation) return;
+  if (renderGeneration.get(el) !== generation) return;
   if (dashboardPaint.shouldSkip(el, dashboardPaintState(input, language))) return;
   const model = buildDashboardModel(input);
   el.empty();
@@ -6486,7 +6486,7 @@ function paintTimer(plugin, el, sourcePath) {
 }
 async function renderAtomicTimer(plugin, el, sourcePath, generation) {
   const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
-  if (!el.isConnected || generation !== void 0 && isStaleBlockRender(el, generation)) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
   stopTimerClock(el);
@@ -6666,7 +6666,7 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
   const maps = await Promise.all(
     activities.map((activity) => data.getActivityDurationMap(activity, year))
   );
-  if (generation !== void 0 && isStaleBlockRender(el, generation)) return;
+  if (isStaleBlockRender(el, generation)) return;
   el.empty();
   const rows = activities.map((activity, index) => ({
     activity,
@@ -7699,7 +7699,7 @@ var import_obsidian12 = require("obsidian");
 
 // src/core/update-notes.json
 var update_notes_default = {
-  version: "1.5.4",
+  version: "1.5.5",
   body: {
     en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
     "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"

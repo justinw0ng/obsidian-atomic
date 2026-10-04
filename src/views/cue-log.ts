@@ -39,10 +39,7 @@ export async function renderAtomicCueLog(
   generation?: number,
 ): Promise<void> {
   const markdown = host.sourcePath ? await plugin.data.readCachedBody(host.sourcePath) : "";
-  if (
-    !el.isConnected ||
-    (generation !== undefined && isStaleBlockRender(el, generation))
-  ) {
+  if (isStaleBlockRender(el, generation)) {
     return;
   }
 

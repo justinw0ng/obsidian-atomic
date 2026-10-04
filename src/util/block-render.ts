@@ -34,8 +34,13 @@ export function beginBlockRender(el: object): number {
   return next;
 }
 
-export function isStaleBlockRender(el: object, generation: number): boolean {
-  return generations.get(el) !== generation;
+/**
+ * True when a newer render owns this host. Omit `generation` (or pass
+ * `undefined`) to treat the paint as current — reading view often awaits
+ * on a detached tree, so `el.isConnected` is not part of this check.
+ */
+export function isStaleBlockRender(el: object, generation?: number): boolean {
+  return generation !== undefined && generations.get(el) !== generation;
 }
 
 export function currentBlockGeneration(el: object): number {
