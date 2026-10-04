@@ -492,16 +492,12 @@ async function captureActionsGif(driver) {
 
 async function captureTodayGif(driver) {
   await openPreviewNote(driver, FILES.today);
-  await driver.wait(async () => {
-    return driver.executeScript(
-      `return !!document.querySelector(".fitness-plugin a.fitness-link")`,
-    );
-  }, 8000);
+  await waitCss(driver, '[data-testid="atomic-today-row"]');
   await prepareGuideView(driver);
   const dir = frameDir("today");
   await grabHold(driver, dir, 0, 2, 200);
   await driver.executeScript(
-    `document.querySelector(".fitness-plugin a.fitness-link")?.click()`,
+    `document.querySelector('[data-testid="atomic-today-row"]')?.click()`,
   );
   await waitCss(driver, '[data-testid="atomic-timer"], [data-testid="atomic-gym-log"]');
   await prepareGuideView(driver);

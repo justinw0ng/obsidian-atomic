@@ -7646,7 +7646,7 @@ var import_obsidian12 = require("obsidian");
 
 // src/core/update-notes.json
 var update_notes_default = {
-  version: "1.5.1",
+  version: "1.5.2",
   body: {
     en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
     "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"
