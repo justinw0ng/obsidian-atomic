@@ -5,6 +5,7 @@ import { t, type Language } from "../i18n/index.ts";
 import type { ActivityType, DayActivity } from "../types";
 import { labelForLanguage } from "../util/bilingual-label";
 import { resolveHeatmapActivities } from "../util/heatmap-activities";
+import { heatmapWeekdayLabels } from "../util/heatmap-day-labels";
 import {
   effectiveHeatmapColumns,
   resolveHeatmapLayout,
@@ -41,12 +42,6 @@ function cleanupHeatmapObservers(container: HTMLElement): void {
   registry.grid?.disconnect();
   heatmapObserverRegistry.delete(container);
 }
-
-/** Mon / Wed / Fri only, so a 16px label column stays one glyph wide. */
-const DOW_MARKS: Record<Language, readonly string[]> = {
-  en: ["", "M", "", "W", "", "F", ""],
-  "zh-Hant-en": ["", "一", "", "三", "", "五", ""],
-};
 
 function wireHeatmapScroll(
   scrollEl: HTMLElement,
@@ -158,7 +153,7 @@ function renderOneHeatmap(
 
   const body = wrap.createDiv({ cls: "atomic-heat-body" });
   const dayLabels = body.createDiv({ cls: "atomic-heat-days atomic-caption" });
-  for (const mark of DOW_MARKS[language]) {
+  for (const mark of heatmapWeekdayLabels(language)) {
     dayLabels.createSpan({ text: mark });
   }
 

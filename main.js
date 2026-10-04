@@ -5297,12 +5297,26 @@ function resolveHeatmapActivities(activityTypes, activityOption) {
   return { activities, invalidIds };
 }
 
+// src/util/heatmap-day-labels.ts
+function heatmapWeekdayLabels(language) {
+  switch (language) {
+    case "en":
+      return ["S", "M", "T", "W", "T", "F", "S"];
+    case "zh-Hant-en":
+      return ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"];
+    default: {
+      const exhaustive = language;
+      return exhaustive;
+    }
+  }
+}
+
 // src/util/heatmap-layout.ts
 var DEFAULT_ROWS = 1;
 var DEFAULT_COLUMNS = 1;
 var DEFAULT_MIN_COLUMN_WIDTH = 300;
 var DEFAULT_DEFAULT_SPAN = 1.2;
-var HEATMAP_GRID_GAP_PX = 12;
+var HEATMAP_GRID_GAP_PX = 40;
 function parsePositiveNumber(value, defaultValue) {
   if (!value) return defaultValue;
   const n = Number(value);
@@ -5494,10 +5508,6 @@ function cleanupHeatmapObservers(container) {
   registry.grid?.disconnect();
   heatmapObserverRegistry.delete(container);
 }
-var DOW_MARKS = {
-  en: ["", "M", "", "W", "", "F", ""],
-  "zh-Hant-en": ["", "\u4E00", "", "\u4E09", "", "\u4E94", ""]
-};
 function wireHeatmapScroll(scrollEl, registry, todayColumn, monthColumns) {
   let userHasScrolled = false;
   let expectedScrollLeft = null;
@@ -5581,7 +5591,7 @@ function renderOneHeatmap(root, data, activity, year, timezone, language, regist
   head.createDiv({ cls: "atomic-readout atomic-heat-readout" });
   const body = wrap.createDiv({ cls: "atomic-heat-body" });
   const dayLabels = body.createDiv({ cls: "atomic-heat-days atomic-caption" });
-  for (const mark of DOW_MARKS[language]) {
+  for (const mark of heatmapWeekdayLabels(language)) {
     dayLabels.createSpan({ text: mark });
   }
   const scroll = body.createDiv({

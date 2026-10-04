@@ -109,7 +109,7 @@
 
 .fitness-plugin .fitness-heatmap-grid {
   display: grid;
-  gap: 12px;
+  gap: 40px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -117,9 +117,12 @@
 }
 
 .fitness-plugin .fitness-heatmap-grid > .atomic-heatmap {
-  margin-bottom: 0;
+  margin: 0;
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
+  padding: 4px 8px 8px;
+  box-sizing: border-box;
 }
 
 /* ------------------------------------------------------------- type roles */
@@ -1251,16 +1254,28 @@
   grid-column: var(--w) / span 4;
 }
 
-/* margin-top clears the months row (16px + 4px). */
+/*
+  Months are 16px plus 4px under them. The cell grid adds 4px of top
+  padding for the today ring. Labels share that offset so each glyph
+  sits on its row.
+*/
 .fitness-plugin .atomic-heat-days {
   display: grid;
   grid-template-rows: repeat(7, var(--atomic-heat-cell));
   row-gap: var(--atomic-heat-gap);
-  margin-top: 20px;
+  align-content: start;
+  margin-top: 24px;
+  font-size: 8px;
+  line-height: 1;
 }
 
 .fitness-plugin .atomic-heat-days > span {
-  line-height: var(--atomic-heat-cell);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: var(--atomic-heat-cell);
+  font-size: 8px;
+  line-height: 1;
 }
 
 .fitness-plugin .atomic-heat-cells {
@@ -1752,7 +1767,8 @@
 .fitness-plugin .atomic-shelf-scroll {
   overflow-x: auto;
   overflow-y: visible;
-  padding: 22px 0 0;
+  /* Bottom padding keeps the reading ribbon inside the scrollport. */
+  padding: 22px 0 20px;
 }
 
 .fitness-plugin .atomic-shelf-scroll::-webkit-scrollbar {
@@ -1868,6 +1884,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   border-radius: inherit;
   background: var(--atomic-fill-2);
   transform-origin: left center;
@@ -1886,8 +1903,33 @@
   max-height: none;
   object-fit: cover;
   object-position: center;
+  image-rendering: auto;
   border-radius: inherit;
   pointer-events: none;
+}
+
+/*
+  Obsidian's img max-width is more specific than the rule above in the
+  editor and the preview. Repeat the fill here so a custom cover paints
+  edge to edge.
+*/
+.markdown-source-view.mod-cm6 .fitness-plugin img.atomic-book-cover,
+.markdown-preview-view .fitness-plugin img.atomic-book-cover,
+.markdown-rendered .fitness-plugin img.atomic-book-cover,
+.workspace-leaf-content .fitness-plugin img.atomic-book-cover {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  image-rendering: auto;
 }
 
 /*
@@ -1963,6 +2005,14 @@
 
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
     transform: perspective(900px) rotateY(-112deg);
+    filter: invert(1) blur(6px);
+  }
+
+  /* The closed cover, image or title board, fills the opened face before the blur. */
+  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
+    opacity: 1;
+    transform: scale(1.12);
+    transform-origin: center;
   }
 
   .fitness-plugin .atomic-book.is-cover-open::before,
@@ -1999,10 +2049,10 @@
 .fitness-plugin .atomic-book-ribbon {
   position: absolute;
   right: 16%;
-  bottom: -20px;
+  top: calc(100% - 4px);
   width: 8px;
   height: 24px;
-  z-index: -1;
+  z-index: 3;
   filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
   background: linear-gradient(var(--atomic-c), var(--atomic-c)) 0 0 / 100% 18px no-repeat;
 }
@@ -2647,6 +2697,14 @@
   .fitness-plugin .atomic-book.is-preview,
   .fitness-plugin .atomic-book.is-cover-open,
   .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
+    transform: none;
+  }
+
+  .fitness-plugin .atomic-book.is-cover-open .atomic-book-face {
+    filter: none;
+  }
+
+  .fitness-plugin .atomic-book.is-cover-open .atomic-book-cover {
     transform: none;
   }
 
