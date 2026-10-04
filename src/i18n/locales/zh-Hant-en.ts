@@ -285,7 +285,6 @@ export const zhHantEn = {
   "view.cueLog.placeholder": "Keep the lead arm soft / 前臂放鬆\n**Tempo / 節奏** — count one-two",
   "view.cueLog.add": "Add cue / 加提示",
   "view.cueLog.needsSavedNote": "Save this note to add cues / 先儲存筆記才加得提示。",
-  "view.bookShelf.open": "Open {title} / 開啟 {title}",
   "view.bookShelf.summary": "{count} 本 · {reading} 本閱讀中 · {finished} 本讀完",
   "view.bookShelf.clickToOpen": "Click to open / 撳一下開啟",
   "view.bookShelf.tapAgain": "Tap again to open / 再撳一次開啟",

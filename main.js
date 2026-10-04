@@ -455,7 +455,6 @@ var en = {
   "view.cueLog.placeholder": "Keep the lead arm soft\n**Tempo** \u2014 count one-two",
   "view.cueLog.add": "Add cue",
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
-  "view.bookShelf.open": "Open {title}",
   "view.bookShelf.summary": "{count} books \xB7 {reading} reading \xB7 {finished} finished",
   "view.bookShelf.clickToOpen": "Click to open",
   "view.bookShelf.tapAgain": "Tap again to open",
@@ -773,7 +772,6 @@ var zhHantEn = {
   "view.cueLog.placeholder": "Keep the lead arm soft / \u524D\u81C2\u653E\u9B06\n**Tempo / \u7BC0\u594F** \u2014 count one-two",
   "view.cueLog.add": "Add cue / \u52A0\u63D0\u793A",
   "view.cueLog.needsSavedNote": "Save this note to add cues / \u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
-  "view.bookShelf.open": "Open {title} / \u958B\u555F {title}",
   "view.bookShelf.summary": "{count} \u672C \xB7 {reading} \u672C\u95B1\u8B80\u4E2D \xB7 {finished} \u672C\u8B80\u5B8C",
   "view.bookShelf.clickToOpen": "Click to open / \u64B3\u4E00\u4E0B\u958B\u555F",
   "view.bookShelf.tapAgain": "Tap again to open / \u518D\u64B3\u4E00\u6B21\u958B\u555F",
@@ -4983,8 +4981,7 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
       type: "button",
       "data-testid": "atomic-book",
       "data-title": item.title,
-      "data-status": item.status,
-      "aria-label": t("view.bookShelf.open", language, { title: item.title })
+      "data-status": item.status
     }
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);
@@ -6510,6 +6507,16 @@ function sessionFromMap(map, dateStr) {
   if (!entry || entry.minutes <= 0) return null;
   return { minutes: entry.minutes, path: entry.path ?? "" };
 }
+function conventionalSessionPath(activity, dateStr) {
+  return `${activity.folder}/${dateStr.slice(0, 4)}/${dateStr}.md`;
+}
+function sessionForToday(data, activity, map, dateStr) {
+  const mapped = sessionFromMap(map, dateStr);
+  const conventional = conventionalSessionPath(activity, dateStr);
+  const path = mapped?.path || (data.exists(conventional) ? conventional : "");
+  if (!mapped && !path) return null;
+  return { minutes: mapped?.minutes ?? 0, path };
+}
 async function renderTodaySessions(el, data, activityTypes, dateStr, language, generation) {
   const activities = exerciseActivities(activityTypes);
   const year = Number(dateStr.slice(0, 4));
@@ -6520,7 +6527,7 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
   el.empty();
   const rows = activities.map((activity, index) => ({
     activity,
-    session: sessionFromMap(maps[index], dateStr)
+    session: sessionForToday(data, activity, maps[index], dateStr)
   }));
   const done = rows.filter((row) => row.session).length;
   const parsed = parseYmd(dateStr);
@@ -6544,24 +6551,30 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
   );
   for (const { activity, session: session2 } of rows) {
     const line = root.createDiv({
-      cls: session2 ? "atomic-recent-row atomic-today-row" : "atomic-recent-row atomic-today-row is-empty"
+      cls: session2?.path ? "atomic-recent-row atomic-today-row" : "atomic-recent-row atomic-today-row is-empty",
+      attr: session2?.path ? {
+        "data-testid": "atomic-today-row",
+        "data-path": session2.path,
+        role: "link",
+        tabindex: "0"
+      } : void 0
     });
     line.setCssProps({ "--atomic-c": activity.colors[2] });
+    if (session2?.path) {
+      const path = session2.path;
+      const open = (event) => {
+        event.preventDefault();
+        void data.openPath(path);
+      };
+      line.addEventListener("click", open);
+      line.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        open(event);
+      });
+    }
     const name = line.createSpan({ cls: "atomic-name" });
     name.createSpan({ cls: "atomic-dot" });
-    if (session2?.path) {
-      const link = name.createEl("a", {
-        cls: "atomic-link",
-        text: activity.label,
-        attr: { href: "#" }
-      });
-      link.addEventListener("click", (event) => {
-        event.preventDefault();
-        void data.openPath(session2.path);
-      });
-    } else {
-      name.createSpan({ text: activity.label });
-    }
+    name.createSpan({ text: activity.label });
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
     if (session2) {
       sum.createEl("strong", { text: String(session2.minutes) });

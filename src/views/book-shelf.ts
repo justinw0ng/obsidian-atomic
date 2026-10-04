@@ -368,7 +368,6 @@ function createBook(
       "data-testid": "atomic-book",
       "data-title": item.title,
       "data-status": item.status,
-      "aria-label": t("view.bookShelf.open", language, { title: item.title }),
     },
   });
   button.style.setProperty("--atomic-book-color", item.spineColor);

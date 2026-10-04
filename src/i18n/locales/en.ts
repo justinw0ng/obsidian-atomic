@@ -285,7 +285,6 @@ export const en = {
   "view.cueLog.placeholder": "Keep the lead arm soft\n**Tempo** — count one-two",
   "view.cueLog.add": "Add cue",
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
-  "view.bookShelf.open": "Open {title}",
   "view.bookShelf.summary": "{count} books · {reading} reading · {finished} finished",
   "view.bookShelf.clickToOpen": "Click to open",
   "view.bookShelf.tapAgain": "Tap again to open",

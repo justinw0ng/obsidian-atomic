@@ -107,6 +107,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const today = src("src/views/today.ts");
   assert.match(today, /"data-testid": "atomic-today"/);
+  assert.match(today, /"data-testid": "atomic-today-row"/);
+  assert.match(today, /"data-path": session\.path/);
+  assert.match(today, /data\.openPath\(path\)/);
+  assert.doesNotMatch(today, /href:\s*"#"/);
   assert.doesNotMatch(today, /innerHTML/);
 
   const gymSetup = src("src/commands/gym-log-setup.ts");
@@ -247,6 +251,10 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(shelf, /atomic-scrollport/);
   assert.match(shelf, /"data-scale": String\(scale\)/);
   assert.match(shelf, /resolveBookShelfScale/);
+  assert.match(shelf, /atomic-shelf-readout-title/);
+  assert.match(shelf, /view\.bookShelf\.clickToOpen/);
+  assert.doesNotMatch(shelf, /aria-label/);
+  assert.doesNotMatch(shelf, /view\.bookShelf\.open/);
 
   const settings = src("src/settings.ts");
   assert.match(settings, /atomic-setting-activity/);
