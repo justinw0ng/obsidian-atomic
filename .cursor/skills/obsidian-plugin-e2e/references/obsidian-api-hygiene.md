@@ -66,7 +66,7 @@ Review still scores CSS against Obsidian **1.4.5**, even when `minAppVersion` is
 | `css-clip-path` | `clip-path` | A border notch. The reading ribbon swallowtail is `border-width: 0 4px 6px` with a transparent bottom |
 | `css-masks` | `mask`, `-webkit-mask`, `mask-image` | A `::after` paper wash (`.atomic-cue-body`) |
 
-`:has(`, `!important`, and `scrollbar-width` stay banned too. See [plugin-review.md](plugin-review.md).
+`:has(` and `!important` stay banned. `scrollbar-width` is allowed only on `.atomic-heat-scroll` (`none`) so the heatmap year still scrolls without a native bar. See [plugin-review.md](plugin-review.md).
 
 ## Unused compile-time aliases
 

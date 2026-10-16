@@ -649,7 +649,20 @@ test("session property selects read as the value", () => {
 });
 
 test("styles hide atomic scrollbars, pin heatmap width, and theme the today ring", () => {
-  assert.doesNotMatch(styles, /scrollbar-width/);
+  const heatScroll = cssRule(styles, ".fitness-plugin .atomic-heat-scroll");
+  assert.ok(heatScroll, "heatmap scroller rule exists");
+  assert.match(heatScroll.body, /overflow-x:\s*auto/);
+  assert.match(heatScroll.body, /scrollbar-width:\s*none/);
+  const heatBar = cssRule(styles, ".fitness-plugin .atomic-heat-scroll::-webkit-scrollbar");
+  assert.ok(heatBar, "heatmap scroller webkit hide exists");
+  assert.match(heatBar.body, /display:\s*none/);
+  assert.match(heatBar.body, /width:\s*0/);
+  assert.match(heatBar.body, /height:\s*0/);
+  const widthRules = [];
+  for (const match of styles.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (/scrollbar-width/.test(match[2])) widthRules.push(match[1].trim());
+  }
+  assert.deepEqual(widthRules, [".fitness-plugin .atomic-heat-scroll"]);
   assert.match(styles, /::-webkit-scrollbar/);
   assert.match(styles, /--scrollbar-thumb-bg:\s*transparent/);
   assert.match(styles, /--scrollbar-size:\s*0px/);
