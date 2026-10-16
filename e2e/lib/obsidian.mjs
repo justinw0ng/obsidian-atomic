@@ -174,6 +174,7 @@ export async function ensureChromeDriver(chromeVersion) {
   if (!res.ok) {
     throw new Error(`Failed to download ChromeDriver ${usedVersion}: ${res.status} ${zipUrl}`);
   }
+  const zipPath = join(cacheDir, "chromedriver.zip");
   writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
   const unzip = spawnSync(
     "python3",

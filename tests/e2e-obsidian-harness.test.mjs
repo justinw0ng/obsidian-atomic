@@ -138,6 +138,7 @@ test("ensureChromeDriver falls back to the latest published patch after a 404", 
   assert.match(src, /lookupChromeDriverPatch/);
   assert.match(src, /res\.status === 404/);
   assert.match(src, /CHROME_DRIVER_PATCH_CATALOG/);
+  assert.match(src, /const zipPath = join\(cacheDir, "chromedriver\.zip"\)/);
 });
 
 test("ChromeDriver zip URL and build key stay on the published chrome-for-testing path", () => {
