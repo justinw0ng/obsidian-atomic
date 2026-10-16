@@ -8,7 +8,7 @@ The live mock sits desktop and phone side by side. Theme and motion toggles matc
 
 A new **reader** for EPUB and PDF files that already live in the vault. It is separate from the existing book note, and linked to it.
 
-- Open a file from the book shelf, including a shelf **block inside a note in reading mode**. The book comes toward you and opens on the last page you read. The open lands in **theater**: Obsidian chrome fades, the page sits in a warm vignette.
+- Open a file from the book shelf, including a shelf **block inside a note in reading mode**. The book comes toward you and opens on the last page you read (p. 47). The flying pages land on the **same reader spread** (bar, remarks, highlights, selection toolbar, progress). Theater only dims the Obsidian chrome around that reader.
 - Open from a canvas card. You land on that card’s page.
 - Highlight, remark, or ask. Each one writes a card on **one canvas per book**.
 - Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
@@ -68,20 +68,22 @@ The mock **Reading view** scene is a note in reading mode with an `atomic-booksh
 
 ## Theater mode (decided)
 
-Reading should feel like a cinema. When the open-book motion finishes, the surrounding Obsidian chrome (ribbon, tabs, view header, status bar, phone nav) dims and fades. The page sits centred at a comfortable measure (~28em per leaf, one column on a phone) on a soft dark vignette with a warm light on the paper. Margin remarks and Ask stay. Chrome comes back on mouse-to-edge (desktop) or an edge tap (phone), then auto-hides after idle. **Esc** or the Exit control leaves theater. Light and dark each have their own void/glow. `prefers-reduced-motion` (and the board Reduced toggle) is an instant fade, no delayed chrome hide.
+Reading should feel like a cinema **around** the reader you already have. The reader content stays the screen_reader / Select layout: desktop two-page spread, Shelf / title / Canvas / Note bar, remark on the left, Ask note on the right, highlight colours, selection toolbar, last-read progress; phone one column, marginal dots, bottom nav. Theater only dims the surrounding Obsidian chrome (ribbon, tabs, view header, status). It does **not** restyle the pages, hide the reader bar, or take chrome out of flow — page positions stay put. Chrome comes back on mouse-to-edge (desktop) or an edge tap (phone), then auto-hides after idle. **Esc** or Exit leaves theater. Light and dark each have their own void. `prefers-reduced-motion` is an instant fade.
+
+**Open lands on this reader.** Snapshot the cover rect, then paint the reader under the overlay. Measure `.atomic-page` (desktop: both leaves; phone: the column). The flying book’s `--to-x` / `--to-y` / `--to-s` map the opened spread onto those rects (p. 47, same text). Overlay lifts with no second layout and no crossfade. Replay (library or reading view) ends on that same reader.
 
 **Mount in Obsidian.** Same window rule as the open overlay. Do **not** `requestFullscreen` as the only path (popouts, iOS WKWebView). Do **not** clip the workspace with `clip-path` or CSS masks (directory review). Two honest shapes:
 
-1. **Preferred.** Paint the reader into a `position: fixed; inset: 0` host on `activeDocument.body` (read `activeWindow` / `activeDocument`, not `globalThis`). One host per window, including a popout. The original workspace leaf stays in the tree for restore on exit. Vignette is stacked `radial-gradient`s on that host. Page warm light is `box-shadow` (outer + inset), not a mask.
-2. **Fallback.** Keep the leaf, collapse left/right splits, and dim other leaves. Still put the vignette on `activeDocument.body` so it covers the ribbon and status bar the leaf cannot own.
+1. **Preferred.** Keep the reader leaf. Fade ribbon / tabs / view header / status in place on `activeDocument` (read `activeWindow` / `activeDocument`, not `globalThis`). Popout-friendly. The reader bar, pages, remarks, toolbar, and progress do not move.
+2. **Fallback.** Dim other splits the same way. Still do not rebuild the reader into a different measure.
 
-The mock’s `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is (1): chrome is taken out of flow and faded; the reader fills the window. `[data-overlay-host=window]` already lives on that same frame, so the flying book and the vignette share a surface. During the flight the window gets `is-entering-theater` so chrome starts fading mid-open; `done` then renders theater. No second jump.
+The mock’s `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is (1): chrome opacity only; reader layout unchanged. `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
 
-**Phone.** Full-bleed immersive. The hardware island and home indicator stay. Obsidian chrome (status, view header, tab bar) fades. Safe-area insets (`env(safe-area-inset-*)`) pad the page so it does not sit under the notch. The Ask sheet is a glass panel on the vignette, not a second theme.
+**Phone.** Island, status, home indicator, and bottom nav stay (they are the phone frame / reader chrome). The Obsidian view header can fade. Safe-area insets stay as they are on the reader.
 
-**Idle and restore.** Pointer in a 32px edge, or a tap that is not on the page / a remark / Ask, reveals chrome for ~2.2s. Esc exits theater and puts the leaf back in the normal reader chrome. A command “Toggle theater” matches the in-reader control.
+**Idle and restore.** Pointer in a 32px edge, or a tap that is not on the page / a remark / Ask, reveals Obsidian chrome for ~2.2s. Esc exits theater. A command “Toggle theater” matches the in-reader control.
 
-The mock **Replay open** (library or reading view) lands in theater. Reader / Select / Ask on the board open theater. Reduced motion skips the 3D and still lands there instantly.
+The mock **Replay open** (library or reading view) lands on Select — the reader with toolbar — chrome still on. Reduced motion skips the 3D and still lands there.
 
 ## Open questions
 
@@ -147,7 +149,7 @@ Settings: provider, model, and a `SecretComponent` that picks or creates a Keych
 
 ### Phase 6 — Motion and theater
 
-Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight fades chrome and lands in theater (vignette, centred page, edge-reveal chrome). 2D fallback on phone if Phase 2 frames are not stable.
+Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight targets the live reader page rects and lands on that same spread (no jump). Theater dims Obsidian chrome around it. 2D fallback on phone if Phase 2 frames are not stable.
 
 ### Phase 7 — Whole-book Ask
 
