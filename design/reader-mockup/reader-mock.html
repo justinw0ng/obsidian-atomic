@@ -438,7 +438,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.015em;
 }
 .ob-phone-screen .atomic-pane-title { font-size: 22px; }
-.atomic-shelf-scroll { overflow-x: auto; overflow-y: visible; padding: 28px 0 0; }
+.atomic-shelf-scroll { overflow-x: auto; overflow-y: visible; padding: 28px 0 8px; }
 .atomic-shelf-scroll::-webkit-scrollbar { display: none; }
 .atomic-shelf-row {
   position: relative; display: flex; align-items: flex-end;
@@ -461,6 +461,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   width: max-content; min-width: 100%;
 }
 .atomic-book {
+  --atomic-book-w: 88px;
+  --atomic-book-h: 138px;
   --px: 0; --py: 0; --sx: 30%; --sy: 18%;
   position: relative; flex: none;
   width: var(--atomic-book-w); height: var(--atomic-book-h);
@@ -470,17 +472,23 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 7px 6px -6px rgba(0, 0, 0, 0.45);
   transform-origin: 50% 100%;
   transition: transform var(--atomic-t-move) var(--atomic-ease), box-shadow var(--atomic-t-move) var(--atomic-ease);
-  overflow: hidden; color: var(--ink, #f4ecdf);
+  overflow: visible; color: var(--ink, #f4ecdf);
   text-align: left;
 }
 .atomic-book-cover {
   position: absolute; inset: 0;
   padding: 12px 10px 10px 14px;
   display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden;
+  border-radius: inherit;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.08), transparent 28%),
     radial-gradient(circle at 80% 12%, rgba(255,255,255,0.14), transparent 36%),
-    var(--cover);
+    var(--cover, #3d2a1c);
+}
+.atomic-book-cover .rule {
+  width: 22px; height: 1px; margin-bottom: 8px;
+  background: color-mix(in srgb, var(--ink, #f4ecdf) 55%, transparent);
 }
 .atomic-book-cover .t {
   font-size: 11px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
@@ -573,10 +581,10 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-page {
   position: relative;
   margin: 18px 8px;
-  padding: 28px 26px 36px;
+  padding: 22px 22px 28px;
   background: var(--atomic-paper);
   box-shadow: 0 0 0 1px var(--atomic-rule);
-  overflow: hidden;
+  overflow: auto;
 }
 .ob-window .atomic-page { border-radius: 1px; }
 .ob-phone-screen .atomic-page {
@@ -589,8 +597,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   text-transform: uppercase; color: var(--atomic-ink-2);
 }
 .atomic-page p {
-  margin: 0 0 12px; font-family: var(--font-text);
-  font-size: 16.5px; line-height: 1.62; color: var(--atomic-ink);
+  margin: 0 0 11px; font-family: var(--font-text);
+  font-size: 15.5px; line-height: 1.58; color: var(--atomic-ink);
 }
 .ob-phone-screen .atomic-page p { font-size: 17px; line-height: 1.58; }
 .atomic-hl {
@@ -644,7 +652,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
 .atomic-selbar { position: absolute; z-index: 6; transform: translate(-50%, -120%); }
 .atomic-ask {
-  position: absolute; top: 40px; right: 0; bottom: 28px; width: 300px; z-index: 5;
+  position: absolute; top: 40px; right: 0; bottom: 28px; width: 300px; z-index: 7;
   display: flex; flex-direction: column;
   background: var(--background-primary);
   border-left: 1px solid var(--atomic-rule);
@@ -695,7 +703,17 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-cnode {
   position: absolute; transform: translate(-50%, -50%);
 }
-.atomic-cnode.is-book { width: 96px; }
+.atomic-cnode.is-book { width: 120px; z-index: 2; }
+.atomic-cnode.is-book .atomic-cbook-plate {
+  padding: 14px 16px 10px;
+  background: var(--background-primary);
+}
+.atomic-cnode.is-book .atomic-book {
+  --atomic-book-w: 84px;
+  --atomic-book-h: 128px;
+  width: 84px;
+  height: 128px;
+}
 .atomic-cnode.is-group {
   font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--atomic-ink-2); font-weight: 600;
@@ -706,7 +724,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   background: var(--atomic-paper);
   box-shadow: 0 0 0 1px var(--atomic-rule), 0 10px 18px -14px rgba(0,0,0,0.35);
   text-align: left; cursor: pointer;
+  z-index: 2;
 }
+.ob-phone-screen .atomic-ccard { width: 148px; padding: 8px 10px; }
 .atomic-ccard .k {
   font-family: var(--atomic-mono); font-size: 10px; letter-spacing: 0.04em;
   text-transform: uppercase; color: var(--atomic-ink-2); margin-bottom: 4px;
@@ -754,10 +774,10 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   display: grid; place-items: center;
 }
 .open-book {
-  --from-x: 0px; --from-y: 0px; --from-s: 0.22;
+  --from-x: 0px; --from-y: 0px; --from-s: 0.38;
   position: relative;
-  width: min(520px, 78%);
-  height: min(360px, 62%);
+  width: 168px;
+  height: 248px;
   transform-style: preserve-3d;
   transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s));
   transform-origin: 50% 50%;
@@ -773,24 +793,25 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   transform: translateZ(-2px);
 }
 .open-leaf {
-  position: absolute; top: 6%; bottom: 6%;
+  position: absolute; top: 5%; bottom: 5%;
   width: 46%;
   background: #fffdf8;
   box-shadow: 0 0 0 1px rgba(40, 30, 10, 0.08);
   overflow: hidden;
   padding: 8% 6%;
   font-family: "Iowan Old Style", Palatino, serif;
-  font-size: 11px; line-height: 1.45; color: #2b2925;
+  font-size: 9px; line-height: 1.4; color: #2b2925;
 }
 .open-leaf.is-left { left: 4%; }
 .open-leaf.is-right { right: 4%; }
 .open-flip {
-  position: absolute; top: 6%; bottom: 6%; left: 50%;
+  position: absolute; top: 5%; bottom: 5%; left: 50%;
   width: 46%;
-  background: linear-gradient(90deg, #f7f1e6, #fffdf8 18%);
+  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
   transform-origin: left center;
   transform: rotateY(0deg);
   box-shadow: -8px 0 16px -12px rgba(0,0,0,0.35);
+  backface-visibility: hidden;
 }
 .open-scene.is-playing .open-flip:nth-child(1) { animation: flip 220ms 420ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
 .open-scene.is-playing .open-flip:nth-child(2) { animation: flip 200ms 560ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
@@ -832,9 +853,18 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
 @keyframes open-pop {
   0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
-  28%  { transform: translate3d(calc(var(--from-x) * 0.35), calc(var(--from-y) * 0.28 - 6%), 80px) scale(0.58) rotateX(8deg); }
-  62%  { transform: translate3d(0, -1%, 140px) scale(0.92); }
-  100% { transform: translate3d(0, 0, 0) scale(1.06); }
+  22%  { transform: translate3d(calc(var(--from-x) * 0.45), calc(var(--from-y) * 0.4 - 18px), 40px) scale(1.15) rotateX(10deg); }
+  48%  { transform: translate3d(0, -8px, 90px) scale(1.85) rotateX(4deg); }
+  78%  { transform: translate3d(0, 0, 40px) scale(2.55); }
+  100% { transform: translate3d(0, 0, 0) scale(3.15); }
+}
+.ob-phone-screen .open-book { width: 120px; height: 178px; }
+.ob-phone-screen .open-scene.is-playing .open-book { animation-name: open-pop-phone; }
+@keyframes open-pop-phone {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  22%  { transform: translate3d(calc(var(--from-x) * 0.4), calc(var(--from-y) * 0.35 - 10px), 30px) scale(1.2) rotateX(8deg); }
+  50%  { transform: translate3d(0, -6px, 70px) scale(1.7); }
+  100% { transform: translate3d(0, 0, 0) scale(2.35); }
 }
 @keyframes cover-open {
   0%   { transform: rotateY(0); }
@@ -973,9 +1003,14 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       Object.entries(attrs).forEach(([k, v]) => {
         if (v == null || v === false) return;
         if (k === "class") n.className = v;
-        else if (k === "style" && typeof v === "object") Object.assign(n.style, v);
+        else if (k === "style" && typeof v === "object") {
+          Object.entries(v).forEach(([sk, sv]) => {
+            if (sv == null) return;
+            if (sk.startsWith("--")) n.style.setProperty(sk, String(sv));
+            else n.style[sk] = sv;
+          });
+        }
         else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2).toLowerCase(), v);
-        else if (k === "html") n.innerHTML = v;
         else n.setAttribute(k, v === true ? "" : v);
       });
     }
@@ -1058,6 +1093,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       style: { "--cover": b.cover, "--ink": b.ink },
     }, [
       el("span", { class: "atomic-book-cover" }, [
+        el("span", { class: "rule" }),
         el("span", { class: "t" }, b.title),
         el("span", { class: "a" }, b.author),
       ]),
@@ -1081,7 +1117,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     for (let i = 0; i < 28; i++) {
       const today = i === 26;
       const fill = [4, 8, 11, 15, 18, 19, 22, 26].includes(i);
-      heat.push(el("span", { class: "atomic-heat-cell" + (today ? " is-today" : fill ? "" : " is-empty"), style: fill ? { "--l": i === 26 ? "78%" : "46%" } : null }));
+      heat.push(el("span", { class: "atomic-heat-cell" + (today ? " is-today" : fill ? "" : " is-empty"), style: fill ? { "--l": i === 26 ? "92%" : "62%" } : null }));
     }
     return el("div", { class: "fitness-plugin atomic-shelf" }, [
       el("div", { class: "atomic-shelf-scroll" }, [row, el("div", { class: "atomic-plank" })]),
@@ -1153,7 +1189,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     if (state.slip === "ai") slip.style.top = "248px";
     else slip.style.top = "118px";
 
-    const selbar = el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel, style: phone ? { left: "50%", top: "312px" } : { left: "74%", top: "268px" } },
+    const selbar = el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel || showAsk, style: phone ? { left: "50%", top: "300px" } : { left: "68%", top: "248px" } },
       el("div", { class: "atomic-glass" }, [
         el("button", { type: "button", class: "atomic-btn is-small", "data-act": "highlight" }, "Highlight"),
         el("button", { type: "button", class: "atomic-btn is-small", "data-act": "remark" }, "Remark"),
@@ -1223,7 +1259,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       el("div", { class: "atomic-cnode is-group", style: { left: "22%", top: "12%" } }, "Chapter I"),
       el("div", { class: "atomic-cnode is-group", style: { left: "80%", top: "12%" } }, "Chapter I"),
       el("div", { class: "atomic-cnode is-book", style: { left: "50%", top: "48%" } }, [
-        bookButton(BOOKS[0]),
+        el("div", { class: "atomic-cbook-plate" }, bookButton(BOOKS[0])),
         el("div", { class: "atomic-caption", style: { textAlign: "center", marginTop: "8px" } }, "Pride and Prejudice"),
       ]),
       ...cards.map((c) => el("button", {
@@ -1283,7 +1319,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   function crumbsFor(scene) {
     if (scene === "settings") return ["Settings", "Atomic Tracker", "Ask"];
     if (scene === "canvas") return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
-    if (scene === "library" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
+    if (scene === "empty" && state.emptyKind === "key") return ["Settings", "Atomic Tracker", "Ask"];
+  if (scene === "library" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
     return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
   }
 
@@ -1313,7 +1350,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
   function pane(scene, phone) {
     const wrap = el("div", { class: "atomic-pane" });
-    if (scene === "library" || scene === "empty") {
+    if (scene === "library" || (scene === "empty" && state.emptyKind === "file")) {
       wrap.appendChild(el("h2", { class: "atomic-pane-title" }, titleFor(scene)));
     }
     wrap.appendChild(contentFor(scene, phone));
@@ -1423,7 +1460,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     const cy = bookBox.top + bookBox.height / 2 - hostBox.top;
     flying.style.setProperty("--from-x", (cx - hostBox.width / 2) + "px");
     flying.style.setProperty("--from-y", (cy - hostBox.height / 2) + "px");
-    flying.style.setProperty("--from-s", (bookBox.width / 280).toFixed(3));
+    flying.style.setProperty("--from-s", (bookBox.width / (flying.offsetWidth || 168)).toFixed(3));
     overlay.classList.remove("is-playing");
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
