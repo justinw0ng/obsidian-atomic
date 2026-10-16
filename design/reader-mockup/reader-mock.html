@@ -694,17 +694,19 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-window.is-entering-theater,
 .ob-phone-screen.is-theater,
 .ob-phone-screen.is-entering-theater {
-  --theater-void: #2a241c;
-  --theater-glow: rgba(255, 214, 156, 0.22);
-  --theater-ink: rgba(12, 9, 6, 0.58);
+  --theater-void: #1a1612;
+  --theater-glow: rgba(255, 206, 142, 0.42);
+  --theater-ink: rgba(4, 3, 2, 0.82);
+  --theater-paper: #f3ead8;
 }
 .theme-dark.ob-window.is-theater,
 .theme-dark.ob-window.is-entering-theater,
 .theme-dark.ob-phone-screen.is-theater,
 .theme-dark.ob-phone-screen.is-entering-theater {
-  --theater-void: #0c0b0a;
-  --theater-glow: rgba(255, 196, 130, 0.1);
-  --theater-ink: rgba(0, 0, 0, 0.7);
+  --theater-void: #080706;
+  --theater-glow: rgba(255, 188, 120, 0.2);
+  --theater-ink: rgba(0, 0, 0, 0.84);
+  --theater-paper: #1d1914;
 }
 .ob-window.is-entering-theater .ob-titlebar,
 .ob-window.is-entering-theater .ob-ribbon,
@@ -752,8 +754,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 .ob-window.is-theater .ob-content {
   background:
-    radial-gradient(ellipse 68% 52% at 50% 40%, var(--theater-glow), transparent 58%),
-    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 28%, var(--theater-ink) 100%),
+    radial-gradient(ellipse 42% 34% at 50% 46%, var(--theater-glow), transparent 70%),
+    radial-gradient(ellipse 88% 72% at 50% 48%, rgba(255, 214, 160, 0.1), transparent 62%),
+    radial-gradient(ellipse 130% 110% at 50% 50%, transparent 22%, var(--theater-ink) 100%),
     var(--theater-void);
 }
 .ob-window.is-theater .atomic-pane { padding: 0; overflow: hidden; height: 100%; }
@@ -770,18 +773,19 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-window.is-theater .atomic-reader-bar { top: 0; }
 .ob-window.is-theater .atomic-reader-foot { bottom: 0; }
 .ob-window.is-theater .atomic-spread {
-  grid-template-columns: minmax(72px, 1fr) minmax(0, 28em) minmax(0, 28em) minmax(72px, 1fr);
+  grid-template-columns: minmax(92px, 1.15fr) minmax(0, 26em) minmax(0, 26em) minmax(92px, 1.15fr);
   background: transparent;
-  padding: 36px 28px 40px;
+  padding: 52px 48px 64px;
   height: 100%;
 }
 .ob-window.is-theater .atomic-page {
-  margin: 10px 6px;
-  background: color-mix(in srgb, var(--atomic-paper) 90%, #f3d9a8);
+  margin: 8px 4px;
+  background: var(--theater-paper);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, #3a2a14 12%, var(--atomic-rule)),
-    0 28px 70px -28px rgba(0, 0, 0, 0.55),
-    inset 0 40px 80px -48px rgba(255, 220, 160, 0.28);
+    0 0 0 1px rgba(58, 42, 20, 0.14),
+    0 0 90px 24px rgba(255, 198, 130, 0.16),
+    0 32px 70px -22px rgba(0, 0, 0, 0.62),
+    inset 0 48px 90px -46px rgba(255, 224, 170, 0.4);
 }
 .ob-window.is-theater .atomic-reader-bar,
 .ob-window.is-theater .atomic-reader-foot {
@@ -797,23 +801,32 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   pointer-events: auto;
 }
 .ob-window.is-theater .atomic-ask {
-  background: color-mix(in srgb, var(--background-primary) 86%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  backdrop-filter: blur(18px) saturate(1.2);
-  border-left-color: color-mix(in srgb, var(--text-normal) 8%, transparent);
-  box-shadow: -16px 0 40px -24px rgba(0, 0, 0, 0.45);
+  top: 28px; bottom: 28px;
+  background: color-mix(in srgb, var(--theater-void) 62%, var(--background-primary));
+  color: #f0e6d4;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  border-left-color: rgba(255, 220, 180, 0.1);
+  box-shadow: -18px 0 48px -20px rgba(0, 0, 0, 0.55);
+}
+.ob-window.is-theater .atomic-ask .atomic-saved,
+.ob-window.is-theater .atomic-ask .atomic-answer { color: #e8dcc8; }
+.ob-window.is-theater .atomic-ask textarea {
+  background: rgba(255, 236, 210, 0.08);
+  color: #f4ead8;
 }
 .ob-window.is-theater .atomic-remark {
-  color: color-mix(in srgb, var(--atomic-ink-2) 68%, #e8dcc8);
-  border-top-color: color-mix(in srgb, var(--atomic-rule) 45%, transparent);
+  color: #cbbfaa;
+  border-top-color: rgba(232, 214, 186, 0.18);
 }
 .ob-window.is-theater .atomic-remark strong {
-  color: color-mix(in srgb, var(--atomic-ink) 72%, #f4ead8);
+  color: #f0e4d0;
 }
 .atomic-theater-esc {
-  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
   z-index: 10;
-  opacity: 0.4;
+  opacity: 0.55;
+  color: #e8dcc8;
 }
 .ob-window.is-theater.is-chrome .atomic-theater-esc,
 .ob-phone-screen.is-theater.is-chrome .atomic-theater-esc { opacity: 0; pointer-events: none; }
@@ -851,16 +864,16 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 38%, var(--theater-glow), transparent 60%),
-    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 32%, var(--theater-ink) 100%),
+    radial-gradient(ellipse 70% 42% at 50% 40%, var(--theater-glow), transparent 68%),
+    radial-gradient(ellipse 120% 100% at 50% 50%, transparent 26%, var(--theater-ink) 100%),
     var(--theater-void);
 }
 .ob-phone-screen.is-theater .atomic-pane {
   padding:
-    max(54px, env(safe-area-inset-top, 54px))
-    max(18px, env(safe-area-inset-right, 18px))
-    max(36px, env(safe-area-inset-bottom, 36px))
-    max(18px, env(safe-area-inset-left, 18px));
+    max(62px, env(safe-area-inset-top, 62px))
+    max(28px, env(safe-area-inset-right, 28px))
+    max(44px, env(safe-area-inset-bottom, 44px))
+    max(28px, env(safe-area-inset-left, 28px));
 }
 .ob-phone-screen.is-theater .atomic-reader {
   background: transparent;
@@ -874,16 +887,21 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 .ob-phone-screen.is-theater .atomic-reader-bar { top: 0; }
 .ob-phone-screen.is-theater .atomic-reader-foot { bottom: 0; }
-.ob-phone-screen.is-theater .atomic-spread { background: transparent; height: 100%; }
+.ob-phone-screen.is-theater .atomic-spread {
+  background: transparent;
+  height: 100%;
+  padding: 6px 0 38px;
+}
 .ob-phone-screen.is-theater .atomic-page {
-  margin: 0 auto;
-  max-width: 36em;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--atomic-paper) 90%, #f3d9a8);
+  margin: 0;
+  max-width: none;
+  border-radius: 3px;
+  background: var(--theater-paper);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, #3a2a14 10%, var(--atomic-rule)),
-    0 22px 50px -22px rgba(0, 0, 0, 0.5),
-    inset 0 36px 70px -40px rgba(255, 220, 160, 0.24);
+    0 0 0 1px rgba(58, 42, 20, 0.12),
+    0 0 70px 16px rgba(255, 198, 130, 0.14),
+    0 24px 48px -18px rgba(0, 0, 0, 0.55),
+    inset 0 36px 70px -40px rgba(255, 224, 170, 0.36);
 }
 .ob-phone-screen.is-theater .atomic-reader-bar,
 .ob-phone-screen.is-theater .atomic-reader-foot {
@@ -897,9 +915,14 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   pointer-events: auto;
 }
 .ob-phone-screen.is-theater .atomic-sheet {
-  background: color-mix(in srgb, var(--background-primary) 90%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  backdrop-filter: blur(18px) saturate(1.2);
+  background: color-mix(in srgb, var(--theater-void) 58%, var(--background-primary));
+  color: #f0e6d4;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+.ob-phone-screen.is-theater .atomic-sheet textarea {
+  background: rgba(255, 236, 210, 0.08);
+  color: #f4ead8;
 }
 .ob-edge {
   position: absolute; z-index: 11;
