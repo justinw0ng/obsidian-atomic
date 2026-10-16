@@ -114,6 +114,43 @@ function chromeVersionFromCdp(versionInfo) {
   return match[1];
 }
 
+export const CHROME_DRIVER_PATCH_CATALOG =
+  "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build-with-downloads.json";
+
+export function chromeDriverZipUrl(version) {
+  return `https://storage.googleapis.com/chrome-for-testing-public/${version}/linux64/chromedriver-linux64.zip`;
+}
+
+/** `150.0.7871.250` → `150.0.7871`. Electron often reports an unpublished patch. */
+export function chromeDriverBuildKey(version) {
+  const parts = String(version || "").split(".");
+  if (parts.length < 3) return "";
+  const [major, minor, build] = parts;
+  if (![major, minor, build].every((part) => /^\d+$/.test(part))) return "";
+  return `${major}.${minor}.${build}`;
+}
+
+export function resolveChromeDriverFallback(requested, catalog) {
+  const key = chromeDriverBuildKey(requested);
+  if (!key) return "";
+  const builds = catalog && typeof catalog === "object" ? catalog.builds : null;
+  if (!builds || typeof builds !== "object") return "";
+  const entry = builds[key];
+  const version = entry && typeof entry.version === "string" ? entry.version : "";
+  if (!/^\d+\.\d+\.\d+\.\d+$/.test(version) || version === requested) return "";
+  return version;
+}
+
+async function lookupChromeDriverPatch(requested) {
+  const res = await fetch(CHROME_DRIVER_PATCH_CATALOG);
+  if (!res.ok) return "";
+  try {
+    return resolveChromeDriverFallback(requested, await res.json());
+  } catch {
+    return "";
+  }
+}
+
 export async function ensureChromeDriver(chromeVersion) {
   const cacheDir = join(
     process.env.ATOMIC_E2E_DRIVER_DIR || "/tmp/atomic-e2e-drivers",
@@ -123,12 +160,21 @@ export async function ensureChromeDriver(chromeVersion) {
   if (existsSync(binary)) return binary;
 
   mkdirSync(cacheDir, { recursive: true });
-  const zipUrl = `https://storage.googleapis.com/chrome-for-testing-public/${chromeVersion}/linux64/chromedriver-linux64.zip`;
-  const zipPath = join(cacheDir, "chromedriver.zip");
-  const res = await fetch(zipUrl);
-  if (!res.ok) {
-    throw new Error(`Failed to download ChromeDriver ${chromeVersion}: ${res.status} ${zipUrl}`);
+  let usedVersion = chromeVersion;
+  let zipUrl = chromeDriverZipUrl(chromeVersion);
+  let res = await fetch(zipUrl);
+  if (!res.ok && res.status === 404) {
+    const fallback = await lookupChromeDriverPatch(chromeVersion);
+    if (fallback) {
+      usedVersion = fallback;
+      zipUrl = chromeDriverZipUrl(fallback);
+      res = await fetch(zipUrl);
+    }
   }
+  if (!res.ok) {
+    throw new Error(`Failed to download ChromeDriver ${usedVersion}: ${res.status} ${zipUrl}`);
+  }
+  const zipPath = join(cacheDir, "chromedriver.zip");
   writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
   const unzip = spawnSync(
     "python3",
