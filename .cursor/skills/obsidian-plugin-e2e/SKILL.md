@@ -39,7 +39,7 @@ Stop and fix before the next phase if any of these fail.
 1. Domain logic imports `obsidian`. Move it to a pure module.
 2. A user-visible control has no stable `data-testid`. Add the hook and the Selenium assertion together.
 3. Live DOM is built with `innerHTML`, `outerHTML`, or `insertAdjacentHTML`. Paint with `createDiv` / `createEl`.
-4. `styles.css` uses `:has(`, `!important`, `scrollbar-width`, CSS masks (`mask`, `-webkit-mask`, `mask-image`), `clip-path`, or multicolumn (`column-gap`, `column-count`, `columns`). Replace them. Grid and flex spacing uses `gap`.
+4. `styles.css` uses `:has(`, `!important`, CSS masks (`mask`, `-webkit-mask`, `mask-image`), `clip-path`, or multicolumn (`column-gap`, `column-count`, `columns`). Replace them. Grid and flex spacing uses `gap`. `scrollbar-width` is allowed only on `.atomic-heat-scroll` (`none`) so the heatmap year still scrolls without a native bar. Do not hide scrollbars on other Obsidian chrome.
 5. A vault path from settings or user input is not validated. Run it through `normalizePath` and a folder-safety helper.
 6. `npm test`, `npm run typecheck`, or `npm run build` fails.
 7. Obsidian is installed and `npm run test:e2e` is skipped without recording why.
