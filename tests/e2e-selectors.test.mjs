@@ -349,6 +349,7 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /bodyOverflowY/);
   assert.match(health, /scrollTop/);
   assert.match(health, /scrollbarSize/);
+  assert.match(health, /scrollbarWidth/);
   assert.match(health, /widthSettled/);
   assert.match(health, /長句寬度測試/);
   assert.match(health, /atomic-cue-log-add/);
@@ -384,7 +385,14 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.doesNotMatch(styles, /atomic-cue-log-chip/);
   assert.doesNotMatch(styles, /:has\(/);
   assert.doesNotMatch(styles, /!important/);
-  assert.doesNotMatch(styles, /scrollbar-width/);
+  assert.match(
+    styles,
+    /\.fitness-plugin \.atomic-heat-scroll\s*\{[^}]*scrollbar-width:\s*none/s,
+  );
+  assert.doesNotMatch(
+    styles.replace(/\.fitness-plugin \.atomic-heat-scroll\s*\{[^}]*\}/g, ""),
+    /scrollbar-width/,
+  );
   // css-masks, css-clip-path, and multicolumn are only partial on Obsidian 1.4.5.
   assert.doesNotMatch(styles, /-webkit-mask/);
   assert.doesNotMatch(styles, /(?:^|[^a-z-])mask(?:-|\s*:)/im);

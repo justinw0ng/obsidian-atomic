@@ -34,7 +34,7 @@ Atomic bans these in `styles.css` because review flagged them:
 | --- | --- |
 | `:has(` | Use a class on the host (`atomic-block-host`) or JS (`unclipBookShelfAncestors`) |
 | `!important` | Raise specificity (`button.atomic-book`, `img.atomic-book-cover-image`) |
-| `scrollbar-width` | Keep `::-webkit-scrollbar` / `-ms-overflow-style` if you must style scrollbars |
+| `scrollbar-width` | Banned except `.atomic-heat-scroll { scrollbar-width: none }`. Native overlay bars ignore `::-webkit-scrollbar` on some engines. Do not use it on other selectors |
 | `column-gap` / `column-count` / `columns` | Multicolumn is only partial on Obsidian 1.4.5. Use `gap` on grid or flex |
 | `clip-path` | `css-clip-path` is only partial on Obsidian 1.4.5. The reading-ribbon swallowtail is a border notch |
 | `mask` / `-webkit-mask` / `mask-image` | `css-masks` is only partial on Obsidian 1.4.5. Fade clipped cue text with a `::after` paper wash (`atomic-cue-body`) |
@@ -75,7 +75,7 @@ Window APIs, Notice DOM, `minAppVersion` guards, static styles, partial CSS, cor
 - `innerHTML` absent from heatmap, gym log
 - `setWarning` / `setDestructive` / recursive `display()` absent from settings
 - `getSettingDefinitions` present
-- `:has(`, `!important`, `scrollbar-width`, `column-gap` / `column-count` / `columns`, `clip-path`, `mask` / `-webkit-mask` absent from `styles.css`
+- `:has(`, `!important`, `column-gap` / `column-count` / `columns`, `clip-path`, `mask` / `-webkit-mask` absent from `styles.css`. `scrollbar-width` only on `.atomic-heat-scroll`
 - `globalThis` / `noticeEl` absent from `src/**`; `messageEl` only behind `requireApiVersion("1.8.7")`; no static style literals; `activeWindow` / typed `getFormat` at the cited call sites
 - unused `*Covered` aliases absent from `src/core/dashboard.ts` (`tests/dashboard-paint-state.test.mjs`)
 
