@@ -8,7 +8,7 @@ The live mock sits desktop and phone side by side. Theme and motion toggles matc
 
 A new **reader** for EPUB and PDF files that already live in the vault. It is separate from the existing book note, and linked to it.
 
-- Open a file from the book shelf. The book comes toward you and opens on the last page you read.
+- Open a file from the book shelf, including a shelf **block inside a note in reading mode**. The book comes toward you and opens on the last page you read.
 - Open from a canvas card. You land on that card’s page.
 - Highlight, remark, or ask. Each one writes a card on **one canvas per book**.
 - Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
@@ -42,6 +42,29 @@ Verified against `obsidian@1.13.1` typings (`node_modules/obsidian/obsidian.d.ts
 **Never leak the value.** Do not log it. Do not write it to a canvas card, a book note, a notice, or a filename. `getSecret` is only for the outbound Ask request to the provider the user picked. Mock toasts say “Saved in Obsidian secrets” / “Provider answered” — never the key.
 
 The mock Settings screen (desktop + phone) shows the stored state: masked value, **Stored in Obsidian secrets**, Replace / Remove. Replace uses the native picker. The board toggle **Older** is the pre-1.11.4 state.
+
+## Open from reading view (decided)
+
+The open-book motion must run when the user taps a cover in **Obsidian reading mode** — a post-processed `atomic-bookshelf` / `atomic-book` block inside a markdown note — not only from Live Preview or a custom view. Desktop and phone. PR #120 fixed blocks that hung on a pending bar in reading mode; this motion has to live with that lifecycle, not fight it.
+
+**Why the overlay cannot live in the block.** Reading view paints through `registerMarkdownPostProcessor` + `MarkdownRenderChild`. Obsidian unloads the child and builds a new one when the note re-renders (edit, refresh, width change, `scheduleRefresh`). A `MarkdownRenderChild.onunload` tears down everything it owns. If the flying book is a child of that host, the animation dies mid-flight and can leak timers. #120 already taught us not to treat `el.isConnected` as “this block is dead” — Live Preview detaches and reattaches the same node — and not to keep a pending shell on a detached reading-view host. `AtomicBlockChild.onload` / `onunload` is the only live list. The overlay is **not** a child of that host.
+
+**Mount.** Append the overlay to `activeDocument.body` (read `activeWindow` / `activeDocument`, not `globalThis`). That is the window that owns the tap, including a popout. `position: fixed; inset: 0; z-index` above the leaf. One overlay per window. Do not parent it under `.markdown-preview-view`, `.markdown-reading-view`, or the codeblock host. The mock’s `[data-overlay-host=window]` on `.ob-window` / `.ob-phone-screen` is that body, not the note.
+
+**Source rect.** On tap, read `cover.getBoundingClientRect()` in that same window **before** opening the reader and **before** any refresh. Store `{ x, y, width, height }` (and the cover color) on the overlay. Convert to overlay-local `--from-x` / `--from-y` / `--from-s` against the body (or the leaf frame). Do not keep a live reference to the cover node as the animation source; the child may unload on the next frame.
+
+**Handoff.** After the rect is copied: open the reader leaf or phone modal; play 1.2–1.6s from that rect into the reader frame; tap skips; `prefers-reduced-motion` (and the board Reduced toggle) skips the flight and opens the reader on the last page. The reader does not wait on the post-processor. Minutes still write a Reading session.
+
+**Cleanup when the note re-renders mid-animation.**
+
+1. `MarkdownRenderChild.onunload` unregisters the block (`untrackLiveBlock`) and invalidates that host’s paint generation. It must **not** remove the window overlay or cancel the flight.
+2. A new child may mount and paint a new shelf while the overlay is still flying. That is fine. The overlay already has the snapshot rect.
+3. Abort the overlay only when the user leaves the window, the plugin unloads, or the reader finishes / is skipped. Clear the timeout, remove the body node, drop the token. Do not leave a `setTimeout` that calls into an unloaded child.
+4. The mock **Re-render block** button replaces `[data-block-host]` and leaves `[data-open]` in place so reviewers can see (3).
+
+**Reduced motion.** No 3D, no page storm. Instant reader. Same on phone.
+
+The mock **Reading view** scene is a note in reading mode with an `atomic-bookshelf` block. Tap Pride and Prejudice. The open starts from that cover’s on-screen rect on desktop and on the phone.
 
 ## Open questions
 
@@ -105,7 +128,7 @@ Settings: provider, model, and a `SecretComponent` that picks or creates a Keych
 
 ### Phase 6 — Motion
 
-Open-book animation 1.2–1.6s, tap to skip, reduced-motion cut. 2D fallback on phone if Phase 2 frames are not stable.
+Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. 2D fallback on phone if Phase 2 frames are not stable.
 
 ### Phase 7 — Whole-book Ask
 

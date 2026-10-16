@@ -124,6 +124,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   color: var(--icon-color);
 }
 .ob-icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.ob-icon.is-mode-on { color: var(--text-normal); }
 .ob-main { position: relative; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
 .ob-viewhead {
   display: flex; align-items: center; height: 40px; padding: 0 14px;
@@ -737,6 +738,49 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
 }
 
+/* ------------------------------------------------------ reading view note */
+
+.ob-reading {
+  max-width: 720px;
+  padding-bottom: 8px;
+}
+.ob-inline-title {
+  margin: 0 0 14px;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.ob-phone-screen .ob-inline-title { font-size: 22px; margin-bottom: 12px; }
+.ob-props { margin: 0 0 16px; font-size: 13px; }
+.ob-prop {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 8px;
+  padding: 3px 0;
+}
+.ob-prop span:first-child { color: var(--text-muted); }
+.ob-reading-p {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+.ob-phone-screen .ob-reading-p { font-size: 15px; }
+.ob-block {
+  margin: 8px 0 0;
+}
+.ob-block-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.ob-reading .atomic-shelf-readout { margin-top: 10px; }
+
 /* -------------------------------------------------------------- settings */
 
 .atomic-settings { padding: 8px 4px 24px; max-width: 560px; }
@@ -972,6 +1016,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   <div class="board-tools">
     <div class="board-seg" data-tool="scene" role="tablist" aria-label="Screen">
       <button type="button" data-scene="library" class="is-on">Library</button>
+      <button type="button" data-scene="reading">Reading view</button>
       <button type="button" data-scene="reader">Reader</button>
       <button type="button" data-scene="select">Select</button>
       <button type="button" data-scene="ask">Ask</button>
@@ -988,6 +1033,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       <button type="button" data-motion="reduced">Reduced</button>
     </div>
     <button type="button" class="fitness-plugin atomic-btn is-primary" id="replay" style="--atomic-ink:#1d1d1b;--atomic-paper:#ebeae6;--atomic-fill-2:rgba(0,0,0,.08)">Replay open</button>
+    <button type="button" class="fitness-plugin atomic-btn" id="rerender-block" hidden style="--atomic-ink:#1d1d1b;--atomic-paper:#ebeae6;--atomic-fill-2:rgba(0,0,0,.08)">Re-render block</button>
     <div class="board-seg" data-tool="empty" id="empty-kind" hidden aria-label="Empty state">
       <button type="button" data-empty="key" class="is-on">No secret</button>
       <button type="button" data-empty="file">Bad file</button>
@@ -1108,6 +1154,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
   const NOTES = {
     library: "Click Pride and Prejudice. The book comes toward you and opens on the last page you read. Tap to skip.",
+    reading: "A note in reading mode. The shelf is a post-processed block. Tap a cover. The open starts from that rect, on the window, not inside the note.",
     reader: "Remarks sit in the margin, lined up with the highlight. On a phone they start as dots.",
     select: "Select a line. Highlight, remark, or ask. Each one saves to the canvas.",
     ask: "Read this page, this selection, or the whole book. The answer is already on the canvas.",
@@ -1199,9 +1246,44 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     ]);
   }
 
+  function readingShelf() {
+    const items = BOOKS.filter((b) => b.kind !== "bad").slice(0, 6);
+    const row = el("div", { class: "atomic-shelf-row" }, items.map(bookButton));
+    return el("div", { class: "fitness-plugin atomic-shelf" }, [
+      el("div", { class: "atomic-shelf-scroll" }, [row, el("div", { class: "atomic-plank" })]),
+      el("div", { class: "atomic-shelf-readout" }, [
+        el("span", { class: "atomic-shelf-readout-title", "data-read-title": "" }, "Pride and Prejudice"),
+        el("span", { class: "atomic-shelf-readout-meta", "data-read-meta": "" }, "Jane Austen · Reading · EPUB"),
+        el("span", { class: "atomic-readout", "data-read-hint": "" }, "Tap the cover in this block"),
+      ]),
+    ]);
+  }
+
+  function readingBlock() {
+    return el("div", { class: "ob-block", "data-block-host": "" }, [
+      el("div", { class: "ob-block-bar" }, [
+        el("span", null, "atomic-bookshelf"),
+        el("span", null, "reading view"),
+      ]),
+      readingShelf(),
+    ]);
+  }
+
+  function readingView() {
+    return el("div", { class: "ob-reading" }, [
+      el("h2", { class: "ob-inline-title" }, "Book shelf"),
+      el("div", { class: "ob-props" }, [
+        el("div", { class: "ob-prop" }, [el("span", null, "Hobby"), el("span", null, "Reading")]),
+        el("div", { class: "ob-prop" }, [el("span", null, "Kind"), el("span", null, "Note · reading mode")]),
+      ]),
+      el("p", { class: "ob-reading-p" }, "This is the note in reading mode. The shelf below is a post-processed block, not a custom view. Tap a cover. The book opens from that rectangle."),
+      readingBlock(),
+    ]);
+  }
+
   function openScene() {
     const flips = [1, 2, 3, 4, 5].map(() => el("div", { class: "open-flip" }));
-    return el("div", { class: "open-scene", "data-open": "", "aria-hidden": "true" }, [
+    return el("div", { class: "open-scene", "data-open": "", "data-overlay-host": "window", "aria-hidden": "true" }, [
       el("div", { class: "open-blur" }),
       el("div", { class: "open-stage" },
         el("div", { class: "open-book" }, [
@@ -1462,20 +1544,21 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     if (scene === "settings") return ["Settings", "Atomic Tracker", "Ask"];
     if (scene === "canvas") return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
     if (scene === "empty" && state.emptyKind === "key") return ["Settings", "Atomic Tracker", "Ask"];
-  if (scene === "library" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
+    if (scene === "library" || scene === "reading" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
     return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
   }
 
   function titleFor(scene) {
     if (scene === "settings") return "Ask";
     if (scene === "canvas") return "Pride and Prejudice.canvas";
-    if (scene === "library" || (scene === "empty" && state.emptyKind === "file")) return "Book shelf";
+    if (scene === "library" || scene === "reading" || (scene === "empty" && state.emptyKind === "file")) return "Book shelf";
     if (scene === "empty") return "Ask";
     return "Pride and Prejudice";
   }
 
   function statusFor(scene) {
     if (scene === "library") return "10 books";
+    if (scene === "reading") return "Reading view";
     if (scene === "canvas") return "1 canvas";
     if (scene === "settings") return state.hasSecretApi ? "" : "Needs 1.11.4";
     if (scene === "empty") return state.emptyKind === "file" ? "Unsupported" : "No secret";
@@ -1484,6 +1567,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
   function contentFor(scene, phone) {
     if (scene === "library") return shelf();
+    if (scene === "reading") return readingView();
     if (scene === "canvas") return canvasView(phone);
     if (scene === "settings") return settingsView();
     if (scene === "empty") return emptyView();
@@ -1533,7 +1617,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("div", { class: "ob-viewhead" }, [
           svg(ICONS.left), svg(ICONS.right),
           el("div", { class: "ob-crumbs" }, [rest, el("b", null, last)]),
-          svg(ICONS.book), svg(ICONS.more),
+          svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
         ]),
         el("div", { class: "ob-content", "data-host": "desk" }, pane(scene, false)),
         statusFor(scene) ? el("div", { class: "ob-status" }, statusFor(scene)) : null,
@@ -1551,7 +1635,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("div", { class: "ob-mhead" }, [
           svg(ICONS.sidebar),
           el("div", { class: "ob-mhead-title" }, titleFor(scene)),
-          svg(ICONS.book), svg(ICONS.more),
+          svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
         ]),
         el("div", { class: "ob-mcontent", "data-host": "phone" }, pane(scene, true)),
         el("div", { class: "ob-mnav" }, [svg(ICONS.left), svg(ICONS.right), svg(ICONS.plus), svg(ICONS.search), svg(ICONS.menu)]),
@@ -1592,6 +1676,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         b.classList.toggle("is-on", b.getAttribute("data-appver") === current);
       });
     }
+    const rerender = document.getElementById("rerender-block");
+    if (rerender) rerender.hidden = state.scene !== "reading";
     document.getElementById("board").classList.toggle("is-dark", state.theme === "dark");
     document.body.classList.toggle("mock-reduced", state.motion === "reduced");
   }
@@ -1603,11 +1689,28 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     setTimeout(() => t.remove(), 1600);
   }
 
+  let openGen = 0;
+  const openJobs = [];
+
+  function clearOverlay(overlay) {
+    if (!overlay) return;
+    overlay.classList.remove("is-on", "is-playing");
+  }
+
+  function abortOpens() {
+    openGen += 1;
+    openJobs.splice(0).forEach((job) => {
+      if (job.tid) clearTimeout(job.tid);
+      if (job.overlay && job.skip) job.overlay.removeEventListener("click", job.skip);
+      clearOverlay(job.overlay);
+    });
+    document.querySelectorAll("[data-open]").forEach(clearOverlay);
+  }
+
   function playOpen(sceneRoot, bookEl, then) {
-    const overlay = sceneRoot.querySelector("[data-open]");
+    const overlay = sceneRoot.querySelector('[data-open][data-overlay-host="window"]');
     const flying = overlay && overlay.querySelector(".open-book");
-    if (!overlay || !flying) { then(); return; }
-    if (reduceMotion()) { then(); return; }
+    if (!overlay || !flying || reduceMotion()) { then(); return; }
     const hostBox = sceneRoot.getBoundingClientRect();
     const bookBox = bookEl.getBoundingClientRect();
     const cx = bookBox.left + bookBox.width / 2 - hostBox.left;
@@ -1619,18 +1722,25 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
+    const gen = openGen;
     const skip = () => {
+      if (gen !== openGen) return;
       overlay.removeEventListener("click", skip);
       clearTimeout(tid);
-      overlay.classList.remove("is-on", "is-playing");
+      const idx = openJobs.indexOf(job);
+      if (idx >= 0) openJobs.splice(idx, 1);
+      clearOverlay(overlay);
       then();
     };
-    overlay.addEventListener("click", skip);
     const tid = setTimeout(skip, 1450);
+    const job = { overlay, skip, tid };
+    openJobs.push(job);
+    overlay.addEventListener("click", skip);
   }
 
   function openBook(book, origin) {
     if (book.kind === "bad") {
+      abortOpens();
       state.scene = "empty";
       state.emptyKind = "file";
       state.from = "shelf";
@@ -1642,13 +1752,15 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     state.page = origin === "canvas" ? state.page : book.last;
     state.slip = null;
     if (origin === "canvas" || reduceMotion()) {
+      abortOpens();
       state.scene = "reader";
       render();
       return;
     }
-    const books = Array.from(document.querySelectorAll('[data-book="' + book.id + '"]'));
     const desk = document.querySelector("#desk-host .ob-window");
     const phone = document.querySelector("#phone-host .ob-phone-screen");
+    const deskBook = desk && desk.querySelector('[data-book="' + book.id + '"]');
+    const phoneBook = phone && phone.querySelector('[data-book="' + book.id + '"]');
     state.playing = true;
     let left = 2;
     const done = () => {
@@ -1658,10 +1770,17 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       state.scene = "reader";
       render();
     };
-    if (desk && books[0]) playOpen(desk, books[0], done);
+    if (desk && deskBook) playOpen(desk, deskBook, done);
     else done();
-    if (phone && books[1]) playOpen(phone, books[1], done);
+    if (phone && phoneBook) playOpen(phone, phoneBook, done);
     else done();
+  }
+
+  function rerenderReadingBlocks() {
+    document.querySelectorAll("[data-block-host]").forEach((host) => {
+      const next = readingBlock();
+      host.replaceWith(next);
+    });
   }
 
   function wire(root) {
@@ -1676,7 +1795,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       const book = e.target.closest("[data-book]");
       if (book) {
         const rec = BOOKS.find((b) => b.id === book.getAttribute("data-book"));
-        if (rec) openBook(rec, "shelf");
+        if (rec) openBook(rec, book.closest("[data-block-host]") ? "reading" : "shelf");
         return;
       }
       const jump = e.target.closest("[data-jump]");
@@ -1787,6 +1906,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   }
 
   function render() {
+    abortOpens();
+    state.playing = false;
     setSceneButtons();
     const desk = document.getElementById("desk-host");
     const phone = document.getElementById("phone-host");
@@ -1841,9 +1962,13 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     }
     render();
   });
+  document.getElementById("rerender-block").addEventListener("click", () => {
+    rerenderReadingBlocks();
+  });
   document.getElementById("replay").addEventListener("click", () => {
-    state.scene = "library";
-    state.from = "shelf";
+    const fromReading = state.scene === "reading" || state.from === "reading";
+    state.scene = fromReading ? "reading" : "library";
+    state.from = fromReading ? "reading" : "shelf";
     state.emptyKind = "key";
     state.hasSecretApi = true;
     state.hasKey = true;
@@ -1852,8 +1977,11 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     state.secretMenu = false;
     render();
     requestAnimationFrame(() => {
-      const first = document.querySelector('#desk-host [data-book="pp"]');
-      if (first) openBook(BOOKS[0], "shelf");
+      const sel = fromReading
+        ? '#desk-host [data-block-host] [data-book="pp"]'
+        : '#desk-host [data-book="pp"]';
+      const first = document.querySelector(sel);
+      if (first) openBook(BOOKS[0], fromReading ? "reading" : "shelf");
     });
   });
 
