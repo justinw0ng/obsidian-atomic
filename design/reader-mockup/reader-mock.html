@@ -1708,6 +1708,16 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     document.querySelectorAll("[data-open]").forEach(clearOverlay);
   }
 
+  function freezeOpenTimers() {
+    openJobs.forEach((job) => {
+      if (job.tid) clearTimeout(job.tid);
+      job.tid = null;
+      if (job.overlay && job.skip) job.overlay.removeEventListener("click", job.skip);
+      if (job.overlay) job.overlay.removeAttribute("data-open-tid");
+    });
+  }
+  document.addEventListener("reader-mock-freeze-open", freezeOpenTimers);
+
   function playOpen(sceneRoot, bookEl, then) {
     const overlay = sceneRoot.querySelector('[data-open][data-overlay-host="window"]');
     const flying = overlay && overlay.querySelector(".open-book");
