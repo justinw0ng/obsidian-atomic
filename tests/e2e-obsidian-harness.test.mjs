@@ -4,7 +4,10 @@ import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import {
   assertRequiredE2eReady,
+  chromeDriverBuildKey,
+  chromeDriverZipUrl,
   e2eSkipReason,
+  resolveChromeDriverFallback,
   resolveDisplay,
   waitForCdpGone,
 } from "../e2e/lib/obsidian.mjs";
@@ -127,6 +130,37 @@ test("waitForCdpGone returns after a live listener closes", async () => {
   });
   setTimeout(() => server.close(), 120);
   await waitForCdpGone(port, 2000);
+});
+
+test("ensureChromeDriver falls back to the latest published patch after a 404", () => {
+  const src = readFileSync(new URL("../e2e/lib/obsidian.mjs", import.meta.url), "utf8");
+  assert.match(src, /export async function ensureChromeDriver/);
+  assert.match(src, /lookupChromeDriverPatch/);
+  assert.match(src, /res\.status === 404/);
+  assert.match(src, /CHROME_DRIVER_PATCH_CATALOG/);
+});
+
+test("ChromeDriver zip URL and build key stay on the published chrome-for-testing path", () => {
+  assert.equal(
+    chromeDriverZipUrl("150.0.7871.250"),
+    "https://storage.googleapis.com/chrome-for-testing-public/150.0.7871.250/linux64/chromedriver-linux64.zip",
+  );
+  assert.equal(chromeDriverBuildKey("150.0.7871.250"), "150.0.7871");
+  assert.equal(chromeDriverBuildKey("150.0.7871"), "150.0.7871");
+  assert.equal(chromeDriverBuildKey("not-a-version"), "");
+});
+
+test("ChromeDriver fallback uses the latest published patch for the same build", () => {
+  const catalog = {
+    builds: {
+      "150.0.7871": { version: "150.0.7871.124" },
+    },
+  };
+  assert.equal(resolveChromeDriverFallback("150.0.7871.250", catalog), "150.0.7871.124");
+  assert.equal(resolveChromeDriverFallback("150.0.7871.124", catalog), "");
+  assert.equal(resolveChromeDriverFallback("151.0.1.1", catalog), "");
+  assert.equal(resolveChromeDriverFallback("150.0.7871.250", { builds: {} }), "");
+  assert.equal(resolveChromeDriverFallback("150.0.7871.250", null), "");
 });
 
 test("openCommandPalette uses the command id so headless CI does not depend on Ctrl+P", () => {
