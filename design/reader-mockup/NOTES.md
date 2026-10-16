@@ -8,7 +8,7 @@ The live mock sits desktop and phone side by side. Theme and motion toggles matc
 
 A new **reader** for EPUB and PDF files that already live in the vault. It is separate from the existing book note, and linked to it.
 
-- Open a file from the book shelf, including a shelf **block inside a note in reading mode**. The book comes toward you and opens on the last page you read.
+- Open a file from the book shelf, including a shelf **block inside a note in reading mode**. The book comes toward you and opens on the last page you read. The open lands in **theater**: Obsidian chrome fades, the page sits in a warm vignette.
 - Open from a canvas card. You land on that card’s page.
 - Highlight, remark, or ask. Each one writes a card on **one canvas per book**.
 - Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
@@ -65,6 +65,23 @@ The open-book motion must run when the user taps a cover in **Obsidian reading m
 **Reduced motion.** No 3D, no page storm. Instant reader. Same on phone.
 
 The mock **Reading view** scene is a note in reading mode with an `atomic-bookshelf` block. Tap Pride and Prejudice. The open starts from that cover’s on-screen rect on desktop and on the phone.
+
+## Theater mode (decided)
+
+Reading should feel like a cinema. When the open-book motion finishes, the surrounding Obsidian chrome (ribbon, tabs, view header, status bar, phone nav) dims and fades. The page sits centred at a comfortable measure (~28em per leaf, one column on a phone) on a soft dark vignette with a warm light on the paper. Margin remarks and Ask stay. Chrome comes back on mouse-to-edge (desktop) or an edge tap (phone), then auto-hides after idle. **Esc** or the Exit control leaves theater. Light and dark each have their own void/glow. `prefers-reduced-motion` (and the board Reduced toggle) is an instant fade, no delayed chrome hide.
+
+**Mount in Obsidian.** Same window rule as the open overlay. Do **not** `requestFullscreen` as the only path (popouts, iOS WKWebView). Do **not** clip the workspace with `clip-path` or CSS masks (directory review). Two honest shapes:
+
+1. **Preferred.** Paint the reader into a `position: fixed; inset: 0` host on `activeDocument.body` (read `activeWindow` / `activeDocument`, not `globalThis`). One host per window, including a popout. The original workspace leaf stays in the tree for restore on exit. Vignette is stacked `radial-gradient`s on that host. Page warm light is `box-shadow` (outer + inset), not a mask.
+2. **Fallback.** Keep the leaf, collapse left/right splits, and dim other leaves. Still put the vignette on `activeDocument.body` so it covers the ribbon and status bar the leaf cannot own.
+
+The mock’s `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is (1): chrome is taken out of flow and faded; the reader fills the window. `[data-overlay-host=window]` already lives on that same frame, so the flying book and the vignette share a surface. During the flight the window gets `is-entering-theater` so chrome starts fading mid-open; `done` then renders theater. No second jump.
+
+**Phone.** Full-bleed immersive. The hardware island and home indicator stay. Obsidian chrome (status, view header, tab bar) fades. Safe-area insets (`env(safe-area-inset-*)`) pad the page so it does not sit under the notch. The Ask sheet is a glass panel on the vignette, not a second theme.
+
+**Idle and restore.** Pointer in a 32px edge, or a tap that is not on the page / a remark / Ask, reveals chrome for ~2.2s. Esc exits theater and puts the leaf back in the normal reader chrome. A command “Toggle theater” matches the in-reader control.
+
+The mock **Replay open** (library or reading view) lands in theater. Reader / Select / Ask on the board open theater. Reduced motion skips the 3D and still lands there instantly.
 
 ## Open questions
 
@@ -128,9 +145,9 @@ Create `related_canvas` on first save. Book in the centre. Chapter groups. Highl
 
 Settings: provider, model, and a `SecretComponent` that picks or creates a Keychain secret. Gate the whole Ask surface with `requireApiVersion("1.11.4")`. Ask on **this page** and **this selection**. Each answer is a canvas card. Phone uses the same Ask as a bottom sheet. No whole-book yet. No plaintext key field on any version.
 
-### Phase 6 — Motion
+### Phase 6 — Motion and theater
 
-Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. 2D fallback on phone if Phase 2 frames are not stable.
+Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight fades chrome and lands in theater (vignette, centred page, edge-reveal chrome). 2D fallback on phone if Phase 2 frames are not stable.
 
 ### Phase 7 — Whole-book Ask
 
