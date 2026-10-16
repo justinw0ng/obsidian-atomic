@@ -12,11 +12,36 @@ A new **reader** for EPUB and PDF files that already live in the vault. It is se
 - Open from a canvas card. You land on that card’s page.
 - Highlight, remark, or ask. Each one writes a card on **one canvas per book**.
 - Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
-- Ask uses a key you paste in settings. Scope is this page, this selection, or the whole book.
+- Ask uses a key the user keeps in **Obsidian secret storage**. Scope is this page, this selection, or the whole book.
 - Minutes spent reading feed the existing Reading sessions and heatmap.
 - Desktop and phone have the same actions. The layout changes; the product does not.
 
 The book note stays the ledger (`atomics/hobbies/Reading/Items/<Book>.md`). Frontmatter already has `related_canvas`. The canvas is the map. The reader is the place you read.
+
+## Secret storage (decided)
+
+Verified against `obsidian@1.13.1` typings (`node_modules/obsidian/obsidian.d.ts`) and the official guide [Store secrets](https://docs.obsidian.md/plugins/guides/secret-storage). Desktop changelog for [1.11.4 (2026-01-12)](https://obsidian.md/changelog/2026-01-12-desktop-v1.11.4/) shipped Keychain settings plus the plugin API.
+
+| Symbol | What it is | `@since` |
+| --- | --- | --- |
+| `App.secretStorage` | Vault Keychain on `app` | 1.11.4 |
+| `SecretStorage` | `setSecret(id, secret)`, `getSecret(id): string \| null`, `listSecrets(): string[]` | 1.11.4 |
+| `SecretComponent` | Settings picker: existing secret or create one | class 1.11.1; `setValue` / `onChange` 1.11.4 |
+| `requireApiVersion(version)` | `true` when the running app API is that version or newer | long-standing |
+
+`SecretComponent` is constructed as `new SecretComponent(app, el)` inside `Setting.addComponent`, because it needs `App`. The plugin setting stores the secret **name** (id), never the value. Ids are lowercase alphanumeric with optional dashes (`atomic-ask`). Public `SecretStorage` has no `deleteSecret`. Remove in our settings unlinks the name. Replace opens `SecretComponent` again. The user can delete the Keychain entry in Obsidian → Settings → Keychain.
+
+**Gate.** `manifest.json` `minAppVersion` stays **1.5.0**. Do not raise it for Ask. Wrap Ask, the key row, and any `app.secretStorage` / `SecretComponent` call in `if (requireApiVersion("1.11.4"))`.
+
+**Older than 1.11.4.** Ask is **off**. Settings show one line: update Obsidian. No password field. No key in `data.json`. Read, highlight, and remark still work. This is the only fallback.
+
+**What `data.json` may hold.** Provider, model, and the secret **name**. Never the secret value.
+
+**Sync.** The official guide: the value lives in local storage keyed to this vault. It does **not** travel with vault sync. A synced `data.json` can carry the name `atomic-ask` to another device. That device returns `null` from `getSecret` until the user creates or picks the same name in that app’s Keychain. Settings copy should say the key is per device.
+
+**Never leak the value.** Do not log it. Do not write it to a canvas card, a book note, a notice, or a filename. `getSecret` is only for the outbound Ask request to the provider the user picked. Mock toasts say “Saved in Obsidian secrets” / “Provider answered” — never the key.
+
+The mock Settings screen (desktop + phone) shows the stored state: masked value, **Stored in Obsidian secrets**, Replace / Remove. Replace uses the native picker. The board toggle **Older** is the pre-1.11.4 state.
 
 ## Open questions
 
@@ -46,7 +71,7 @@ The book note stays the ledger (`atomics/hobbies/Reading/Items/<Book>.md`). Fron
 
 **Whole-book Ask.** Sending a novel exceeds common context windows and costs real money on the user’s key. Risks: truncated answers, surprise bills, and book text leaving the vault. Mitigations: default scope is **this page**; whole-book is a confirm with a size/cost line; chunk and retrieve rather than paste the file; never send the file until the user presses Ask.
 
-**Key storage.** A BYO key in `data.json` is local and not encrypted. Settings copy must say that. Do not log the key. Do not send it anywhere except the provider the user picked.
+**Key storage.** See [Secret storage (decided)](#secret-storage-decided). The key is never written to `data.json`. A plaintext fallback is out.
 
 **Canvas file size.** Every Q&A creates cards. A heavy reader will grow a `.canvas` into a slow graph. Cap auto-cards, or fold old answers into a chapter group rather than one card per turn forever.
 
@@ -74,9 +99,9 @@ Select text. Highlight. Remark. Desktop margins; phone dots that expand. Locator
 
 Create `related_canvas` on first save. Book in the centre. Chapter groups. Highlight / remark cards. Click a card to open that page. Link on the canvas to the book note.
 
-### Phase 5 — Ask, BYO key
+### Phase 5 — Ask, BYO key in Obsidian secrets
 
-Settings: provider, model, key. Ask on **this page** and **this selection**. Each answer is a canvas card. Phone uses the same Ask as a bottom sheet. No whole-book yet.
+Settings: provider, model, and a `SecretComponent` that picks or creates a Keychain secret. Gate the whole Ask surface with `requireApiVersion("1.11.4")`. Ask on **this page** and **this selection**. Each answer is a canvas card. Phone uses the same Ask as a bottom sheet. No whole-book yet. No plaintext key field on any version.
 
 ### Phase 6 — Motion
 

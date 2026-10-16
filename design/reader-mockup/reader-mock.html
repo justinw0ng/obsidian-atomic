@@ -742,6 +742,59 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-settings { padding: 8px 4px 24px; max-width: 560px; }
 .atomic-settings h3 { margin: 22px 0 8px; font-size: 13px; font-weight: 650; }
 .atomic-settings .atomic-well { padding: 10px; display: grid; gap: 8px; }
+.atomic-settings .atomic-well.is-disabled { opacity: 0.45; pointer-events: none; }
+.atomic-notice {
+  padding: 14px 16px;
+  border-radius: var(--atomic-r-well);
+  background: var(--atomic-fill-1);
+  display: grid;
+  gap: 8px;
+}
+.atomic-notice h3 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -0.02em; }
+.atomic-secret-mask {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--atomic-mono);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--atomic-ink-2);
+}
+.atomic-secret-status {
+  margin: 2px 4px 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--atomic-ink);
+}
+.atomic-secret-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.atomic-secret-picker { position: relative; }
+.atomic-secret-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; height: 36px; padding: 0 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-paper);
+  font-weight: 500; text-align: left;
+}
+.atomic-secret-trigger .is-placeholder { font-weight: 400; color: var(--atomic-ink-2); }
+.atomic-secret-trigger .ob-icon { width: 14px; height: 14px; color: var(--atomic-ink-2); flex: none; }
+.atomic-secret-menu {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+  padding: 4px;
+  border-radius: var(--atomic-r-well);
+  background: var(--atomic-paper);
+  box-shadow:
+    0 0 0 1px var(--atomic-rule),
+    0 14px 28px -16px rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+.atomic-secret-menu button {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; height: 32px; padding: 0 10px;
+  border-radius: 8px;
+  font-weight: 500; text-align: left;
+}
+.atomic-secret-menu button:hover { background: var(--atomic-fill-1); }
+.atomic-secret-menu button.is-on { background: var(--atomic-fill-2); }
+.atomic-secret-menu .is-create { font-weight: 650; color: var(--atomic-ink); }
 .atomic-empty {
   display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
   margin-top: 36px; max-width: 360px;
@@ -936,8 +989,12 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     </div>
     <button type="button" class="fitness-plugin atomic-btn is-primary" id="replay" style="--atomic-ink:#1d1d1b;--atomic-paper:#ebeae6;--atomic-fill-2:rgba(0,0,0,.08)">Replay open</button>
     <div class="board-seg" data-tool="empty" id="empty-kind" hidden aria-label="Empty state">
-      <button type="button" data-empty="key" class="is-on">No key</button>
+      <button type="button" data-empty="key" class="is-on">No secret</button>
       <button type="button" data-empty="file">Bad file</button>
+    </div>
+    <div class="board-seg" data-tool="appver" id="settings-kind" hidden aria-label="Obsidian version">
+      <button type="button" data-appver="current" class="is-on">1.11.4+</button>
+      <button type="button" data-appver="older">Older</button>
     </div>
     <p class="board-note" id="scene-note">Click Pride and Prejudice. The book comes toward you and opens on the last page you read. Tap to skip.</p>
   </div>
@@ -960,7 +1017,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     </div>
     <div>
       <h2>Ask never stands alone</h2>
-      <p>A question writes a card on the canvas as it lands. Scope is this page, this selection, or — after a warning — the whole book. You bring the key.</p>
+      <p>A question writes a card on the canvas as it lands. Scope is this page, this selection, or — after a warning — the whole book. The key lives in Obsidian secrets.</p>
     </div>
     <div>
       <h2>Same product on a phone</h2>
@@ -985,6 +1042,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     search: "M10.2 10.2 15 15M8.5 4.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z",
     menu: "M4 6h12M4 10h12M4 14h8",
     chev: "M5 7.5 10 12 5 16.5",
+    down: "M5 7.5 10 12.5 15 7.5",
   };
 
   function svg(d, cls) {
@@ -1054,8 +1112,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     select: "Select a line. Highlight, remark, or ask. Each one saves to the canvas.",
     ask: "Read this page, this selection, or the whole book. The answer is already on the canvas.",
     canvas: "One canvas per book. The book is in the middle. Click a card to jump to that page.",
-    settings: "Your key. Your model. Nothing leaves the vault until you ask.",
-    empty: "No key, or a file we cannot open. Say so in one line.",
+    settings: "The key lives in Obsidian secrets. Replace picks another. Remove unlinks the name.",
+    empty: "No secret linked, or a file we cannot open. Say so in one line.",
   };
 
   const state = {
@@ -1063,6 +1121,10 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     theme: "light",
     motion: "full",
     hasKey: true,
+    hasSecretApi: true,
+    secretName: "atomic-ask",
+    secretUi: "stored",
+    secretMenu: false,
     emptyKind: "key",
     page: 47,
     from: "shelf",
@@ -1275,26 +1337,106 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     ]);
   }
 
-  function settingsView() {
-    return el("div", { class: "fitness-plugin atomic-settings" }, [
-      el("p", { class: "atomic-hint" }, "Ask uses a key you paste here. It stays on this device. Atomic does not run a model."),
+  function providerFields(disabled) {
+    return [
       el("h3", null, "Provider"),
-      el("div", { class: "atomic-well" }, [
+      el("div", { class: "atomic-well" + (disabled ? " is-disabled" : "") }, [
         el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "Provider"),
-          el("select", null, ["OpenAI-compatible", "Anthropic", "Local"].map((x) => el("option", null, x)))]),
+          el("select", { disabled: disabled || undefined }, ["OpenAI-compatible", "Anthropic", "Local"].map((x) => el("option", null, x)))]),
         el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "Model"),
-          el("input", { value: "gpt-4.1", spellcheck: "false" })]),
+          el("input", { value: "gpt-4.1", spellcheck: "false", disabled: disabled || undefined })]),
       ]),
+    ];
+  }
+
+  function storedSecret() {
+    return el("div", { class: "atomic-well" }, [
+      el("div", { class: "atomic-field" }, [
+        el("span", { class: "atomic-field-label" }, "API key"),
+        el("span", { class: "atomic-secret-mask", "aria-label": "Masked key" }, "••••••••••••••••"),
+      ]),
+      el("p", { class: "atomic-secret-status" }, "Stored in Obsidian secrets"),
+      el("p", { class: "atomic-hint", style: { margin: "0 4px" } }, "Settings keep the name " + state.secretName + ". The value stays in the app Keychain."),
+      el("div", { class: "atomic-secret-actions" }, [
+        el("button", { type: "button", class: "atomic-btn", "data-act": "replace-secret" }, "Replace"),
+        el("button", { type: "button", class: "atomic-btn is-quiet", "data-act": "remove-secret" }, "Remove"),
+      ]),
+    ]);
+  }
+
+  function secretPicker() {
+    const secrets = ["atomic-ask", "openai-compatible"];
+    const label = state.secretName
+      ? el("span", null, state.secretName)
+      : el("span", { class: "is-placeholder" }, "Select a secret");
+    return el("div", { class: "atomic-well" }, [
+      el("p", { class: "atomic-hint", style: { margin: "0 4px 2px" } }, "Pick a secret from Obsidian Keychain, or create one. Settings keep the name, not the value."),
+      el("div", { class: "atomic-secret-picker" }, [
+        el("button", {
+          type: "button",
+          class: "atomic-secret-trigger",
+          "data-act": "toggle-secret-menu",
+          "aria-expanded": state.secretMenu ? "true" : "false",
+          "aria-haspopup": "listbox",
+        }, [label, svg(ICONS.down)]),
+        state.secretMenu ? el("div", { class: "atomic-secret-menu", role: "listbox" }, [
+          ...secrets.map((id) => el("button", {
+            type: "button",
+            role: "option",
+            class: id === state.secretName ? "is-on" : "",
+            "data-act": "pick-secret",
+            "data-secret": id,
+          }, id)),
+          el("button", { type: "button", class: "is-create", "data-act": "create-secret" }, "Create new secret"),
+        ]) : null,
+      ]),
+    ]);
+  }
+
+  function createSecretForm() {
+    return el("div", { class: "atomic-well" }, [
+      el("p", { class: "atomic-hint", style: { margin: "0 4px 2px" } }, "New Keychain secret. Id is lowercase letters, numbers, and dashes."),
+      el("label", { class: "atomic-field" }, [
+        el("span", { class: "atomic-field-label" }, "Name"),
+        el("input", { value: "atomic-ask", spellcheck: "false", autocomplete: "off", "data-secret-name": "" }),
+      ]),
+      el("label", { class: "atomic-field" }, [
+        el("span", { class: "atomic-field-label" }, "Secret"),
+        el("input", { type: "password", placeholder: "Paste once", spellcheck: "false", autocomplete: "off", "data-secret-value": "" }),
+      ]),
+      el("div", { class: "atomic-secret-actions" }, [
+        el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "save-secret" }, "Save in Keychain"),
+        el("button", { type: "button", class: "atomic-btn is-quiet", "data-act": "cancel-secret" }, "Cancel"),
+      ]),
+    ]);
+  }
+
+  function settingsView() {
+    if (!state.hasSecretApi) {
+      return el("div", { class: "fitness-plugin atomic-settings" }, [
+        el("div", { class: "atomic-notice" }, [
+          el("h3", null, "Update Obsidian to ask"),
+          el("p", { class: "atomic-hint", style: { margin: 0 } }, "Ask keeps the key in Obsidian secrets. That needs version 1.11.4 or newer. Update Obsidian. Ask stays off. We do not keep a key in plugin data."),
+        ]),
+        ...providerFields(true),
+        el("p", { class: "atomic-hint", style: { marginTop: "16px" } }, "Read, highlight, and remark still work."),
+      ]);
+    }
+    const keyBlock = state.secretUi === "create"
+      ? createSecretForm()
+      : (state.secretUi === "pick" || !state.hasKey)
+        ? secretPicker()
+        : storedSecret();
+    return el("div", { class: "fitness-plugin atomic-settings" }, [
+      el("p", { class: "atomic-hint" }, "Ask uses a key from Obsidian secrets. Atomic does not run a model. The key never goes in plugin data, notes, or the canvas."),
+      ...providerFields(false),
       el("h3", null, "Key"),
-      el("div", { class: "atomic-well" }, [
-        el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "API key"),
-          el("input", { type: "password", value: "sk-live-••••••••••••", spellcheck: "false", autocomplete: "off" })]),
-        el("p", { class: "atomic-hint", style: { margin: "4px 4px 0" } }, "Stored in plugin data on this device. Not encrypted. Never logged."),
-      ]),
-      el("div", { style: { display: "flex", gap: "8px", marginTop: "16px" } }, [
-        el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "save-key" }, "Save"),
-        el("button", { type: "button", class: "atomic-btn", "data-act": "test-key" }, "Test"),
-      ]),
+      keyBlock,
+      state.hasKey && state.secretUi === "stored"
+        ? el("div", { style: { display: "flex", gap: "8px", marginTop: "16px" } }, [
+            el("button", { type: "button", class: "atomic-btn", "data-act": "test-key" }, "Test"),
+          ])
+        : null,
     ]);
   }
 
@@ -1310,8 +1452,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       ]);
     }
     return el("div", { class: "fitness-plugin atomic-empty" }, [
-      el("h3", null, "Add a key to ask"),
-      el("p", { class: "atomic-hint", style: { margin: 0 } }, "You can still read, highlight, and remark. Ask needs a provider and a key."),
+      el("h3", null, "Link a secret to ask"),
+      el("p", { class: "atomic-hint", style: { margin: 0 } }, "You can still read, highlight, and remark. Ask needs a Keychain secret in Obsidian 1.11.4 or newer."),
       el("button", { type: "button", class: "atomic-btn is-primary", "data-scene": "settings" }, "Open settings"),
     ]);
   }
@@ -1335,8 +1477,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   function statusFor(scene) {
     if (scene === "library") return "10 books";
     if (scene === "canvas") return "1 canvas";
-    if (scene === "settings") return "";
-    if (scene === "empty") return state.emptyKind === "file" ? "Unsupported" : "No key";
+    if (scene === "settings") return state.hasSecretApi ? "" : "Needs 1.11.4";
+    if (scene === "empty") return state.emptyKind === "file" ? "Unsupported" : "No secret";
     return "p. 47 · 11%";
   }
 
@@ -1430,12 +1572,24 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       b.classList.toggle("is-on", b.getAttribute("data-motion") === state.motion);
     });
     const note = document.getElementById("scene-note");
-    if (note) note.textContent = NOTES[state.scene];
+    if (note) {
+      note.textContent = state.scene === "settings" && !state.hasSecretApi
+        ? "This Obsidian is older than 1.11.4. Ask is off. No plaintext key."
+        : NOTES[state.scene];
+    }
     const emptyKind = document.getElementById("empty-kind");
     if (emptyKind) {
       emptyKind.hidden = state.scene !== "empty";
       emptyKind.querySelectorAll("button").forEach((b) => {
         b.classList.toggle("is-on", b.getAttribute("data-empty") === state.emptyKind);
+      });
+    }
+    const settingsKind = document.getElementById("settings-kind");
+    if (settingsKind) {
+      settingsKind.hidden = state.scene !== "settings";
+      settingsKind.querySelectorAll("button").forEach((b) => {
+        const current = state.hasSecretApi ? "current" : "older";
+        b.classList.toggle("is-on", b.getAttribute("data-appver") === current);
       });
     }
     document.getElementById("board").classList.toggle("is-dark", state.theme === "dark");
@@ -1544,6 +1698,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       if (!act) return;
       const name = act.getAttribute("data-act");
       if (name === "ask") {
+        if (!state.hasSecretApi) { state.scene = "settings"; render(); return; }
         if (!state.hasKey) { state.scene = "empty"; state.emptyKind = "key"; render(); return; }
         state.scene = "ask";
         render();
@@ -1557,9 +1712,54 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         toast(root.closest(".ob-window, .ob-phone-screen") || root, "Opens Pride and Prejudice.md");
         return;
       }
-      if (name === "save-key") {
+      if (name === "replace-secret") {
+        state.secretUi = "pick";
+        state.secretMenu = true;
+        render();
+        return;
+      }
+      if (name === "remove-secret") {
+        state.hasKey = false;
+        state.secretName = "";
+        state.secretUi = "pick";
+        state.secretMenu = false;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Unlinked. The Keychain secret stays in Obsidian.");
+        return;
+      }
+      if (name === "toggle-secret-menu") {
+        state.secretMenu = !state.secretMenu;
+        render();
+        return;
+      }
+      if (name === "pick-secret") {
+        state.secretName = act.getAttribute("data-secret") || "atomic-ask";
         state.hasKey = true;
-        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Key saved on this device");
+        state.secretUi = "stored";
+        state.secretMenu = false;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Linked " + state.secretName);
+        return;
+      }
+      if (name === "create-secret") {
+        state.secretUi = "create";
+        state.secretMenu = false;
+        render();
+        return;
+      }
+      if (name === "cancel-secret") {
+        state.secretUi = "pick";
+        state.secretMenu = false;
+        render();
+        return;
+      }
+      if (name === "save-secret") {
+        const well = act.closest(".atomic-well");
+        const nameInput = well && well.querySelector("[data-secret-name]");
+        const raw = nameInput && nameInput.value ? nameInput.value.trim().toLowerCase() : "atomic-ask";
+        state.secretName = raw.replace(/[^a-z0-9-]/g, "") || "atomic-ask";
+        state.hasKey = true;
+        state.secretUi = "stored";
+        state.secretMenu = false;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Saved in Obsidian secrets");
         return;
       }
       if (name === "test-key") {
@@ -1623,10 +1823,33 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     state.scene = "empty";
     render();
   });
+  document.getElementById("settings-kind").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-appver]");
+    if (!b) return;
+    const older = b.getAttribute("data-appver") === "older";
+    state.hasSecretApi = !older;
+    state.scene = "settings";
+    if (older) {
+      state.hasKey = false;
+      state.secretUi = "stored";
+      state.secretMenu = false;
+    } else {
+      state.hasKey = true;
+      state.secretName = state.secretName || "atomic-ask";
+      state.secretUi = "stored";
+      state.secretMenu = false;
+    }
+    render();
+  });
   document.getElementById("replay").addEventListener("click", () => {
     state.scene = "library";
     state.from = "shelf";
     state.emptyKind = "key";
+    state.hasSecretApi = true;
+    state.hasKey = true;
+    state.secretName = "atomic-ask";
+    state.secretUi = "stored";
+    state.secretMenu = false;
     render();
     requestAnimationFrame(() => {
       const first = document.querySelector('#desk-host [data-book="pp"]');
