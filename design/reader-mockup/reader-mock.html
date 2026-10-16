@@ -1,0 +1,1604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atomic Tracker — reader mock</title>
+<style>
+/*
+  Mock-only. Tokens, chrome, hairlines, and book objects follow the 1.5.0
+  revamp language. Nothing here ships.
+*/
+
+.theme-light {
+  --background-primary: #ffffff;
+  --background-primary-alt: #fafafa;
+  --background-secondary: #f6f6f6;
+  --background-secondary-alt: #ededed;
+  --background-modifier-border: #e0e0e0;
+  --background-modifier-hover: rgba(0, 0, 0, 0.05);
+  --text-normal: #222222;
+  --text-muted: #5c5c5c;
+  --text-faint: #ababab;
+  --text-accent: #6c4ee3;
+  --text-error: #e03140;
+  --interactive-accent: #7c5cf0;
+  --icon-color: #6b6b6b;
+  --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-text: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --font-monospace: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, monospace;
+  color-scheme: light;
+}
+
+.theme-dark {
+  --background-primary: #1e1e1e;
+  --background-primary-alt: #242424;
+  --background-secondary: #262626;
+  --background-secondary-alt: #2e2e2e;
+  --background-modifier-border: #363636;
+  --background-modifier-hover: rgba(255, 255, 255, 0.06);
+  --text-normal: #dadada;
+  --text-muted: #a3a3a3;
+  --text-faint: #666666;
+  --text-accent: #a68af9;
+  --text-error: #fb5560;
+  --interactive-accent: #8b6cf5;
+  --icon-color: #9a9a9a;
+  --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-text: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+  --font-monospace: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11" 1, "ss01" 0;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { appearance: none; background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* ------------------------------------------------------------ desktop */
+
+.ob-window {
+  --ob-w: 1020px;
+  position: relative;
+  width: var(--ob-w);
+  height: 720px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 40px 80px -30px rgba(0, 0, 0, 0.35);
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: 38px auto;
+  transform: translateZ(0);
+}
+.theme-dark.ob-window {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 80px -30px rgba(0, 0, 0, 0.8);
+}
+.ob-titlebar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 10px 0 14px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.ob-lights { display: flex; gap: 8px; align-self: center; margin-right: 14px; }
+.ob-lights > span {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+}
+.ob-lights > span:nth-child(2) { background: #febc2e; }
+.ob-lights > span:nth-child(3) { background: #28c840; }
+.ob-tab {
+  display: flex; align-items: center; gap: 10px;
+  height: 30px; min-width: 180px; padding: 0 10px 0 12px;
+  margin-bottom: -1px;
+  border-radius: 8px 8px 0 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-bottom-color: var(--background-primary);
+  font-size: 12.5px;
+}
+.ob-tab .ob-x { margin-left: auto; color: var(--text-muted); font-size: 13px; }
+.ob-plus { align-self: center; color: var(--icon-color); font-size: 16px; padding: 0 6px; }
+.ob-title-actions { margin-left: auto; align-self: center; display: flex; gap: 14px; color: var(--icon-color); }
+.ob-ribbon {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding-top: 14px;
+  background: var(--background-secondary);
+  border-right: 1px solid var(--background-modifier-border);
+  color: var(--icon-color);
+}
+.ob-icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.ob-main { position: relative; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.ob-viewhead {
+  display: flex; align-items: center; height: 40px; padding: 0 14px;
+  color: var(--icon-color); gap: 14px; flex: none;
+}
+.ob-crumbs { flex: 1; text-align: center; font-size: 12.5px; color: var(--text-muted); }
+.ob-crumbs b { font-weight: 500; color: var(--text-normal); }
+.ob-content { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.ob-status {
+  position: absolute; right: 0; bottom: 0; padding: 3px 12px;
+  border-top-left-radius: 8px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-right: 0; border-bottom: 0;
+  font-size: 12px; color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------- phone */
+
+.ob-phone {
+  position: relative;
+  width: 412px;
+  height: 866px;
+  padding: 11px;
+  margin: 0 36px;
+  border-radius: 64px;
+  background: #0d0d0e;
+  box-shadow:
+    inset 0 0 0 1.5px #3a3a3c,
+    0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 50px 90px -40px rgba(0, 0, 0, 0.55);
+  flex: none;
+}
+.ob-phone-screen {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  border-radius: 53px;
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  display: flex;
+  flex-direction: column;
+  transform: translateZ(0);
+}
+.ob-island {
+  position: absolute; top: 11px; left: 50%;
+  width: 124px; height: 36px; margin-left: -62px;
+  border-radius: 20px; background: #000; z-index: 100;
+}
+.ob-statusbar {
+  flex: none; display: flex; justify-content: space-between; align-items: center;
+  height: 54px; padding: 6px 34px 0 46px;
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+}
+.ob-statusbar-icons { display: flex; gap: 6px; align-items: center; }
+.ob-mhead {
+  flex: none; display: flex; align-items: center; gap: 12px;
+  height: 44px; padding: 0 16px; color: var(--icon-color);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.ob-mhead-title {
+  flex: 1; text-align: center; font-size: 15px; font-weight: 600;
+  color: var(--text-normal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ob-mcontent { position: relative; flex: 1; overflow: hidden; min-height: 0; }
+.ob-mnav {
+  flex: none; display: flex; justify-content: space-around; align-items: center;
+  height: 50px; padding: 0 12px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary); color: var(--icon-color);
+}
+.ob-home { flex: none; height: 30px; background: var(--background-secondary); position: relative; }
+.ob-home::after {
+  content: ""; position: absolute; left: 50%; bottom: 9px;
+  width: 136px; height: 5px; margin-left: -68px;
+  border-radius: 3px; background: var(--text-normal);
+}
+
+/* -------------------------------------------------------------- board */
+
+.board {
+  --board-bg: #ebeae6;
+  --board-ink: #1d1d1b;
+  --board-muted: #6b6a66;
+  --board-rule: rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+  padding: 52px 56px 80px;
+  background: var(--board-bg);
+  color: var(--board-ink);
+}
+.board.is-dark {
+  --board-bg: #111111;
+  --board-ink: #ededed;
+  --board-muted: #8f8f8f;
+  --board-rule: rgba(255, 255, 255, 0.1);
+}
+.board-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--board-rule);
+}
+.board-kicker {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--board-muted); margin-bottom: 10px;
+}
+.board-title {
+  margin: 0; font-size: 34px; line-height: 1.15; font-weight: 650; letter-spacing: -0.025em;
+}
+.board-sub {
+  margin: 10px 0 0; max-width: 780px;
+  font-size: 16px; line-height: 1.5; color: var(--board-muted);
+}
+.board-meta {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; line-height: 1.7; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--board-muted); text-align: right;
+}
+.board-tools {
+  display: flex; flex-wrap: wrap; gap: 10px 18px;
+  align-items: center; margin: 0 0 22px;
+}
+.board-seg {
+  display: inline-flex; padding: 3px; border-radius: 10px;
+  background: color-mix(in srgb, var(--board-ink) 7%, transparent);
+}
+.board-seg button {
+  height: 30px; padding: 0 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--board-muted);
+}
+.board-seg button.is-on { background: var(--board-ink); color: var(--board-bg); }
+.board-note {
+  margin: 0; font-size: 14px; line-height: 1.45; color: var(--board-muted);
+}
+.pair {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 8px 0 28px;
+}
+.pair-desk, .pair-phone { margin: 0; }
+.pair-cap {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--board-muted); margin: 0 0 12px;
+}
+.pair-cap b { color: var(--board-ink); font-weight: 600; }
+.why {
+  max-width: 1320px; margin: 8px auto 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px 36px;
+  padding-top: 28px; border-top: 1px solid var(--board-rule);
+}
+.why h2 {
+  margin: 0 0 6px; font-size: 14px; font-weight: 650; letter-spacing: -0.01em;
+}
+.why p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--board-muted); }
+
+/* ------------------------------------------------------------------ tokens */
+
+.fitness-plugin {
+  --atomic-font: var(--font-interface);
+  --atomic-mono: var(--font-monospace);
+  --atomic-ink: var(--text-normal);
+  --atomic-ink-2: var(--text-muted);
+  --atomic-paper: var(--background-primary);
+  --atomic-rule: color-mix(in srgb, var(--text-normal) 11%, transparent);
+  --atomic-rule-strong: color-mix(in srgb, var(--text-normal) 22%, transparent);
+  --atomic-fill-1: color-mix(in srgb, var(--text-normal) 4.5%, transparent);
+  --atomic-fill-2: color-mix(in srgb, var(--text-normal) 8%, transparent);
+  --atomic-fill-3: color-mix(in srgb, var(--text-normal) 13%, transparent);
+  --atomic-focus: var(--interactive-accent);
+  --atomic-link-hover: var(--text-accent);
+  --atomic-r-object: 3px;
+  --atomic-r-control: 9px;
+  --atomic-r-well: 14px;
+  --atomic-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --atomic-t-press: 120ms;
+  --atomic-t-hover: 240ms;
+  --atomic-t-move: 560ms;
+  --atomic-c: #4369c2;
+  font-family: var(--atomic-font);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-caption {
+  font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em;
+  color: var(--atomic-ink-2);
+}
+.fitness-plugin .atomic-readout {
+  font-family: var(--atomic-mono); font-size: 11px; line-height: 16px;
+  color: var(--atomic-ink-2); font-variant-numeric: lining-nums tabular-nums;
+}
+.fitness-plugin .atomic-readout.is-live { color: var(--atomic-ink); }
+.fitness-plugin .atomic-hint { font-size: 12px; line-height: 16px; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-dot {
+  display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--atomic-c);
+}
+.fitness-plugin .atomic-name {
+  display: inline-flex; align-items: center; gap: 8px; font-weight: 600;
+}
+.fitness-plugin .atomic-link {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  color: var(--atomic-ink-2); text-decoration: none; border-radius: 4px;
+  transition: color var(--atomic-t-hover) var(--atomic-ease);
+  cursor: pointer;
+}
+.fitness-plugin .atomic-link:hover { color: var(--atomic-link-hover); }
+.fitness-plugin .atomic-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; padding: 0 14px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-2); color: var(--atomic-ink);
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+  transition:
+    transform var(--atomic-t-press) var(--atomic-ease),
+    background-color var(--atomic-t-hover) var(--atomic-ease);
+}
+.fitness-plugin .atomic-btn:hover { background: var(--atomic-fill-3); }
+.fitness-plugin .atomic-btn:active { transform: scale(0.97); }
+.fitness-plugin .atomic-btn:focus-visible,
+.fitness-plugin .atomic-field:focus-within,
+.fitness-plugin .atomic-seg-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
+}
+.fitness-plugin .atomic-btn.is-primary { background: var(--atomic-ink); color: var(--atomic-paper); }
+.fitness-plugin .atomic-btn.is-quiet { background: transparent; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-btn.is-quiet:hover { background: var(--atomic-fill-1); color: var(--atomic-ink); }
+.fitness-plugin .atomic-btn.is-small { height: 28px; padding: 0 10px; }
+.fitness-plugin .atomic-well,
+.fitness-plugin.atomic-well {
+  background: var(--atomic-fill-1); border-radius: var(--atomic-r-well);
+}
+.fitness-plugin .atomic-field {
+  display: flex; align-items: center; gap: 8px;
+  height: 36px; min-width: 0; padding: 0 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+.fitness-plugin .atomic-well .atomic-field,
+.fitness-plugin.atomic-well .atomic-field { background: var(--atomic-paper); }
+.fitness-plugin .atomic-field-label { flex: none; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-field-value { flex: 1; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fitness-plugin .atomic-field-value.is-placeholder { font-weight: 400; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-field input,
+.fitness-plugin .atomic-field select {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  font-weight: 500;
+}
+.fitness-plugin .atomic-seg {
+  display: inline-flex; padding: 2px; border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+.fitness-plugin .atomic-seg-option {
+  height: 28px; padding: 0 12px; border-radius: 7px;
+  background: transparent; color: var(--atomic-ink-2);
+  font: 500 13px/1 var(--atomic-font);
+  transition: background-color var(--atomic-t-hover) var(--atomic-ease), color var(--atomic-t-hover) var(--atomic-ease);
+}
+.fitness-plugin .atomic-seg-option.is-on { background: var(--atomic-paper); color: var(--atomic-ink); }
+.fitness-plugin .atomic-glass {
+  display: inline-flex; align-items: center; gap: 2px;
+  height: 34px; padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background-primary) 58%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px color-mix(in srgb, var(--text-normal) 9%, transparent),
+    0 10px 28px -10px rgba(0, 0, 0, 0.28);
+}
+.theme-dark .fitness-plugin .atomic-glass {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 10px 28px -10px rgba(0, 0, 0, 0.7);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fitness-plugin .atomic-glass { background: var(--background-primary); }
+}
+.fitness-plugin .atomic-glass .atomic-btn {
+  height: 28px; border-radius: 999px; background: transparent;
+}
+.fitness-plugin .atomic-glass .atomic-btn.is-primary {
+  background: var(--atomic-ink); color: var(--atomic-paper);
+}
+
+/* ----------------------------------------------------------- book shelf */
+
+.fitness-plugin.atomic-shelf {
+  --atomic-book-w: 88px;
+  --atomic-book-h: 138px;
+  --atomic-shelf-gap: 12px;
+  --atomic-plank-top: color-mix(in srgb, var(--text-normal) 8%, var(--background-primary));
+  --atomic-plank-face: color-mix(in srgb, var(--text-normal) 17%, var(--background-primary));
+}
+.atomic-pane { height: 100%; overflow: auto; padding: 18px 28px 48px; }
+.ob-phone-screen .atomic-pane { padding: 16px 16px 28px; }
+.atomic-pane-title {
+  margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.015em;
+}
+.ob-phone-screen .atomic-pane-title { font-size: 22px; }
+.atomic-shelf-scroll { overflow-x: auto; overflow-y: visible; padding: 28px 0 0; }
+.atomic-shelf-scroll::-webkit-scrollbar { display: none; }
+.atomic-shelf-row {
+  position: relative; display: flex; align-items: flex-end;
+  gap: var(--atomic-shelf-gap); width: max-content; min-width: 100%;
+  padding: 0 8px;
+}
+.atomic-plank {
+  position: relative; height: 15px;
+  border-radius: 1px 1px 3px 3px;
+  background:
+    linear-gradient(180deg,
+      var(--atomic-plank-top) 0,
+      var(--atomic-plank-top) 5px,
+      color-mix(in srgb, var(--atomic-plank-face), white 10%) 5px,
+      var(--atomic-plank-face) 7px,
+      color-mix(in srgb, var(--atomic-plank-face), black 6%) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--background-primary) 55%, transparent),
+    0 14px 18px -12px rgba(0, 0, 0, 0.4);
+  width: max-content; min-width: 100%;
+}
+.atomic-book {
+  --px: 0; --py: 0; --sx: 30%; --sy: 18%;
+  position: relative; flex: none;
+  width: var(--atomic-book-w); height: var(--atomic-book-h);
+  margin-bottom: -4px;
+  border-radius: 2px 3px 3px 2px;
+  background: var(--cover, #3d2a1c);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 7px 6px -6px rgba(0, 0, 0, 0.45);
+  transform-origin: 50% 100%;
+  transition: transform var(--atomic-t-move) var(--atomic-ease), box-shadow var(--atomic-t-move) var(--atomic-ease);
+  overflow: hidden; color: var(--ink, #f4ecdf);
+  text-align: left;
+}
+.atomic-book-cover {
+  position: absolute; inset: 0;
+  padding: 12px 10px 10px 14px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), transparent 28%),
+    radial-gradient(circle at 80% 12%, rgba(255,255,255,0.14), transparent 36%),
+    var(--cover);
+}
+.atomic-book-cover .t {
+  font-size: 11px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+}
+.atomic-book-cover .a {
+  margin-top: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.72;
+}
+.atomic-book::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background:
+    linear-gradient(90deg,
+      rgba(0, 0, 0, 0.22) 0,
+      rgba(255, 255, 255, 0.14) 2.5%,
+      rgba(0, 0, 0, 0) 5%,
+      rgba(0, 0, 0, 0.18) 7%,
+      rgba(255, 255, 255, 0.16) 8.5%,
+      rgba(255, 255, 255, 0) 12%,
+      rgba(255, 255, 255, 0) 94%,
+      rgba(0, 0, 0, 0.1) 98%,
+      rgba(0, 0, 0, 0.26) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 26%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.1));
+}
+.atomic-book::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3;
+  background: radial-gradient(circle at var(--sx) var(--sy), rgba(255,255,255,0.62) 0, rgba(255,255,255,0.18) 28%, rgba(255,255,255,0) 58%);
+  mix-blend-mode: soft-light; opacity: 0;
+  transition: opacity var(--atomic-t-hover) var(--atomic-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .atomic-book:hover {
+    z-index: 3;
+    transform: perspective(700px) translateY(-8px) rotateX(calc(var(--py) * -12deg)) rotateY(calc(var(--px) * 20deg));
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 22px 22px -14px rgba(0, 0, 0, 0.5);
+  }
+  .atomic-book:hover::after { opacity: 1; }
+}
+.atomic-book-ribbon {
+  position: absolute; right: 16%; bottom: -20px; width: 8px; height: 24px; z-index: -1;
+  filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
+}
+.atomic-book-ribbon::before {
+  content: ""; position: absolute; inset: 0; background: var(--atomic-c);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+}
+.atomic-shelf-readout {
+  display: flex; align-items: baseline; gap: 10px; min-height: 20px;
+  margin-top: 14px; padding: 0 8px; white-space: nowrap; overflow: hidden;
+}
+.atomic-shelf-readout-title { font-size: 13px; font-weight: 600; }
+.atomic-shelf-readout-meta { color: var(--atomic-ink-2); }
+.atomic-heat-mini { margin-top: 28px; }
+.atomic-heat-row { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
+.atomic-heat-cell {
+  width: 10px; height: 10px; border-radius: 2px;
+  background: color-mix(in srgb, var(--atomic-c) var(--l, 0%), var(--atomic-paper));
+}
+.atomic-heat-cell.is-empty { background: color-mix(in srgb, var(--text-normal) 7%, transparent); }
+.atomic-heat-cell.is-today {
+  box-shadow: 0 0 0 1.25px var(--atomic-ink);
+  background: var(--atomic-paper);
+}
+
+/* ---------------------------------------------------------------- reader */
+
+.atomic-reader {
+  position: relative; height: 100%;
+  display: grid;
+  grid-template-rows: 40px 1fr 28px;
+  background: var(--background-primary);
+}
+.atomic-reader-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--atomic-rule);
+}
+.ob-phone-screen .atomic-reader-bar { padding: 0 10px; gap: 6px; }
+.ob-phone-screen .atomic-reader-bar .grow { font-size: 12px; min-width: 0; overflow: hidden; }
+.atomic-reader-bar .grow { flex: 1; }
+.atomic-spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr 150px;
+  min-height: 0;
+  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
+}
+.ob-phone-screen .atomic-spread {
+  grid-template-columns: 1fr 22px;
+  background: var(--background-primary);
+}
+.atomic-page {
+  position: relative;
+  margin: 18px 8px;
+  padding: 28px 26px 36px;
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px var(--atomic-rule);
+  overflow: hidden;
+}
+.ob-window .atomic-page { border-radius: 1px; }
+.ob-phone-screen .atomic-page {
+  margin: 0; padding: 22px 22px 28px 22px;
+  box-shadow: none; overflow: auto;
+}
+.atomic-page h3 {
+  margin: 0 0 14px; font-family: var(--font-text);
+  font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--atomic-ink-2);
+}
+.atomic-page p {
+  margin: 0 0 12px; font-family: var(--font-text);
+  font-size: 16.5px; line-height: 1.62; color: var(--atomic-ink);
+}
+.ob-phone-screen .atomic-page p { font-size: 17px; line-height: 1.58; }
+.atomic-hl {
+  background: color-mix(in srgb, #c9a227 28%, transparent);
+  box-decoration-break: clone;
+}
+.theme-dark .atomic-hl { background: color-mix(in srgb, #c9a227 34%, transparent); }
+.atomic-hl.is-sel { background: color-mix(in srgb, var(--interactive-accent) 22%, transparent); }
+.atomic-gutter { position: relative; min-width: 0; }
+.atomic-remark {
+  position: absolute; left: 12px; right: 10px;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--atomic-rule);
+  font-size: 11.5px; line-height: 1.4; color: var(--atomic-ink-2);
+  cursor: pointer; text-align: left;
+}
+.atomic-gutter.is-right .atomic-remark { left: 10px; right: 12px; }
+.atomic-remark strong { display: block; color: var(--atomic-ink); font-weight: 600; font-size: 11px; margin-bottom: 2px; }
+.atomic-remark.is-ai strong { color: var(--atomic-c); }
+.atomic-mdot {
+  position: absolute; right: 6px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--atomic-c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--atomic-c) 18%, transparent);
+}
+.atomic-slip {
+  position: absolute; left: 16px; right: 28px; z-index: 4;
+  padding: 12px 14px;
+  border-radius: var(--atomic-r-well);
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 18px 32px -16px rgba(0,0,0,0.4);
+}
+.atomic-slip[hidden], .atomic-selbar[hidden], .atomic-ask[hidden], .atomic-sheet[hidden] { display: none; }
+.atomic-reader-foot {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px;
+  border-top: 1px solid var(--atomic-rule);
+  color: var(--atomic-ink-2); font-size: 11px;
+  font-family: var(--atomic-mono);
+}
+.atomic-prog {
+  flex: 1; height: 3px; border-radius: 99px;
+  background: var(--atomic-fill-2);
+}
+.atomic-prog > i {
+  display: block; height: 100%; width: 11%; border-radius: inherit;
+  background: var(--atomic-c);
+}
+
+/* selection + ask */
+
+.atomic-selbar { position: absolute; z-index: 6; transform: translate(-50%, -120%); }
+.atomic-ask {
+  position: absolute; top: 40px; right: 0; bottom: 28px; width: 300px; z-index: 5;
+  display: flex; flex-direction: column;
+  background: var(--background-primary);
+  border-left: 1px solid var(--atomic-rule);
+  padding: 16px 16px 18px;
+}
+.atomic-ask h4 { margin: 0 0 4px; font-size: 14px; font-weight: 650; }
+.atomic-ask .atomic-saved {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 8px 0 12px; color: var(--atomic-ink);
+}
+.atomic-ask .atomic-saved i {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--atomic-c);
+}
+.atomic-ask textarea {
+  width: 100%; min-height: 64px; resize: none;
+  border: 0; border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1); padding: 10px 12px; outline: none;
+}
+.atomic-ask .atomic-answer {
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--atomic-rule);
+  font-size: 13px; line-height: 1.5;
+}
+.atomic-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 8;
+  padding: 10px 16px 18px;
+  border-radius: 18px 18px 0 0;
+  background: var(--background-primary);
+  box-shadow: 0 -1px 0 var(--atomic-rule), 0 -18px 40px -24px rgba(0,0,0,0.45);
+}
+.atomic-sheet .grab {
+  width: 40px; height: 4px; border-radius: 99px; margin: 0 auto 12px;
+  background: var(--atomic-fill-3);
+}
+
+/* ---------------------------------------------------------------- canvas */
+
+.atomic-canvas {
+  position: relative; height: 100%; overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--text-normal) 4%, transparent), transparent 46%),
+    var(--background-primary);
+}
+.atomic-canvas svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.atomic-canvas svg.wires line {
+  stroke: color-mix(in srgb, var(--text-normal) 18%, transparent);
+  stroke-width: 1;
+}
+.atomic-cnode {
+  position: absolute; transform: translate(-50%, -50%);
+}
+.atomic-cnode.is-book { width: 96px; }
+.atomic-cnode.is-group {
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--atomic-ink-2); font-weight: 600;
+}
+.atomic-ccard {
+  width: 168px; padding: 10px 12px;
+  border-radius: 3px;
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 10px 18px -14px rgba(0,0,0,0.35);
+  text-align: left; cursor: pointer;
+}
+.atomic-ccard .k {
+  font-family: var(--atomic-mono); font-size: 10px; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--atomic-ink-2); margin-bottom: 4px;
+}
+.atomic-ccard .k.is-ai { color: var(--atomic-c); }
+.atomic-ccard .b { font-size: 12.5px; line-height: 1.4; }
+.atomic-canvas-note {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+}
+
+/* -------------------------------------------------------------- settings */
+
+.atomic-settings { padding: 8px 4px 24px; max-width: 560px; }
+.atomic-settings h3 { margin: 22px 0 8px; font-size: 13px; font-weight: 650; }
+.atomic-settings .atomic-well { padding: 10px; display: grid; gap: 8px; }
+.atomic-empty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  margin-top: 36px; max-width: 360px;
+}
+.atomic-empty h3 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -0.02em; }
+.atomic-toast {
+  position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%);
+  z-index: 9; pointer-events: none;
+}
+
+/* -------------------------------------------------------------- open book */
+
+.open-scene {
+  position: absolute; inset: 0; z-index: 20; pointer-events: none; opacity: 0;
+}
+.open-scene.is-on { pointer-events: auto; opacity: 1; }
+.open-blur {
+  position: absolute; inset: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  background: transparent;
+}
+.open-scene.is-playing .open-blur {
+  animation: open-blur 1400ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) forwards;
+}
+.open-stage {
+  position: absolute; inset: 0;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  display: grid; place-items: center;
+}
+.open-book {
+  --from-x: 0px; --from-y: 0px; --from-s: 0.22;
+  position: relative;
+  width: min(520px, 78%);
+  height: min(360px, 62%);
+  transform-style: preserve-3d;
+  transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s));
+  transform-origin: 50% 50%;
+}
+.open-scene.is-playing .open-book {
+  animation: open-pop 1400ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+.open-back {
+  position: absolute; inset: 0;
+  border-radius: 2px 3px 3px 2px;
+  background: #efe7d6;
+  box-shadow: 0 18px 40px -16px rgba(0,0,0,0.45);
+  transform: translateZ(-2px);
+}
+.open-leaf {
+  position: absolute; top: 6%; bottom: 6%;
+  width: 46%;
+  background: #fffdf8;
+  box-shadow: 0 0 0 1px rgba(40, 30, 10, 0.08);
+  overflow: hidden;
+  padding: 8% 6%;
+  font-family: "Iowan Old Style", Palatino, serif;
+  font-size: 11px; line-height: 1.45; color: #2b2925;
+}
+.open-leaf.is-left { left: 4%; }
+.open-leaf.is-right { right: 4%; }
+.open-flip {
+  position: absolute; top: 6%; bottom: 6%; left: 50%;
+  width: 46%;
+  background: linear-gradient(90deg, #f7f1e6, #fffdf8 18%);
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  box-shadow: -8px 0 16px -12px rgba(0,0,0,0.35);
+}
+.open-scene.is-playing .open-flip:nth-child(1) { animation: flip 220ms 420ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(2) { animation: flip 200ms 560ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(3) { animation: flip 180ms 690ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(4) { animation: flip 180ms 810ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(5) { animation: flip 200ms 930ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-cover {
+  position: absolute; inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+.open-scene.is-playing .open-cover {
+  animation: cover-open 900ms 180ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+.open-cover-face, .open-cover-in {
+  position: absolute; inset: 0; border-radius: 2px 3px 3px 2px;
+  backface-visibility: hidden;
+}
+.open-cover-face {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.28) 0, rgba(255,255,255,0.12) 8%, transparent 14%),
+    linear-gradient(180deg, rgba(255,255,255,0.1), transparent 30%),
+    #3d2a1c;
+  color: #f4ecdf;
+  padding: 10% 10% 8% 14%;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.open-cover-face .t { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.open-cover-face .a { margin-top: 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.open-cover-in {
+  background: linear-gradient(90deg, rgba(0,0,0,0.08), transparent 20%), #f3ead8;
+  transform: rotateY(180deg);
+}
+.open-hint {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  opacity: 0;
+}
+.open-scene.is-on .open-hint { opacity: 1; }
+
+@keyframes open-pop {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  28%  { transform: translate3d(calc(var(--from-x) * 0.35), calc(var(--from-y) * 0.28 - 6%), 80px) scale(0.58) rotateX(8deg); }
+  62%  { transform: translate3d(0, -1%, 140px) scale(0.92); }
+  100% { transform: translate3d(0, 0, 0) scale(1.06); }
+}
+@keyframes cover-open {
+  0%   { transform: rotateY(0); }
+  100% { transform: rotateY(-168deg); }
+}
+@keyframes flip {
+  0%   { transform: rotateY(0); }
+  100% { transform: rotateY(-178deg); }
+}
+@keyframes open-blur {
+  0%   { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); }
+  40%  { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  100% { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: color-mix(in srgb, var(--background-primary) 18%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atomic-book, .atomic-book:hover { transform: none !important; transition: none !important; }
+  .atomic-book::after { opacity: 0 !important; }
+  .open-scene, .open-scene.is-playing .open-book,
+  .open-scene.is-playing .open-cover,
+  .open-scene.is-playing .open-flip,
+  .open-scene.is-playing .open-blur { animation: none !important; }
+}
+.mock-reduced .atomic-book, .mock-reduced .atomic-book:hover { transform: none !important; transition: none !important; }
+.mock-reduced .atomic-book::after { opacity: 0 !important; }
+.mock-reduced .open-scene, .mock-reduced .open-scene.is-playing .open-book,
+.mock-reduced .open-scene.is-playing .open-cover,
+.mock-reduced .open-scene.is-playing .open-flip,
+.mock-reduced .open-scene.is-playing .open-blur { animation: none !important; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <header class="board-head">
+    <div>
+      <div class="board-kicker">Atomic Tracker · design</div>
+      <h1 class="board-title">Reader, Ask, and the book canvas</h1>
+      <p class="board-sub">EPUB and PDF live in the vault. Reading is a new surface, linked to the book note you already have. Every highlight, remark, and answer lands on one canvas. Desktop and phone are the same product.</p>
+    </div>
+    <div class="board-meta">
+      Mock only · do not merge<br>
+      1.5.0 language<br>
+      Pride and Prejudice · public domain
+    </div>
+  </header>
+
+  <div class="board-tools">
+    <div class="board-seg" data-tool="scene" role="tablist" aria-label="Screen">
+      <button type="button" data-scene="library" class="is-on">Library</button>
+      <button type="button" data-scene="reader">Reader</button>
+      <button type="button" data-scene="select">Select</button>
+      <button type="button" data-scene="ask">Ask</button>
+      <button type="button" data-scene="canvas">Canvas</button>
+      <button type="button" data-scene="settings">Settings</button>
+      <button type="button" data-scene="empty">Empty</button>
+    </div>
+    <div class="board-seg" data-tool="theme" aria-label="Theme">
+      <button type="button" data-theme="light" class="is-on">Light</button>
+      <button type="button" data-theme="dark">Dark</button>
+    </div>
+    <div class="board-seg" data-tool="motion" aria-label="Motion">
+      <button type="button" data-motion="full" class="is-on">Motion</button>
+      <button type="button" data-motion="reduced">Reduced</button>
+    </div>
+    <button type="button" class="fitness-plugin atomic-btn is-primary" id="replay" style="--atomic-ink:#1d1d1b;--atomic-paper:#ebeae6;--atomic-fill-2:rgba(0,0,0,.08)">Replay open</button>
+    <div class="board-seg" data-tool="empty" id="empty-kind" hidden aria-label="Empty state">
+      <button type="button" data-empty="key" class="is-on">No key</button>
+      <button type="button" data-empty="file">Bad file</button>
+    </div>
+    <p class="board-note" id="scene-note">Click Pride and Prejudice. The book comes toward you and opens on the last page you read. Tap to skip.</p>
+  </div>
+
+  <div class="pair">
+    <figure class="pair-desk">
+      <figcaption class="pair-cap"><b>Desktop</b> · 1020 × 720</figcaption>
+      <div id="desk-host"></div>
+    </figure>
+    <figure class="pair-phone">
+      <figcaption class="pair-cap"><b>Phone</b> · 390 × 844 · equal side margins</figcaption>
+      <div id="phone-host"></div>
+    </figure>
+  </div>
+
+  <div class="why">
+    <div>
+      <h2>One file, three places</h2>
+      <p>The EPUB or PDF stays in the vault. The book note stays the ledger. The canvas is the map. The reader is only where you read.</p>
+    </div>
+    <div>
+      <h2>Ask never stands alone</h2>
+      <p>A question writes a card on the canvas as it lands. Scope is this page, this selection, or — after a warning — the whole book. You bring the key.</p>
+    </div>
+    <div>
+      <h2>Same product on a phone</h2>
+      <p>Margins become dots. The side panel becomes a sheet. Ask, canvas, and settings are all there. Nothing is desktop-only.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const ICONS = {
+    sidebar: "M4 6h16M4 12h16M4 18h10",
+    file: "M7 3.5h6l4 4V18a1.5 1.5 0 0 1-1.5 1.5h-8.5A1.5 1.5 0 0 1 5.5 18V5A1.5 1.5 0 0 1 7 3.5z M13 3.5V8h4.5",
+    cal: "M5 6.5h12.5A1.5 1.5 0 0 1 19 8v9.5A1.5 1.5 0 0 1 17.5 19h-12A1.5 1.5 0 0 1 4 17.5V8a1.5 1.5 0 0 1 1.5-1.5zM4 9.5h15M7 4v3M15 4v3",
+    term: "M4.5 5.5h13A1.5 1.5 0 0 1 19 7v8.5A1.5 1.5 0 0 1 17.5 17h-13A1.5 1.5 0 0 1 3 15.5V7a1.5 1.5 0 0 1 1.5-1.5zM6.5 9.5l2.5 2-2.5 2M11 13.5h4",
+    grid: "M4 4.5h4.5V9H4zM10.75 4.5H15.25V9h-4.5zM4 11.5h4.5V16H4zM10.75 11.5H15.25V16h-4.5z",
+    left: "M11 5l-6 6 6 6M5 11h12",
+    right: "M9 5l6 6-6 6M15 11H3",
+    book: "M4.5 5.2C6.4 4.4 8.6 4.4 10.5 5.2V17c-1.9-.8-4.1-.8-6 0V5.2zM13.5 5.2c1.9-.8 4.1-.8 6 0V17c-1.9-.8-4.1-.8-6 0V5.2z",
+    more: "M5 11.5h.01M10 11.5h.01M15 11.5h.01",
+    plus: "M10 4v12M4 10h12",
+    search: "M10.2 10.2 15 15M8.5 4.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z",
+    menu: "M4 6h12M4 10h12M4 14h8",
+    chev: "M5 7.5 10 12 5 16.5",
+  };
+
+  function svg(d, cls) {
+    const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("class", cls || "ob-icon");
+    s.setAttribute("viewBox", "0 0 20 20");
+    s.setAttribute("aria-hidden", "true");
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", d);
+    s.appendChild(p);
+    return s;
+  }
+  function el(tag, attrs, kids) {
+    const n = document.createElement(tag);
+    if (attrs) {
+      Object.entries(attrs).forEach(([k, v]) => {
+        if (v == null || v === false) return;
+        if (k === "class") n.className = v;
+        else if (k === "style" && typeof v === "object") Object.assign(n.style, v);
+        else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2).toLowerCase(), v);
+        else if (k === "html") n.innerHTML = v;
+        else n.setAttribute(k, v === true ? "" : v);
+      });
+    }
+    (Array.isArray(kids) ? kids : kids == null ? [] : [kids]).forEach((c) => {
+      if (c == null) return;
+      n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return n;
+  }
+
+  const BOOKS = [
+    { id: "pp", title: "Pride and Prejudice", author: "Jane Austen", status: "Reading", kind: "epub", pages: 432, last: 47, cover: "#3d2a1c", ink: "#f4ecdf" },
+    { id: "od", title: "The Odyssey", author: "Homer", status: "Finished", kind: "epub", pages: 560, last: 560, cover: "#1a2744", ink: "#e8dfc8" },
+    { id: "os", title: "On the Origin of Species", author: "Charles Darwin", status: "To read", kind: "pdf", pages: 502, last: 1, cover: "#2c3a22", ink: "#e7ecd4" },
+    { id: "fr", title: "Frankenstein", author: "Mary Shelley", status: "Finished", kind: "epub", pages: 280, last: 280, cover: "#3a1c22", ink: "#f3dce0" },
+    { id: "wa", title: "Walden", author: "Henry David Thoreau", status: "To read", kind: "pdf", pages: 216, last: 1, cover: "#2a3328", ink: "#e4eedc" },
+    { id: "mi", title: "Middlemarch", author: "George Eliot", status: "Reading", kind: "epub", pages: 880, last: 112, cover: "#4a3420", ink: "#f3e6c8" },
+    { id: "lg", title: "Leaves of Grass", author: "Walt Whitman", status: "To read", kind: "epub", pages: 168, last: 1, cover: "#1e2e28", ink: "#dceee4" },
+    { id: "re", title: "The Republic", author: "Plato", status: "Finished", kind: "pdf", pages: 320, last: 320, cover: "#2a2438", ink: "#e6dff3" },
+    { id: "scan", title: "Unreadable scan", author: "Unknown", status: "To read", kind: "bad", pages: 0, last: 0, cover: "#5c5c5c", ink: "#ececec" },
+    { id: "em", title: "Emma", author: "Jane Austen", status: "Reading", kind: "epub", pages: 474, last: 20, cover: "#3a2430", ink: "#f6dfea" },
+  ];
+
+  const LEFT = [
+    ["It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.", "hl-open"],
+    "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of some one or other of their daughters.",
+    "“My dear Mr. Bennet,” said his lady to him one day, “have you heard that Netherfield Park is let at last?”",
+    "Mr. Bennet replied that he had not.",
+  ];
+  const RIGHT = [
+    "“But it is,” returned she; “for Mrs. Long has just been here, and she told me all about it.”",
+    "Mr. Bennet made no answer.",
+    "“Do you not want to know who has taken it?” cried his wife impatiently.",
+    "“You want to tell me, and I have no objection to hearing it.”",
+    ["This was invitation enough. “Why, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England.”", "hl-sel"],
+  ];
+
+  const NOTES = {
+    library: "Click Pride and Prejudice. The book comes toward you and opens on the last page you read. Tap to skip.",
+    reader: "Remarks sit in the margin, lined up with the highlight. On a phone they start as dots.",
+    select: "Select a line. Highlight, remark, or ask. Each one saves to the canvas.",
+    ask: "Read this page, this selection, or the whole book. The answer is already on the canvas.",
+    canvas: "One canvas per book. The book is in the middle. Click a card to jump to that page.",
+    settings: "Your key. Your model. Nothing leaves the vault until you ask.",
+    empty: "No key, or a file we cannot open. Say so in one line.",
+  };
+
+  const state = {
+    scene: "library",
+    theme: "light",
+    motion: "full",
+    hasKey: true,
+    emptyKind: "key",
+    page: 47,
+    from: "shelf",
+    book: BOOKS[0],
+    slip: null,
+    playing: false,
+  };
+
+  function reduceMotion() {
+    return state.motion === "reduced" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function pageText(lines, mark) {
+    return lines.map((item) => {
+      if (typeof item === "string") return el("p", null, item);
+      const [text, kind] = item;
+      const span = el("span", { class: "atomic-hl" + (kind === "hl-sel" && mark === "sel" ? " is-sel" : ""), "data-hl": kind }, text);
+      return el("p", null, [span, document.createTextNode("")]);
+    });
+  }
+
+  function bookButton(b) {
+    const btn = el("button", {
+      class: "atomic-book",
+      type: "button",
+      "data-book": b.id,
+      "aria-label": "Open " + b.title,
+      style: { "--cover": b.cover, "--ink": b.ink },
+    }, [
+      el("span", { class: "atomic-book-cover" }, [
+        el("span", { class: "t" }, b.title),
+        el("span", { class: "a" }, b.author),
+      ]),
+      b.status === "Reading" ? el("span", { class: "atomic-book-ribbon" }) : null,
+    ]);
+    btn.addEventListener("pointermove", (e) => {
+      const r = btn.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      btn.style.setProperty("--px", px.toFixed(3));
+      btn.style.setProperty("--py", py.toFixed(3));
+      btn.style.setProperty("--sx", ((px + 0.5) * 100).toFixed(1) + "%");
+      btn.style.setProperty("--sy", ((py + 0.5) * 100).toFixed(1) + "%");
+    });
+    return btn;
+  }
+
+  function shelf() {
+    const row = el("div", { class: "atomic-shelf-row" }, BOOKS.map(bookButton));
+    const heat = [];
+    for (let i = 0; i < 28; i++) {
+      const today = i === 26;
+      const fill = [4, 8, 11, 15, 18, 19, 22, 26].includes(i);
+      heat.push(el("span", { class: "atomic-heat-cell" + (today ? " is-today" : fill ? "" : " is-empty"), style: fill ? { "--l": i === 26 ? "78%" : "46%" } : null }));
+    }
+    return el("div", { class: "fitness-plugin atomic-shelf" }, [
+      el("div", { class: "atomic-shelf-scroll" }, [row, el("div", { class: "atomic-plank" })]),
+      el("div", { class: "atomic-shelf-readout" }, [
+        el("span", { class: "atomic-shelf-readout-title", "data-read-title": "" }, "10 books"),
+        el("span", { class: "atomic-shelf-readout-meta", "data-read-meta": "" }, "3 reading · 3 finished · EPUB and PDF"),
+        el("span", { class: "atomic-readout", "data-read-hint": "" }, "Click a book to open"),
+      ]),
+      el("div", { class: "atomic-heat-mini" }, [
+        el("div", { class: "atomic-section-head", style: { display: "flex", justifyContent: "space-between" } }, [
+          el("span", { class: "atomic-name" }, [el("span", { class: "atomic-dot" }), "Reading"]),
+          el("span", { class: "atomic-readout" }, "This month · 6 days"),
+        ]),
+        el("div", { class: "atomic-heat-row" }, heat),
+        el("p", { class: "atomic-hint", style: { marginTop: "8px" } }, "Minutes in the reader fill this row. Same heatmap as the rest of Atomic."),
+      ]),
+    ]);
+  }
+
+  function openScene() {
+    const flips = [1, 2, 3, 4, 5].map(() => el("div", { class: "open-flip" }));
+    return el("div", { class: "open-scene", "data-open": "", "aria-hidden": "true" }, [
+      el("div", { class: "open-blur" }),
+      el("div", { class: "open-stage" },
+        el("div", { class: "open-book" }, [
+          el("div", { class: "open-back" }),
+          el("div", { class: "open-leaf is-left" }, "It is a truth universally acknowledged…"),
+          el("div", { class: "open-leaf is-right" }, "Netherfield Park is let at last."),
+          el("div", { style: { position: "absolute", inset: "0", transformStyle: "preserve-3d" } }, flips),
+          el("div", { class: "open-cover" }, [
+            el("div", { class: "open-cover-face" }, [
+              el("span", { class: "t" }, "Pride and Prejudice"),
+              el("span", { class: "a" }, "Jane Austen"),
+            ]),
+            el("div", { class: "open-cover-in" }),
+          ]),
+        ]),
+      ),
+      el("div", { class: "open-hint fitness-plugin" }, el("span", { class: "atomic-readout is-live" }, "Tap to skip")),
+    ]);
+  }
+
+  function reader(kind, phone) {
+    const fromCanvas = state.from === "canvas";
+    const showSel = kind === "select" || kind === "ask";
+    const showAsk = kind === "ask";
+    const leftGutter = el("div", { class: "atomic-gutter" },
+      el("button", { type: "button", class: "atomic-remark", style: { top: "118px" }, "data-jump": "47" }, [
+        el("strong", null, "Remark · p. 47"),
+        "The line everyone quotes. Keep it.",
+      ]),
+    );
+    const rightGutter = el("div", { class: "atomic-gutter is-right" }, [
+      el("button", { type: "button", class: "atomic-remark is-ai", style: { top: "210px" }, "data-jump": "47" }, [
+        el("strong", null, "Ask · p. 47"),
+        "Austen opens on social pressure, not character.",
+      ]),
+    ]);
+    const dots = el("div", { class: "atomic-gutter is-phone" }, [
+      el("button", { type: "button", class: "atomic-mdot", style: { top: "132px" }, "data-slip": "quote", "aria-label": "Open remark" }),
+      el("button", { type: "button", class: "atomic-mdot", style: { top: "268px" }, "data-slip": "ai", "aria-label": "Open answer" }),
+    ]);
+    const slip = el("div", { class: "atomic-slip", hidden: !state.slip, "data-slip-card": "" }, [
+      el("strong", { class: "atomic-caption", style: { display: "block", marginBottom: "4px" } }, state.slip === "ai" ? "Ask · p. 47" : "Remark · p. 47"),
+      el("p", { class: "atomic-hint", style: { margin: "0" } }, state.slip === "ai"
+        ? "Austen opens on social pressure, not character."
+        : "The line everyone quotes. Keep it."),
+    ]);
+    if (state.slip === "ai") slip.style.top = "248px";
+    else slip.style.top = "118px";
+
+    const selbar = el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel, style: phone ? { left: "50%", top: "312px" } : { left: "74%", top: "268px" } },
+      el("div", { class: "atomic-glass" }, [
+        el("button", { type: "button", class: "atomic-btn is-small", "data-act": "highlight" }, "Highlight"),
+        el("button", { type: "button", class: "atomic-btn is-small", "data-act": "remark" }, "Remark"),
+        el("button", { type: "button", class: "atomic-btn is-small is-primary", "data-act": "ask" }, "Ask"),
+      ]),
+    );
+
+    const askBody = [
+      el("h4", null, "Ask about this book"),
+      el("span", { class: "atomic-readout" }, "Pride and Prejudice · p. 47"),
+      el("div", { class: "atomic-saved" }, [el("i"), el("span", { class: "atomic-readout is-live" }, "Saved to canvas")]),
+      el("div", { class: "atomic-seg", style: { marginBottom: "10px" } }, [
+        el("button", { type: "button", class: "atomic-seg-option is-on" }, "This page"),
+        el("button", { type: "button", class: "atomic-seg-option" }, "Selection"),
+        el("button", { type: "button", class: "atomic-seg-option", "data-act": "whole" }, "Whole book"),
+      ]),
+      el("textarea", { readonly: true }, "Why start with a universal truth?"),
+      el("div", { class: "atomic-answer" }, [
+        el("p", { style: { margin: "0 0 8px" } }, "The first sentence is a joke that the neighbourhood treats as a rule. The book then watches what that rule does to people."),
+        el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, ["Open canvas card", el("span", null, "↗")]),
+      ]),
+    ];
+
+    const ask = phone
+      ? el("div", { class: "atomic-sheet fitness-plugin", hidden: !showAsk }, [el("div", { class: "grab" }), ...askBody])
+      : el("div", { class: "atomic-ask fitness-plugin", hidden: !showAsk }, askBody);
+
+    const pages = phone
+      ? [el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I · p. 47"), ...pageText(LEFT.concat(RIGHT), showSel ? "sel" : ""), slip]), dots]
+      : [leftGutter, el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I"), ...pageText(LEFT, showSel ? "sel" : "")]), el("div", { class: "atomic-page" }, [el("h3", null, "p. 47"), ...pageText(RIGHT, showSel ? "sel" : "")]), rightGutter];
+
+    return el("div", { class: "fitness-plugin atomic-reader" }, [
+      el("div", { class: "atomic-reader-bar" }, [
+        el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-scene": "library" }, "Shelf"),
+        el("span", { class: "grow atomic-name" }, [el("span", { class: "atomic-dot" }), "Pride and Prejudice"]),
+        el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, "Canvas"),
+        el("button", { type: "button", class: "atomic-link", "data-act": "note" }, "Note"),
+      ]),
+      el("div", { class: "atomic-spread" }, pages.concat([selbar, ask])),
+      el("div", { class: "atomic-reader-foot" }, [
+        el("span", null, fromCanvas ? "From canvas · p. " + state.page : "Last read · p. 47"),
+        el("span", { class: "atomic-prog" }, el("i")),
+        el("span", null, "47 / 432 · 11%"),
+      ]),
+    ]);
+  }
+
+  function canvasView(phone) {
+    const cards = [
+      { x: phone ? 22 : 16, y: phone ? 22 : 20, k: "Highlight", ai: false, t: "“a truth universally acknowledged”", page: 47 },
+      { x: phone ? 78 : 84, y: phone ? 24 : 22, k: "Remark", ai: false, t: "The line everyone quotes. Keep it.", page: 47 },
+      { x: phone ? 18 : 14, y: phone ? 72 : 74, k: "Ask", ai: true, t: "Austen opens on social pressure, not character.", page: 47 },
+      { x: phone ? 80 : 86, y: phone ? 70 : 76, k: "Highlight", ai: false, t: "“a young man of large fortune”", page: 47 },
+    ];
+    const wires = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    wires.setAttribute("class", "wires");
+    wires.setAttribute("viewBox", "0 0 100 100");
+    wires.setAttribute("preserveAspectRatio", "none");
+    [["50", "48", "22", "28"], ["50", "48", "78", "28"], ["50", "48", "18", "68"], ["50", "48", "80", "68"]].forEach(([x1, y1, x2, y2]) => {
+      const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+      l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+      wires.appendChild(l);
+    });
+    return el("div", { class: "fitness-plugin atomic-canvas" }, [
+      wires,
+      el("div", { class: "atomic-cnode is-group", style: { left: "22%", top: "12%" } }, "Chapter I"),
+      el("div", { class: "atomic-cnode is-group", style: { left: "80%", top: "12%" } }, "Chapter I"),
+      el("div", { class: "atomic-cnode is-book", style: { left: "50%", top: "48%" } }, [
+        bookButton(BOOKS[0]),
+        el("div", { class: "atomic-caption", style: { textAlign: "center", marginTop: "8px" } }, "Pride and Prejudice"),
+      ]),
+      ...cards.map((c) => el("button", {
+        type: "button",
+        class: "atomic-cnode atomic-ccard",
+        style: { left: c.x + "%", top: c.y + "%" },
+        "data-jump": String(c.page),
+      }, [
+        el("div", { class: "k" + (c.ai ? " is-ai" : "") }, c.k + " · p. " + c.page),
+        el("div", { class: "b" }, c.t),
+      ])),
+      el("button", { type: "button", class: "atomic-canvas-note atomic-link", "data-act": "note" }, "Pride and Prejudice.md ↗"),
+    ]);
+  }
+
+  function settingsView() {
+    return el("div", { class: "fitness-plugin atomic-settings" }, [
+      el("p", { class: "atomic-hint" }, "Ask uses a key you paste here. It stays on this device. Atomic does not run a model."),
+      el("h3", null, "Provider"),
+      el("div", { class: "atomic-well" }, [
+        el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "Provider"),
+          el("select", null, ["OpenAI-compatible", "Anthropic", "Local"].map((x) => el("option", null, x)))]),
+        el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "Model"),
+          el("input", { value: "gpt-4.1", spellcheck: "false" })]),
+      ]),
+      el("h3", null, "Key"),
+      el("div", { class: "atomic-well" }, [
+        el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "API key"),
+          el("input", { type: "password", value: "sk-live-••••••••••••", spellcheck: "false", autocomplete: "off" })]),
+        el("p", { class: "atomic-hint", style: { margin: "4px 4px 0" } }, "Stored in plugin data on this device. Not encrypted. Never logged."),
+      ]),
+      el("div", { style: { display: "flex", gap: "8px", marginTop: "16px" } }, [
+        el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "save-key" }, "Save"),
+        el("button", { type: "button", class: "atomic-btn", "data-act": "test-key" }, "Test"),
+      ]),
+    ]);
+  }
+
+  function emptyView() {
+    if (state.emptyKind === "file") {
+      return el("div", { class: "fitness-plugin" }, [
+        shelf(),
+        el("div", { class: "atomic-empty" }, [
+          el("h3", null, "This file is not an EPUB or PDF"),
+          el("p", { class: "atomic-hint", style: { margin: 0 } }, "Unreadable scan has no reader. Keep the book note. Add a real file when you have one."),
+          el("button", { type: "button", class: "atomic-btn is-primary", "data-scene": "library" }, "Back to shelf"),
+        ]),
+      ]);
+    }
+    return el("div", { class: "fitness-plugin atomic-empty" }, [
+      el("h3", null, "Add a key to ask"),
+      el("p", { class: "atomic-hint", style: { margin: 0 } }, "You can still read, highlight, and remark. Ask needs a provider and a key."),
+      el("button", { type: "button", class: "atomic-btn is-primary", "data-scene": "settings" }, "Open settings"),
+    ]);
+  }
+
+  function crumbsFor(scene) {
+    if (scene === "settings") return ["Settings", "Atomic Tracker", "Ask"];
+    if (scene === "canvas") return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
+    if (scene === "library" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
+    return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
+  }
+
+  function titleFor(scene) {
+    if (scene === "settings") return "Ask";
+    if (scene === "canvas") return "Pride and Prejudice.canvas";
+    if (scene === "library" || (scene === "empty" && state.emptyKind === "file")) return "Book shelf";
+    if (scene === "empty") return "Ask";
+    return "Pride and Prejudice";
+  }
+
+  function statusFor(scene) {
+    if (scene === "library") return "10 books";
+    if (scene === "canvas") return "1 canvas";
+    if (scene === "settings") return "";
+    if (scene === "empty") return state.emptyKind === "file" ? "Unsupported" : "No key";
+    return "p. 47 · 11%";
+  }
+
+  function contentFor(scene, phone) {
+    if (scene === "library") return shelf();
+    if (scene === "canvas") return canvasView(phone);
+    if (scene === "settings") return settingsView();
+    if (scene === "empty") return emptyView();
+    return reader(scene, phone);
+  }
+
+  function pane(scene, phone) {
+    const wrap = el("div", { class: "atomic-pane" });
+    if (scene === "library" || scene === "empty") {
+      wrap.appendChild(el("h2", { class: "atomic-pane-title" }, titleFor(scene)));
+    }
+    wrap.appendChild(contentFor(scene, phone));
+    return wrap;
+  }
+
+  function ribbonIcons() {
+    return ["sidebar", "file", "cal", "term", "grid"].map((k) => svg(ICONS[k]));
+  }
+
+  function statusIcons() {
+    const box = el("div", { class: "ob-statusbar-icons" });
+    const bars = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    bars.setAttribute("width", "18"); bars.setAttribute("height", "12"); bars.setAttribute("viewBox", "0 0 18 12");
+    [[0, 8, 3, 4], [5, 5.5, 3, 6.5], [10, 3, 3, 9], [15, 0, 3, 12]].forEach(([x, y, w, h]) => {
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", w); r.setAttribute("height", h);
+      r.setAttribute("rx", "0.8"); r.setAttribute("fill", "currentColor");
+      bars.appendChild(r);
+    });
+    box.append(bars);
+    return box;
+  }
+
+  function desktopWindow(scene) {
+    const crumbs = crumbsFor(scene);
+    const last = crumbs[crumbs.length - 1];
+    const rest = crumbs.slice(0, -1).join(" / ") + (crumbs.length > 1 ? " / " : "");
+    const win = el("div", { class: "ob-window theme-" + state.theme }, [
+      el("div", { class: "ob-titlebar" }, [
+        el("div", { class: "ob-lights" }, [el("span"), el("span"), el("span")]),
+        el("div", { class: "ob-tab" }, [titleFor(scene), el("span", { class: "ob-x" }, "×")]),
+        el("span", { class: "ob-plus" }, "+"),
+        el("div", { class: "ob-title-actions" }, [svg(ICONS.chev), svg(ICONS.sidebar)]),
+      ]),
+      el("div", { class: "ob-ribbon" }, ribbonIcons()),
+      el("div", { class: "ob-main" }, [
+        el("div", { class: "ob-viewhead" }, [
+          svg(ICONS.left), svg(ICONS.right),
+          el("div", { class: "ob-crumbs" }, [rest, el("b", null, last)]),
+          svg(ICONS.book), svg(ICONS.more),
+        ]),
+        el("div", { class: "ob-content", "data-host": "desk" }, pane(scene, false)),
+        statusFor(scene) ? el("div", { class: "ob-status" }, statusFor(scene)) : null,
+      ]),
+      openScene(),
+    ]);
+    return win;
+  }
+
+  function phoneFrame(scene) {
+    return el("div", { class: "ob-phone" },
+      el("div", { class: "ob-phone-screen theme-" + state.theme }, [
+        el("div", { class: "ob-island" }),
+        el("div", { class: "ob-statusbar" }, [el("span", null, "9:41"), statusIcons()]),
+        el("div", { class: "ob-mhead" }, [
+          svg(ICONS.sidebar),
+          el("div", { class: "ob-mhead-title" }, titleFor(scene)),
+          svg(ICONS.book), svg(ICONS.more),
+        ]),
+        el("div", { class: "ob-mcontent", "data-host": "phone" }, pane(scene, true)),
+        el("div", { class: "ob-mnav" }, [svg(ICONS.left), svg(ICONS.right), svg(ICONS.plus), svg(ICONS.search), svg(ICONS.menu)]),
+        el("div", { class: "ob-home" }),
+        openScene(),
+      ]),
+    );
+  }
+
+  function setSceneButtons() {
+    document.querySelectorAll("[data-tool=scene] button").forEach((b) => {
+      b.classList.toggle("is-on", b.getAttribute("data-scene") === state.scene);
+    });
+    document.querySelectorAll("[data-tool=theme] button").forEach((b) => {
+      b.classList.toggle("is-on", b.getAttribute("data-theme") === state.theme);
+    });
+    document.querySelectorAll("[data-tool=motion] button").forEach((b) => {
+      b.classList.toggle("is-on", b.getAttribute("data-motion") === state.motion);
+    });
+    const note = document.getElementById("scene-note");
+    if (note) note.textContent = NOTES[state.scene];
+    const emptyKind = document.getElementById("empty-kind");
+    if (emptyKind) {
+      emptyKind.hidden = state.scene !== "empty";
+      emptyKind.querySelectorAll("button").forEach((b) => {
+        b.classList.toggle("is-on", b.getAttribute("data-empty") === state.emptyKind);
+      });
+    }
+    document.getElementById("board").classList.toggle("is-dark", state.theme === "dark");
+    document.body.classList.toggle("mock-reduced", state.motion === "reduced");
+  }
+
+  function toast(host, msg) {
+    host.querySelectorAll(".atomic-toast").forEach((n) => n.remove());
+    const t = el("div", { class: "atomic-toast fitness-plugin" }, el("div", { class: "atomic-glass" }, el("span", { class: "atomic-readout is-live" }, msg)));
+    host.appendChild(t);
+    setTimeout(() => t.remove(), 1600);
+  }
+
+  function playOpen(sceneRoot, bookEl, then) {
+    const overlay = sceneRoot.querySelector("[data-open]");
+    const flying = overlay && overlay.querySelector(".open-book");
+    if (!overlay || !flying) { then(); return; }
+    if (reduceMotion()) { then(); return; }
+    const hostBox = sceneRoot.getBoundingClientRect();
+    const bookBox = bookEl.getBoundingClientRect();
+    const cx = bookBox.left + bookBox.width / 2 - hostBox.left;
+    const cy = bookBox.top + bookBox.height / 2 - hostBox.top;
+    flying.style.setProperty("--from-x", (cx - hostBox.width / 2) + "px");
+    flying.style.setProperty("--from-y", (cy - hostBox.height / 2) + "px");
+    flying.style.setProperty("--from-s", (bookBox.width / 280).toFixed(3));
+    overlay.classList.remove("is-playing");
+    overlay.classList.add("is-on");
+    void overlay.offsetWidth;
+    overlay.classList.add("is-playing");
+    const skip = () => {
+      overlay.removeEventListener("click", skip);
+      clearTimeout(tid);
+      overlay.classList.remove("is-on", "is-playing");
+      then();
+    };
+    overlay.addEventListener("click", skip);
+    const tid = setTimeout(skip, 1450);
+  }
+
+  function openBook(book, origin) {
+    if (book.kind === "bad") {
+      state.scene = "empty";
+      state.emptyKind = "file";
+      state.from = "shelf";
+      render();
+      return;
+    }
+    state.book = book;
+    state.from = origin;
+    state.page = origin === "canvas" ? state.page : book.last;
+    state.slip = null;
+    if (origin === "canvas" || reduceMotion()) {
+      state.scene = "reader";
+      render();
+      return;
+    }
+    const books = Array.from(document.querySelectorAll('[data-book="' + book.id + '"]'));
+    const desk = document.querySelector("#desk-host .ob-window");
+    const phone = document.querySelector("#phone-host .ob-phone-screen");
+    state.playing = true;
+    let left = 2;
+    const done = () => {
+      left -= 1;
+      if (left > 0) return;
+      state.playing = false;
+      state.scene = "reader";
+      render();
+    };
+    if (desk && books[0]) playOpen(desk, books[0], done);
+    else done();
+    if (phone && books[1]) playOpen(phone, books[1], done);
+    else done();
+  }
+
+  function wire(root) {
+    root.addEventListener("click", (e) => {
+      const sceneBtn = e.target.closest("[data-scene]");
+      if (sceneBtn && sceneBtn.getAttribute("data-scene")) {
+        state.scene = sceneBtn.getAttribute("data-scene");
+        if (state.scene === "empty") state.emptyKind = "key";
+        render();
+        return;
+      }
+      const book = e.target.closest("[data-book]");
+      if (book) {
+        const rec = BOOKS.find((b) => b.id === book.getAttribute("data-book"));
+        if (rec) openBook(rec, "shelf");
+        return;
+      }
+      const jump = e.target.closest("[data-jump]");
+      if (jump) {
+        state.page = Number(jump.getAttribute("data-jump")) || 47;
+        state.from = "canvas";
+        state.scene = "reader";
+        render();
+        return;
+      }
+      const slip = e.target.closest("[data-slip]");
+      if (slip) {
+        const id = slip.getAttribute("data-slip");
+        state.slip = state.slip === id ? null : id;
+        render();
+        return;
+      }
+      const act = e.target.closest("[data-act]");
+      if (!act) return;
+      const name = act.getAttribute("data-act");
+      if (name === "ask") {
+        if (!state.hasKey) { state.scene = "empty"; state.emptyKind = "key"; render(); return; }
+        state.scene = "ask";
+        render();
+        return;
+      }
+      if (name === "highlight" || name === "remark") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Saved to canvas");
+        return;
+      }
+      if (name === "note") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Opens Pride and Prejudice.md");
+        return;
+      }
+      if (name === "save-key") {
+        state.hasKey = true;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Key saved on this device");
+        return;
+      }
+      if (name === "test-key") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Provider answered");
+        return;
+      }
+      if (name === "whole") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Whole book sends the text. Confirm cost first.");
+      }
+    });
+
+    root.querySelectorAll(".atomic-book").forEach((btn) => {
+      btn.addEventListener("pointerenter", () => {
+        const rec = BOOKS.find((b) => b.id === btn.getAttribute("data-book"));
+        const shelfEl = btn.closest(".atomic-shelf");
+        if (!rec || !shelfEl) return;
+        const t = shelfEl.querySelector("[data-read-title]");
+        const m = shelfEl.querySelector("[data-read-meta]");
+        const h = shelfEl.querySelector("[data-read-hint]");
+        if (t) t.textContent = rec.title;
+        if (m) m.textContent = [rec.author, rec.status, rec.kind === "bad" ? "unsupported" : rec.kind.toUpperCase(), rec.pages ? rec.pages + " pp" : ""].filter(Boolean).join(" · ");
+        if (h) h.textContent = rec.kind === "bad" ? "Cannot open this file" : rec.status === "Reading" ? "Resume p. " + rec.last : "Click to open";
+      });
+    });
+  }
+
+  function render() {
+    setSceneButtons();
+    const desk = document.getElementById("desk-host");
+    const phone = document.getElementById("phone-host");
+    desk.replaceChildren(desktopWindow(state.scene));
+    phone.replaceChildren(phoneFrame(state.scene));
+    wire(desk);
+    wire(phone);
+  }
+
+  document.querySelector("[data-tool=scene]").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-scene]");
+    if (!b) return;
+    state.scene = b.getAttribute("data-scene");
+    if (state.scene === "empty") state.emptyKind = "key";
+    if (state.scene === "reader" || state.scene === "select" || state.scene === "ask") state.from = "shelf";
+    render();
+  });
+  document.querySelector("[data-tool=theme]").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-theme]");
+    if (!b) return;
+    state.theme = b.getAttribute("data-theme");
+    render();
+  });
+  document.querySelector("[data-tool=motion]").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-motion]");
+    if (!b) return;
+    state.motion = b.getAttribute("data-motion");
+    render();
+  });
+  document.getElementById("empty-kind").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-empty]");
+    if (!b) return;
+    state.emptyKind = b.getAttribute("data-empty");
+    state.scene = "empty";
+    render();
+  });
+  document.getElementById("replay").addEventListener("click", () => {
+    state.scene = "library";
+    state.from = "shelf";
+    state.emptyKind = "key";
+    render();
+    requestAnimationFrame(() => {
+      const first = document.querySelector('#desk-host [data-book="pp"]');
+      if (first) openBook(BOOKS[0], "shelf");
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
