@@ -102,6 +102,8 @@ The mock **Reading view** scene is a note in reading mode with an `atomic-booksh
 
 **Mobile memory.** Large PDF + animation + canvas preview in one webview can OOM. Keep the animation overlay off-DOM when idle. Do not rasterize the whole book for the flip.
 
+**Reading-view open.** See [Open from reading view (decided)](#open-from-reading-view-decided). The overlay is a window-body layer. A post-processor re-render must not own it or the motion dies the way blocks used to hang in #120.
+
 ## Proposed phases
 
 Ship in this order. Each phase is usable alone.
