@@ -1234,10 +1234,15 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 2px;
+  /* Overlay tokens hide Obsidian thumbs. Native bars still paint unless
+     scrollbar-width is none. The year still scrolls. */
+  scrollbar-width: none;
 }
 
 .fitness-plugin .atomic-heat-scroll::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 
 .fitness-plugin .atomic-heat-grid {
