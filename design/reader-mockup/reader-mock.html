@@ -2035,7 +2035,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     });
   }
 
-  function wire(root) {
+  function wireClicks(root) {
     root.addEventListener("click", (e) => {
       const sceneBtn = e.target.closest("[data-scene]");
       if (sceneBtn && sceneBtn.getAttribute("data-scene")) {
@@ -2164,7 +2164,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         toast(root.closest(".ob-window, .ob-phone-screen") || root, "Whole book sends the text. Confirm cost first.");
       }
     });
+  }
 
+  function wireHovers(root) {
     root.querySelectorAll(".atomic-book").forEach((btn) => {
       btn.addEventListener("pointerenter", () => {
         const rec = BOOKS.find((b) => b.id === btn.getAttribute("data-book"));
@@ -2199,8 +2201,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     const phone = document.getElementById("phone-host");
     desk.replaceChildren(desktopWindow(state.scene));
     phone.replaceChildren(phoneFrame(state.scene));
-    wire(desk);
-    wire(phone);
+    wireHovers(desk);
+    wireHovers(phone);
     bindTheaterChrome(desk.querySelector(".ob-window"));
     bindTheaterChrome(phone.querySelector(".ob-phone-screen"));
   }
@@ -2286,6 +2288,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     });
   });
 
+  wireClicks(document.getElementById("desk-host"));
+  wireClicks(document.getElementById("phone-host"));
   render();
 })();
 </script>
