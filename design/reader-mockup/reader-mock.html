@@ -1695,6 +1695,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   function clearOverlay(overlay) {
     if (!overlay) return;
     overlay.classList.remove("is-on", "is-playing");
+    overlay.removeAttribute("data-open-tid");
   }
 
   function abortOpens() {
@@ -1733,6 +1734,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       then();
     };
     const tid = setTimeout(skip, 1450);
+    overlay.setAttribute("data-open-tid", String(tid));
     const job = { overlay, skip, tid };
     openJobs.push(job);
     overlay.addEventListener("click", skip);
