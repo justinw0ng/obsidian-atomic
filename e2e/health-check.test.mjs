@@ -2780,10 +2780,8 @@ ${E2E_CUE_LOG_FENCE}
       await closeSettings(driver);
 
       await openVaultFile(driver, E2E_FILES.readingCurrent);
-      await runCommandViaPalette(driver, "Open book");
-      await waitCss(driver, '[data-testid="atomic-chooser-book"]');
       await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        app.commands.executeCommandById("atomic-tracker:open-book");
       `);
       let slots = {};
       await driver.wait(async () => {
