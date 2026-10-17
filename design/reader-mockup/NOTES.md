@@ -87,13 +87,13 @@ Theater is the Open Book landing, not a black void around an unchanged reader. *
 
 **Dark.** Full dark Obsidian desk (`#1e1e1e` / `#262626`). Room is deep warm dark (`#0e0c0a`). Same curtain metaphor in charcoal / taupe. Cream paper still, with a museum key, contact shadow, and warm side pools.
 
-**Chrome.** Obsidian chrome (ribbon, tabs, view header, status) dims, then auto-hides after **2s**. Mouse move or tap restores it. A theater pill at top center holds **Book size** and **Exit Esc**. **Esc** or Exit leaves theater. Phone keeps island, status, home indicator, and bottom nav. `prefers-reduced-motion` is an instant fade, no 3D.
+**Chrome.** Obsidian chrome (ribbon, tabs, view header) stays in place and dims. The linen or museum room fills the **content pane** only — not the titlebar or ribbon. After **2s** the size/Exit pill fades; mouse or tap restores it. **Esc** or Exit leaves theater. Theater hides the reader toolbar, progress, and margin remarks so the book is the hero; they return on Exit. Phone keeps island, status, home indicator, and bottom nav; the page is a centered card; the pill sits below the island. `prefers-reduced-motion` is an instant fade, no 3D.
 
 **Open lands on the reader.** Snapshot the cover rect, then paint the reader under the overlay. Measure `.atomic-page` (desktop: both leaves; phone: the column). The flying book’s `--to-x` / `--to-y` / `--to-s` map the opened spread onto those rects (p. 47, same text). Overlay lifts with no second layout and no crossfade. Replay Open Book (library or reading view) flies onto that spread, then theater.
 
 **Mount in Obsidian.** Same window rule as the open overlay. Do **not** `requestFullscreen` as the only path (popouts, iOS WKWebView). Do **not** clip the workspace with `clip-path` or CSS masks (directory review). Keep the reader leaf. Fade ribbon / tabs / view header / status in place on `activeDocument` (read `activeWindow` / `activeDocument`, not `globalThis`).
 
-The mock `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is theme-matched linen or museum, with curtains, key light, and the size/Exit pill. `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
+The mock `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is theme-matched linen or museum in the content pane, with curtains, key light, and the size/Exit pill below the view header (below the island on phone). `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
 
 ## Book size (decided)
 

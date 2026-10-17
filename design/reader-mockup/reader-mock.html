@@ -826,61 +826,64 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-window.is-entering-theater .ob-titlebar,
 .ob-window.is-entering-theater .ob-ribbon,
 .ob-window.is-entering-theater .ob-viewhead,
-.ob-window.is-entering-theater .ob-status,
 .ob-phone-screen.is-entering-theater .ob-mhead {
-  opacity: 0;
-  animation: theater-chrome-out 1100ms 80ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) forwards;
-  pointer-events: none;
+  animation: theater-chrome-dim 1100ms 80ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) forwards;
 }
-@keyframes theater-chrome-out {
+@keyframes theater-chrome-dim {
   from { opacity: 1; }
-  to { opacity: 0; }
+  to { opacity: 0.58; }
 }
-.ob-window.is-theater,
-.ob-phone-screen.is-theater {
+.ob-window.is-theater .ob-content,
+.ob-phone-screen.is-theater .ob-mcontent {
   background: var(--theater-void);
 }
 .ob-window.is-theater .th-ambient,
 .ob-phone-screen.is-theater .th-ambient {
-  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
     radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%),
     linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
 }
 .theme-dark.ob-window.is-theater .th-ambient,
 .theme-dark.ob-phone-screen.is-theater .th-ambient {
   background:
     radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%),
+    radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%),
     linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
 }
 .ob-window.is-theater .th-key {
   position: absolute; left: 80px; top: 40px; width: 520px; height: 420px;
-  z-index: 4; pointer-events: none; border-radius: 50%;
+  z-index: 2; pointer-events: none; border-radius: 50%;
   background: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
 }
 .theme-dark.ob-window.is-theater .th-key {
   background: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
 }
 .ob-window.is-theater .curtain {
-  position: absolute; top: 38px; bottom: 0; width: 168px; z-index: 5; pointer-events: none;
+  position: absolute; top: 0; bottom: 0; width: 168px; z-index: 3; pointer-events: none;
 }
 .ob-window.is-theater.sz-xl .curtain { width: 108px; }
-.ob-window.is-theater .curtain.is-l { left: 44px; }
+.ob-window.is-theater .curtain.is-l { left: 0; }
 .ob-window.is-theater .curtain.is-r { right: 0; }
 .ob-window.is-theater .curtain.is-l {
   background: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  box-shadow: 6px 0 28px rgba(60, 50, 40, 0.1);
 }
 .ob-window.is-theater .curtain.is-r {
   background: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  box-shadow: -6px 0 28px rgba(60, 50, 40, 0.1);
 }
 .theme-dark.ob-window.is-theater .curtain.is-l {
   background: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
 }
 .theme-dark.ob-window.is-theater .curtain.is-r {
   background: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
 }
 .ob-window.is-theater .lamp-pool {
-  position: absolute; top: 150px; width: 140px; height: 260px; z-index: 6;
+  position: absolute; top: 150px; width: 140px; height: 260px; z-index: 4;
   pointer-events: none; border-radius: 50%;
   background: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
 }
@@ -888,15 +891,19 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   background: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
 }
 .ob-window.is-theater .lamp-pool.is-l { left: 188px; }
-.ob-window.is-theater .lamp-pool.is-r { right: 24px; }
+.ob-window.is-theater .lamp-pool.is-r { right: 188px; }
+.ob-window.is-theater.sz-xl .lamp-pool { top: 170px; height: 340px; }
+.ob-window.is-theater.sz-xl .lamp-pool.is-l { left: 96px; }
+.ob-window.is-theater.sz-xl .lamp-pool.is-r { right: 96px; }
 .ob-window.is-theater .th-chrome,
 .ob-phone-screen.is-theater .th-chrome {
   position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
-  z-index: 12; display: flex; align-items: center; gap: 12px;
+  z-index: 8; display: flex; align-items: center; gap: 12px;
   height: 40px; padding: 0 6px 0 12px; border-radius: 14px;
   background: rgba(251, 250, 247, 0.92); color: #3a3834;
   box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
   opacity: 0.78; transition: opacity 240ms ease;
+  white-space: nowrap;
 }
 .theme-dark.ob-window.is-theater .th-chrome,
 .theme-dark.ob-phone-screen.is-theater .th-chrome {
@@ -913,50 +920,125 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 .theme-dark .th-chrome .th-exit { background: rgba(255, 255, 255, 0.06); }
 .th-chrome .th-exit .kbd { font-family: var(--atomic-mono, ui-monospace, monospace); font-size: 11px; opacity: 0.6; }
-.ob-window.is-theater .atomic-reader { background: transparent; }
-.ob-window.is-theater .atomic-spread {
+.th-hint {
+  position: absolute; left: 0; right: 0; bottom: 18px;
+  z-index: 6; text-align: center; pointer-events: none;
+  font-family: var(--atomic-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(60, 55, 48, 0.45);
+}
+.theme-dark .th-hint { color: rgba(255, 230, 200, 0.32); }
+.ob-window.is-theater .atomic-pane,
+.ob-phone-screen.is-theater .atomic-pane {
+  position: relative; z-index: 5;
+  padding: 0; overflow: hidden; background: transparent;
+}
+.ob-window.is-theater .atomic-reader,
+.ob-phone-screen.is-theater .atomic-reader {
   background: transparent;
-  z-index: 7;
+  grid-template-rows: 1fr;
+}
+.ob-window.is-theater .atomic-reader-bar,
+.ob-window.is-theater .atomic-reader-foot,
+.ob-window.is-theater .atomic-gutter,
+.ob-window.is-theater .atomic-remark,
+.ob-window.is-theater .atomic-selbar,
+.ob-window.is-theater .ob-status,
+.ob-phone-screen.is-theater .atomic-reader-bar,
+.ob-phone-screen.is-theater .atomic-reader-foot,
+.ob-phone-screen.is-theater .atomic-gutter,
+.ob-phone-screen.is-theater .atomic-slip,
+.ob-phone-screen.is-theater .atomic-mdot,
+.ob-phone-screen.is-theater .atomic-selbar,
+.ob-phone-screen.is-theater .atomic-phone-size {
+  display: none;
+}
+.ob-window.is-theater .atomic-spread {
+  grid-template-columns: var(--page-w, 270px) var(--page-w, 270px);
+  gap: 0;
+  background: transparent;
+  z-index: 5;
 }
 .ob-window.is-theater .atomic-page {
-  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
-  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
-}
-.theme-dark.ob-window.is-theater .atomic-page {
-  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  margin: 0;
   color: #2a2824;
 }
-.theme-dark.ob-window.is-theater .atomic-page p,
-.theme-dark.ob-window.is-theater .atomic-page h3 { color: #2a2824; }
+.ob-window.is-theater .atomic-page.is-verso {
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+}
+.ob-window.is-theater .atomic-page.is-recto {
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+}
+.theme-dark.ob-window.is-theater .atomic-page.is-verso {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+}
+.theme-dark.ob-window.is-theater .atomic-page.is-recto {
+  background: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+}
+.ob-window.is-theater .atomic-page p,
+.ob-window.is-theater .atomic-page h3,
+.ob-phone-screen.is-theater .atomic-page p,
+.ob-phone-screen.is-theater .atomic-page h3 { color: #2a2824; }
+.ob-window.is-theater .atomic-ask {
+  top: 12px; right: 12px; bottom: 12px;
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 18px 40px -24px rgba(0, 0, 0, 0.45);
+}
 .ob-window.is-theater .ob-titlebar,
 .ob-window.is-theater .ob-ribbon,
-.ob-window.is-theater .ob-viewhead,
-.ob-window.is-theater .ob-status {
-  opacity: 0;
-  pointer-events: none;
+.ob-window.is-theater .ob-viewhead {
+  opacity: 0.58;
   transition: opacity 360ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1));
 }
+.theme-dark.ob-window.is-theater .ob-titlebar,
+.theme-dark.ob-window.is-theater .ob-ribbon,
+.theme-dark.ob-window.is-theater .ob-viewhead { opacity: 0.48; }
 .ob-window.is-theater.is-chrome .ob-titlebar,
 .ob-window.is-theater.is-chrome .ob-ribbon,
-.ob-window.is-theater.is-chrome .ob-viewhead,
-.ob-window.is-theater.is-chrome .ob-status {
-  opacity: 0.58;
-  pointer-events: auto;
-}
+.ob-window.is-theater.is-chrome .ob-viewhead { opacity: 1; }
 .ob-phone-screen.is-theater .ob-mhead {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0.58;
   transition: opacity 360ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1));
 }
-.ob-phone-screen.is-theater.is-chrome .ob-mhead {
-  opacity: 1;
-  pointer-events: auto;
-}
+.theme-dark.ob-phone-screen.is-theater .ob-mhead { opacity: 0.48; }
+.ob-phone-screen.is-theater.is-chrome .ob-mhead { opacity: 1; }
 .ob-phone-screen.is-theater .curtain,
 .ob-phone-screen.is-theater .th-key,
 .ob-phone-screen.is-theater .lamp-pool { display: none; }
-.ob-phone-screen.is-theater .atomic-phone-size { display: none; }
+.ob-phone-screen.is-theater .th-chrome {
+  top: 10px;
+  max-width: calc(100% - 24px);
+  gap: 8px;
+  padding: 0 4px 0 8px;
+}
+.ob-phone-screen.is-theater .th-chrome .bsize .kbd { display: none; }
+.ob-phone-screen.is-theater .atomic-spread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: transparent;
+}
+.ob-phone-screen.is-theater .atomic-page {
+  width: min(320px, calc(100% - 40px));
+  height: var(--page-h, 340px);
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 2px;
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  color: #2a2824;
+}
+.theme-dark.ob-phone-screen.is-theater .atomic-page {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+}
 .ob-edge {
   position: absolute; z-index: 11;
   background: transparent;
@@ -970,23 +1052,19 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   .ob-window.is-entering-theater .ob-titlebar,
   .ob-window.is-entering-theater .ob-ribbon,
   .ob-window.is-entering-theater .ob-viewhead,
-  .ob-window.is-entering-theater .ob-status,
   .ob-phone-screen.is-entering-theater .ob-mhead,
   .ob-window.is-theater .ob-titlebar,
   .ob-window.is-theater .ob-ribbon,
   .ob-window.is-theater .ob-viewhead,
-  .ob-window.is-theater .ob-status,
   .ob-phone-screen.is-theater .ob-mhead { animation: none !important; transition: none !important; }
 }
 .mock-reduced .ob-window.is-entering-theater .ob-titlebar,
 .mock-reduced .ob-window.is-entering-theater .ob-ribbon,
 .mock-reduced .ob-window.is-entering-theater .ob-viewhead,
-.mock-reduced .ob-window.is-entering-theater .ob-status,
 .mock-reduced .ob-phone-screen.is-entering-theater .ob-mhead,
 .mock-reduced .ob-window.is-theater .ob-titlebar,
 .mock-reduced .ob-window.is-theater .ob-ribbon,
 .mock-reduced .ob-window.is-theater .ob-viewhead,
-.mock-reduced .ob-window.is-theater .ob-status,
 .mock-reduced .ob-phone-screen.is-theater .ob-mhead { animation: none !important; transition: none !important; }
 
 /* ---------------------------------------------------------------- canvas */
@@ -1546,6 +1624,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   }
 
   function alignReaderNotes(root) {
+    if (root.querySelector(".is-theater")) return;
     const phone = !!root.querySelector(".ob-phone-screen, .ob-mcontent");
     const pages = [...root.querySelectorAll(".atomic-page")];
     if (!pages.length) return;
@@ -1609,6 +1688,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   function pageText(lines, mark) {
     return lines.map((item) => {
       if (typeof item === "string") return el("p", null, item);
+      if (!mark) return el("p", null, item[0]);
       const [text, kind] = item;
       const span = el("span", { class: "atomic-hl" + (kind === "hl-sel" && mark === "sel" ? " is-sel" : ""), "data-hl": kind }, text);
       return el("p", null, [span, document.createTextNode("")]);
@@ -1765,6 +1845,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
           el("span", { class: "kbd" }, "Esc"),
         ]),
       ]),
+      el("div", { class: "th-hint", "aria-hidden": "true" }, "Chrome hides after 2 s · move mouse to show"),
     ];
   }
 
@@ -1793,8 +1874,10 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
   function reader(kind, phone) {
     const fromCanvas = state.from === "canvas";
+    const inTheater = state.theater;
     const showSel = kind === "select" || kind === "ask";
     const showAsk = kind === "ask";
+    const marks = inTheater ? false : (showSel ? "sel" : "on");
     const leftGutter = el("div", { class: "atomic-gutter" },
       el("button", { type: "button", class: "atomic-remark", "data-jump": "47", "data-note": "quote" }, [
         el("strong", null, "Remark · p. 47"),
@@ -1852,8 +1935,13 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       : el("div", { class: "atomic-ask fitness-plugin", hidden: !showAsk }, askBody);
 
     const pages = phone
-      ? [el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I · p. 47"), ...pageText(LEFT.concat(RIGHT), showSel ? "sel" : ""), slip, dots])]
-      : [leftGutter, el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I"), ...pageText(LEFT, showSel ? "sel" : "")]), el("div", { class: "atomic-page" }, [el("h3", null, "p. 47"), ...pageText(RIGHT, showSel ? "sel" : "")]), rightGutter];
+      ? [el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I · p. 47"), ...pageText(LEFT.concat(RIGHT), marks), inTheater ? null : slip, inTheater ? null : dots])]
+      : [
+          inTheater ? null : leftGutter,
+          el("div", { class: "atomic-page is-verso" }, [el("h3", null, "Chapter I"), ...pageText(LEFT, marks)]),
+          el("div", { class: "atomic-page is-recto" }, [el("h3", null, "p. 47"), ...pageText(RIGHT, marks)]),
+          inTheater ? null : rightGutter,
+        ];
 
     return el("div", { class: "fitness-plugin atomic-reader" }, [
       el("div", { class: "atomic-reader-bar" }, [
@@ -2122,7 +2210,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     const crumbs = crumbsFor(scene);
     const last = crumbs[crumbs.length - 1];
     const rest = crumbs.slice(0, -1).join(" / ") + (crumbs.length > 1 ? " / " : "");
-    const win = el("div", { class: theaterClass("ob-window", scene), "data-theater": theaterOn(scene) ? "on" : "off" }, [
+    const onTheater = theaterOn(scene);
+    const win = el("div", { class: theaterClass("ob-window", scene), "data-theater": onTheater ? "on" : "off" }, [
       el("div", { class: "ob-titlebar" }, [
         el("div", { class: "ob-lights" }, [el("span"), el("span"), el("span")]),
         el("div", { class: "ob-tab" }, [titleFor(scene), el("span", { class: "ob-x" }, "×")]),
@@ -2136,11 +2225,13 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
           el("div", { class: "ob-crumbs" }, [rest, el("b", null, last)]),
           svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
         ]),
-        el("div", { class: "ob-content", "data-host": "desk" }, pane(scene, false)),
+        el("div", { class: "ob-content", "data-host": "desk" }, [
+          ...(onTheater ? theaterLayers() : []),
+          pane(scene, false),
+        ]),
         statusFor(scene) ? el("div", { class: "ob-status" }, statusFor(scene)) : null,
       ]),
-      ...(theaterOn(scene) ? edgeZones() : []),
-      ...(theaterOn(scene) ? theaterLayers() : []),
+      ...(onTheater ? edgeZones() : []),
       scene === "chooser" ? chooserSheet(false) : null,
       openScene(),
     ]);
@@ -2149,7 +2240,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   }
 
   function phoneFrame(scene) {
-    const screen = el("div", { class: theaterClass("ob-phone-screen", scene), "data-theater": theaterOn(scene) ? "on" : "off" }, [
+    const onTheater = theaterOn(scene);
+    const screen = el("div", { class: theaterClass("ob-phone-screen", scene), "data-theater": onTheater ? "on" : "off" }, [
       el("div", { class: "ob-island" }),
       el("div", { class: "ob-statusbar" }, [el("span", null, "9:41"), statusIcons()]),
       el("div", { class: "ob-mhead" }, [
@@ -2157,11 +2249,13 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("div", { class: "ob-mhead-title" }, titleFor(scene)),
         svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
       ]),
-      el("div", { class: "ob-mcontent", "data-host": "phone" }, pane(scene, true)),
+      el("div", { class: "ob-mcontent", "data-host": "phone" }, [
+        ...(onTheater ? theaterLayers() : []),
+        pane(scene, true),
+      ]),
       el("div", { class: "ob-mnav" }, [svg(ICONS.left), svg(ICONS.right), svg(ICONS.plus), svg(ICONS.search), svg(ICONS.menu)]),
       el("div", { class: "ob-home" }),
-      ...(theaterOn(scene) ? edgeZones() : []),
-      ...(theaterOn(scene) ? theaterLayers() : []),
+      ...(onTheater ? edgeZones() : []),
       scene === "chooser" ? chooserSheet(true) : null,
       openScene(),
     ]);
