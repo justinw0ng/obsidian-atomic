@@ -12,8 +12,8 @@ A new **reader** for EPUB and PDF files that already live in the vault. It is se
 - Open Notes stays on the existing book note. No theater. The note still holds the **timer** (`atomic-timer`) and **related_canvas**. If a past note already has a canvas, it shows as an embed on that note. If it does not, the note stays valid and a canvas is created on first highlight, remark, or Ask.
 - **Timer.** Same 1.5.0 well as today. **Open Book starts it.** It stops when the book is not frontmost, or you close it. Start on the note still works for time spent writing. Minutes write a Reading session and the heatmap.
 - Open Book is a **continuous in-place flight** on the same leaf: cover lifts → hinge opens → pages flip → spread forms → lands on last-read p. 47. No second layout jump. Overlay on `activeDocument.body` so a reading-view re-render cannot kill it.
-- **Theater follows the theme.** Light theme → light theater (linen curtains, soft warm key on cream paper, contact shadow). Dark theme → dark theater. No black stage, no orange side bars. Chrome auto-hides after 2s; mouse or tap restores it. **Exit** and **Esc** leave theater.
-- **Book size S · M · L · XL** (`⌘−` / `⌘+`) lives in the reader toolbar, the theater chrome pill, and the phone sheet. It enlarges the **page**, not the type (M 15 lines, XL 22–23). Saved per book as `reader.size` frontmatter. 200ms resize; instant under reduced motion.
+- **Theater follows the theme.** Light theme → light theater (linen curtains, soft warm key on cream paper, contact shadow). Dark theme → dark theater. No black stage, no orange side bars. Theater is always **XL**. Chrome auto-hides after 2s; mouse or tap restores it. **Exit** and **Esc** leave theater. No size picker in theater.
+- **Book size S · M · L · XL** (`⌘−` / `⌘+`) lives in the settled reader toolbar and the phone sheet — not in theater. It enlarges the **page**, not the type (M 15 lines, XL 22–23). Saved per book as `reader.size` frontmatter. 200ms resize; instant under reduced motion.
 - Open from a canvas card. You land on that card’s page.
 - Highlight, remark, or ask. Each one writes a card on **one canvas per book**. Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
 - Ask uses a key the user keeps in **Obsidian secret storage** (`requireApiVersion("1.11.4")`). Older Obsidian: Ask off. Scope is this page, this selection, or the whole book. The composer is a 1.5.0 control (fill well, radius 9, circular send) — not a native textarea.
@@ -88,23 +88,23 @@ Theater is the Open Book landing, not a black void around an unchanged reader. *
 
 **Dark.** Full dark Obsidian desk (`#1e1e1e` / `#262626`). Room is deep warm dark (`#0e0c0a`). Same curtain metaphor in charcoal / taupe. Cream paper still, with a museum key, contact shadow, and warm side pools.
 
-**Chrome.** Obsidian chrome (ribbon, tabs, view header) stays in place and dims. The linen or museum room fills the **content pane** only — not the titlebar or ribbon. After **2s** the size/Exit pill fades; mouse or tap restores it. **Esc** or Exit leaves theater. Theater hides the reader toolbar, progress, and margin remarks so the book is the hero; they return on Exit. Phone keeps island, status, home indicator, and bottom nav; the page is a centered card; the pill sits below the island. `prefers-reduced-motion` is an instant fade, no 3D.
+**Chrome.** Obsidian chrome (ribbon, tabs, view header) stays in place and dims. The linen or museum room fills the **content pane** only — not the titlebar or ribbon. Theater is always **XL** (340×500 pages, curtains parted). After **2s** the **Exit Esc** pill fades; mouse or tap restores it. **Esc** or Exit leaves theater. There is no S·M·L·XL control in theater — size stays on the settled reader. Theater hides the reader toolbar, progress, and margin remarks so the book is the hero; they return on Exit. Phone keeps island, status, home indicator, and bottom nav; the page is a centered XL card in the content pane; the Exit pill sits in that pane, below the island. `prefers-reduced-motion` is an instant fade, no 3D.
 
 **Open lands on the reader.** Snapshot the cover rect, then paint the reader under the overlay. Measure `.atomic-page` (desktop: both leaves; phone: the column). The flying book’s `--to-x` / `--to-y` / `--to-s` map the opened spread onto those rects (p. 47, same text). Overlay lifts with no second layout and no crossfade. Replay Open Book (library or reading view) flies onto that spread, then theater.
 
 **Mount in Obsidian.** Same window rule as the open overlay. Do **not** `requestFullscreen` as the only path (popouts, iOS WKWebView). Do **not** clip the workspace with `clip-path` or CSS masks (directory review). Keep the reader leaf. Fade ribbon / tabs / view header / status in place on `activeDocument` (read `activeWindow` / `activeDocument`, not `globalThis`).
 
-The mock `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is theme-matched linen or museum in the content pane, with curtains, key light, and the size/Exit pill below the view header (below the island on phone). `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
+The mock `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is theme-matched linen or museum in the content pane, with curtains, key light, and the Exit pill below the view header (below the island on phone). Always `sz-xl`. `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
 
 ## Book size (decided)
 
 Segmented **S · M · L · XL**. Each segment has a book glyph that grows with the size. `⌘ −` / `⌘ +` (Ctrl on Windows/Linux) steps it.
 
 - **Reader:** right end of the toolbar, same row as Shelf / Canvas / Note.
-- **Theater:** in the auto-hiding chrome pill (`Book size · Exit Esc`).
-- **Phone:** a "Book size" row with a full-width segmented control.
+- **Theater:** no size control. Always XL. Chrome pill is **Exit Esc** only.
+- **Phone:** a "Book size" row with a full-width segmented control on the settled reader. Hidden in theater.
 
-**What size does.** It scales the **book**, not the type. Type stays Literata 12.5/19 desktop, 15/23 phone. M page 270×340, 15 lines. XL page 340×488 (theater 340×500), 22–23 lines. In theater, XL parts the curtains wider.
+**What size does.** It scales the **book**, not the type. Type stays Literata 12.5/19 desktop, 15/23 phone. M page 270×340, 15 lines. XL page 340×488 (theater 340×500), 22–23 lines. Theater always uses XL, so the curtains stay parted for that spread.
 
 **Persistence.** Saved per book in the book note frontmatter (`reader.size: xl`), next to last-read page. New books start at M.
 
@@ -176,7 +176,7 @@ Settings: provider, model, and a `SecretComponent` that picks or creates a Keych
 
 ### Phase 6 — Motion, chooser, theater, and book size
 
-Chooser first (Open Notes default; Open Book only with a file). Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight targets the live reader page rects and lands on that same spread (no jump), then theme-matched theater (linen in light, museum in dark; Exit + Esc; chrome hides after 2s). Book size S·M·L·XL in reader, theater, and phone sheet. 2D fallback on phone if Phase 2 frames are not stable.
+Chooser first (Open Notes default; Open Book only with a file). Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight targets the live reader page rects and lands on that same spread (no jump), then theme-matched theater (linen in light, museum in dark; always XL; Exit + Esc only; chrome hides after 2s). Book size S·M·L·XL in the settled reader and phone sheet. 2D fallback on phone if Phase 2 frames are not stable.
 
 ### Phase 7 — Whole-book Ask
 

@@ -936,8 +936,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-window.is-theater .th-chrome,
 .ob-phone-screen.is-theater .th-chrome {
   position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
-  z-index: 8; display: flex; align-items: center; gap: 12px;
-  height: 40px; padding: 0 6px 0 12px; border-radius: 14px;
+  z-index: 8; display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 6px; border-radius: 14px;
   background: rgba(251, 250, 247, 0.92); color: #3a3834;
   box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
   opacity: 0.78; transition: opacity 240ms ease;
@@ -1049,23 +1049,50 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-phone-screen.is-theater .curtain,
 .ob-phone-screen.is-theater .th-key,
 .ob-phone-screen.is-theater .lamp-pool { display: none; }
-.ob-phone-screen.is-theater .th-chrome {
-  top: 10px;
-  max-width: calc(100% - 24px);
-  gap: 8px;
-  padding: 0 4px 0 8px;
+.ob-phone-screen.is-theater .ob-mcontent {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-.ob-phone-screen.is-theater .th-chrome .bsize .kbd { display: none; }
+.ob-phone-screen.is-theater .th-chrome {
+  top: 8px;
+  z-index: 9;
+  height: 36px;
+  max-width: calc(100% - 24px);
+}
+.ob-phone-screen.is-theater > .th-chrome {
+  top: 58px;
+}
+.ob-phone-screen.is-theater .th-hint { display: none; }
+.ob-phone-screen.is-theater .atomic-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ob-phone-screen.is-theater .atomic-reader {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 .ob-phone-screen.is-theater .atomic-spread {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 48px 16px 20px;
   background: transparent;
 }
 .ob-phone-screen.is-theater .atomic-page {
-  width: min(320px, calc(100% - 40px));
-  height: min(calc(var(--page-h, 340px) + 160px), calc(100% - 96px));
+  width: min(340px, calc(100% - 32px));
+  height: var(--page-h, 500px);
+  min-height: 280px;
+  flex: none;
   margin: 0 auto;
   overflow: hidden;
   border-radius: 2px;
@@ -1773,7 +1800,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   }
 
   function applyPageSize(node, theater) {
-    const dim = BOOK_SIZES[bookSize()] || BOOK_SIZES.m;
+    const dim = (theater ? BOOK_SIZES.xl : BOOK_SIZES[bookSize()]) || BOOK_SIZES.m;
     node.style.setProperty("--page-w", dim.w + "px");
     node.style.setProperty("--page-h", (theater ? dim.theaterH : dim.h) + "px");
   }
@@ -2046,8 +2073,6 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       el("div", { class: "lamp-pool is-l", "aria-hidden": "true" }),
       el("div", { class: "lamp-pool is-r", "aria-hidden": "true" }),
       el("div", { class: "th-chrome" }, [
-        bookSizeControl(false),
-        el("span", { class: "th-sep" }),
         el("button", { type: "button", class: "th-exit", "data-act": "theater-exit" }, [
           "Exit",
           el("span", { class: "kbd" }, "Esc"),
@@ -2114,7 +2139,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         : "The line everyone quotes. Keep it."),
     ]);
 
-    const selbar = el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel || showAsk, style: phone ? { left: "50%", top: "300px" } : { left: "68%", top: "248px" } },
+    const selbar = inTheater ? null : el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel || showAsk, style: phone ? { left: "50%", top: "300px" } : { left: "68%", top: "248px" } },
       el("div", { class: "atomic-glass" }, [
         el("button", { type: "button", class: "atomic-btn is-small", "data-act": "highlight" }, "Highlight"),
         el("button", { type: "button", class: "atomic-btn is-small", "data-act": "remark" }, "Remark"),
@@ -2159,23 +2184,21 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         ];
 
     return el("div", { class: "fitness-plugin atomic-reader" }, [
-      el("div", { class: "atomic-reader-bar" }, [
+      inTheater ? null : el("div", { class: "atomic-reader-bar" }, [
         el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-scene": "library" }, "Shelf"),
         el("span", { class: "grow atomic-name" }, [el("span", { class: "atomic-dot" }), "Pride and Prejudice"]),
         el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, "Canvas"),
         el("button", { type: "button", class: "atomic-link", "data-act": "note" }, "Note"),
-        phone ? null : (state.theater ? null : bookSizeControl(false)),
-        state.theater
-          ? null
-          : el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-act": "theater-enter" }, "Theater"),
+        phone ? null : bookSizeControl(false),
+        el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-act": "theater-enter" }, "Theater"),
       ]),
       el("div", { class: "atomic-spread" }, pages.concat([selbar, ask])),
-      el("div", { class: "atomic-reader-foot" }, [
+      inTheater ? null : el("div", { class: "atomic-reader-foot" }, [
         el("span", null, fromCanvas ? "From canvas · p. " + state.page : "Last read · p. 47"),
         el("span", { class: "atomic-prog" }, el("i")),
         el("span", null, "47 / 432 · 11%"),
       ]),
-      phone ? el("div", { class: "atomic-phone-size" }, [
+      phone && !inTheater ? el("div", { class: "atomic-phone-size" }, [
         el("div", { class: "rs-title" }, "Book size"),
         bookSizeControl(true),
       ]) : null,
@@ -2416,7 +2439,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
   function theaterClass(base, scene) {
     return base + " theme-" + state.theme
-      + (theaterOn(scene) ? " is-theater sz-" + bookSize() : "")
+      + (theaterOn(scene) ? " is-theater sz-xl" : "")
       + (theaterOn(scene) && state.chromeReveal ? " is-chrome" : "");
   }
 
