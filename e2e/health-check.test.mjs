@@ -2776,39 +2776,66 @@ ${E2E_CUE_LOG_FENCE}
           driver,
           '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
         );
-        await driver.executeScript(`
+        const clickReading = () => driver.executeScript(`
           document.querySelector(
             '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
           ).click();
         `);
+        await clickReading();
+        try {
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open === true;
+          }, 700);
+        } catch {
+          await clickReading();
+        }
         await waitCss(driver, '[data-testid="atomic-chooser-book"]');
         await driver.executeScript(`
           document.querySelector('[data-testid="atomic-chooser-book"]').click();
         `);
-        await waitCss(driver, '[data-testid="atomic-reader"] [data-testid="atomic-theater-enter"]');
+        await waitCss(driver, '.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]');
 
-        const settled = await driver.executeScript(`
-          const root = document.querySelector('[data-testid="atomic-reader"]');
-          const box = root?.querySelector('[data-testid="atomic-reader-page"]');
-          const rect = box?.getBoundingClientRect();
-          return {
-            theater: root?.classList.contains("is-theater") === true,
-            pageWidth: rect ? Math.round(rect.width) : 0,
-            pageHeight: rect ? Math.round(rect.height) : 0,
-            enter: root?.querySelector('[data-testid="atomic-theater-enter"]')?.textContent || "",
-          };
-        `);
-        assert.equal(settled.theater, false);
-        assert.equal(settled.pageWidth, 270);
-        assert.equal(settled.pageHeight, 340);
-        assert.equal(settled.enter, "Theater");
+        let settled = {};
+        try {
+          await driver.wait(async () => {
+            settled = await driver.executeScript(`
+              const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+              const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+              const rect = box?.getBoundingClientRect();
+              return {
+                theater: root?.classList.contains("is-theater") === true,
+                total: root?.getAttribute("data-total") || "",
+                status: root?.querySelector('[data-testid="atomic-reader-status"]')?.getAttribute("data-state") || "",
+                pageWidth: rect ? Math.round(rect.width) : 0,
+                pageHeight: rect ? Math.round(rect.height) : 0,
+                enter: root?.querySelector('[data-testid="atomic-theater-enter"]')?.textContent || "",
+                readers: [...document.querySelectorAll('[data-testid="atomic-reader"]')].map((node) => ({
+                  active: Boolean(node.closest(".workspace-leaf.mod-active")),
+                  width: Math.round(node.getBoundingClientRect().width),
+                  page: Math.round(node.querySelector('[data-testid="atomic-reader-page"]')?.getBoundingClientRect().width || 0),
+                })),
+              };
+            `);
+            return settled.theater === false
+              && settled.total === "3"
+              && settled.status === ""
+              && settled.pageWidth === 270
+              && settled.pageHeight === 340
+              && settled.enter === "Theater";
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(settled)}`);
+        }
 
         await driver.executeScript(`
-          document.querySelector('[data-testid="atomic-theater-enter"]').click();
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]').click();
         `);
         await driver.wait(async () => {
           const on = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             const box = root?.querySelector('[data-testid="atomic-reader-page"]');
             const rect = box?.getBoundingClientRect();
             const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
@@ -2836,7 +2863,7 @@ ${E2E_CUE_LOG_FENCE}
           return on.theater && on.pageWidth === 340 && on.pageHeight === 500;
         }, 8000);
         const desk = await driver.executeScript(`
-          const root = document.querySelector('[data-testid="atomic-reader"]');
+          const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
           const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
           const bar = root?.querySelector(".atomic-reader-bar");
           const ask = root?.querySelector('[data-testid="atomic-reader-slot-ask"]');
@@ -2867,7 +2894,7 @@ ${E2E_CUE_LOG_FENCE}
 
         await driver.executeScript(`document.body.classList.add("theme-dark");`);
         const darkVoid = await driver.executeScript(`
-          const root = document.querySelector('[data-testid="atomic-reader"]');
+          const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
           return getComputedStyle(root).getPropertyValue("--theater-void").trim();
         `);
         assert.equal(darkVoid, "#0e0c0a");
@@ -2876,28 +2903,28 @@ ${E2E_CUE_LOG_FENCE}
 
         await driver.wait(async () => {
           const hidden = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             return root?.classList.contains("is-chrome") === false;
           `);
           return hidden === true;
         }, 4000);
         await driver.executeScript(`
-          document.querySelector('[data-testid="atomic-reader-page"]')
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader-page"]')
             ?.dispatchEvent(new Event("pointerdown", { bubbles: true }));
         `);
         await driver.wait(async () => {
           const shown = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             return root?.classList.contains("is-chrome") === true;
           `);
           return shown === true;
         }, 2000);
         await driver.executeScript(`
-          document.querySelector('[data-testid="atomic-theater-exit"]').click();
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-exit"]').click();
         `);
         await driver.wait(async () => {
           const back = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             const box = root?.querySelector('[data-testid="atomic-reader-page"]');
             const rect = box?.getBoundingClientRect();
             return {
@@ -2926,19 +2953,19 @@ ${E2E_CUE_LOG_FENCE}
         `);
         await driver.wait(async () => {
           const phone = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             return root?.classList.contains("is-phone") === true
               && root?.classList.contains("is-theater") === false;
           `);
           return phone === true;
         }, 8000);
         await driver.executeScript(`
-          document.querySelector('[data-testid="atomic-theater-enter"]').click();
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]').click();
         `);
         let phone = {};
         await driver.wait(async () => {
           phone = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             const box = root?.querySelector('[data-testid="atomic-reader-page"]');
             const rect = box?.getBoundingClientRect();
             const rootRect = root?.getBoundingClientRect();
@@ -2971,11 +2998,11 @@ ${E2E_CUE_LOG_FENCE}
         assert.match(phone.text, /\S/);
         await shot(driver, "reader-theater-phone");
         await driver.executeScript(`
-          document.querySelector('[data-testid="atomic-theater-exit"]').click();
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-exit"]').click();
         `);
         await driver.wait(async () => {
           const left = await driver.executeScript(`
-            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
             const box = root?.querySelector('[data-testid="atomic-reader-page"]');
             return root?.classList.contains("is-theater") === false && box?.hidden !== true;
           `);
