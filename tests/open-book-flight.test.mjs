@@ -137,9 +137,14 @@ test("cover colors stay plain css colors", () => {
   assert.equal(safeCoverColor(""), null);
 });
 
+/** Literal pattern: escape `\` first, then the other regex metacharacters. */
+function escapeRegExp(value) {
+  return value.replace(/\\/g, "\\\\").replace(/[.*+?^${}()|[\]]/g, "\\$&");
+}
+
 test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   const css = OPEN_BOOK_FLIGHT_CSS;
-  assert.match(css, new RegExp(FLIGHT_EASE.replace(/[()]/g, "\\$&")));
+  assert.match(css, new RegExp(escapeRegExp(FLIGHT_EASE)));
   assert.match(css, new RegExp(`${FLIGHT_MS}ms`));
   assert.match(css, new RegExp(`${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms`));
   for (const leaf of FLIP_LEAVES) {
