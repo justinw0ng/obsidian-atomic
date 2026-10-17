@@ -1026,10 +1026,10 @@ function isSafeVaultNotePath(path) {
   return isSafeRelativeSegments(normalized);
 }
 function joinVaultNotePath(folder, notePath) {
-  const leaf = normalizeSlashes(notePath.trim()).replace(/^\/+/, "");
+  const leaf2 = normalizeSlashes(notePath.trim()).replace(/^\/+/, "");
   const base = normalizeSlashes(folder.trim()).replace(/\/+$/, "");
   if (base && !isSafeVaultFolder(base)) return null;
-  const path = base ? `${base}/${leaf}` : leaf;
+  const path = base ? `${base}/${leaf2}` : leaf2;
   return isSafeVaultNotePath(path) ? path : null;
 }
 function sessionScanPrefix(folder, year) {
@@ -3203,14 +3203,14 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
   bindCueCardFan(painted);
 }
 async function collectCues(data, activityType, year) {
-  const sessions = await Promise.all(
+  const sessions2 = await Promise.all(
     data.listSessions(activityType.folder, year).filter((session3) => !!session3.date).map(async (session3) => ({
       session: session3,
       reminders: await data.getSessionReminders(session3.path)
     }))
   );
   const cues = [];
-  for (const { session: session3, reminders } of sessions) {
+  for (const { session: session3, reminders } of sessions2) {
     const focus = session3.focus.join(", ");
     for (const text of reminders) {
       if (!text) continue;
@@ -3577,9 +3577,9 @@ function dashboardPaintState(input, language) {
   return {
     year: input.year,
     language,
-    exercise: input.exercise.map(({ activity, sessions }) => ({
+    exercise: input.exercise.map(({ activity, sessions: sessions2 }) => ({
       activityKey: activityPaintKey(activity),
-      sessions
+      sessions: sessions2
     })),
     hobbies: input.hobbies.map(({ activity, items }) => ({
       activityKey: activityPaintKey(activity),
@@ -3633,8 +3633,8 @@ function splitHoursMinutes(totalMinutes) {
   const safe = Math.max(0, Math.round(totalMinutes));
   return { hours: Math.floor(safe / 60), minutes: safe % 60 };
 }
-function averagePerSession(totalMinutes, sessions) {
-  return sessions > 0 ? Math.round(totalMinutes / sessions) : 0;
+function averagePerSession(totalMinutes, sessions2) {
+  return sessions2 > 0 ? Math.round(totalMinutes / sessions2) : 0;
 }
 function hoursFromMinutes(minutes) {
   return Math.round(minutes / 60 * 10) / 10;
@@ -3653,7 +3653,7 @@ function normalizeFelt(felt) {
   const value = String(felt || "").toLowerCase();
   return value === "good" || value === "ok" || value === "bad" ? value : null;
 }
-function summarizeExercise({ activity, sessions }) {
+function summarizeExercise({ activity, sessions: sessions2 }) {
   const monthly = emptyMonths();
   const monthlyMinutes = emptyMonths();
   const monthlyVolume = emptyMonths();
@@ -3666,7 +3666,7 @@ function summarizeExercise({ activity, sessions }) {
   let minutes = 0;
   let volumeKg = 0;
   let latest = null;
-  for (const { meta, setRows } of sessions) {
+  for (const { meta, setRows } of sessions2) {
     const mi = monthIndexFromDate(meta.date);
     minutes += meta.duration_min;
     if (mi >= 0) {
@@ -3709,7 +3709,7 @@ function summarizeExercise({ activity, sessions }) {
     card: {
       domain: "exercise",
       activity,
-      count: sessions.length,
+      count: sessions2.length,
       minutes,
       monthly,
       monthlyMinutes,
@@ -4469,11 +4469,11 @@ function appendFelt(parent, felt, ctx) {
 }
 function renderGolfFocus(parent, model, ctx) {
   if (!model.golfFocus) return;
-  const { activity, sessions, tags } = model.golfFocus;
+  const { activity, sessions: sessions2, tags } = model.golfFocus;
   const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.golfFocus", ctx.language),
-    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) })
+    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions2) })
   );
   const card = section.createDiv({
     cls: "atomic-stack",
@@ -4710,13 +4710,13 @@ function resolveDashboardYear(opts, frontmatterYear2, timezone) {
 async function collectDashboardInput(data, activityTypes, year) {
   const exercise = await Promise.all(
     exerciseActivities(activityTypes).map(async (activity) => {
-      const sessions = await Promise.all(
+      const sessions2 = await Promise.all(
         data.listSessions(activity.folder, year).map(async (meta) => ({
           meta,
           setRows: activity.supportsSetTable ? await data.getSessionSetRows(meta.path) : EMPTY_SET_ROWS
         }))
       );
-      return { activity, sessions };
+      return { activity, sessions: sessions2 };
     })
   );
   const hobbies = await Promise.all(
@@ -4807,9 +4807,9 @@ function renderKpis(root, model, ctx) {
     (card) => card.domain === "hobby"
   );
   if (exercise.length) {
-    const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
-    appendRoll(sessions.value, formatCount(model.totalSessions));
-    appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
+    const sessions2 = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
+    appendRoll(sessions2.value, formatCount(model.totalSessions));
+    appendCatalogLabel(sessions2.hint, splitText(exercise, ctx.language, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx, false);
     time.hint.createSpan({
@@ -5306,9 +5306,9 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     if (!hoverFinePointer(hoverFineMedia())) return;
     const rect = button.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
-    const px = (event.clientX - rect.left) / rect.width - 0.5;
+    const px2 = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    button.style.setProperty("--px", px.toFixed(3));
+    button.style.setProperty("--px", px2.toFixed(3));
     button.style.setProperty("--py", py.toFixed(3));
     button.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
     button.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
@@ -7115,9 +7115,9 @@ function registerCodeblocks(plugin) {
 var import_obsidian10 = require("obsidian");
 
 // src/util/duration-map.ts
-function durationMapFromSessions(sessions) {
+function durationMapFromSessions(sessions2) {
   const map = /* @__PURE__ */ new Map();
-  for (const session3 of sessions) {
+  for (const session3 of sessions2) {
     if (!session3.date) continue;
     const entry = map.get(session3.date) || { minutes: 0, path: null };
     entry.minutes += session3.duration_min;
@@ -7614,9 +7614,9 @@ function getFileFromElement(app, el) {
   const leafEl = el.closest(".workspace-leaf");
   if (!leafEl) return app.workspace.getActiveFile();
   let targetFile = null;
-  app.workspace.iterateAllLeaves((leaf) => {
-    if (leaf.view.containerEl.parentElement === leafEl) {
-      const view = leaf.view;
+  app.workspace.iterateAllLeaves((leaf2) => {
+    if (leaf2.view.containerEl.parentElement === leafEl) {
+      const view = leaf2.view;
       if ("file" in view && view.file instanceof import_obsidian11.TFile) {
         targetFile = view.file;
       }
@@ -8684,6 +8684,878 @@ function dedicatedCueHostPaths(settings) {
   return [...paths];
 }
 
+// src/reader/shell/mount.ts
+var mounts = {};
+function registerReaderFlight(flight) {
+  mounts.flight = flight;
+}
+function readerMounts() {
+  return mounts;
+}
+function resetReaderMounts() {
+  delete mounts.flight;
+  delete mounts.theater;
+  delete mounts.size;
+  delete mounts.ask;
+}
+
+// src/reader/flight/geometry.ts
+var DESKTOP_BOOK_PX = { width: 168, height: 248 };
+var PHONE_BOOK_PX = { width: 120, height: 178 };
+var DESKTOP_FALLBACK_SCALE = 3.15;
+var PHONE_FALLBACK_SCALE = 2.35;
+var FLIGHT_MS = 1400;
+var FLIGHT_SKIP_MS = 1450;
+var FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
+var COVER_OPEN_MS = { duration: 900, delay: 180 };
+var FLIP_LEAVES = [
+  { duration: 220, delay: 420 },
+  { duration: 200, delay: 560 },
+  { duration: 180, delay: 690 },
+  { duration: 180, delay: 810 },
+  { duration: 200, delay: 930 }
+];
+var PHONE_LAYOUT_MAX_PX = 480;
+var SAFE_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)|[a-z]{1,24})$/i;
+function bookPx(layout) {
+  switch (layout) {
+    case "phone":
+      return PHONE_BOOK_PX;
+    case "desktop":
+      return DESKTOP_BOOK_PX;
+    default: {
+      const never = layout;
+      return never;
+    }
+  }
+}
+function fallbackScale(layout) {
+  switch (layout) {
+    case "phone":
+      return PHONE_FALLBACK_SCALE;
+    case "desktop":
+      return DESKTOP_FALLBACK_SCALE;
+    default: {
+      const never = layout;
+      return never;
+    }
+  }
+}
+function resolveFlightLayout(explicit, viewportWidth) {
+  if (explicit === "phone" || explicit === "desktop") return explicit;
+  if (viewportWidth > 0 && viewportWidth <= PHONE_LAYOUT_MAX_PX) return "phone";
+  return "desktop";
+}
+function resolveFlightMotion(input) {
+  if (input.reducedMotion) return "reduced";
+  if (input.coarsePointer) return "flat";
+  switch (input.layout) {
+    case "phone":
+      return "phone";
+    case "desktop":
+      return "desktop";
+    default: {
+      const never = input.layout;
+      return never;
+    }
+  }
+}
+function safeCoverColor(value) {
+  if (!value) return null;
+  const color = value.trim();
+  if (!SAFE_COLOR.test(color)) return null;
+  return color;
+}
+function unionBoxes(boxes) {
+  const visible = boxes.filter((box) => box.width > 0 && box.height > 0);
+  const first = visible[0];
+  if (!first) return null;
+  let left = first.x;
+  let top = first.y;
+  let right = first.x + first.width;
+  let bottom = first.y + first.height;
+  for (const box of visible.slice(1)) {
+    left = Math.min(left, box.x);
+    top = Math.min(top, box.y);
+    right = Math.max(right, box.x + box.width);
+    bottom = Math.max(bottom, box.y + box.height);
+  }
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+function flightVars(input) {
+  const bookW = input.book.width > 0 ? input.book.width : DESKTOP_BOOK_PX.width;
+  const bookH = input.book.height > 0 ? input.book.height : DESKTOP_BOOK_PX.height;
+  const fromCx = input.from.x + input.from.width / 2;
+  const fromCy = input.from.y + input.from.height / 2;
+  const vars = {
+    fromX: px(fromCx - input.host.width / 2),
+    fromY: px(fromCy - input.host.height / 2),
+    fromS: (input.from.width / bookW).toFixed(3),
+    toX: "0px",
+    toY: "0px",
+    toS: input.fallbackToScale.toFixed(3)
+  };
+  if (!input.dest) return vars;
+  const destCx = input.dest.x + input.dest.width / 2;
+  const destCy = input.dest.y + input.dest.height / 2;
+  vars.toX = px(destCx - input.host.width / 2);
+  vars.toY = px(destCy - input.host.height / 2);
+  vars.toS = Math.min(
+    input.dest.width / (bookW * 0.92),
+    input.dest.height / (bookH * 0.9)
+  ).toFixed(3);
+  return vars;
+}
+function px(value) {
+  return `${value}px`;
+}
+
+// src/reader/flight/page.ts
+var JOURNEY_LANDING_PAGE = {
+  page: 47,
+  headingLeft: "Chapter I",
+  headingRight: "p. 47",
+  left: [
+    "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.",
+    "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of some one or other of their daughters.",
+    "\u201CMy dear Mr. Bennet,\u201D said his lady to him one day, \u201Chave you heard that Netherfield Park is let at last?\u201D",
+    "Mr. Bennet replied that he had not."
+  ],
+  right: [
+    "\u201CBut it is,\u201D returned she; \u201Cfor Mrs. Long has just been here, and she told me all about it.\u201D",
+    "Mr. Bennet made no answer.",
+    "\u201CDo you not want to know who has taken it?\u201D cried his wife impatiently.",
+    "\u201CYou want to tell me, and I have no objection to hearing it.\u201D",
+    "This was invitation enough. \u201CWhy, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England.\u201D"
+  ]
+};
+function spreadFromPainted(pages, fallback) {
+  const painted = pages.map((page) => ({ page: page.page, lines: cleanLines(page.lines) })).filter((page) => page.lines.length > 0);
+  const leftPage = painted[0];
+  const rightPage = painted[1];
+  if (leftPage && rightPage) {
+    const page = pageNumber(rightPage.page ?? leftPage.page, fallback.page);
+    return withHeadings(page, leftPage.lines, rightPage.lines, fallback);
+  }
+  if (leftPage) {
+    const page = pageNumber(leftPage.page, fallback.page);
+    const combined = cleanLines([...fallback.left, ...fallback.right]);
+    if (sameLines(leftPage.lines, combined)) {
+      return withHeadings(
+        page,
+        cleanLines(fallback.left),
+        cleanLines(fallback.right),
+        fallback
+      );
+    }
+    const mid = Math.ceil(leftPage.lines.length / 2);
+    return withHeadings(
+      page,
+      leftPage.lines.slice(0, mid),
+      leftPage.lines.slice(mid),
+      fallback
+    );
+  }
+  return {
+    page: fallback.page,
+    headingLeft: fallback.headingLeft,
+    headingRight: fallback.headingRight,
+    left: cleanLines(fallback.left),
+    right: cleanLines(fallback.right)
+  };
+}
+function withHeadings(page, left, right, fallback) {
+  const samePage = page === fallback.page;
+  return {
+    page,
+    headingLeft: samePage ? fallback.headingLeft : void 0,
+    headingRight: samePage ? fallback.headingRight ?? `p. ${page}` : `p. ${page}`,
+    left,
+    right
+  };
+}
+function cleanLines(lines) {
+  return lines.map((line) => line.trim()).filter((line) => line.length > 0);
+}
+function sameLines(a, b) {
+  return a.length === b.length && a.every((line, index) => line === b[index]);
+}
+function pageNumber(value, fallback) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
+  return fallback;
+}
+
+// src/reader/flight/styles.ts
+var OPEN_BOOK_FLIGHT_CSS = `
+.atomic-open-flight {
+  --atomic-r-object: 3px;
+  --atomic-r-control: 9px;
+  --atomic-r-well: 14px;
+  --atomic-ease: ${FLIGHT_EASE};
+  --atomic-ink: var(--text-normal, #222222);
+  --atomic-ink-2: var(--text-muted, #5c5c5c);
+  --atomic-rule: #e0e0e0;
+  --atomic-open-cover: #3d2a1c;
+  --atomic-open-ink: #f4ecdf;
+  --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-text: "Literata", "Source Serif 4", Georgia, "Iowan Old Style", Palatino, serif;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  background: transparent;
+  color: var(--atomic-ink);
+  font-family: var(--font-interface);
+  -webkit-font-smoothing: antialiased;
+}
+.atomic-open-flight.is-on {
+  pointer-events: auto;
+  opacity: 1;
+}
+.atomic-open-blur {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+}
+.atomic-open-flight.is-playing .atomic-open-blur {
+  animation: atomic-open-blur ${FLIGHT_MS}ms var(--atomic-ease) forwards;
+}
+.atomic-open-warm {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 32% 40%, rgba(255, 186, 110, 0.2), transparent 42%),
+    radial-gradient(ellipse at 68% 42%, rgba(255, 186, 110, 0.12), transparent 38%);
+}
+.atomic-open-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+}
+.atomic-open-book {
+  --from-x: 0px;
+  --from-y: 0px;
+  --from-s: 0.38;
+  --to-x: 0px;
+  --to-y: 0px;
+  --to-s: 3.15;
+  position: relative;
+  width: 168px;
+  height: 248px;
+  transform-style: preserve-3d;
+  transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s));
+  transform-origin: 50% 50%;
+}
+.atomic-open-flight.is-phone .atomic-open-book {
+  width: 120px;
+  height: 178px;
+  --to-s: 2.35;
+}
+.atomic-open-flight.is-playing .atomic-open-book {
+  animation: atomic-open-pop ${FLIGHT_MS}ms var(--atomic-ease) forwards;
+}
+.atomic-open-flight.is-phone.is-playing .atomic-open-book {
+  animation-name: atomic-open-pop-phone;
+}
+.atomic-open-flight.is-flat.is-playing .atomic-open-book {
+  animation-name: atomic-open-flat;
+}
+.atomic-open-back {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--atomic-r-object);
+  background: #efe7d6;
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.45);
+  transform: translateZ(-2px);
+}
+.atomic-open-leaf {
+  position: absolute;
+  top: 5%;
+  bottom: 5%;
+  z-index: 1;
+  width: 46%;
+  overflow: hidden;
+  padding: 8% 6%;
+  border-radius: var(--atomic-r-object);
+  background: #fffdf8;
+  box-shadow: 0 0 0 1px rgba(40, 30, 10, 0.08);
+  color: #2b2925;
+  font-family: var(--font-text);
+  font-size: 9px;
+  line-height: 1.4;
+}
+.atomic-open-leaf.is-left { left: 4%; }
+.atomic-open-leaf.is-right { right: 4%; }
+.atomic-open-leaf p {
+  margin: 0 0 0.55em;
+}
+.atomic-open-k {
+  font-family: var(--font-interface);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--atomic-ink-2);
+}
+.atomic-open-gutter {
+  position: absolute;
+  top: 5%;
+  bottom: 5%;
+  left: 50%;
+  z-index: 2;
+  width: 8px;
+  transform: translateX(-50%);
+  border-radius: var(--atomic-r-object);
+  background: linear-gradient(90deg, #e0d8c8, #f5f0e6, #e0d8c8);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+.atomic-open-stack {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  transform-style: preserve-3d;
+}
+.atomic-open-flip {
+  position: absolute;
+  top: 5%;
+  bottom: 5%;
+  left: 50%;
+  width: 46%;
+  border-radius: 0 var(--atomic-r-object) var(--atomic-r-object) 0;
+  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
+  box-shadow: -8px 0 16px -12px rgba(0, 0, 0, 0.35);
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  backface-visibility: hidden;
+}
+${flipRules()}
+.atomic-open-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+.atomic-open-flight.is-playing .atomic-open-cover {
+  animation: atomic-open-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms var(--atomic-ease) forwards;
+}
+.atomic-open-flight.is-flat.is-playing .atomic-open-flip {
+  animation: none;
+}
+.atomic-open-flight.is-flat.is-playing .atomic-open-cover {
+  animation: atomic-open-cover-fade ${FLIGHT_MS}ms var(--atomic-ease) forwards;
+}
+.atomic-open-cover-face,
+.atomic-open-cover-in {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--atomic-r-object);
+  backface-visibility: hidden;
+}
+.atomic-open-cover-face {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10% 10% 8% 14%;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0, rgba(255, 255, 255, 0.12) 8%, transparent 14%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 30%),
+    var(--atomic-open-cover);
+  color: var(--atomic-open-ink);
+}
+.atomic-open-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.atomic-open-author {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.atomic-open-cover-in {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 20%), #f3ead8;
+  transform: rotateY(180deg);
+}
+.atomic-open-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border: 1px solid var(--atomic-rule);
+  border-radius: var(--atomic-r-well);
+  background: var(--background-primary, #ffffff);
+  color: var(--atomic-ink-2);
+  font-family: var(--font-interface);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  opacity: 0;
+}
+.atomic-open-flight.is-on .atomic-open-hint {
+  opacity: 1;
+}
+@keyframes atomic-open-pop {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  22%  { transform: translate3d(calc(var(--from-x) * 0.45 + var(--to-x) * 0.12), calc(var(--from-y) * 0.4 + var(--to-y) * 0.1 - 18px), 40px) scale(1.15) rotateX(10deg); }
+  48%  { transform: translate3d(calc(var(--to-x) * 0.55), calc(var(--to-y) * 0.45 - 8px), 90px) scale(1.85) rotateX(4deg); }
+  78%  { transform: translate3d(var(--to-x), var(--to-y), 28px) scale(calc(var(--to-s) * 0.94)); }
+  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+}
+@keyframes atomic-open-pop-phone {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  22%  { transform: translate3d(calc(var(--from-x) * 0.4 + var(--to-x) * 0.12), calc(var(--from-y) * 0.35 + var(--to-y) * 0.1 - 10px), 30px) scale(1.2) rotateX(8deg); }
+  50%  { transform: translate3d(calc(var(--to-x) * 0.55), calc(var(--to-y) * 0.4 - 6px), 70px) scale(1.7); }
+  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+}
+@keyframes atomic-open-flat {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+}
+@keyframes atomic-open-cover {
+  0%   { transform: rotateY(0); }
+  100% { transform: rotateY(-168deg); }
+}
+@keyframes atomic-open-cover-fade {
+  0%, 45% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes atomic-open-flip {
+  0%   { transform: rotateY(0); }
+  100% { transform: rotateY(-178deg); }
+}
+@keyframes atomic-open-blur {
+  0%   { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); background: transparent; }
+  35%  { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  80%  { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); background: color-mix(in srgb, var(--background-primary, #ffffff) 8%, transparent); }
+  100% { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); background: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atomic-open-flight.is-playing .atomic-open-book,
+  .atomic-open-flight.is-playing .atomic-open-cover,
+  .atomic-open-flight.is-playing .atomic-open-flip,
+  .atomic-open-flight.is-playing .atomic-open-blur {
+    animation: none;
+  }
+}
+`.trim();
+function flipRules() {
+  return FLIP_LEAVES.map((leaf2, index) => {
+    const child = index + 1;
+    return `.atomic-open-flight.is-playing .atomic-open-flip:nth-child(${child}) { animation: atomic-open-flip ${leaf2.duration}ms ${leaf2.delay}ms var(--atomic-ease) forwards; }`;
+  }).join("\n");
+}
+
+// src/reader/flight/mount.ts
+var OPEN_BOOK_PAGE_SELECTOR = ".atomic-page, .atomic-reader-page";
+var OPEN_BOOK_HINT = "Tap to skip";
+var STYLE_ID = "atomic-open-flight-style";
+var sessions = /* @__PURE__ */ new WeakMap();
+function openBookFlightView() {
+  if (typeof activeWindow !== "undefined" && activeWindow?.document?.body) {
+    return activeWindow;
+  }
+  const active = readActiveDocument();
+  const view = active?.defaultView ?? null;
+  if (view?.document?.body) return view;
+  return null;
+}
+function flightOverlayBody(view, active) {
+  if (active?.body && active.defaultView === view) return active.body;
+  const body = view.document?.body;
+  if (!body) throw new Error("Open Book flight needs a document body");
+  return body;
+}
+function abortOpenBookFlight(view) {
+  const doc = view.document;
+  if (!doc) return;
+  sessions.get(doc)?.finish("aborted");
+}
+function mountOpenBookFlight(request, onLand) {
+  const view = request.view;
+  const body = flightOverlayBody(view, readActiveDocument());
+  const doc = body.ownerDocument ?? view.document;
+  sessions.get(doc)?.finish("aborted");
+  const layout = resolveFlightLayout(request.layout, view.innerWidth || 0);
+  const motion = resolveFlightMotion({
+    reducedMotion: request.reducedMotion === true || mediaMatches(view, "(prefers-reduced-motion: reduce)"),
+    coarsePointer: mediaMatches(view, "(pointer: coarse)"),
+    layout
+  });
+  if (motion === "reduced") {
+    onLand?.("reduced");
+    return {
+      overlay: null,
+      abort() {
+      },
+      skip() {
+      },
+      done: Promise.resolve("reduced")
+    };
+  }
+  ensureFlightStyles(doc);
+  const built = buildOverlay(doc, request, layout, motion);
+  const overlay = built.overlay;
+  body.appendChild(overlay);
+  let closed = false;
+  let timer = 0;
+  let frame = 0;
+  let resolveDone = () => {
+  };
+  const done = new Promise((resolve) => {
+    resolveDone = resolve;
+  });
+  let session3;
+  function finish2(reason) {
+    if (closed) return;
+    closed = true;
+    if (timer) view.clearTimeout(timer);
+    if (frame && typeof view.cancelAnimationFrame === "function") {
+      view.cancelAnimationFrame(frame);
+    }
+    overlay.removeEventListener("click", onClick);
+    view.removeEventListener("keydown", onKey, true);
+    view.removeEventListener("pagehide", onLeave);
+    overlay.remove();
+    if (session3 && sessions.get(doc) === session3) sessions.delete(doc);
+    resolveDone(reason);
+    if (reason !== "aborted") onLand?.(reason);
+  }
+  function onClick() {
+    finish2("skipped");
+  }
+  function onLeave() {
+    finish2("aborted");
+  }
+  function onKey(event) {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    finish2("skipped");
+  }
+  session3 = { finish: finish2 };
+  sessions.set(doc, session3);
+  overlay.addEventListener("click", onClick);
+  view.addEventListener("keydown", onKey, true);
+  view.addEventListener("pagehide", onLeave);
+  const start = (spread2) => {
+    if (closed) return;
+    const page = spreadFromPainted(paintedPages(request.destination), request.page);
+    fillLeaf(doc, built.left, page.headingLeft, page.left);
+    fillLeaf(doc, built.right, page.headingRight, page.right);
+    overlay.setAttribute("data-page", String(page.page));
+    applyVars(
+      built.book,
+      flightVars({
+        from: request.from,
+        dest: spread2,
+        host: hostSize(view, overlay),
+        book: bookPx(layout),
+        fallbackToScale: fallbackScale(layout)
+      })
+    );
+    overlay.classList.add("is-on");
+    void overlay.offsetWidth;
+    overlay.classList.add("is-playing");
+    timer = view.setTimeout(() => finish2("landed"), FLIGHT_SKIP_MS);
+  };
+  const spread = spreadBox(request.destination);
+  if (spread || typeof view.requestAnimationFrame !== "function") {
+    start(spread);
+  } else {
+    frame = view.requestAnimationFrame(() => {
+      frame = 0;
+      if (closed) return;
+      start(spreadBox(request.destination));
+    });
+  }
+  return {
+    overlay,
+    abort: () => finish2("aborted"),
+    skip: () => finish2("skipped"),
+    done
+  };
+}
+function readActiveDocument() {
+  if (typeof activeDocument === "undefined") return null;
+  return activeDocument;
+}
+function mediaMatches(view, query) {
+  if (typeof view.matchMedia !== "function") return false;
+  return view.matchMedia(query).matches;
+}
+function ensureFlightStyles(doc) {
+  if (doc.getElementById(STYLE_ID)) return;
+  const style = doc.createElement("style");
+  style.id = STYLE_ID;
+  style.textContent = OPEN_BOOK_FLIGHT_CSS;
+  const head = doc.head ?? doc.body;
+  if (head) head.appendChild(style);
+}
+function hostSize(view, overlay) {
+  const rect = overlay.getBoundingClientRect();
+  if (rect.width > 0 && rect.height > 0) return { width: rect.width, height: rect.height };
+  if (view.innerWidth > 0 && view.innerHeight > 0) {
+    return { width: view.innerWidth, height: view.innerHeight };
+  }
+  return { width: 0, height: 0 };
+}
+function spreadBox(root) {
+  return unionBoxes(pageBoxes(root));
+}
+function pageBoxes(root) {
+  return elements(root, OPEN_BOOK_PAGE_SELECTOR).map((el) => {
+    const rect = el.getBoundingClientRect();
+    return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
+  });
+}
+function paintedPages(root) {
+  return elements(root, OPEN_BOOK_PAGE_SELECTOR).map((el) => ({
+    page: readPageNumber(el.getAttribute("data-page")),
+    lines: paragraphLines(el)
+  }));
+}
+function readPageNumber(value) {
+  if (!value) return null;
+  const page = Number(value);
+  if (!Number.isFinite(page) || page <= 0) return null;
+  return page;
+}
+function paragraphLines(el) {
+  const lines = elements(el, "p").map((para) => (para.textContent ?? "").trim()).filter((line) => line.length > 0);
+  if (lines.length > 0) return lines;
+  const text = (el.textContent ?? "").trim();
+  return text ? [text] : [];
+}
+function elements(root, selector) {
+  const found = [];
+  root.querySelectorAll(selector).forEach((node) => {
+    if (isHtmlElement(node)) found.push(node);
+  });
+  return found;
+}
+function isHtmlElement(node) {
+  if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
+  return node.nodeType === 1;
+}
+function applyVars(book, vars) {
+  book.style.setProperty("--from-x", vars.fromX);
+  book.style.setProperty("--from-y", vars.fromY);
+  book.style.setProperty("--from-s", vars.fromS);
+  book.style.setProperty("--to-x", vars.toX);
+  book.style.setProperty("--to-y", vars.toY);
+  book.style.setProperty("--to-s", vars.toS);
+}
+function buildOverlay(doc, request, layout, motion) {
+  const overlay = doc.createElement("div");
+  overlay.className = "atomic-open-flight";
+  overlay.classList.add(layout === "phone" ? "is-phone" : "is-desktop");
+  if (motion === "flat") overlay.classList.add("is-flat");
+  overlay.setAttribute("data-testid", "atomic-open-flight");
+  overlay.setAttribute("data-overlay-host", "window");
+  overlay.setAttribute("data-motion", motion);
+  overlay.setAttribute("role", "presentation");
+  const color = safeCoverColor(request.cover.color);
+  const ink = safeCoverColor(request.cover.ink);
+  if (color) overlay.style.setProperty("--atomic-open-cover", color);
+  if (ink) overlay.style.setProperty("--atomic-open-ink", ink);
+  const blur = doc.createElement("div");
+  blur.className = "atomic-open-blur";
+  const warm = doc.createElement("div");
+  warm.className = "atomic-open-warm";
+  warm.setAttribute("aria-hidden", "true");
+  const stage = doc.createElement("div");
+  stage.className = "atomic-open-stage";
+  const book = doc.createElement("div");
+  book.className = "atomic-open-book";
+  book.setAttribute("data-testid", "atomic-open-book");
+  const back = doc.createElement("div");
+  back.className = "atomic-open-back";
+  const left = leaf(doc, "left");
+  const right = leaf(doc, "right");
+  const gutter = doc.createElement("div");
+  gutter.className = "atomic-open-gutter";
+  gutter.setAttribute("aria-hidden", "true");
+  const stack = doc.createElement("div");
+  stack.className = "atomic-open-stack";
+  for (let index = 0; index < FLIP_LEAVES.length; index++) {
+    const flip = doc.createElement("div");
+    flip.className = "atomic-open-flip";
+    stack.appendChild(flip);
+  }
+  const cover = doc.createElement("div");
+  cover.className = "atomic-open-cover";
+  const face = doc.createElement("div");
+  face.className = "atomic-open-cover-face";
+  const title = doc.createElement("span");
+  title.className = "atomic-open-title";
+  title.textContent = request.cover.title;
+  face.appendChild(title);
+  if (request.cover.author) {
+    const author = doc.createElement("span");
+    author.className = "atomic-open-author";
+    author.textContent = request.cover.author;
+    face.appendChild(author);
+  }
+  const inside = doc.createElement("div");
+  inside.className = "atomic-open-cover-in";
+  cover.appendChild(face);
+  cover.appendChild(inside);
+  book.append(back, left, right, gutter, stack, cover);
+  stage.appendChild(book);
+  const hint = doc.createElement("div");
+  hint.className = "atomic-open-hint";
+  hint.setAttribute("data-testid", "atomic-open-flight-hint");
+  hint.textContent = request.hint?.trim() || OPEN_BOOK_HINT;
+  overlay.append(blur, warm, stage, hint);
+  return { overlay, book, left, right };
+}
+function leaf(doc, side) {
+  const node = doc.createElement("div");
+  node.className = `atomic-open-leaf is-${side}`;
+  node.setAttribute("data-testid", "atomic-open-leaf");
+  node.setAttribute("data-side", side);
+  return node;
+}
+function fillLeaf(doc, leafNode, heading, lines) {
+  const nodes = [];
+  if (heading) {
+    const label = doc.createElement("p");
+    label.className = "atomic-open-k";
+    label.textContent = heading;
+    nodes.push(label);
+  }
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (!line) continue;
+    const para = doc.createElement("p");
+    para.setAttribute("data-line", String(index));
+    para.textContent = line;
+    nodes.push(para);
+  }
+  leafNode.replaceChildren(...nodes);
+}
+
+// src/reader/flight/register.ts
+var LIVE_PAGE_FRAMES = 16;
+var LIVE_READER_SELECTOR = "[data-testid='atomic-reader']";
+function registerOpenBookFlight(openDirect) {
+  registerReaderFlight({
+    open(request) {
+      return playOpenBookFlight(openDirect, request);
+    }
+  });
+}
+async function playOpenBookFlight(openDirect, request) {
+  const view = openBookFlightView();
+  if (!view) return false;
+  if (prefersReducedMotion4(view)) {
+    abortOpenBookFlight(view);
+    return false;
+  }
+  await openDirect(request);
+  const destination = await waitForLiveReader(view);
+  if (destination) {
+    mountOpenBookFlight({
+      view,
+      from: coverBox(request),
+      cover: {
+        title: request.title,
+        color: request.coverRect?.color
+      },
+      page: JOURNEY_LANDING_PAGE,
+      destination
+    });
+  }
+  return true;
+}
+function prefersReducedMotion4(view) {
+  if (typeof view.matchMedia !== "function") return false;
+  return view.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function coverBox(request) {
+  const cover = request.coverRect;
+  if (!cover) return { x: 0, y: 0, width: 0, height: 0 };
+  return {
+    x: cover.x,
+    y: cover.y,
+    width: cover.width,
+    height: cover.height
+  };
+}
+async function waitForLiveReader(view) {
+  const doc = view.document;
+  if (!doc) return null;
+  let root = readerRoot(doc);
+  for (let frame = 0; frame < LIVE_PAGE_FRAMES && !livePageReady(root); frame++) {
+    await nextFrame(view);
+    root = readerRoot(doc);
+  }
+  return root;
+}
+function readerRoot(doc) {
+  const nodes = htmlElements(doc.querySelectorAll(LIVE_READER_SELECTOR));
+  const active = nodes.find((node) => inActiveLeaf(node));
+  if (active) return active;
+  const shown = nodes.find((node) => livePageReady(node));
+  return shown ?? nodes[0] ?? null;
+}
+function inActiveLeaf(node) {
+  if (typeof node.closest !== "function") return false;
+  const leaf2 = node.closest(".workspace-leaf");
+  if (!leaf2 || !isHtmlElement2(leaf2)) return false;
+  return leaf2.classList.contains("mod-active");
+}
+function livePageReady(root) {
+  if (!root) return false;
+  const pages = root.querySelectorAll(OPEN_BOOK_PAGE_SELECTOR);
+  for (let index = 0; index < pages.length; index++) {
+    const node = pages[index];
+    if (!node || !isHtmlElement2(node)) continue;
+    const rect = node.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) return true;
+  }
+  return false;
+}
+function nextFrame(view) {
+  return new Promise((resolve) => {
+    if (typeof view.requestAnimationFrame === "function") {
+      view.requestAnimationFrame(() => resolve());
+      return;
+    }
+    view.setTimeout(() => resolve(), 16);
+  });
+}
+function htmlElements(nodes) {
+  const found = [];
+  for (let index = 0; index < nodes.length; index++) {
+    const node = nodes[index];
+    if (node && isHtmlElement2(node)) found.push(node);
+  }
+  return found;
+}
+function isHtmlElement2(node) {
+  if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
+  return node.nodeType === 1;
+}
+
 // src/reader/shell/open.ts
 var import_obsidian15 = require("obsidian");
 
@@ -9012,18 +9884,6 @@ function resolveLinkedBookFile(input) {
   const kind = bookFileKind(best.path);
   if (!kind) return null;
   return { kind, path: normalizeVaultPath3(best.path) };
-}
-
-// src/reader/shell/mount.ts
-var mounts = {};
-function readerMounts() {
-  return mounts;
-}
-function resetReaderMounts() {
-  delete mounts.flight;
-  delete mounts.theater;
-  delete mounts.size;
-  delete mounts.ask;
 }
 
 // src/reader/shell/chooser.ts
@@ -9487,8 +10347,8 @@ function readingAccent(plugin) {
   return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "";
 }
 var AtomicReaderView = class extends import_obsidian14.ItemView {
-  constructor(leaf, plugin) {
-    super(leaf);
+  constructor(leaf2, plugin) {
+    super(leaf2);
     this.plugin = plugin;
     this.notePath = "";
     this.filePath = "";
@@ -9650,7 +10510,7 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
     this.paint();
   }
   leafAt(number) {
-    return this.leaves.find((leaf) => leaf.number === number) ?? null;
+    return this.leaves.find((leaf2) => leaf2.number === number) ?? null;
   }
   turn(direction) {
     if (this.failure) return;
@@ -9810,8 +10670,8 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
       attr: number ? { "data-testid": "atomic-reader-page", "data-page": String(number) } : { "data-blank": "true" }
     });
     if (!number) return;
-    const leaf = this.leafAt(number);
-    const chapter = leaf?.chapter ?? "";
+    const leaf2 = this.leafAt(number);
+    const chapter = leaf2?.chapter ?? "";
     const label = this.phone ? [chapter, `p. ${number}`].filter(Boolean).join(" \xB7 ") : side === "verso" ? chapter : `p. ${number}`;
     if (label) page.createEl("h3", { text: label });
     if (this.kind === "pdf" && this.pdfSrc) {
@@ -9821,7 +10681,7 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
       });
       return;
     }
-    for (const paragraph of leaf?.paragraphs ?? []) {
+    for (const paragraph of leaf2?.paragraphs ?? []) {
       page.createEl("p", { text: paragraph });
     }
   }
@@ -9890,12 +10750,12 @@ function linkedFile(plugin, notePath, title) {
     files: bookFiles(plugin)
   });
 }
-function prefersReducedMotion4() {
+function prefersReducedMotion5() {
   return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 async function openReaderDirect(plugin, request) {
-  const leaf = plugin.app.workspace.getLeaf(false);
-  await leaf.setViewState({
+  const leaf2 = plugin.app.workspace.getLeaf(false);
+  await leaf2.setViewState({
     type: ATOMIC_READER_VIEW,
     active: true,
     state: {
@@ -9907,11 +10767,11 @@ async function openReaderDirect(plugin, request) {
       coverRect: request.coverRect
     }
   });
-  plugin.app.workspace.revealLeaf(leaf);
+  plugin.app.workspace.revealLeaf(leaf2);
 }
 async function openLinkedBook(plugin, request) {
   const plan = readerOpenPlan({
-    reducedMotion: prefersReducedMotion4(),
+    reducedMotion: prefersReducedMotion5(),
     hasFlight: Boolean(readerMounts().flight)
   });
   if (plan === "flight") {
@@ -10130,10 +10990,11 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
         );
       }
     });
+    registerOpenBookFlight((request) => openReaderDirect(this, request));
     registerBookChooser((request) => {
       void openBookChooser2(this, request);
     });
-    this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
+    this.registerView(ATOMIC_READER_VIEW, (leaf2) => new AtomicReaderView(leaf2, this));
     this.addCommand({
       id: "open-book",
       name: t("command.openBook", this.settings.language),

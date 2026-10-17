@@ -264,6 +264,55 @@ test("registered flight lands on the live reader page", async () => {
   }
 });
 
+test("registered flight lands on the active leaf, not a hidden reader", async () => {
+  const tap = makeHost({ rects: false });
+  const hiddenLeaf = tap.doc.createElement("div");
+  hiddenLeaf.className = "workspace-leaf";
+  const hidden = tap.doc.createElement("div");
+  hidden.setAttribute("data-testid", "atomic-reader");
+  const hiddenPage = tap.doc.createElement("div");
+  hiddenPage.className = "atomic-reader-page";
+  paint(hiddenPage, ["Hidden page"], 9);
+  hidden.append(hiddenPage);
+  hiddenLeaf.append(hidden);
+
+  const activeLeaf = tap.doc.createElement("div");
+  activeLeaf.className = "workspace-leaf mod-active";
+  tap.destination.setAttribute("data-testid", "atomic-reader");
+  tap.verso.className = "atomic-reader-page is-verso";
+  tap.verso.setAttribute("data-blank", "true");
+  tap.recto.className = "atomic-reader-page is-recto";
+  tap.verso.setRect(200, 100, 270, 340);
+  tap.recto.setRect(470, 100, 270, 340);
+  paint(tap.recto, ["Harbor light kept the first page."], 1);
+  activeLeaf.append(tap.destination);
+  tap.body.append(hiddenLeaf, activeLeaf);
+
+  globalThis.activeWindow = tap.view;
+  globalThis.activeDocument = tap.doc;
+  try {
+    const handled = await playOpenBookFlight(async () => {}, {
+      notePath: "notes/book.md",
+      filePath: "notes/book.epub",
+      title: "Harbor Notes",
+      kind: "epub",
+      returnPath: "notes/shelf.md",
+      coverRect: { x: 100, y: 400, width: 64, height: 96, color: "#3d2a1c" },
+    });
+    assert.equal(handled, true);
+    const overlay = tap.body.querySelector("[data-testid='atomic-open-flight']");
+    const book = overlay.querySelector("[data-testid='atomic-open-book']");
+    assert.equal(book.style.getPropertyValue("--to-s"), "1.523");
+    assert.equal(overlay.getAttribute("data-page"), "1");
+    assert.deepEqual(leafLines(overlay, "left"), ["Harbor light kept the first page."]);
+    assert.equal(overlay.textContent.includes("Hidden page"), false);
+  } finally {
+    delete globalThis.activeWindow;
+    delete globalThis.activeDocument;
+    resetReaderMounts();
+  }
+});
+
 test("overlay body is activeDocument.body for the tap window", () => {
   const tap = makeHost();
   assert.equal(flightOverlayBody(tap.view, tap.doc), tap.body);
@@ -791,6 +840,15 @@ class FakeEl {
       right: x + width,
       bottom: y + height,
     };
+  }
+
+  closest(selector) {
+    let node = this;
+    while (node) {
+      if (matches(node, selector)) return node;
+      node = node.parentElement;
+    }
+    return null;
   }
 
   querySelector(selector) {

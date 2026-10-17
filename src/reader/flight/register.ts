@@ -97,9 +97,18 @@ async function waitForLiveReader(view: Window): Promise<HTMLElement | null> {
 }
 
 function readerRoot(doc: Document): HTMLElement | null {
-  const node = doc.querySelector(LIVE_READER_SELECTOR);
-  if (!node || !isHtmlElement(node)) return null;
-  return node;
+  const nodes = htmlElements(doc.querySelectorAll(LIVE_READER_SELECTOR));
+  const active = nodes.find((node) => inActiveLeaf(node));
+  if (active) return active;
+  const shown = nodes.find((node) => livePageReady(node));
+  return shown ?? nodes[0] ?? null;
+}
+
+function inActiveLeaf(node: HTMLElement): boolean {
+  if (typeof node.closest !== "function") return false;
+  const leaf = node.closest(".workspace-leaf");
+  if (!leaf || !isHtmlElement(leaf)) return false;
+  return leaf.classList.contains("mod-active");
 }
 
 function livePageReady(root: HTMLElement | null): boolean {
@@ -122,6 +131,15 @@ function nextFrame(view: Window): Promise<void> {
     }
     view.setTimeout(() => resolve(), 16);
   });
+}
+
+function htmlElements(nodes: NodeListOf<Element> | HTMLElement[]): HTMLElement[] {
+  const found: HTMLElement[] = [];
+  for (let index = 0; index < nodes.length; index++) {
+    const node = nodes[index];
+    if (node && isHtmlElement(node)) found.push(node);
+  }
+  return found;
 }
 
 function isHtmlElement(node: Node): node is HTMLElement {

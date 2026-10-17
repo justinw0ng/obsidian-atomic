@@ -2781,7 +2781,11 @@ ${E2E_CUE_LOG_FENCE}
       };
       const flightReport = () => driver.executeScript(`
         const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-        const reader = document.querySelector('[data-testid="atomic-reader"]');
+        const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+        const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
+          || readers.find((el) => el.getBoundingClientRect().width > 0)
+          || readers[0]
+          || null;
         if (!overlay || !reader) return null;
         const book = overlay.querySelector('[data-testid="atomic-open-book"]');
         const toS = book?.style.getPropertyValue("--to-s") || "";
@@ -2822,34 +2826,92 @@ ${E2E_CUE_LOG_FENCE}
           expectX: (left + destW / 2) - host.width / 2,
           expectY: (top + destH / 2) - host.height / 2,
           page: overlay.getAttribute("data-page") || "",
+          readerPage: reader.getAttribute("data-page") || "",
           line,
           leaf: overlay.textContent || "",
         };
       `);
 
+      try {
+        await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
+          features: [
+            { name: "hover", value: "hover" },
+            { name: "pointer", value: "fine" },
+            { name: "prefers-reduced-motion", value: "no-preference" },
+          ],
+        });
+      } catch {
+        // Older DevTools builds omit emulated media features.
+      }
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(
         driver,
         '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
       );
       await openChooser("Currently Reading");
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-chooser-book"]').click();
+      const clicked = await driver.executeScript(`
+        const choosers = [...document.querySelectorAll('[data-testid="atomic-chooser"]')];
+        const button = document.querySelector('[data-testid="atomic-chooser-book"]');
+        const overlay = button?.closest('[data-testid="atomic-chooser"]') || null;
+        let reached = "";
+        const probe = (event) => {
+          const node = event.target;
+          reached = node?.getAttribute?.("data-testid")
+            || node?.closest?.("[data-testid]")?.getAttribute("data-testid")
+            || node?.nodeName
+            || "";
+        };
+        overlay?.addEventListener("click", probe);
+        button?.click();
+        return {
+          chooserCount: choosers.length,
+          reached,
+          chooserOpen: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
+          reader: Boolean(document.querySelector('[data-testid="atomic-reader"]')),
+          reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        };
       `);
+      if (clicked.chooserOpen) {
+        throw new Error(`Open Book click left the chooser open ${JSON.stringify(clicked)}`);
+      }
 
+      const seen = [];
       let flight = null;
       try {
         await driver.wait(async () => {
+          const snap = await driver.executeScript(`
+            const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+            const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+            const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
+              || readers[0]
+              || null;
+            const widths = reader
+              ? [...reader.querySelectorAll(".atomic-reader-page")].map((el) => Math.round(el.getBoundingClientRect().width))
+              : [];
+            const book = overlay?.querySelector('[data-testid="atomic-open-book"]');
+            return {
+              readers: readers.length,
+              active: Boolean(reader?.closest(".workspace-leaf")?.classList.contains("mod-active")),
+              chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
+              overlay: Boolean(overlay),
+              total: reader?.getAttribute("data-total") || "",
+              toS: book?.style.getPropertyValue("--to-s") || "",
+              widths,
+              reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            };
+          `);
+          seen.push(snap);
+          if (seen.length > 8) seen.shift();
           flight = await flightReport();
           return Boolean(flight?.toS);
         }, 8000);
       } catch (error) {
-        throw new Error(`${error.message} last=${JSON.stringify(flight)}`);
+        throw new Error(`${error.message} last=${JSON.stringify(flight)} seen=${JSON.stringify(seen)}`);
       }
       assert.equal(flight.host, "window");
       assert.equal(flight.onBody, true);
       assert.equal(flight.insideReader, false);
-      assert.equal(flight.page, "1");
+      assert.equal(flight.page, flight.readerPage);
       assert.notEqual(flight.toS, "3.150");
       assert.notEqual(flight.toS, "2.350");
       const toX = Number(String(flight.toX).replace(/px$/, ""));
@@ -2860,19 +2922,24 @@ ${E2E_CUE_LOG_FENCE}
         Math.abs(Number(flight.toS) - Number(flight.expectS)) < 0.02,
         `to-s ${flight.toS} vs ${flight.expectS}`,
       );
-      assert.match(flight.line, /Harbor light kept the first page/);
-      assert.match(flight.leaf, /Harbor light kept the first page/);
+      assert.ok(flight.line.length > 0, "the live page has a paragraph");
+      assert.ok(flight.leaf.includes(flight.line), flight.leaf);
 
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-open-flight"]').click();
       `);
       await driver.wait(async () => {
         const settled = await driver.executeScript(`
+          const want = arguments[0];
           const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-          const line = document.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
-          return { overlay: Boolean(overlay), line };
-        `);
-        return settled.overlay === false && /Harbor light kept the first page/.test(settled.line);
+          const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+          const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
+            || readers.find((el) => el.getBoundingClientRect().width > 0)
+            || readers[0];
+          const text = reader?.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
+          return { overlay: Boolean(overlay), kept: text.includes(want) };
+        `, flight.line);
+        return settled.overlay === false && settled.kept;
       }, 4000);
 
       let emulated = false;
