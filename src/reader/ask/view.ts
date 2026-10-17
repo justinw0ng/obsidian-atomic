@@ -57,7 +57,7 @@ export interface AskTurn {
 }
 
 export interface AskPanelView {
-  presentation: "panel" | "sheet";
+  presentation: "panel" | "screen";
   title: string;
   subtitle: string;
   scope: AskScope;
@@ -128,10 +128,9 @@ export function readerAskView(input: {
     : {
         presentation: chrome.askPresentation,
         title: t("reader.askTitle", language),
-        subtitle: t("reader.pageLabel", language, {
-          title: input.bookTitle,
-          page: input.page,
-        }),
+        subtitle: input.surface === "phone"
+          ? t("reader.askSelection", language, { page: input.page })
+          : t("reader.askKeyLine", language),
         scope: input.scope,
         turns: input.turns,
         saved: input.savedToCanvas,

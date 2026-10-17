@@ -235,17 +235,38 @@ var en = {
   "settings.askModelDesc": "Leave blank to use the provider default.",
   "settings.askBaseUrl": "Base URL",
   "settings.askBaseUrlDesc": "API root ending in /v1, or the full chat completions URL. Local http is limited to localhost.",
-  "settings.askKey": "API key",
+  "settings.askKey": "AI provider key",
   "settings.askKeyDesc": "Settings keep the name only. The value stays in the app Keychain on this device.",
+  "settings.askSavedDesc": "Obsidian secret storage \xB7 \u22651.11.4",
+  "settings.askEmptyDesc": "Not configured",
+  "settings.askEmptyTitle": "No key in secret storage",
+  "settings.askEmptyBody": "Add a provider key in Obsidian's secret storage (1.11.4+). Atomic reads it and never writes the raw key into notes.",
+  "settings.askOpenStorage": "Open secret storage",
+  "settings.askErrorBanner": "Key rejected. Check the secret or replace the key.",
+  "settings.askErrorDesc": "Secret present \xB7 last error",
+  "settings.askRetry": "Retry",
   "settings.askStored": "Stored in Obsidian secrets",
-  "settings.askMissingOnDevice": "This device has no value for {name}. Create it in the Keychain.",
   "settings.askNameHint": "Name {name}. A synced vault copies the name, not the key.",
   "settings.askReplace": "Replace",
+  "settings.askReplaceKey": "Replace key",
   "settings.askRemove": "Remove",
   "settings.askTest": "Test",
   "settings.askPick": "Keychain secret",
   "settings.askPickDesc": "Pick a secret or create one. Settings keep the name, not the value.",
   "settings.askMask": "Masked key",
+  "settings.askState.saved": "Saved",
+  "settings.askState.empty": "Empty",
+  "settings.askState.error": "Error",
+  "settings.readerDefaultOpen": "Default open",
+  "settings.readerDefaultOpenDesc": "Chooser keeps Open Notes primary.",
+  "settings.readerDefaultOpen.chooser": "Chooser \xB7 Open Notes primary",
+  "settings.readerDefaultOpen.notes": "Open Notes",
+  "settings.readerDefaultOpen.book": "Open Book",
+  "settings.readerTheater": "Theater",
+  "settings.readerTheaterDesc": "Open the book in theater. Exit and Esc leave it. The page stays XL.",
+  "settings.readerEnabled": "Reader",
+  "settings.readerEnabledDesc": "Open Book uses the reader. Turn this off to stay on the note.",
+  "notice.readerOff": "Reader is off. Turn it on in settings.",
   "command.newGymSession": "New gym session",
   "command.newGolfSession": "New golf session",
   "command.newExerciseSession": "New exercise session",
@@ -505,8 +526,10 @@ var en = {
   "view.reader.shelf": "Shelf",
   "view.reader.note": "Note",
   "view.reader.canvas": "Canvas",
-  "view.reader.lastRead": "Last read \xB7 p. {page}",
-  "view.reader.progress": "{page} / {total} \xB7 {percent}%",
+  "view.reader.lastRead": "Last read p. {page}",
+  "view.reader.pageMark": "p. {page}",
+  "view.reader.totalMark": "{total}",
+  "view.reader.progress": "{page} / {total}",
   "view.reader.prev": "Previous page",
   "view.reader.next": "Next page",
   "view.reader.opening": "Opening\u2026",
@@ -552,7 +575,9 @@ var en = {
   "reader.scopeSelection": "Selection",
   "reader.scopeBook": "Whole book",
   "reader.savedCanvas": "Saved to canvas",
-  "reader.askTitle": "Ask about this book",
+  "reader.askTitle": "Ask \xB7 BYO key",
+  "reader.askKeyLine": "Key from Obsidian secret storage \u22651.11.4",
+  "reader.askSelection": "Selection \xB7 p. {page}",
   "reader.askPlaceholder": "Ask about this passage\u2026",
   "reader.askPlaceholderPhone": "Ask\u2026",
   "reader.confirmBook": "This sends about {chars} characters on your key. It can cost money and the text leaves the vault.",
@@ -624,17 +649,38 @@ var zhHantEn = {
   "settings.askModelDesc": "\u7559\u7A7A\u5C31\u7528\u4F9B\u61C9\u5546\u9810\u8A2D\u6A21\u578B\u3002",
   "settings.askBaseUrl": "Base URL",
   "settings.askBaseUrlDesc": "API \u6839\u8DEF\u5F91\uFF0C\u7D50\u5C3E\u4FC2 /v1\uFF0C\u6216\u8005\u5B8C\u6574\u5605 chat completions URL\u3002\u672C\u6A5F http \u53EA\u9650 localhost\u3002",
-  "settings.askKey": "API \u5319",
+  "settings.askKey": "\u4F9B\u61C9\u5546\u5319",
   "settings.askKeyDesc": "\u8A2D\u5B9A\u53EA\u4FDD\u7559\u540D\u7A31\u3002\u6578\u503C\u7559\u55BA\u5462\u90E8\u6A5F\u5605 Keychain\u3002",
+  "settings.askSavedDesc": "Obsidian secret storage \xB7 1.11.4 \u6216\u66F4\u65B0",
+  "settings.askEmptyDesc": "\u672A\u8A2D\u5B9A",
+  "settings.askEmptyTitle": "secret storage \u672A\u6709\u5319",
+  "settings.askEmptyBody": "\u55BA Obsidian secret storage\uFF081.11.4 \u6216\u66F4\u65B0\uFF09\u52A0\u4F9B\u61C9\u5546\u5319\u3002Atomic \u53EA\u6703\u8B80\uFF0C\u5514\u6703\u628A\u5319\u5BEB\u5165\u7B46\u8A18\u3002",
+  "settings.askOpenStorage": "\u6253\u958B secret storage",
+  "settings.askErrorBanner": "\u5319\u88AB\u62D2\u7D55\u3002\u6AA2\u67E5\u500B\u5BC6\u9470\uFF0C\u6216\u8005\u63DB\u4E00\u628A\u3002",
+  "settings.askErrorDesc": "\u5BC6\u9470\u4EF2\u55BA\u5EA6 \xB7 \u4E0A\u6B21\u51FA\u932F",
+  "settings.askRetry": "\u518D\u8A66",
   "settings.askStored": "\u5DF2\u5B58\u653E\u55BA Obsidian secrets",
-  "settings.askMissingOnDevice": "\u5462\u90E8\u6A5F\u672A\u6709 {name} \u5605\u6578\u503C\u3002\u8ACB\u55BA Keychain \u5EFA\u7ACB\u3002",
   "settings.askNameHint": "\u540D\u7A31 {name}\u3002\u540C\u6B65 vault \u53EA\u6703\u6284\u540D\u7A31\uFF0C\u5514\u6703\u6284\u5319\u3002",
   "settings.askReplace": "\u66F4\u63DB",
+  "settings.askReplaceKey": "\u63DB\u5319",
   "settings.askRemove": "\u89E3\u9664",
   "settings.askTest": "\u6E2C\u8A66",
   "settings.askPick": "Keychain \u5BC6\u9470",
   "settings.askPickDesc": "\u63C0\u4E00\u500B\u5BC6\u9470\u6216\u8005\u65B0\u5EFA\u3002\u8A2D\u5B9A\u53EA\u4FDD\u7559\u540D\u7A31\uFF0C\u5514\u4FDD\u7559\u6578\u503C\u3002",
   "settings.askMask": "\u5DF2\u906E\u84CB\u5605\u5319",
+  "settings.askState.saved": "\u5DF2\u5B58",
+  "settings.askState.empty": "\u7A7A\u767D",
+  "settings.askState.error": "\u51FA\u932F",
+  "settings.readerDefaultOpen": "\u9810\u8A2D\u6253\u958B",
+  "settings.readerDefaultOpenDesc": "\u9078\u64C7\u5668\u4ECD\u7136\u4EE5\u7B46\u8A18\u505A\u4E3B\u3002",
+  "settings.readerDefaultOpen.chooser": "\u9078\u64C7\u5668 \xB7 \u7B46\u8A18\u512A\u5148",
+  "settings.readerDefaultOpen.notes": "\u6253\u958B\u7B46\u8A18",
+  "settings.readerDefaultOpen.book": "\u6253\u958B\u66F8",
+  "settings.readerTheater": "\u5287\u5834",
+  "settings.readerTheaterDesc": "\u6253\u958B\u66F8\u5C31\u5165\u5287\u5834\u3002\u96E2\u958B\u540C Esc \u90FD\u8D70\u5F97\u3002\u9801\u9762\u56FA\u5B9A XL\u3002",
+  "settings.readerEnabled": "\u95B1\u8B80\u5668",
+  "settings.readerEnabledDesc": "\u6253\u958B\u66F8\u6703\u7528\u95B1\u8B80\u5668\u3002\u95DC\u6389\u5C31\u7559\u55BA\u7B46\u8A18\u3002",
+  "notice.readerOff": "\u95B1\u8B80\u5668\u95DC\u5497\u3002\u8ACB\u55BA\u8A2D\u5B9A\u6253\u958B\u3002",
   "command.newGymSession": "\u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
   "command.newGolfSession": "\u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
   "command.newExerciseSession": "\u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
@@ -923,8 +969,10 @@ var zhHantEn = {
   "view.reader.shelf": "\u66F8\u67B6",
   "view.reader.note": "\u7B46\u8A18",
   "view.reader.canvas": "Canvas",
-  "view.reader.lastRead": "\u4E0A\u6B21\u8B80\u5230 \xB7 \u7B2C {page} \u9801",
-  "view.reader.progress": "\u7B2C {page} \u9801\uFF0C\u5171 {total} \u9801 \xB7 {percent}%",
+  "view.reader.lastRead": "\u4E0A\u6B21\u8B80\u5230 p. {page}",
+  "view.reader.pageMark": "p. {page}",
+  "view.reader.totalMark": "{total}",
+  "view.reader.progress": "{page}/{total}",
   "view.reader.prev": "\u4E0A\u4E00\u9801",
   "view.reader.next": "\u4E0B\u4E00\u9801",
   "view.reader.opening": "\u6253\u958B\u7DCA\u2026",
@@ -941,7 +989,9 @@ var zhHantEn = {
   "reader.scopeSelection": "\u9078\u53D6\u6587\u5B57",
   "reader.scopeBook": "\u6210\u672C\u66F8",
   "reader.savedCanvas": "\u5DF2\u5BEB\u5165 canvas",
-  "reader.askTitle": "\u554F\u5462\u672C\u66F8",
+  "reader.askTitle": "\u554F \xB7 \u81EA\u5DF1\u628A\u5319",
+  "reader.askKeyLine": "\u5319\u55BA Obsidian secret storage\uFF0C\u8981 1.11.4 \u6216\u66F4\u65B0",
+  "reader.askSelection": "\u9078\u53D6 \xB7 p. {page}",
   "reader.askPlaceholder": "\u554F\u5462\u6BB5\u6587\u5B57\u2026",
   "reader.askPlaceholderPhone": "\u554F\u2026",
   "reader.confirmBook": "\u5462\u6B21\u6703\u7528\u4F60\u628A\u5319\u9001\u51FA\u5927\u7D04 {chars} \u500B\u5B57\u3002\u53EF\u80FD\u6536\u8CBB\uFF0C\u6587\u5B57\u4EA6\u6703\u96E2\u958B vault\u3002",
@@ -974,6 +1024,11 @@ function t(key, language, vars) {
 }
 
 // src/types.ts
+var DEFAULT_READER_PREFERENCES = {
+  defaultOpen: "chooser",
+  theater: false,
+  enabled: true
+};
 var DEFAULT_ASK_SETTINGS = {
   provider: "openai",
   model: "",
@@ -1049,7 +1104,8 @@ var DEFAULT_SETTINGS = {
   gymExercises: [],
   gymLogSetup: "complete",
   lastSeenUpdateNoteVersion: "",
-  ask: { ...DEFAULT_ASK_SETTINGS }
+  ask: { ...DEFAULT_ASK_SETTINGS },
+  reader: { ...DEFAULT_READER_PREFERENCES }
 };
 
 // src/util/colors.ts
@@ -1137,10 +1193,10 @@ function isSafeVaultNotePath(path) {
   return isSafeRelativeSegments(normalized);
 }
 function joinVaultNotePath(folder, notePath) {
-  const leaf2 = normalizeSlashes(notePath.trim()).replace(/^\/+/, "");
+  const leaf = normalizeSlashes(notePath.trim()).replace(/^\/+/, "");
   const base = normalizeSlashes(folder.trim()).replace(/\/+$/, "");
   if (base && !isSafeVaultFolder(base)) return null;
-  const path = base ? `${base}/${leaf2}` : leaf2;
+  const path = base ? `${base}/${leaf}` : leaf;
   return isSafeVaultNotePath(path) ? path : null;
 }
 function sessionScanPrefix(folder, year) {
@@ -7725,9 +7781,9 @@ function getFileFromElement(app, el) {
   const leafEl = el.closest(".workspace-leaf");
   if (!leafEl) return app.workspace.getActiveFile();
   let targetFile = null;
-  app.workspace.iterateAllLeaves((leaf2) => {
-    if (leaf2.view.containerEl.parentElement === leafEl) {
-      const view = leaf2.view;
+  app.workspace.iterateAllLeaves((leaf) => {
+    if (leaf.view.containerEl.parentElement === leafEl) {
+      const view = leaf.view;
       if ("file" in view && view.file instanceof import_obsidian11.TFile) {
         targetFile = view.file;
       }
@@ -8163,14 +8219,74 @@ function obsidianHttpPort() {
 
 // src/reader/ask/canvas.ts
 var MAX_CARDS = 200;
-var CARD_W = 240;
-var CARD_H = 120;
-var BOOK_W = 280;
-var BOOK_H = 160;
-var BOOK_X = 480;
-var BOOK_Y = 320;
-var GAP = 48;
 var TEXT_CAP = 4e3;
+var CARD_GAP = 12;
+var GROUP_PAD = 16;
+var BOARDS = [
+  {
+    id: "opening",
+    label: "Opening",
+    seed: "Opening\nSocial pressure as the first character.",
+    x: 64,
+    y: 48,
+    width: 232,
+    height: 156,
+    cardWidth: 200,
+    cardHeight: 96
+  },
+  {
+    id: "quote",
+    label: "Quote",
+    seed: "Quote \xB7 p.47\n\u201Ca truth universally acknowledged\u201D",
+    x: 324,
+    y: 88,
+    width: 252,
+    height: 160,
+    cardWidth: 220,
+    cardHeight: 100,
+    color: "3"
+  },
+  {
+    id: "ask",
+    label: "Ask thread",
+    seed: "Ask thread\nWhy lead with fortune, not wit?",
+    x: 604,
+    y: 54,
+    width: 242,
+    height: 168,
+    cardWidth: 210,
+    cardHeight: 108,
+    color: "5"
+  },
+  {
+    id: "characters",
+    label: "Characters",
+    seed: "Characters\nBennet \xB7 Darcy \xB7 Bingley \xB7 Elizabeth",
+    x: 184,
+    y: 248,
+    width: 272,
+    height: 152,
+    cardWidth: 240,
+    cardHeight: 96
+  },
+  {
+    id: "themes",
+    label: "Themes",
+    seed: "Themes\nPride \xB7 class \xB7 misreading",
+    x: 484,
+    y: 268,
+    width: 232,
+    height: 148,
+    cardWidth: 200,
+    cardHeight: 92
+  }
+];
+var BOARD_EDGES = [
+  ["opening", "quote"],
+  ["quote", "ask"],
+  ["quote", "characters"],
+  ["characters", "themes"]
+];
 var fallbackSeq = 0;
 function canvasPathForNote(notePath) {
   const normalized = normalizeSlashes(notePath.trim());
@@ -8251,6 +8367,16 @@ ${markdown}`;
   if (!replaced) next.splice(parts.endIndex, 0, line);
   return joinLines(next, markdown);
 }
+function seedBookCanvas(notePath) {
+  const canvasPath = canvasPathForNote(notePath);
+  if (!canvasPath) return null;
+  const canvas = parseBookCanvas("");
+  if (!canvas) return null;
+  const ids = () => `board-${fallbackSeq += 1}`;
+  ensureBookNode(canvas, normalizeSlashes(notePath.trim()), ids);
+  ensureBoard(canvas, ids);
+  return { canvasPath, canvasJson: serialize(canvas) };
+}
 function resolveCanvasPath(notePath, markdown) {
   const linked = readRelatedCanvas(markdown);
   if (linked) return linked;
@@ -8259,12 +8385,17 @@ function resolveCanvasPath(notePath, markdown) {
 function isCardKind(value) {
   return value === "highlight" || value === "remark" || value === "ask";
 }
+function isBoardId(value) {
+  return value === "opening" || value === "quote" || value === "ask" || value === "characters" || value === "themes";
+}
 function readAtomic(value) {
-  if (!isRecord(value) || value.role !== "book" && value.role !== "chapter" && value.role !== "card") {
+  if (!isRecord(value) || value.role !== "book" && value.role !== "chapter" && value.role !== "board" && value.role !== "card") {
     return null;
   }
   const atomic = { role: value.role };
   if (isCardKind(value.kind)) atomic.kind = value.kind;
+  if (isBoardId(value.board)) atomic.board = value.board;
+  if (value.seed === true) atomic.seed = true;
   if (typeof value.page === "number" && Number.isFinite(value.page)) atomic.page = value.page;
   if (typeof value.chapter === "string") atomic.chapter = value.chapter;
   if (typeof value.anchor === "string") atomic.anchor = value.anchor;
@@ -8279,8 +8410,8 @@ function asNode(value) {
     type: value.type,
     x: typeof value.x === "number" ? value.x : 0,
     y: typeof value.y === "number" ? value.y : 0,
-    width: typeof value.width === "number" ? value.width : CARD_W,
-    height: typeof value.height === "number" ? value.height : CARD_H
+    width: typeof value.width === "number" ? value.width : 200,
+    height: typeof value.height === "number" ? value.height : 96
   };
   const atomic = readAtomic(value.atomic);
   if (atomic) node.atomic = atomic;
@@ -8326,18 +8457,23 @@ function kindLabel(kind) {
     }
   }
 }
-function kindColor(kind) {
+function boardFor(kind) {
   switch (kind) {
     case "highlight":
     case "remark":
-      return "3";
+      return "quote";
     case "ask":
-      return "5";
+      return "ask";
     default: {
       const unreachable = kind;
       return unreachable;
     }
   }
+}
+function boardSpec(id) {
+  const spec = BOARDS.find((item) => item.id === id);
+  if (spec) return spec;
+  return BOARDS[0];
 }
 function cardBody(card) {
   const quote = card.quote.trim().slice(0, TEXT_CAP);
@@ -8380,50 +8516,107 @@ function ensureBookNode(canvas, notePath, ids) {
     id,
     type: "file",
     file: notePath,
-    x: BOOK_X,
-    y: BOOK_Y,
-    width: BOOK_W,
-    height: BOOK_H,
+    x: 880,
+    y: 48,
+    width: 220,
+    height: 96,
     atomic: { role: "book" }
   });
   return id;
 }
-function placeCard(canvas, index) {
-  const side = index % 2 === 0 ? "left" : "right";
-  const column = canvas.nodes.filter((node) => {
-    if (node.atomic?.role !== "card") return false;
-    return side === "left" ? node.x < BOOK_X : node.x >= BOOK_X;
-  });
-  const y = column.reduce((max, node) => Math.max(max, node.y + node.height + GAP), BOOK_Y);
-  const x = side === "left" ? BOOK_X - GAP - CARD_W : BOOK_X + BOOK_W + GAP;
-  return { x, y, side };
+function findBoard(canvas, id) {
+  return canvas.nodes.find((node) => node.type === "group" && node.atomic?.role === "board" && node.atomic.board === id);
 }
-function ensureChapterGroup(canvas, chapter, card, ids) {
-  const pad = 28;
-  const existing = canvas.nodes.find(
-    (node) => node.type === "group" && node.atomic?.role === "chapter" && node.atomic.chapter === chapter
-  );
-  if (!existing) {
+function ensureBoard(canvas, ids) {
+  for (const spec of BOARDS) {
+    if (findBoard(canvas, spec.id)) continue;
     canvas.nodes.unshift({
-      id: nextId(ids, "chapter"),
+      id: nextId(ids, `board-${spec.id}`),
       type: "group",
-      x: card.x - pad,
-      y: card.y - 36,
-      width: card.width + pad * 2,
-      height: card.height + 56,
-      label: chapter,
-      atomic: { role: "chapter", chapter }
+      x: spec.x,
+      y: spec.y,
+      width: spec.width,
+      height: spec.height,
+      label: spec.label,
+      atomic: { role: "board", board: spec.id }
     });
-    return;
   }
-  const left = Math.min(existing.x, card.x - pad);
-  const top = Math.min(existing.y, card.y - 36);
-  const right = Math.max(existing.x + existing.width, card.x + card.width + pad);
-  const bottom = Math.max(existing.y + existing.height, card.y + card.height + pad);
-  existing.x = left;
-  existing.y = top;
-  existing.width = right - left;
-  existing.height = bottom - top;
+  for (const spec of BOARDS) {
+    const hasCard = canvas.nodes.some((node) => node.atomic?.role === "card" && node.atomic.board === spec.id);
+    if (hasCard) continue;
+    const group = findBoard(canvas, spec.id);
+    if (!group) continue;
+    canvas.nodes.push({
+      id: nextId(ids, `seed-${spec.id}`),
+      type: "text",
+      text: spec.seed,
+      x: group.x + GROUP_PAD,
+      y: group.y + 36,
+      width: spec.cardWidth,
+      height: spec.cardHeight,
+      ...spec.color ? { color: spec.color } : {},
+      atomic: { role: "card", board: spec.id, seed: true }
+    });
+  }
+  ensureBoardEdges(canvas, ids);
+}
+function ensureBoardEdges(canvas, ids) {
+  for (const [from, to] of BOARD_EDGES) {
+    const fromNode = findBoard(canvas, from);
+    const toNode = findBoard(canvas, to);
+    if (!fromNode || !toNode) continue;
+    const exists = canvas.edges.some(
+      (edge) => edge.fromNode === fromNode.id && edge.toNode === toNode.id || edge.fromNode === toNode.id && edge.toNode === fromNode.id
+    );
+    if (exists) continue;
+    canvas.edges.push({
+      id: nextId(ids, `edge-${from}-${to}`),
+      fromNode: fromNode.id,
+      toNode: toNode.id,
+      fromSide: "right",
+      toSide: "left"
+    });
+  }
+}
+function cardsIn(canvas, id) {
+  return canvas.nodes.filter((node) => node.atomic?.role === "card" && node.atomic.board === id).sort((a, b) => a.y - b.y || a.x - b.x);
+}
+function overlaps(a, b) {
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+function moveBoard(canvas, group, dy) {
+  const id = group.atomic?.board;
+  group.y += dy;
+  if (!id) return;
+  for (const node of canvas.nodes) {
+    if (node.atomic?.role === "card" && node.atomic.board === id) node.y += dy;
+  }
+}
+function separateBoards(canvas) {
+  const groups = canvas.nodes.filter((node) => node.atomic?.role === "board");
+  for (let guard = 0; guard < 12; guard += 1) {
+    let moved = false;
+    const ordered = groups.slice().sort((a, b) => a.y - b.y || a.x - b.x);
+    for (let i = 0; i < ordered.length; i += 1) {
+      for (let j = i + 1; j < ordered.length; j += 1) {
+        const above = ordered[i];
+        const below = ordered[j];
+        if (!above || !below || !overlaps(above, below)) continue;
+        const shift = above.y + above.height + 24 - below.y;
+        if (shift > 0) {
+          moveBoard(canvas, below, shift);
+          moved = true;
+        }
+      }
+    }
+    if (!moved) return;
+  }
+}
+function fitBoard(group, card) {
+  const right = Math.max(group.x + group.width, card.x + card.width + GROUP_PAD);
+  const bottom = Math.max(group.y + group.height, card.y + card.height + GROUP_PAD);
+  group.width = right - group.x;
+  group.height = bottom - group.y;
 }
 function applyBookCard(input) {
   const canvasPath = resolveCanvasPath(input.notePath, input.noteMarkdown);
@@ -8439,37 +8632,50 @@ function applyBookCard(input) {
   if (!canvas) return { ok: false, reason: "bad-canvas" };
   if (cardCount(canvas) >= MAX_CARDS) return { ok: false, reason: "canvas-full" };
   const ids = input.ids ?? (() => `${input.card.kind}-${fallbackSeq += 1}`);
-  const bookId = ensureBookNode(canvas, normalizeSlashes(input.notePath.trim()), ids);
-  const spot = placeCard(canvas, cardCount(canvas));
-  const cardId = nextId(ids, input.card.kind);
+  ensureBookNode(canvas, normalizeSlashes(input.notePath.trim()), ids);
+  ensureBoard(canvas, ids);
+  const board = boardFor(input.card.kind);
+  const spec = boardSpec(board);
+  const group = findBoard(canvas, board);
+  if (!group) return { ok: false, reason: "bad-canvas" };
   const chapter = input.card.chapter?.trim() ?? "";
-  const node = {
-    id: cardId,
-    type: "text",
-    text,
-    x: spot.x,
-    y: spot.y,
-    width: CARD_W,
-    height: CARD_H,
-    color: kindColor(input.card.kind),
-    atomic: {
-      role: "card",
-      kind: input.card.kind,
-      page: input.card.page,
-      ...chapter ? { chapter } : {},
-      ...input.card.anchor?.trim() ? { anchor: input.card.anchor.trim() } : {},
-      ...input.card.quote.trim() ? { quote: input.card.quote.trim().slice(0, TEXT_CAP) } : {}
-    }
+  const atomic = {
+    role: "card",
+    kind: input.card.kind,
+    board,
+    page: input.card.page,
+    ...chapter ? { chapter } : {},
+    ...input.card.anchor?.trim() ? { anchor: input.card.anchor.trim() } : {},
+    ...input.card.quote.trim() ? { quote: input.card.quote.trim().slice(0, TEXT_CAP) } : {}
   };
-  canvas.nodes.push(node);
-  if (chapter) ensureChapterGroup(canvas, chapter, node, ids);
-  canvas.edges.push({
-    id: `e-${cardId}`,
-    fromNode: bookId,
-    toNode: cardId,
-    fromSide: spot.side === "left" ? "left" : "right",
-    toSide: spot.side === "left" ? "right" : "left"
-  });
+  const seed = cardsIn(canvas, board).find((node) => node.atomic?.seed === true);
+  let cardId;
+  if (seed) {
+    seed.text = text;
+    seed.atomic = atomic;
+    if (spec.color) seed.color = spec.color;
+    cardId = seed.id;
+  } else {
+    const stack = cardsIn(canvas, board);
+    const last = stack[stack.length - 1];
+    const x = group.x + GROUP_PAD;
+    const y = last ? last.y + last.height + CARD_GAP : group.y + 36;
+    cardId = nextId(ids, input.card.kind);
+    const node = {
+      id: cardId,
+      type: "text",
+      text,
+      x,
+      y,
+      width: spec.cardWidth,
+      height: spec.cardHeight,
+      ...spec.color ? { color: spec.color } : {},
+      atomic
+    };
+    canvas.nodes.push(node);
+    fitBoard(group, node);
+    separateBoards(canvas);
+  }
   return {
     ok: true,
     canvasPath,
@@ -8846,8 +9052,8 @@ function questionOf(input) {
 }
 async function runAsk(input) {
   if (!input.askEnabled) return { status: "ask-off" };
-  const store = new SecretStore(input.secrets);
-  const secret = store.read(input.settings.secretName);
+  const store2 = new SecretStore(input.secrets);
+  const secret = store2.read(input.settings.secretName);
   if (!secret) return { status: "need-secret" };
   if (!questionOf(input.request)) return { status: "need-question" };
   if (input.request.scope === "book" && input.request.bookConfirmed !== true) {
@@ -8911,6 +9117,21 @@ async function probeAsk(settings, secrets, http) {
 // src/reader/ask/settings-section.ts
 var SECRET_API2 = "1.11.4";
 var replacingSecret = false;
+var probeFailed = false;
+function keyState(host) {
+  if (!host.settings.ask.secretName) return "empty";
+  if (probeFailed || !secretIsPresent(host.app, host.settings.ask.secretName)) return "error";
+  return "saved";
+}
+function paintKeyState(setting, host, language) {
+  const state = keyState(host);
+  setting.settingEl.setAttr("data-ask-state", state);
+  setting.nameEl.createSpan({
+    cls: "atomic-secret-pill",
+    text: t(`settings.askState.${state}`, language),
+    attr: { "data-testid": "atomic-setting-ask-state", "data-state": state }
+  });
+}
 async function storeAsk(host, ask) {
   host.settings.ask = normalizeAskSettings(ask);
   await host.save();
@@ -8921,13 +9142,38 @@ function secretIsPresent(app, name) {
   const value = app.secretStorage.getSecret(name);
   return typeof value === "string" && value.length > 0;
 }
-function paintStored(setting, host, language, name) {
-  const present = secretIsPresent(host.app, name);
+function labelOpenStorage(root, label) {
+  const button2 = root.querySelector("button");
+  if (!button2) return;
+  button2.textContent = label;
+  button2.classList.add("atomic-ask-open");
+}
+function paintStored(setting, host, language) {
   setting.setName(t("settings.askKey", language));
-  setting.setDesc(
-    present ? `${t("settings.askStored", language)} ${t("settings.askNameHint", language, { name })}` : t("settings.askMissingOnDevice", language, { name })
-  );
+  paintKeyState(setting, host, language);
+  const state = keyState(host);
   setting.settingEl.setAttr("data-testid", "atomic-setting-ask-key");
+  if (state === "error") {
+    setting.setDesc(t("settings.askErrorDesc", language));
+    setting.settingEl.createDiv({
+      cls: "atomic-ask-error",
+      text: t("settings.askErrorBanner", language),
+      attr: { "data-testid": "atomic-setting-ask-error" }
+    });
+    setting.addButton((button2) => {
+      button2.setButtonText(t("settings.askRetry", language)).onClick(() => {
+        void testSecret(host, language);
+      });
+    });
+    setting.addButton((button2) => {
+      button2.setButtonText(t("settings.askReplaceKey", language)).onClick(() => {
+        replacingSecret = true;
+        host.redisplay();
+      });
+    });
+    return;
+  }
+  setting.setDesc(t("settings.askSavedDesc", language));
   setting.controlEl.createSpan({
     cls: "atomic-secret-mask",
     text: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
@@ -8945,13 +9191,13 @@ function paintStored(setting, host, language, name) {
   setting.addButton((button2) => {
     button2.setButtonText(t("settings.askRemove", language)).onClick(() => {
       replacingSecret = false;
+      probeFailed = false;
       void storeAsk(host, { ...host.settings.ask, secretName: "" }).then(() => {
         new import_obsidian14.Notice(t("notice.askRemoved", language));
         host.redisplay();
       });
     });
   });
-  if (!present) return;
   setting.addButton((button2) => {
     button2.setButtonText(t("settings.askTest", language)).onClick(() => {
       void testSecret(host, language);
@@ -8960,19 +9206,35 @@ function paintStored(setting, host, language, name) {
 }
 function paintPicker(setting, host, language) {
   if (!(0, import_obsidian14.requireApiVersion)(SECRET_API2)) return;
-  setting.setName(t("settings.askPick", language));
-  setting.setDesc(t("settings.askPickDesc", language));
-  setting.settingEl.setAttr("data-testid", "atomic-setting-ask-pick");
-  setting.addComponent((el) => {
-    return new import_obsidian14.SecretComponent(host.app, el).setValue(host.settings.ask.secretName).onChange((value) => {
+  const replacing = replacingSecret && host.settings.ask.secretName.length > 0;
+  setting.setName(t(replacing ? "settings.askPick" : "settings.askKey", language));
+  paintKeyState(setting, host, language);
+  setting.setDesc(t(replacing ? "settings.askPickDesc" : "settings.askEmptyDesc", language));
+  setting.settingEl.setAttr("data-testid", replacing ? "atomic-setting-ask-pick" : "atomic-setting-ask-key");
+  const mount = (parent) => {
+    return new import_obsidian14.SecretComponent(host.app, parent).setValue(replacing ? host.settings.ask.secretName : "").onChange((value) => {
       const secretName = typeof value === "string" ? value : "";
       replacingSecret = false;
       void storeAsk(host, { ...host.settings.ask, secretName }).then(() => {
+        probeFailed = false;
         if (secretName) new import_obsidian14.Notice(t("notice.askSaved", language));
         host.redisplay();
       });
     });
+  };
+  if (replacing) {
+    setting.addComponent((el) => mount(el));
+    return;
+  }
+  const callout = setting.settingEl.createDiv({
+    cls: "atomic-ask-empty",
+    attr: { "data-testid": "atomic-setting-ask-empty" }
   });
+  callout.createEl("strong", { text: t("settings.askEmptyTitle", language) });
+  callout.createEl("p", { text: t("settings.askEmptyBody", language) });
+  const action = callout.createDiv({ cls: "atomic-ask-empty-action" });
+  mount(action);
+  labelOpenStorage(action, t("settings.askOpenStorage", language));
 }
 async function testSecret(host, language) {
   const secrets = obsidianSecretPort(host.app);
@@ -8981,18 +9243,23 @@ async function testSecret(host, language) {
     return;
   }
   const result = await probeAsk(host.settings.ask, secrets, obsidianHttpPort());
+  probeFailed = result === "provider-error";
   switch (result) {
     case "ok":
       new import_obsidian14.Notice(t("notice.askAnswered", language));
+      host.redisplay();
       return;
     case "need-secret":
       new import_obsidian14.Notice(t("notice.askNeedSecret", language));
+      host.redisplay();
       return;
     case "bad-url":
       new import_obsidian14.Notice(t("notice.askInvalidUrl", language));
+      host.redisplay();
       return;
     case "provider-error":
       new import_obsidian14.Notice(t("notice.askFailed", language));
+      host.redisplay();
       return;
     default: {
       const unreachable = result;
@@ -9106,13 +9373,95 @@ function askSettingRows(host) {
     paint: (setting) => {
       const name = host.settings.ask.secretName;
       if (name && !replacingSecret) {
-        paintStored(setting, host, language, name);
+        paintStored(setting, host, language);
         return;
       }
       paintPicker(setting, host, language);
     }
   });
   return rows;
+}
+
+// src/reader/shell/preferences.ts
+function normalizeReaderPreferences(raw) {
+  if (!isRecord(raw)) return { ...DEFAULT_READER_PREFERENCES };
+  return {
+    defaultOpen: readerDefaultOpen(raw.defaultOpen),
+    theater: raw.theater === true,
+    enabled: raw.enabled !== false
+  };
+}
+function readerDefaultOpen(value) {
+  switch (value) {
+    case "chooser":
+    case "notes":
+    case "book":
+      return value;
+    default:
+      return "chooser";
+  }
+}
+
+// src/reader/shell/preferences-section.ts
+var OPENS = ["chooser", "notes", "book"];
+async function store(host, patch) {
+  host.settings.reader = normalizeReaderPreferences({ ...host.settings.reader, ...patch });
+  await host.save();
+}
+function readerSettingRows(host) {
+  const language = host.settings.language;
+  const reader = host.settings.reader;
+  return [
+    {
+      kind: "custom",
+      name: t("settings.readerDefaultOpen", language),
+      desc: t("settings.readerDefaultOpenDesc", language),
+      aliases: ["default open", "reader"],
+      paint: (setting) => {
+        paintDefaultOpen(setting, host, language, reader.defaultOpen);
+      }
+    },
+    {
+      kind: "custom",
+      name: t("settings.readerTheater", language),
+      desc: t("settings.readerTheaterDesc", language),
+      aliases: ["theater"],
+      paint: (setting) => {
+        setting.settingEl.setAttr("data-testid", "atomic-setting-reader-theater");
+        setting.addToggle((toggle) => {
+          toggle.setValue(reader.theater).onChange((value) => {
+            void store(host, { theater: value });
+          });
+        });
+      }
+    },
+    {
+      kind: "custom",
+      name: t("settings.readerEnabled", language),
+      desc: t("settings.readerEnabledDesc", language),
+      aliases: ["reader"],
+      paint: (setting) => {
+        setting.settingEl.setAttr("data-testid", "atomic-setting-reader-enabled");
+        setting.addToggle((toggle) => {
+          toggle.setValue(reader.enabled).onChange((value) => {
+            void store(host, { enabled: value });
+          });
+        });
+      }
+    }
+  ];
+}
+function paintDefaultOpen(setting, host, language, current) {
+  setting.settingEl.setAttr("data-testid", "atomic-setting-reader-open");
+  setting.addDropdown((dropdown) => {
+    for (const option of OPENS) {
+      dropdown.addOption(option, t(`settings.readerDefaultOpen.${option}`, language));
+    }
+    dropdown.setValue(current).onChange((value) => {
+      if (value !== "chooser" && value !== "notes" && value !== "book") return;
+      void store(host, { defaultOpen: value }).then(() => host.redisplay());
+    });
+  });
 }
 
 // src/util/merge-settings.ts
@@ -9165,7 +9514,8 @@ function mergeSettings(raw) {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
     gymExercises: [...DEFAULT_SETTINGS.gymExercises],
-    ask: normalizeAskSettings(DEFAULT_SETTINGS.ask)
+    ask: normalizeAskSettings(DEFAULT_SETTINGS.ask),
+    reader: normalizeReaderPreferences(DEFAULT_SETTINGS.reader)
   };
   if (!isRecord(raw)) return base;
   const golfCuesPath = safeVaultPath(
@@ -9199,7 +9549,8 @@ function mergeSettings(raw) {
     gymExercises: normalizeGymExercises(raw.gymExercises),
     gymLogSetup: isGymLogSetup(raw.gymLogSetup) ? raw.gymLogSetup : "pending",
     lastSeenUpdateNoteVersion: storedLastSeenUpdateNoteVersion(raw),
-    ask: normalizeAskSettings(raw.ask)
+    ask: normalizeAskSettings(raw.ask),
+    reader: normalizeReaderPreferences(raw.reader)
   };
 }
 
@@ -9404,16 +9755,15 @@ var FitnessSettingTab = class extends import_obsidian15.PluginSettingTab {
         this.paintGymImport(setting);
       }
     });
-    rows.push(
-      ...askSettingRows({
-        app: this.app,
-        settings: this.plugin.settings,
-        save: () => this.plugin.saveSettings(),
-        redisplay: () => {
-          this.redrawSettings();
-        }
-      })
-    );
+    const settingsHost = {
+      app: this.app,
+      settings: this.plugin.settings,
+      save: () => this.plugin.saveSettings(),
+      redisplay: () => {
+        this.redrawSettings();
+      }
+    };
+    rows.push(...askSettingRows(settingsHost), ...readerSettingRows(settingsHost));
     return rows;
   }
   activityRows(activity, options) {
@@ -10093,11 +10443,9 @@ function pageAfterTurn(page, total, direction) {
   if (prevLast < 1) return current;
   return visiblePage(spreadPages(prevLast, total), prevLast);
 }
-function canTurnPage(page, total, direction) {
-  return pageAfterTurn(page, total, direction) !== clampReaderPage(page, Math.max(total, 0));
-}
 function readerOpenPlan(input) {
-  if (input.reducedMotion || !input.hasFlight) return "direct";
+  void input.reducedMotion;
+  if (!input.hasFlight) return "direct";
   return "flight";
 }
 
@@ -10145,7 +10493,7 @@ function readerChrome(input) {
     };
   }
   const showSelectionBar = input.hasSelection && !input.askOpen;
-  const askPresentation = !input.askOpen || !input.askEnabled ? "hidden" : input.surface === "phone" ? "sheet" : "panel";
+  const askPresentation = !input.askOpen || !input.askEnabled ? "hidden" : input.surface === "phone" ? "screen" : "panel";
   return {
     showHighlight: showSelectionBar,
     showRemark: showSelectionBar,
@@ -10210,6 +10558,16 @@ function readerSlotForGutter(gutter) {
 // src/reader/ask/paint.ts
 function setVar(el, name, value) {
   el.setCssProps({ [name]: value });
+}
+function selectionShift(rect, viewWidth, margin = 8) {
+  const width = rect.right - rect.left;
+  if (viewWidth <= 0 || width <= 0) return 0;
+  const room = viewWidth - margin * 2;
+  if (width >= room) return (viewWidth - width) / 2 - rect.left;
+  let shift = 0;
+  if (rect.right > viewWidth - margin) shift -= rect.right - (viewWidth - margin);
+  if (rect.left + shift < margin) shift += margin - (rect.left + shift);
+  return shift;
 }
 function clearRoot(host) {
   const stale = [];
@@ -10280,37 +10638,33 @@ function paintSelection(doc, root, view, handlers) {
   const bar = doc.createElement("div");
   bar.className = "atomic-selbar";
   bar.setAttribute("data-testid", "atomic-selbar");
-  setVar(bar, "--atomic-sel-left", `${Math.round(view.selection.left)}px`);
+  const viewWidth = doc.defaultView?.innerWidth ?? 0;
+  const half = 110;
+  const rawLeft = view.selection.left;
+  const left = viewWidth > half * 2 ? Math.min(Math.max(rawLeft, half), viewWidth - half) : rawLeft;
+  setVar(bar, "--atomic-sel-left", `${Math.round(left)}px`);
   setVar(bar, "--atomic-sel-top", `${Math.round(view.selection.top)}px`);
-  const glass = doc.createElement("div");
-  glass.className = "atomic-glass";
   if (view.chrome.showHighlight) {
-    glass.append(button(doc, "atomic-btn is-small", view.labels.highlight, handlers.onHighlight));
+    bar.append(button(doc, "atomic-btn is-small", view.labels.highlight, handlers.onHighlight));
   }
   if (view.chrome.showRemark) {
-    glass.append(button(doc, "atomic-btn is-small", view.labels.remark, handlers.onRemark));
+    bar.append(button(doc, "atomic-btn is-small", view.labels.remark, handlers.onRemark));
   }
   if (view.chrome.showAsk) {
-    glass.append(button(doc, "atomic-btn is-small is-primary", view.labels.ask, handlers.onAsk));
+    bar.append(button(doc, "atomic-btn is-small", view.labels.ask, handlers.onAsk));
   }
-  bar.append(glass);
   root.append(bar);
 }
 function paintPanel(doc, root, view, handlers) {
   const panel = view.panel;
   if (!panel) return;
   const el = doc.createElement("div");
-  el.className = panel.presentation === "sheet" ? "atomic-ask is-sheet" : "atomic-ask";
+  el.className = panel.presentation === "screen" ? "atomic-ask is-screen" : "atomic-ask";
   el.setAttribute("data-testid", "atomic-ask");
-  if (panel.presentation === "sheet") {
-    const grab = doc.createElement("div");
-    grab.className = "atomic-sheet-grab";
-    el.append(grab);
-  }
   const title = doc.createElement("h4");
   title.textContent = panel.title;
-  const subtitle = doc.createElement("span");
-  subtitle.className = "atomic-readout";
+  const subtitle = doc.createElement("p");
+  subtitle.className = "atomic-ask-key";
   subtitle.textContent = panel.subtitle;
   el.append(title, subtitle);
   if (panel.saved) {
@@ -10323,16 +10677,6 @@ function paintPanel(doc, root, view, handlers) {
     saved.append(dot, label);
     el.append(saved);
   }
-  const seg = doc.createElement("div");
-  seg.className = "atomic-seg";
-  for (const scope of panel.scopes) {
-    const option = button(doc, scope.id === panel.scope ? "atomic-seg-option is-on" : "atomic-seg-option", scope.label, () => {
-      handlers.onScope?.(scope.id);
-    });
-    option.setAttribute("aria-pressed", scope.id === panel.scope ? "true" : "false");
-    seg.append(option);
-  }
-  el.append(seg);
   if (panel.confirm) {
     const confirm = doc.createElement("p");
     confirm.className = "atomic-hint";
@@ -10367,11 +10711,24 @@ function paintPanel(doc, root, view, handlers) {
     if (question) handlers.onSend?.(question);
   });
   compose.append(field2, send);
-  const hint = doc.createElement("p");
-  hint.className = "atomic-hint";
-  hint.textContent = panel.secretHint;
-  el.append(thread, compose, hint);
+  el.append(thread, compose);
+  if (panel.presentation === "screen") {
+    const hint = doc.createElement("p");
+    hint.className = "atomic-hint";
+    hint.textContent = panel.secretHint;
+    el.append(hint);
+  }
   root.append(el);
+}
+function pinDesktopAsk(root, panel) {
+  if (panel.classList.contains("is-screen")) return;
+  const reader = root.closest(".atomic-reader");
+  const view = root.ownerDocument.defaultView;
+  if (!reader || !view) return;
+  const rect = reader.getBoundingClientRect();
+  setVar(panel, "--atomic-ask-top", `${Math.round(rect.top)}px`);
+  setVar(panel, "--atomic-ask-right", `${Math.round(Math.max(0, view.innerWidth - rect.right))}px`);
+  setVar(panel, "--atomic-ask-bottom", `${Math.round(Math.max(0, view.innerHeight - rect.bottom))}px`);
 }
 function paintSlot(host, view, handlers, slot) {
   const doc = host.ownerDocument;
@@ -10394,14 +10751,22 @@ function paintSlot(host, view, handlers, slot) {
     if (view.slip && readerSlotForGutter(view.slip.gutter) === "ask") paintSlip(doc, root, view.slip);
     paintSelection(doc, root, view, handlers);
     paintPanel(doc, root, view, handlers);
-    const panel = root.querySelector(".atomic-ask");
-    if (panel && isHtmlElement(panel) && view.panel?.presentation === "sheet") {
-      const reader = host.closest(".atomic-reader");
-      const width = reader ? Math.round(reader.getBoundingClientRect().width) : 0;
-      if (width > 0) panel.setCssProps({ "--atomic-ask-span": `${width}px` });
-    }
   }
   host.append(root);
+  const panel = root.querySelector(".atomic-ask");
+  if (panel && isHtmlElement(panel)) pinDesktopAsk(root, panel);
+  const bar = root.querySelector(".atomic-selbar");
+  if (bar && isHtmlElement(bar)) pinSelection(bar);
+}
+function pinSelection(bar) {
+  const view = bar.ownerDocument.defaultView;
+  if (!view) return;
+  const rect = bar.getBoundingClientRect();
+  const shift = selectionShift({ left: rect.left, right: rect.right }, view.innerWidth ?? 0);
+  if (shift === 0) return;
+  const current = Number.parseFloat(bar.style.getPropertyValue("--atomic-sel-left"));
+  const base = Number.isFinite(current) ? current : rect.left + (rect.right - rect.left) / 2;
+  setVar(bar, "--atomic-sel-left", `${Math.round(base + shift)}px`);
 }
 function paintReaderAsk(host, view, handlers = {}) {
   const slot = host.getAttribute("data-reader-slot") === "margin" ? "margin" : "ask";
@@ -10461,10 +10826,7 @@ function readerAskView(input) {
   const panel = chrome.askPresentation === "hidden" ? null : {
     presentation: chrome.askPresentation,
     title: t("reader.askTitle", language),
-    subtitle: t("reader.pageLabel", language, {
-      title: input.bookTitle,
-      page: input.page
-    }),
+    subtitle: input.surface === "phone" ? t("reader.askSelection", language, { page: input.page }) : t("reader.askKeyLine", language),
     scope: input.scope,
     turns: input.turns,
     saved: input.savedToCanvas,
@@ -10820,12 +11182,9 @@ function registerAskOnShell(plugin) {
 }
 
 // src/reader/flight/geometry.ts
-var DESKTOP_BOOK_PX = { width: 168, height: 248 };
-var PHONE_BOOK_PX = { width: 120, height: 178 };
-var DESKTOP_FALLBACK_SCALE = 3.15;
-var PHONE_FALLBACK_SCALE = 2.35;
 var FLIGHT_MS = 1400;
 var FLIGHT_SKIP_MS = 1450;
+var REDUCED_FADE_MS = 280;
 var FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 var COVER_OPEN_MS = { duration: 900, delay: 180 };
 var FLIP_LEAVES = [
@@ -10837,30 +11196,6 @@ var FLIP_LEAVES = [
 ];
 var PHONE_LAYOUT_MAX_PX = 480;
 var SAFE_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)|[a-z]{1,24})$/i;
-function bookPx(layout) {
-  switch (layout) {
-    case "phone":
-      return PHONE_BOOK_PX;
-    case "desktop":
-      return DESKTOP_BOOK_PX;
-    default: {
-      const never = layout;
-      return never;
-    }
-  }
-}
-function fallbackScale(layout) {
-  switch (layout) {
-    case "phone":
-      return PHONE_FALLBACK_SCALE;
-    case "desktop":
-      return DESKTOP_FALLBACK_SCALE;
-    default: {
-      const never = layout;
-      return never;
-    }
-  }
-}
 function resolveFlightLayout(explicit, viewportWidth) {
   if (explicit === "phone" || explicit === "desktop") return explicit;
   if (viewportWidth > 0 && viewportWidth <= PHONE_LAYOUT_MAX_PX) return "phone";
@@ -10902,32 +11237,42 @@ function unionBoxes(boxes) {
   }
   return { x: left, y: top, width: right - left, height: bottom - top };
 }
-function flightVars(input) {
-  const bookW = input.book.width > 0 ? input.book.width : DESKTOP_BOOK_PX.width;
-  const bookH = input.book.height > 0 ? input.book.height : DESKTOP_BOOK_PX.height;
-  const fromCx = input.from.x + input.from.width / 2;
-  const fromCy = input.from.y + input.from.height / 2;
-  const vars = {
-    fromX: px(fromCx - input.host.width / 2),
-    fromY: px(fromCy - input.host.height / 2),
-    fromS: (input.from.width / bookW).toFixed(3),
-    toX: "0px",
-    toY: "0px",
-    toS: input.fallbackToScale.toFixed(3)
-  };
-  if (!input.dest) return vars;
-  const destCx = input.dest.x + input.dest.width / 2;
-  const destCy = input.dest.y + input.dest.height / 2;
-  vars.toX = px(destCx - input.host.width / 2);
-  vars.toY = px(destCy - input.host.height / 2);
-  vars.toS = Math.min(
-    input.dest.width / (bookW * 0.92),
-    input.dest.height / (bookH * 0.9)
-  ).toFixed(3);
-  return vars;
-}
 function px(value) {
   return `${value}px`;
+}
+function flightZoom(input) {
+  const fallback = {
+    originX: "50%",
+    originY: "46%",
+    fromScale: "1.800",
+    coverX: "18%",
+    coverY: "12%",
+    coverW: "64%",
+    coverH: "70%"
+  };
+  if (input.host.width <= 0 || input.host.height <= 0 || !input.spread) return fallback;
+  const localX = input.spread.x - input.host.x;
+  const localY = input.spread.y - input.host.y;
+  const cx = (localX + input.spread.width / 2) / input.host.width * 100;
+  const cy = (localY + input.spread.height / 2) / input.host.height * 100;
+  const fill = Math.min(
+    input.host.width / input.spread.width,
+    input.host.height / input.spread.height
+  );
+  const from = Math.max(1.15, Math.min(2.6, fill));
+  return {
+    originX: `${clampPercent(cx)}%`,
+    originY: `${clampPercent(cy)}%`,
+    fromScale: from.toFixed(3),
+    coverX: px(localX),
+    coverY: px(localY),
+    coverW: px(input.spread.width),
+    coverH: px(input.spread.height)
+  };
+}
+function clampPercent(value) {
+  const next = Math.max(0, Math.min(100, value));
+  return next.toFixed(2);
 }
 
 // src/reader/flight/page.ts
@@ -10999,205 +11344,126 @@ var OPEN_BOOK_FLIGHT_CSS = `
   --atomic-rule: #e0e0e0;
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
+  --flight-from: 1.8;
+  --flight-ox: 50%;
+  --flight-oy: 46%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
   --font-text: "Literata", "Source Serif 4", Georgia, "Iowan Old Style", Palatino, serif;
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 90;
+  z-index: 40;
   margin: 0;
   overflow: hidden;
   pointer-events: none;
-  opacity: 0;
   background: transparent;
   color: var(--atomic-ink);
   font-family: var(--font-interface);
-  -webkit-font-smoothing: antialiased;
 }
 .atomic-open-flight.is-on {
   pointer-events: auto;
-  opacity: 1;
 }
-.atomic-open-blur {
+.atomic-flight-camera {
   position: absolute;
   inset: 0;
-  background: transparent;
-  -webkit-backdrop-filter: blur(0);
-  backdrop-filter: blur(0);
+  transform-origin: var(--flight-ox) var(--flight-oy);
+  transform: scale(var(--flight-from));
 }
-.atomic-open-flight.is-playing .atomic-open-blur {
-  animation: atomic-open-blur ${FLIGHT_MS}ms var(--atomic-ease) forwards;
+.atomic-open-flight.is-playing .atomic-flight-camera {
+  animation: atomic-flight-zoom ${FLIGHT_MS}ms var(--atomic-ease) forwards;
 }
-.atomic-open-warm {
+.atomic-flight-snapshot {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 32% 40%, rgba(255, 186, 110, 0.2), transparent 42%),
-    radial-gradient(ellipse at 68% 42%, rgba(255, 186, 110, 0.12), transparent 38%);
-}
-.atomic-open-stage {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  perspective: 1400px;
-  transform-style: preserve-3d;
-}
-.atomic-open-book {
-  --from-x: 0px;
-  --from-y: 0px;
-  --from-s: 0.38;
-  --to-x: 0px;
-  --to-y: 0px;
-  --to-s: 3.15;
-  position: relative;
-  width: 168px;
-  height: 248px;
-  transform-style: preserve-3d;
-  transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s));
-  transform-origin: 50% 50%;
-}
-.atomic-open-flight.is-phone .atomic-open-book {
-  width: 120px;
-  height: 178px;
-  --to-s: 2.35;
-}
-.atomic-open-flight.is-playing .atomic-open-book {
-  animation: atomic-open-pop ${FLIGHT_MS}ms var(--atomic-ease) forwards;
-}
-.atomic-open-flight.is-phone.is-playing .atomic-open-book {
-  animation-name: atomic-open-pop-phone;
-}
-.atomic-open-flight.is-flat.is-playing .atomic-open-book {
-  animation-name: atomic-open-flat;
-}
-.atomic-open-back {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: var(--atomic-r-object);
-  background: #efe7d6;
-  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.45);
-  transform: translateZ(-2px);
-}
-.atomic-open-leaf {
-  position: absolute;
-  top: 5%;
-  bottom: 5%;
-  z-index: 1;
-  width: 46%;
-  overflow: hidden;
-  padding: 8% 6%;
-  border-radius: var(--atomic-r-object);
-  background: #fffdf8;
-  box-shadow: 0 0 0 1px rgba(40, 30, 10, 0.08);
-  color: #2b2925;
-  font-family: var(--font-text);
-  font-size: 9px;
-  line-height: 1.4;
-}
-.atomic-open-leaf.is-left { left: 4%; }
-.atomic-open-leaf.is-right { right: 4%; }
-.atomic-open-leaf p {
-  margin: 0 0 0.55em;
-}
-.atomic-open-k {
-  font-family: var(--font-interface);
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--atomic-ink-2);
-}
-.atomic-open-gutter {
-  position: absolute;
-  top: 5%;
-  bottom: 5%;
-  left: 50%;
-  z-index: 2;
-  width: 8px;
-  transform: translateX(-50%);
-  border-radius: var(--atomic-r-object);
-  background: linear-gradient(90deg, #e0d8c8, #f5f0e6, #e0d8c8);
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  height: 100%;
+  margin: 0;
   pointer-events: none;
 }
-.atomic-open-stack {
+.atomic-flight-cover,
+.atomic-flight-flips {
   position: absolute;
-  inset: 0;
-  z-index: 3;
-  transform-style: preserve-3d;
+  left: var(--flight-cover-x, 18%);
+  top: var(--flight-cover-y, 12%);
+  width: var(--flight-cover-w, 64%);
+  height: var(--flight-cover-h, 70%);
+  pointer-events: none;
 }
-.atomic-open-flip {
-  position: absolute;
-  top: 5%;
-  bottom: 5%;
-  left: 50%;
-  width: 46%;
-  border-radius: 0 var(--atomic-r-object) var(--atomic-r-object) 0;
-  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
-  box-shadow: -8px 0 16px -12px rgba(0, 0, 0, 0.35);
-  transform-origin: left center;
-  transform: rotateY(0deg);
-  backface-visibility: hidden;
-}
-${flipRules()}
-.atomic-open-cover {
-  position: absolute;
-  inset: 0;
+.atomic-flight-cover {
   z-index: 4;
   transform-origin: left center;
   transform-style: preserve-3d;
 }
-.atomic-open-flight.is-playing .atomic-open-cover {
-  animation: atomic-open-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms var(--atomic-ease) forwards;
+.atomic-open-flight.is-playing .atomic-flight-cover {
+  animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms var(--atomic-ease) forwards;
 }
-.atomic-open-flight.is-flat.is-playing .atomic-open-flip {
-  animation: none;
+.atomic-open-flight.is-flat.is-playing .atomic-flight-cover {
+  animation: atomic-flight-cover-fade ${FLIGHT_MS}ms var(--atomic-ease) forwards;
 }
-.atomic-open-flight.is-flat.is-playing .atomic-open-cover {
-  animation: atomic-open-cover-fade ${FLIGHT_MS}ms var(--atomic-ease) forwards;
-}
-.atomic-open-cover-face,
-.atomic-open-cover-in {
+.atomic-flight-cover-face,
+.atomic-flight-cover-in {
   position: absolute;
   inset: 0;
   border-radius: var(--atomic-r-object);
   backface-visibility: hidden;
 }
-.atomic-open-cover-face {
+.atomic-flight-cover-face {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 10% 10% 8% 14%;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0, rgba(255, 255, 255, 0.12) 8%, transparent 14%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 30%),
-    var(--atomic-open-cover);
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14%;
+  text-align: center;
+  background-color: var(--atomic-open-cover);
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 14%);
+  box-shadow:
+    inset 0 0 0 1px rgba(244, 236, 223, 0.45),
+    inset 0 0 0 10px var(--atomic-open-cover),
+    inset 0 0 0 11px rgba(244, 236, 223, 0.28);
   color: var(--atomic-open-ink);
 }
-.atomic-open-title {
-  font-size: 18px;
+.atomic-flight-title {
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.15;
 }
-.atomic-open-author {
+.atomic-flight-author {
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   opacity: 0.7;
 }
-.atomic-open-cover-in {
+.atomic-flight-cover-in {
   background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 20%), #f3ead8;
   transform: rotateY(180deg);
+}
+.atomic-flight-flips {
+  z-index: 3;
+}
+.atomic-flight-flip {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50%;
+  border-radius: 0 var(--atomic-r-object) var(--atomic-r-object) 0;
+  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
+  box-shadow: -8px 0 16px -12px rgba(0, 0, 0, 0.35);
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+${flipRules()}
+.atomic-open-flight.is-flat.is-playing .atomic-flight-flip {
+  animation: none;
+  opacity: 0;
 }
 .atomic-open-hint {
   position: absolute;
   left: 50%;
   bottom: 18px;
+  z-index: 5;
   transform: translateX(-50%);
   padding: 6px 12px;
   border: 1px solid var(--atomic-rule);
@@ -11211,57 +11477,51 @@ ${flipRules()}
   pointer-events: none;
   opacity: 0;
 }
-.atomic-open-flight.is-on .atomic-open-hint {
-  opacity: 1;
+.atomic-open-flight.is-playing .atomic-open-hint {
+  animation: atomic-flight-hint ${FLIGHT_MS}ms linear forwards;
 }
-@keyframes atomic-open-pop {
-  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
-  22%  { transform: translate3d(calc(var(--from-x) * 0.45 + var(--to-x) * 0.12), calc(var(--from-y) * 0.4 + var(--to-y) * 0.1 - 18px), 40px) scale(1.15) rotateX(10deg); }
-  48%  { transform: translate3d(calc(var(--to-x) * 0.55), calc(var(--to-y) * 0.45 - 8px), 90px) scale(1.85) rotateX(4deg); }
-  78%  { transform: translate3d(var(--to-x), var(--to-y), 28px) scale(calc(var(--to-s) * 0.94)); }
-  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+.atomic-open-flight.is-reduced {
+  background: var(--background-primary, #ffffff);
+  animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
 }
-@keyframes atomic-open-pop-phone {
-  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
-  22%  { transform: translate3d(calc(var(--from-x) * 0.4 + var(--to-x) * 0.12), calc(var(--from-y) * 0.35 + var(--to-y) * 0.1 - 10px), 30px) scale(1.2) rotateX(8deg); }
-  50%  { transform: translate3d(calc(var(--to-x) * 0.55), calc(var(--to-y) * 0.4 - 6px), 70px) scale(1.7); }
-  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+@keyframes atomic-flight-zoom {
+  0%, 82% { transform: scale(var(--flight-from)); }
+  100% { transform: scale(1); }
 }
-@keyframes atomic-open-flat {
-  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
-  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+@keyframes atomic-flight-cover {
+  0% { transform: rotateY(0deg); opacity: 1; }
+  72% { transform: rotateY(-168deg); opacity: 1; }
+  100% { transform: rotateY(-178deg); opacity: 0; }
 }
-@keyframes atomic-open-cover {
-  0%   { transform: rotateY(0); }
-  100% { transform: rotateY(-168deg); }
-}
-@keyframes atomic-open-cover-fade {
-  0%, 45% { opacity: 1; }
+@keyframes atomic-flight-cover-fade {
+  0%, 36% { opacity: 1; }
   100% { opacity: 0; }
 }
-@keyframes atomic-open-flip {
-  0%   { transform: rotateY(0); }
-  100% { transform: rotateY(-178deg); }
+@keyframes atomic-flight-flip {
+  0% { transform: rotateY(0deg); opacity: 1; }
+  80% { transform: rotateY(-178deg); opacity: 1; }
+  100% { transform: rotateY(-178deg); opacity: 0; }
 }
-@keyframes atomic-open-blur {
-  0%   { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); background: transparent; }
-  35%  { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-  80%  { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); background: color-mix(in srgb, var(--background-primary, #ffffff) 8%, transparent); }
-  100% { -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); background: transparent; }
+@keyframes atomic-flight-hint {
+  0%, 68% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
+@keyframes atomic-flight-fade {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .atomic-open-flight.is-playing .atomic-open-book,
-  .atomic-open-flight.is-playing .atomic-open-cover,
-  .atomic-open-flight.is-playing .atomic-open-flip,
-  .atomic-open-flight.is-playing .atomic-open-blur {
+  .atomic-open-flight.is-playing .atomic-flight-camera,
+  .atomic-open-flight.is-playing .atomic-flight-cover,
+  .atomic-open-flight.is-playing .atomic-flight-flip {
     animation: none;
   }
 }
 `.trim();
 function flipRules() {
-  return FLIP_LEAVES.map((leaf2, index) => {
+  return FLIP_LEAVES.map((leaf, index) => {
     const child = index + 1;
-    return `.atomic-open-flight.is-playing .atomic-open-flip:nth-child(${child}) { animation: atomic-open-flip ${leaf2.duration}ms ${leaf2.delay}ms var(--atomic-ease) forwards; }`;
+    return `.atomic-open-flight.is-playing .atomic-flight-flip:nth-child(${child}) { animation: atomic-flight-flip ${leaf.duration}ms ${leaf.delay}ms var(--atomic-ease) forwards; }`;
   }).join("\n");
 }
 
@@ -11301,21 +11561,10 @@ function mountOpenBookFlight(request, onLand) {
     coarsePointer: mediaMatches(view, "(pointer: coarse)"),
     layout
   });
-  if (motion === "reduced") {
-    onLand?.("reduced");
-    return {
-      overlay: null,
-      abort() {
-      },
-      skip() {
-      },
-      done: Promise.resolve("reduced")
-    };
-  }
   ensureFlightStyles(doc);
   const built = buildOverlay(doc, request, layout, motion);
   const overlay = built.overlay;
-  body.appendChild(overlay);
+  request.destination.appendChild(overlay);
   let closed = false;
   let timer = 0;
   let frame = 0;
@@ -11360,19 +11609,13 @@ function mountOpenBookFlight(request, onLand) {
   const start = (spread2) => {
     if (closed) return;
     const page = spreadFromPainted(paintedPages(request.destination), request.page);
-    fillLeaf(doc, built.left, page.headingLeft, page.left);
-    fillLeaf(doc, built.right, page.headingRight, page.right);
     overlay.setAttribute("data-page", String(page.page));
-    applyVars(
-      built.book,
-      flightVars({
-        from: request.from,
-        dest: spread2,
-        host: hostSize(view, overlay),
-        book: bookPx(layout),
-        fallbackToScale: fallbackScale(layout)
-      })
-    );
+    if (motion === "reduced") {
+      overlay.classList.add("is-on");
+      timer = view.setTimeout(() => finish2("reduced"), REDUCED_FADE_MS);
+      return;
+    }
+    applyZoom(built.camera, zoomFor(request.destination, spread2));
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
@@ -11410,14 +11653,6 @@ function ensureFlightStyles(doc) {
   style.textContent = OPEN_BOOK_FLIGHT_CSS;
   const head = doc.head ?? doc.body;
   if (head) head.appendChild(style);
-}
-function hostSize(view, overlay) {
-  const rect = overlay.getBoundingClientRect();
-  if (rect.width > 0 && rect.height > 0) return { width: rect.width, height: rect.height };
-  if (view.innerWidth > 0 && view.innerHeight > 0) {
-    return { width: view.innerWidth, height: view.innerHeight };
-  }
-  return { width: 0, height: 0 };
 }
 function spreadBox(root) {
   return unionBoxes(pageBoxes(root));
@@ -11457,102 +11692,131 @@ function isHtmlElement2(node) {
   if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
   return node.nodeType === 1;
 }
-function applyVars(book, vars) {
-  book.style.setProperty("--from-x", vars.fromX);
-  book.style.setProperty("--from-y", vars.fromY);
-  book.style.setProperty("--from-s", vars.fromS);
-  book.style.setProperty("--to-x", vars.toX);
-  book.style.setProperty("--to-y", vars.toY);
-  book.style.setProperty("--to-s", vars.toS);
+function applyZoom(camera, zoom) {
+  camera.style.setProperty("--flight-ox", zoom.originX);
+  camera.style.setProperty("--flight-oy", zoom.originY);
+  camera.style.setProperty("--flight-from", zoom.fromScale);
+  camera.style.setProperty("--flight-cover-x", zoom.coverX);
+  camera.style.setProperty("--flight-cover-y", zoom.coverY);
+  camera.style.setProperty("--flight-cover-w", zoom.coverW);
+  camera.style.setProperty("--flight-cover-h", zoom.coverH);
+}
+function zoomFor(destination, spread) {
+  const host = destination.getBoundingClientRect();
+  return flightZoom({
+    host: { x: host.left, y: host.top, width: host.width, height: host.height },
+    spread
+  });
 }
 function buildOverlay(doc, request, layout, motion) {
   const overlay = doc.createElement("div");
   overlay.className = "atomic-open-flight";
   overlay.classList.add(layout === "phone" ? "is-phone" : "is-desktop");
   if (motion === "flat") overlay.classList.add("is-flat");
+  if (motion === "reduced") overlay.classList.add("is-reduced");
   overlay.setAttribute("data-testid", "atomic-open-flight");
-  overlay.setAttribute("data-overlay-host", "window");
+  overlay.setAttribute("data-overlay-host", "leaf");
   overlay.setAttribute("data-motion", motion);
+  overlay.setAttribute("data-zoom", motion === "reduced" ? "fade" : "out");
   overlay.setAttribute("role", "presentation");
   const color = safeCoverColor(request.cover.color);
   const ink = safeCoverColor(request.cover.ink);
   if (color) overlay.style.setProperty("--atomic-open-cover", color);
   if (ink) overlay.style.setProperty("--atomic-open-ink", ink);
-  const blur = doc.createElement("div");
-  blur.className = "atomic-open-blur";
-  const warm = doc.createElement("div");
-  warm.className = "atomic-open-warm";
-  warm.setAttribute("aria-hidden", "true");
-  const stage = doc.createElement("div");
-  stage.className = "atomic-open-stage";
-  const book = doc.createElement("div");
-  book.className = "atomic-open-book";
-  book.setAttribute("data-testid", "atomic-open-book");
-  const back = doc.createElement("div");
-  back.className = "atomic-open-back";
-  const left = leaf(doc, "left");
-  const right = leaf(doc, "right");
-  const gutter = doc.createElement("div");
-  gutter.className = "atomic-open-gutter";
-  gutter.setAttribute("aria-hidden", "true");
-  const stack = doc.createElement("div");
-  stack.className = "atomic-open-stack";
+  if (motion === "reduced") return { overlay, camera: overlay };
+  const camera = doc.createElement("div");
+  camera.className = "atomic-flight-camera";
+  camera.setAttribute("data-testid", "atomic-flight-camera");
+  const snapshot = snapshotReader(doc, request.destination);
+  snapshot.classList.add("atomic-flight-snapshot");
+  snapshot.setAttribute("data-testid", "atomic-flight-snapshot");
+  camera.appendChild(snapshot);
+  const flips = doc.createElement("div");
+  flips.className = "atomic-flight-flips";
+  flips.setAttribute("aria-hidden", "true");
   for (let index = 0; index < FLIP_LEAVES.length; index++) {
     const flip = doc.createElement("div");
-    flip.className = "atomic-open-flip";
-    stack.appendChild(flip);
+    flip.className = "atomic-flight-flip";
+    flips.appendChild(flip);
   }
   const cover = doc.createElement("div");
-  cover.className = "atomic-open-cover";
+  cover.className = "atomic-flight-cover";
   const face = doc.createElement("div");
-  face.className = "atomic-open-cover-face";
+  face.className = "atomic-flight-cover-face";
   const title = doc.createElement("span");
-  title.className = "atomic-open-title";
+  title.className = "atomic-flight-title";
   title.textContent = request.cover.title;
   face.appendChild(title);
   if (request.cover.author) {
     const author = doc.createElement("span");
-    author.className = "atomic-open-author";
+    author.className = "atomic-flight-author";
     author.textContent = request.cover.author;
     face.appendChild(author);
   }
   const inside = doc.createElement("div");
-  inside.className = "atomic-open-cover-in";
-  cover.appendChild(face);
-  cover.appendChild(inside);
-  book.append(back, left, right, gutter, stack, cover);
-  stage.appendChild(book);
+  inside.className = "atomic-flight-cover-in";
+  cover.append(face, inside);
   const hint = doc.createElement("div");
   hint.className = "atomic-open-hint";
   hint.setAttribute("data-testid", "atomic-open-flight-hint");
   hint.textContent = request.hint?.trim() || OPEN_BOOK_HINT;
-  overlay.append(blur, warm, stage, hint);
-  return { overlay, book, left, right };
+  camera.append(flips, cover);
+  overlay.append(camera, hint);
+  return { overlay, camera };
 }
-function leaf(doc, side) {
-  const node = doc.createElement("div");
-  node.className = `atomic-open-leaf is-${side}`;
-  node.setAttribute("data-testid", "atomic-open-leaf");
-  node.setAttribute("data-side", side);
-  return node;
+function snapshotReader(doc, source) {
+  if (typeof source.cloneNode === "function") {
+    const cloned = source.cloneNode(true);
+    if (isHtmlElement2(cloned)) return cloned;
+  }
+  return copyElement(doc, source);
 }
-function fillLeaf(doc, leafNode, heading, lines) {
-  const nodes = [];
-  if (heading) {
-    const label = doc.createElement("p");
-    label.className = "atomic-open-k";
-    label.textContent = heading;
-    nodes.push(label);
+function copyElement(doc, source) {
+  const copy = doc.createElement(source.tagName.toLowerCase());
+  copy.className = source.className;
+  copyAttributes(source, copy);
+  copyStyle(source, copy);
+  const kids = source.children;
+  if (!kids || kids.length === 0) {
+    copy.textContent = source.textContent;
+    return copy;
   }
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    if (!line) continue;
-    const para = doc.createElement("p");
-    para.setAttribute("data-line", String(index));
-    para.textContent = line;
-    nodes.push(para);
+  for (let index = 0; index < kids.length; index++) {
+    const child = kids[index];
+    if (child && isHtmlElement2(child)) copy.appendChild(copyElement(doc, child));
   }
-  leafNode.replaceChildren(...nodes);
+  return copy;
+}
+function copyStyle(from, to) {
+  const style = from.style;
+  if (style.map) {
+    style.map.forEach((value, key) => {
+      to.style.setProperty(key, value);
+    });
+    return;
+  }
+  if (typeof style.length !== "number") return;
+  for (let index = 0; index < style.length; index++) {
+    const name = style.item(index);
+    if (!name) continue;
+    to.style.setProperty(name, style.getPropertyValue(name));
+  }
+}
+function copyAttributes(from, to) {
+  const named = from.attributes;
+  if (named && typeof named.length === "number") {
+    for (let index = 0; index < named.length; index++) {
+      const attr2 = named.item(index);
+      if (!attr2 || attr2.name === "class") continue;
+      to.setAttribute(attr2.name, attr2.value);
+    }
+    return;
+  }
+  const bag = from.attrs;
+  if (!bag) return;
+  bag.forEach((value, key) => {
+    if (key !== "class") to.setAttribute(key, value);
+  });
 }
 
 // src/reader/flight/register.ts
@@ -11568,10 +11832,7 @@ function registerOpenBookFlight(openDirect) {
 async function playOpenBookFlight(openDirect, request) {
   const view = openBookFlightView();
   if (!view) return false;
-  if (prefersReducedMotion4(view)) {
-    abortOpenBookFlight(view);
-    return false;
-  }
+  if (prefersReducedMotion4(view)) abortOpenBookFlight(view);
   await openDirect(request);
   const destination = await waitForLiveReader(view);
   if (destination) {
@@ -11579,8 +11840,7 @@ async function playOpenBookFlight(openDirect, request) {
       view,
       from: coverBox(request),
       cover: {
-        title: request.title,
-        color: request.coverRect?.color
+        title: request.title
       },
       page: { page: 1, left: [], right: [] },
       destination
@@ -11621,9 +11881,9 @@ function readerRoot(doc) {
 }
 function inActiveLeaf(node) {
   if (typeof node.closest !== "function") return false;
-  const leaf2 = node.closest(".workspace-leaf");
-  if (!leaf2 || !isHtmlElement3(leaf2)) return false;
-  return leaf2.classList.contains("mod-active");
+  const leaf = node.closest(".workspace-leaf");
+  if (!leaf || !isHtmlElement3(leaf)) return false;
+  return leaf.classList.contains("mod-active");
 }
 function livePageReady(root) {
   if (!root) return false;
@@ -11825,67 +12085,6 @@ ${body}`;
   lines.splice(closing, 0, "reader:", `  page: ${safe}`);
   return finish(lines);
 }
-var SIZE_KEY_LINE = /^reader\.size\s*:(.*)$/;
-function writeReaderSize(markdown, size) {
-  const text = String(markdown ?? "");
-  const nl = text.includes("\r\n") ? "\r\n" : "\n";
-  const line = `reader.size: ${size}`;
-  const fence = splitSizeFrontmatter(text);
-  if (!fence) {
-    const body = text.replace(/^\uFEFF?/, "");
-    const spacer = body.length === 0 || body.startsWith(nl) ? "" : nl;
-    return `---${nl}${line}${nl}---${nl}${spacer}${body}`;
-  }
-  let replaced = false;
-  const next = [];
-  for (let index = 0; index < fence.lines.length; index += 1) {
-    if (index === fence.end && !replaced) next.push(line);
-    if (index > 0 && index < fence.end && SIZE_KEY_LINE.test(fence.lines[index])) {
-      if (!replaced) next.push(line);
-      replaced = true;
-      continue;
-    }
-    next.push(fence.lines[index]);
-  }
-  syncNestedReaderSize(next, size);
-  const joined = next.join(nl);
-  return joined.endsWith(nl) ? joined : `${joined}${nl}`;
-}
-function syncNestedReaderSize(lines, size) {
-  let end = lines.length;
-  for (let index = 1; index < lines.length; index += 1) {
-    if (lines[index].trim() === "---") {
-      end = index;
-      break;
-    }
-  }
-  for (let index = 1; index < end; index += 1) {
-    const reader = lines[index].match(/^reader\s*:\s*(.*)$/);
-    if (!reader) continue;
-    const rest = reader[1].trim();
-    if (rest.startsWith("{")) {
-      if (/size\s*:/.test(rest)) {
-        lines[index] = lines[index].replace(/size\s*:\s*[^,}\s]+/, `size: ${size}`);
-      }
-      continue;
-    }
-    if (rest && rest !== "|" && rest !== ">") continue;
-    for (let cursor = index + 1; cursor < end; cursor += 1) {
-      if (!/^\s+/.test(lines[cursor])) break;
-      if (!/^\s+size\s*:/.test(lines[cursor])) continue;
-      const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
-      lines[cursor] = `${indent}size: ${size}`;
-    }
-  }
-}
-function splitSizeFrontmatter(markdown) {
-  const lines = markdown.split(/\r?\n/);
-  if (lines[0]?.replace(/^\uFEFF/, "").trim() !== "---") return null;
-  for (let index = 1; index < lines.length; index += 1) {
-    if (lines[index].trim() === "---") return { lines, end: index };
-  }
-  return null;
-}
 
 // src/reader/shell/link.ts
 function normalizeVaultPath3(path) {
@@ -11971,6 +12170,21 @@ function resolveLinkedBookFile(input) {
 
 // src/reader/shell/chooser.ts
 var session2 = null;
+function rowIcon(doc, kind) {
+  const host = (doc ?? activeDocument).createElement("span");
+  host.className = "atomic-chooser-ico";
+  host.setAttribute("aria-hidden", "true");
+  const svg = (doc ?? activeDocument).createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  const path = (doc ?? activeDocument).createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute(
+    "d",
+    kind === "notes" ? "M4 20h4l10-10-4-4L4 16v4zM13 7l4 4" : "M6 4h9a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2V4z"
+  );
+  svg.append(path);
+  host.append(svg);
+  return host;
+}
 function overlayBody(owner) {
   if (owner?.body && owner === activeDocument) return activeDocument.body;
   if (owner?.body) return owner.body;
@@ -12012,6 +12226,7 @@ function openBookChooser(options) {
     cls: "atomic-chooser-row is-primary",
     attr: { type: "button", "data-testid": "atomic-chooser-notes", "data-chooser-act": "notes" }
   });
+  notes.append(rowIcon(sheet.ownerDocument, "notes"));
   const notesLabel = notes.createSpan({ cls: "atomic-chooser-label" });
   notesLabel.createEl("b", { text: t("view.reader.openNotes", options.language) });
   notesLabel.createSpan({ text: t("view.reader.openNotesHint", options.language) });
@@ -12021,6 +12236,7 @@ function openBookChooser(options) {
       cls: "atomic-chooser-row",
       attr: { type: "button", "data-testid": "atomic-chooser-book", "data-chooser-act": "book" }
     });
+    book.append(rowIcon(sheet.ownerDocument, "book"));
     const bookLabel = book.createSpan({ cls: "atomic-chooser-label" });
     bookLabel.createEl("b", { text: t("view.reader.openBook", options.language) });
     const fileName = options.file.path.split("/").pop() ?? options.file.path;
@@ -12068,1150 +12284,6 @@ function openBookChooser(options) {
 
 // src/reader/shell/view.ts
 var import_obsidian17 = require("obsidian");
-
-// src/reader/shell/paginate.ts
-function wordsOf(text) {
-  return text.trim().split(/\s+/).filter(Boolean);
-}
-function countReaderLines(text, charsPerLine) {
-  const width = Math.max(1, charsPerLine);
-  const words = wordsOf(text);
-  if (!words.length) return 1;
-  let lines = 1;
-  let length = 0;
-  for (const word of words) {
-    const add = length === 0 ? word.length : word.length + 1;
-    if (length > 0 && length + add > width) {
-      lines += 1;
-      length = word.length;
-    } else {
-      length += add;
-    }
-  }
-  return lines;
-}
-function splitToFit(text, charsPerLine, bodyLines) {
-  const width = Math.max(1, charsPerLine);
-  const limit = Math.max(1, bodyLines);
-  if (countReaderLines(text, width) <= limit) return [text];
-  const words = wordsOf(text);
-  const pieces = [];
-  let current = [];
-  let lines = 1;
-  let length = 0;
-  const push = () => {
-    if (current.length) pieces.push(current.join(" "));
-    current = [];
-    lines = 1;
-    length = 0;
-  };
-  for (const word of words) {
-    const add = length === 0 ? word.length : word.length + 1;
-    if (length > 0 && length + add > width) {
-      if (lines >= limit) push();
-      else lines += 1;
-      current.push(word);
-      length = word.length;
-      continue;
-    }
-    current.push(word);
-    length += add;
-  }
-  push();
-  return pieces.length ? pieces : [text];
-}
-function paginateReaderBlocks(blocks, box) {
-  const bodyLines = Math.max(1, box.bodyLines);
-  const charsPerLine = Math.max(1, box.charsPerLine);
-  const pages = [];
-  let chapter = "";
-  let pageChapter = "";
-  let paragraphs = [];
-  let used = 0;
-  const flush = () => {
-    if (!paragraphs.length) return;
-    pages.push({
-      number: pages.length + 1,
-      chapter: pageChapter,
-      paragraphs
-    });
-    paragraphs = [];
-    used = 0;
-  };
-  const appendPiece = (piece) => {
-    const lines = countReaderLines(piece, charsPerLine);
-    const gap = paragraphs.length ? 1 : 0;
-    if (paragraphs.length && used + gap + lines > bodyLines) flush();
-    if (!paragraphs.length) pageChapter = chapter;
-    const gapNow = paragraphs.length ? 1 : 0;
-    paragraphs.push(piece);
-    used += gapNow + lines;
-  };
-  for (const block of blocks) {
-    const text = block.text.trim();
-    if (!text) continue;
-    if (block.kind === "heading") {
-      flush();
-      chapter = text;
-      continue;
-    }
-    for (const piece of splitToFit(text, charsPerLine, bodyLines)) {
-      appendPiece(piece);
-    }
-  }
-  flush();
-  return pages;
-}
-
-// src/reader/size/geometry.ts
-var READER_SIZE_ORDER = ["s", "m", "l", "xl"];
-var DEFAULT_READER_SIZE = "m";
-var READER_DESK_TYPE = { fontSizePx: 12.5, lineHeightPx: 19 };
-var READER_PHONE_TYPE = { fontSizePx: 15, lineHeightPx: 23 };
-var THEATER_XL_HEIGHT = 500;
-function isReaderSizeId(value) {
-  return READER_SIZE_ORDER.some((size) => size === value);
-}
-function parseReaderSize(value) {
-  const token = String(value ?? "").trim().toLowerCase();
-  if (isReaderSizeId(token)) return token;
-  return DEFAULT_READER_SIZE;
-}
-function readerSizeLabel(size) {
-  switch (size) {
-    case "s":
-      return "S";
-    case "m":
-      return "M";
-    case "l":
-      return "L";
-    case "xl":
-      return "XL";
-    default: {
-      const unseen = size;
-      return unseen;
-    }
-  }
-}
-function stepReaderSize(size, direction) {
-  const index = READER_SIZE_ORDER.indexOf(size);
-  const next = Math.max(0, Math.min(READER_SIZE_ORDER.length - 1, index + direction));
-  return READER_SIZE_ORDER[next];
-}
-function effectiveReaderSize(size, theaterLocked2) {
-  return theaterLocked2 ? "xl" : size;
-}
-function readerPageGeometry(size, options) {
-  const surface = options?.surface ?? "desk";
-  const theater = options?.theater === true;
-  const applied = effectiveReaderSize(size, theater);
-  const box = readerPageBox(applied, theater ? THEATER_XL_HEIGHT : void 0);
-  const type = surface === "phone" ? READER_PHONE_TYPE : READER_DESK_TYPE;
-  return {
-    size: applied,
-    surface,
-    theater,
-    width: box.w,
-    height: box.h,
-    fontSizePx: type.fontSizePx,
-    lineHeightPx: type.lineHeightPx,
-    lines: box.bodyLines,
-    clipHeight: box.bodyLines * type.lineHeightPx
-  };
-}
-
-// src/reader/size/reflow.ts
-function readerReflowBox(size, theaterLocked2) {
-  const drawn = effectiveReaderSize(size, theaterLocked2);
-  const box = readerPageBox(drawn, theaterLocked2 ? THEATER_XL_HEIGHT : void 0);
-  return {
-    size,
-    width: box.w,
-    height: box.h,
-    bodyLines: box.bodyLines,
-    charsPerLine: box.charsPerLine
-  };
-}
-
-// src/reader/shell/pdf.ts
-function inspectPdf(bytes) {
-  const text = new TextDecoder("iso-8859-1").decode(bytes);
-  const encrypted = /\/Encrypt\b/.test(text);
-  let pages = 0;
-  const patterns = [
-    /\/Type\s*\/Pages\b[\s\S]{0,80}?\/Count\s+(\d+)/g,
-    /\/Count\s+(\d+)[\s\S]{0,80}?\/Type\s*\/Pages\b/g
-  ];
-  for (const pattern of patterns) {
-    for (const match of text.matchAll(pattern)) {
-      const count = Number(match[1]);
-      if (Number.isFinite(count) && count > pages) pages = Math.trunc(count);
-    }
-  }
-  return { pages, encrypted };
-}
-function pdfViewerSrc(resourcePath, page) {
-  const base = resourcePath.split("#")[0] ?? resourcePath;
-  const safe = Math.max(1, Math.trunc(page));
-  return `${base}#page=${safe}&toolbar=0&navpanes=0&view=FitH`;
-}
-
-// src/reader/shell/view.ts
-function layoutBox(size) {
-  const request = readerReflowBox(size, false);
-  return {
-    w: request.width,
-    h: request.height,
-    bodyLines: request.bodyLines,
-    charsPerLine: request.charsPerLine
-  };
-}
-function paintedBox(host) {
-  const root = host.querySelector(".atomic-reader");
-  if (!root?.instanceOf(HTMLElement)) return null;
-  const width = root.style.getPropertyValue("--atomic-page-w").trim();
-  const height = root.style.getPropertyValue("--atomic-page-h").trim();
-  if (!width || !height) return null;
-  return { w: width, h: height };
-}
-function slideBox(root, previous, box) {
-  if (!previous) return;
-  const width = `${box.w}px`;
-  const height = `${box.h}px`;
-  if (previous.w === width && previous.h === height) return;
-  root.setCssProps({ "--atomic-page-w": previous.w, "--atomic-page-h": previous.h });
-  void root.getBoundingClientRect();
-  root.setCssProps({ "--atomic-page-w": width, "--atomic-page-h": height });
-}
-var ATOMIC_READER_VIEW = "atomic-reader";
-function asRecord(value) {
-  if (!value || typeof value !== "object") return null;
-  return value;
-}
-function asText(value) {
-  return typeof value === "string" ? value : "";
-}
-function coverFromState(value) {
-  const record = asRecord(value);
-  if (!record) return null;
-  const x = Number(record.x);
-  const y = Number(record.y);
-  const width = Number(record.width);
-  const height = Number(record.height);
-  if (![x, y, width, height].every((part) => Number.isFinite(part))) return null;
-  return {
-    x,
-    y,
-    width,
-    height,
-    color: asText(record.color)
-  };
-}
-function elementTarget2(target) {
-  if (!target || !("instanceOf" in target)) return null;
-  const node = target;
-  return node.instanceOf(HTMLElement) ? node : null;
-}
-function readingAccent(plugin) {
-  const reading = plugin.settings.activityTypes.find((activity) => activity.id === "reading");
-  const color = reading?.baseColor ?? "";
-  return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "";
-}
-var AtomicReaderView = class extends import_obsidian17.ItemView {
-  constructor(leaf2, plugin) {
-    super(leaf2);
-    this.plugin = plugin;
-    this.notePath = "";
-    this.filePath = "";
-    this.title = "";
-    this.kind = "epub";
-    this.returnPath = "";
-    this.coverRect = null;
-    this.size = "m";
-    this.blocks = [];
-    this.layout = layoutBox("m");
-    /** True after the size control paginates during this load. */
-    this.sizeFromReader = false;
-    this.canvasPath = "";
-    this.page = 1;
-    this.savedPage = 1;
-    this.total = 0;
-    this.leaves = [];
-    this.pdfSrc = "";
-    this.failure = "opening";
-    this.phone = false;
-    this.dirty = false;
-    this.ready = false;
-    this.loadToken = 0;
-    this.saveTimer = null;
-    this.observed = false;
-    this.keys = false;
-  }
-  getViewType() {
-    return ATOMIC_READER_VIEW;
-  }
-  getDisplayText() {
-    return this.title || "Book";
-  }
-  getIcon() {
-    return "book-open";
-  }
-  getState() {
-    return {
-      notePath: this.notePath,
-      filePath: this.filePath,
-      title: this.title,
-      kind: this.kind,
-      returnPath: this.returnPath,
-      coverRect: this.coverRect,
-      page: this.page
-    };
-  }
-  async setState(state, result) {
-    this.applyState(state);
-    result.history = true;
-    await this.loadDocument();
-  }
-  async onOpen() {
-    this.ensureObserver();
-    this.ensureKeys();
-    if (!this.ready) this.paint();
-  }
-  async onClose() {
-    this.loadToken += 1;
-    await this.flushSave();
-  }
-  applyState(state) {
-    const record = asRecord(state) ?? {};
-    this.notePath = asText(record.notePath);
-    this.filePath = asText(record.filePath);
-    this.title = asText(record.title);
-    this.kind = record.kind === "pdf" ? "pdf" : "epub";
-    this.returnPath = asText(record.returnPath) || this.notePath;
-    this.coverRect = coverFromState(record.coverRect);
-    const page = Number(record.page);
-    if (Number.isFinite(page) && page >= 1) this.page = Math.trunc(page);
-  }
-  ensureObserver() {
-    if (this.observed || typeof ResizeObserver === "undefined") return;
-    this.observed = true;
-    const observer = new ResizeObserver(() => {
-      const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-      if (phone === this.phone) return;
-      this.phone = phone;
-      this.paint();
-    });
-    observer.observe(this.contentEl);
-    this.register(() => observer.disconnect());
-  }
-  ensureKeys() {
-    if (this.keys) return;
-    this.keys = true;
-    this.registerDomEvent(this.contentEl, "keydown", (event) => {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      const target = elementTarget2(event.target);
-      if (target?.closest("input, textarea")) return;
-      event.preventDefault();
-      this.turn(event.key === "ArrowRight" ? 1 : -1);
-    });
-  }
-  async loadDocument() {
-    const token = ++this.loadToken;
-    this.failure = "opening";
-    this.ready = false;
-    this.leaves = [];
-    this.blocks = [];
-    this.sizeFromReader = false;
-    this.pdfSrc = "";
-    this.total = 0;
-    this.paint();
-    const file = this.plugin.data.getFileByPath(this.filePath);
-    if (!(file instanceof import_obsidian17.TFile)) {
-      this.failure = "unreadable";
-      this.ready = true;
-      this.paint();
-      return;
-    }
-    if (file.extension === "pdf") this.kind = "pdf";
-    if (file.extension === "epub") this.kind = "epub";
-    const note = this.plugin.data.getFileByPath(this.notePath);
-    let storedPage = 1;
-    if (note instanceof import_obsidian17.TFile) {
-      const cache = this.plugin.app.metadataCache.getFileCache(note);
-      const fields = cache?.frontmatter ? readerFieldsFromFrontmatter(cache.frontmatter) : readReaderNote(await this.plugin.app.vault.cachedRead(note));
-      if (token !== this.loadToken) return;
-      if (!this.sizeFromReader) this.size = fields.size;
-      this.canvasPath = sourcePathFromFrontmatter(fields.canvas);
-      storedPage = fields.page;
-    }
-    if (!this.sizeFromReader) this.layout = layoutBox(this.size);
-    this.page = storedPage;
-    this.savedPage = storedPage;
-    try {
-      const bytes = new Uint8Array(await this.plugin.app.vault.readBinary(file));
-      if (token !== this.loadToken) return;
-      switch (this.kind) {
-        case "pdf": {
-          const info = inspectPdf(bytes);
-          if (info.encrypted) this.failure = "encrypted";
-          else if (info.pages < 1) this.failure = "unreadable";
-          else {
-            this.total = info.pages;
-            this.pdfSrc = this.plugin.app.vault.getResourcePath(file);
-            this.failure = null;
-          }
-          break;
-        }
-        case "epub": {
-          const epub = await readEpub(bytes);
-          if (token !== this.loadToken) return;
-          this.blocks = epub.blocks;
-          this.leaves = paginateReaderBlocks(this.blocks, this.layout);
-          this.total = this.leaves.length;
-          this.failure = this.total > 0 ? null : "empty";
-          break;
-        }
-        default: {
-          const unexpected = this.kind;
-          throw new Error(unexpected);
-        }
-      }
-    } catch {
-      if (token !== this.loadToken) return;
-      this.failure = "unreadable";
-    }
-    if (token !== this.loadToken) return;
-    this.page = clampReaderPage(storedPage, Math.max(this.total, 1));
-    this.savedPage = this.page;
-    this.dirty = false;
-    this.ready = true;
-    this.phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-    this.paint();
-  }
-  leafAt(number) {
-    return this.leaves.find((leaf2) => leaf2.number === number) ?? null;
-  }
-  turn(direction) {
-    if (this.failure) return;
-    const next = pageAfterTurn(this.page, this.total, direction);
-    if (next === this.page) return;
-    this.page = next;
-    this.dirty = this.page !== this.savedPage;
-    this.paint();
-    if (this.dirty) this.scheduleSave();
-  }
-  scheduleSave() {
-    const view = this.contentEl.win;
-    if (this.saveTimer != null) view.clearTimeout(this.saveTimer);
-    const page = this.page;
-    const path = this.notePath;
-    this.saveTimer = view.setTimeout(() => {
-      this.saveTimer = null;
-      void this.writePage(path, page);
-    }, 400);
-  }
-  async writePage(path, page) {
-    if (!path) return;
-    await this.plugin.data.processNote(path, (current) => updateReaderPage(current, page));
-    if (this.page === page) {
-      this.savedPage = page;
-      this.dirty = false;
-    }
-  }
-  async flushSave() {
-    if (this.saveTimer != null) {
-      this.contentEl.win.clearTimeout(this.saveTimer);
-      this.saveTimer = null;
-    }
-    if (!this.dirty) return;
-    await this.writePage(this.notePath, this.page);
-  }
-  session() {
-    return {
-      notePath: this.notePath,
-      filePath: this.filePath,
-      title: this.title,
-      kind: this.kind,
-      returnPath: this.returnPath,
-      coverRect: this.coverRect,
-      page: this.page,
-      total: this.total,
-      size: this.size,
-      relayout: (request) => {
-        this.applyLayout(request);
-      }
-    };
-  }
-  /** Paginate the open EPUB for the box the size control is drawing. */
-  applyLayout(request) {
-    const box = {
-      w: request.width,
-      h: request.height,
-      bodyLines: Math.max(1, Math.round(request.bodyLines)),
-      charsPerLine: Math.max(1, Math.round(request.charsPerLine))
-    };
-    if (this.size === request.size && this.layout.w === box.w && this.layout.h === box.h && this.layout.bodyLines === box.bodyLines && this.layout.charsPerLine === box.charsPerLine) {
-      return;
-    }
-    this.sizeFromReader = true;
-    this.size = request.size;
-    this.layout = box;
-    if (this.kind === "epub" && this.blocks.length > 0) {
-      this.leaves = paginateReaderBlocks(this.blocks, box);
-      this.total = this.leaves.length;
-      this.failure = this.total > 0 ? null : "empty";
-      const nextPage = clampReaderPage(this.page, Math.max(this.total, 1));
-      if (nextPage !== this.page) {
-        this.page = nextPage;
-        this.dirty = this.page !== this.savedPage;
-        if (this.dirty) this.scheduleSave();
-      }
-    }
-    this.paint();
-  }
-  attachMounts(root) {
-    const session3 = this.session();
-    const mounts2 = readerMounts();
-    const sizeSlot = root.querySelector("[data-reader-slot='size']");
-    if (sizeSlot?.instanceOf(HTMLElement)) mounts2.size?.attach?.(sizeSlot, session3);
-    const theaterSlot = root.querySelector("[data-reader-slot='theater']");
-    if (theaterSlot?.instanceOf(HTMLElement)) mounts2.theater?.attach?.(theaterSlot, session3);
-    const askSlot = root.querySelector("[data-reader-slot='ask']");
-    if (askSlot?.instanceOf(HTMLElement)) mounts2.ask?.attach?.(askSlot, session3);
-  }
-  paint() {
-    const language = this.plugin.settings.language;
-    const box = this.layout;
-    const previous = paintedBox(this.contentEl);
-    const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
-    this.contentEl.empty();
-    const root = this.contentEl.createDiv({
-      cls: this.phone ? "fitness-plugin atomic-reader is-phone" : "fitness-plugin atomic-reader",
-      attr: {
-        "data-testid": "atomic-reader",
-        "data-reader-mount": "shell",
-        "data-kind": this.kind,
-        "data-page": String(this.page),
-        "data-total": String(this.total),
-        "data-size": this.size,
-        "data-body-lines": String(box.bodyLines),
-        tabindex: "0"
-      }
-    });
-    const accent = readingAccent(this.plugin);
-    root.setCssProps({
-      "--atomic-page-w": `${box.w}px`,
-      "--atomic-page-h": `${box.h}px`,
-      "--atomic-reader-progress": `${progress.percent}%`,
-      ...accent ? { "--atomic-c": accent } : {}
-    });
-    const bar = root.createDiv({ cls: "atomic-reader-bar" });
-    const shelf = bar.createEl("button", {
-      cls: "atomic-btn is-quiet is-small",
-      attr: { type: "button", "data-testid": "atomic-reader-shelf" }
-    });
-    shelf.setText(t("view.reader.shelf", language));
-    shelf.addEventListener("click", () => {
-      void this.plugin.data.openPath(this.returnPath || this.notePath);
-    });
-    const name = bar.createSpan({
-      cls: "atomic-name atomic-reader-title",
-      attr: { "data-testid": "atomic-reader-title" }
-    });
-    name.createSpan({ cls: "atomic-dot" });
-    name.createSpan({ text: this.title || t("view.reader.openBook", language) });
-    if (this.canvasPath) {
-      const canvas = bar.createEl("button", {
-        cls: "atomic-link",
-        attr: { type: "button", "data-testid": "atomic-reader-canvas" }
-      });
-      canvas.setText(t("view.reader.canvas", language));
-      canvas.addEventListener("click", () => {
-        void this.plugin.data.openPath(this.canvasPath);
-      });
-    }
-    const note = bar.createEl("button", {
-      cls: "atomic-link",
-      attr: { type: "button", "data-testid": "atomic-reader-note" }
-    });
-    note.setText(t("view.reader.note", language));
-    note.addEventListener("click", () => {
-      void this.plugin.data.openPath(this.notePath);
-    });
-    bar.createDiv({
-      cls: "atomic-reader-slot",
-      attr: { "data-reader-slot": "size", "data-testid": "atomic-reader-slot-size" }
-    });
-    bar.createDiv({
-      cls: "atomic-reader-slot",
-      attr: { "data-reader-slot": "theater", "data-testid": "atomic-reader-slot-theater" }
-    });
-    const spreadEl = root.createDiv({ cls: "atomic-reader-spread" });
-    if (this.failure) {
-      const key = this.failure === "encrypted" ? "view.reader.encrypted" : this.failure === "empty" ? "view.reader.empty" : this.failure === "opening" ? "view.reader.opening" : "view.reader.unreadable";
-      spreadEl.createEl("p", {
-        cls: "atomic-reader-status",
-        attr: { "data-testid": "atomic-reader-status", "data-state": this.failure },
-        text: t(key, language)
-      });
-    } else {
-      const pair = spreadPages(this.page, this.total);
-      if (!this.phone) {
-        spreadEl.createDiv({
-          cls: "atomic-reader-gutter is-margin",
-          attr: { "data-reader-slot": "margin" }
-        });
-        this.paintPage(spreadEl, pair.verso, "verso");
-        this.paintPage(spreadEl, pair.recto, "recto");
-      } else {
-        if (pair.verso) this.paintPage(spreadEl, pair.verso, "verso");
-        if (pair.recto) this.paintPage(spreadEl, pair.recto, "recto");
-      }
-    }
-    spreadEl.createDiv({
-      cls: "atomic-reader-gutter is-ask",
-      attr: { "data-reader-slot": "ask", "data-testid": "atomic-reader-slot-ask" }
-    });
-    this.paintFoot(root, language, progress);
-    this.attachMounts(root);
-    slideBox(root, previous, box);
-  }
-  paintPage(parent, number, side) {
-    const page = parent.createDiv({
-      cls: `atomic-reader-page is-${side}`,
-      attr: number ? { "data-testid": "atomic-reader-page", "data-page": String(number) } : { "data-blank": "true" }
-    });
-    if (!number) return;
-    const leaf2 = this.leafAt(number);
-    const chapter = leaf2?.chapter ?? "";
-    const label = this.phone ? [chapter, `p. ${number}`].filter(Boolean).join(" \xB7 ") : side === "verso" ? chapter : `p. ${number}`;
-    if (label) page.createEl("h3", { text: label });
-    if (this.kind === "pdf" && this.pdfSrc) {
-      page.createEl("iframe", {
-        cls: "atomic-reader-frame",
-        attr: { src: pdfViewerSrc(this.pdfSrc, number), title: this.title }
-      });
-      return;
-    }
-    for (const paragraph of leaf2?.paragraphs ?? []) {
-      page.createEl("p", { text: paragraph });
-    }
-  }
-  paintFoot(root, language, progress) {
-    const foot = root.createDiv({ cls: "atomic-reader-foot" });
-    const prev = foot.createEl("button", {
-      cls: "atomic-btn is-quiet is-small",
-      attr: { type: "button", "data-testid": "atomic-reader-prev" }
-    });
-    prev.setAttr("aria-label", t("view.reader.prev", language));
-    prev.setText("\u2039");
-    if (!canTurnPage(this.page, this.total, -1) || this.failure) prev.setAttr("disabled", "true");
-    else prev.addEventListener("click", () => this.turn(-1));
-    foot.createSpan({
-      cls: "atomic-reader-last",
-      attr: { "data-testid": "atomic-reader-last" },
-      text: t("view.reader.lastRead", language, { page: progress.page || this.page })
-    });
-    const meter = foot.createSpan({
-      cls: "atomic-reader-progress",
-      attr: { "data-testid": "atomic-reader-meter" }
-    });
-    meter.createEl("i");
-    foot.createSpan({
-      cls: "atomic-reader-count",
-      attr: { "data-testid": "atomic-reader-progress" },
-      text: t("view.reader.progress", language, {
-        page: progress.page,
-        total: progress.total,
-        percent: progress.percent
-      })
-    });
-    const next = foot.createEl("button", {
-      cls: "atomic-btn is-quiet is-small",
-      attr: { type: "button", "data-testid": "atomic-reader-next" }
-    });
-    next.setAttr("aria-label", t("view.reader.next", language));
-    next.setText("\u203A");
-    if (!canTurnPage(this.page, this.total, 1) || this.failure) next.setAttr("disabled", "true");
-    else next.addEventListener("click", () => this.turn(1));
-  }
-};
-
-// src/reader/shell/open.ts
-function bookFiles(plugin) {
-  const out = [];
-  for (const file of plugin.app.vault.getFiles()) {
-    const kind = bookFileKind(file.path);
-    if (!kind) continue;
-    out.push({ path: file.path, basename: file.basename, extension: file.extension });
-  }
-  return out;
-}
-function frontmatterOf(plugin, path) {
-  const file = plugin.data.getFileByPath(path);
-  if (!file) return {};
-  const cache = plugin.app.metadataCache.getFileCache(file);
-  return cache?.frontmatter ?? {};
-}
-function linkedFile(plugin, notePath, title) {
-  const frontmatter = frontmatterOf(plugin, notePath);
-  return resolveLinkedBookFile({
-    title,
-    notePath,
-    source: frontmatter.source,
-    files: bookFiles(plugin)
-  });
-}
-function prefersReducedMotion5() {
-  return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-async function openReaderDirect(plugin, request) {
-  const leaf2 = plugin.app.workspace.getLeaf(false);
-  await leaf2.setViewState({
-    type: ATOMIC_READER_VIEW,
-    active: true,
-    state: {
-      notePath: request.notePath,
-      filePath: request.filePath,
-      title: request.title,
-      kind: request.kind,
-      returnPath: request.returnPath,
-      coverRect: request.coverRect
-    }
-  });
-  plugin.app.workspace.revealLeaf(leaf2);
-}
-async function openLinkedBook(plugin, request) {
-  const plan = readerOpenPlan({
-    reducedMotion: prefersReducedMotion5(),
-    hasFlight: Boolean(readerMounts().flight)
-  });
-  if (plan === "flight") {
-    const flight = readerMounts().flight;
-    if (flight) {
-      const handled = await flight.open(request);
-      if (handled) return;
-    }
-  }
-  await openReaderDirect(plugin, request);
-}
-async function openBookChooser2(plugin, request) {
-  const language = plugin.settings.language;
-  const file = linkedFile(plugin, request.notePath, request.title);
-  const width = request.ownerDocument.defaultView?.innerWidth ?? activeWindow.innerWidth;
-  const returnPath = plugin.app.workspace.getActiveFile()?.path || request.notePath;
-  openBookChooser({
-    ownerDocument: request.ownerDocument,
-    title: request.title,
-    file,
-    language,
-    phone: isPhoneReaderLayout(width),
-    onChoose: (choice) => {
-      if (choice === "notes") {
-        void plugin.data.openPath(request.notePath);
-        return;
-      }
-      if (choice === "book" && file) {
-        void openLinkedBook(plugin, {
-          notePath: request.notePath,
-          filePath: file.path,
-          title: request.title,
-          kind: file.kind,
-          returnPath,
-          coverRect: request.coverRect
-        });
-      }
-    }
-  });
-}
-function titleFromFrontmatter(frontmatter, basename) {
-  const title = frontmatter.title;
-  if (typeof title === "string" && title.trim()) return title.trim();
-  return basename;
-}
-async function openActiveNoteBook(plugin) {
-  const language = plugin.settings.language;
-  const active = plugin.app.workspace.getActiveFile();
-  if (!(active instanceof import_obsidian18.TFile) || active.extension !== "md") {
-    new import_obsidian18.Notice(t("notice.readerNeedsNote", language));
-    return;
-  }
-  const frontmatter = frontmatterOf(plugin, active.path);
-  let source = frontmatter.source;
-  if (typeof source !== "string" || !source.trim()) {
-    source = readReaderNote(await plugin.app.vault.cachedRead(active)).source;
-  }
-  const title = titleFromFrontmatter(frontmatter, active.basename);
-  const file = resolveLinkedBookFile({
-    title,
-    notePath: active.path,
-    source,
-    files: bookFiles(plugin)
-  });
-  if (!file) {
-    new import_obsidian18.Notice(t("notice.readerNoFile", language));
-    return;
-  }
-  await openLinkedBook(plugin, {
-    notePath: active.path,
-    filePath: file.path,
-    title,
-    kind: file.kind,
-    returnPath: active.path,
-    coverRect: null
-  });
-}
-function closeReaderChrome() {
-  closeBookChooser();
-}
-
-// src/reader/size/shortcut.ts
-function readerSizeShortcutDirection(event) {
-  if (!(event.metaKey || event.ctrlKey) || event.altKey) return null;
-  if (event.key === "-") return -1;
-  if (event.key === "=" || event.key === "+") return 1;
-  return null;
-}
-
-// src/reader/size/mount.ts
-var READER_SIZE_CLASS = "atomic-reader-size";
-var READER_PAGE_CLASS = "atomic-reader-sized";
-var PAGE_PROPS = [
-  "--atomic-reader-page-w",
-  "--atomic-reader-page-h",
-  "--atomic-reader-clip-h",
-  "--atomic-reader-font-size",
-  "--atomic-reader-line-height"
-];
-var PHONE_HINT = "Larger book, same type size \u2014 more lines per page. Saved for this book.";
-var DESK_HINT = "\u2318 \u2212 / +";
-function mountReaderSize(options) {
-  const controlEl = options.controlEl;
-  const pages = pageList(options.pageHost);
-  if (pages.length === 0 || pages.some((page) => page === controlEl)) {
-    throw new Error("Book size control and page must be different elements");
-  }
-  const surface = options.surface === "phone" ? "phone" : "desk";
-  const chrome = chromeFor(surface, options.chrome);
-  const shellPaint = options.paint === "shell";
-  let settled = parseReaderSize(options.size);
-  let theaterLocked2 = options.theaterLocked === true;
-  let destroyed = false;
-  controlEl.empty();
-  const slot = mountSlot(chrome, controlEl);
-  const buttons = /* @__PURE__ */ new Map();
-  for (const size of READER_SIZE_ORDER) {
-    const button2 = slot.segment.createEl("button", {
-      cls: "atomic-reader-size-opt",
-      attr: {
-        type: "button",
-        "data-size": size,
-        "data-testid": `atomic-reader-size-${size}`,
-        "aria-pressed": "false"
-      }
-    });
-    button2.createSpan({
-      cls: `atomic-reader-size-book is-${size}`,
-      attr: { "aria-hidden": "true" }
-    });
-    button2.createSpan({ text: readerSizeLabel(size) });
-    button2.addEventListener("click", () => {
-      if (destroyed || theaterLocked2) return;
-      commit(size);
-    });
-    buttons.set(size, button2);
-  }
-  const view = ownerView(pages[0]);
-  const motionQuery = view?.matchMedia("(prefers-reduced-motion: reduce)") ?? null;
-  const onMotion = () => {
-    if (!destroyed) paint();
-  };
-  motionQuery?.addEventListener("change", onMotion);
-  const onKey = (event) => {
-    if (destroyed || theaterLocked2 || event.defaultPrevented) return;
-    const direction = readerSizeShortcutDirection(event);
-    if (direction == null) return;
-    if (isTextField(keyTarget(event))) return;
-    if (!shortcutArmed(options.shortcutRoot, controlEl, pages)) return;
-    event.preventDefault();
-    commit(stepReaderSize(settled, direction));
-  };
-  view?.addEventListener("keydown", onKey);
-  paint();
-  return {
-    destroy() {
-      if (destroyed) return;
-      destroyed = true;
-      motionQuery?.removeEventListener("change", onMotion);
-      view?.removeEventListener("keydown", onKey);
-      controlEl.empty();
-      if (shellPaint) options.boxEl?.removeClass("is-instant");
-      else for (const page of pages) clearPage(page);
-    },
-    getSize: () => settled,
-    getEffectiveSize: () => effectiveReaderSize(settled, theaterLocked2),
-    setSize(size) {
-      if (destroyed) return;
-      settled = parseReaderSize(size);
-      paint();
-    },
-    setTheaterLocked(locked) {
-      if (destroyed) return;
-      theaterLocked2 = locked;
-      paint();
-    }
-  };
-  function commit(next) {
-    if (next === settled) {
-      paint();
-      return;
-    }
-    settled = next;
-    options.onChange?.(settled);
-    if (!destroyed) paint();
-  }
-  function paint() {
-    const drawn = readerPageGeometry(settled, {
-      surface,
-      theater: theaterLocked2
-    });
-    const reduced = prefersReduced(motionQuery, options.reducedMotion);
-    if (shellPaint) applyShellBox(options.boxEl, drawn, reduced);
-    else for (const page of pages) applyPage(page, drawn, reduced);
-    slot.root.toggleClass("is-theater-locked", theaterLocked2);
-    if (theaterLocked2) slot.root.setAttr("hidden", "true");
-    else slot.root.removeAttribute("hidden");
-    slot.root.setAttr("aria-hidden", theaterLocked2 ? "true" : "false");
-    if (slot.value) slot.value.setText(readerSizeLabel(settled));
-    for (const size of READER_SIZE_ORDER) {
-      const button2 = buttons.get(size);
-      if (!button2) continue;
-      const on = size === settled;
-      button2.toggleClass("is-on", on);
-      button2.setAttr("aria-pressed", on ? "true" : "false");
-    }
-  }
-}
-function chromeFor(surface, chrome) {
-  switch (chrome) {
-    case "bar":
-    case "sheet":
-      return chrome;
-    case void 0:
-      return surface === "phone" ? "sheet" : "bar";
-    default: {
-      const unseen = chrome;
-      return unseen;
-    }
-  }
-}
-function mountSlot(chrome, controlEl) {
-  switch (chrome) {
-    case "bar":
-      return mountBarSlot(controlEl);
-    case "sheet":
-      return mountPhoneSlot(controlEl);
-    default: {
-      const unseen = chrome;
-      return unseen;
-    }
-  }
-}
-function mountBarSlot(controlEl) {
-  const root = controlEl.createDiv({
-    cls: `fitness-plugin ${READER_SIZE_CLASS}`,
-    attr: {
-      "data-testid": "atomic-reader-size",
-      "aria-label": "Book size"
-    }
-  });
-  const segment = root.createDiv({
-    cls: "atomic-reader-size-seg",
-    attr: { role: "group", "aria-label": "Book size" }
-  });
-  root.createSpan({
-    cls: "atomic-reader-size-hint",
-    text: DESK_HINT,
-    attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" }
-  });
-  return { root, segment, value: null };
-}
-function mountPhoneSlot(controlEl) {
-  const sheet = controlEl.createDiv({
-    cls: "fitness-plugin atomic-reader-size-sheet",
-    attr: { "data-testid": "atomic-reader-size-sheet" }
-  });
-  sheet.createDiv({
-    cls: "atomic-reader-size-title",
-    text: "Reading"
-  });
-  const row = sheet.createDiv({ cls: "atomic-reader-size-row" });
-  row.createSpan({ text: "Book size" });
-  const value = row.createSpan({
-    cls: "atomic-reader-size-value",
-    attr: { "data-testid": "atomic-reader-size-value" }
-  });
-  const control = sheet.createDiv({
-    cls: `${READER_SIZE_CLASS} is-phone`,
-    attr: {
-      "data-testid": "atomic-reader-size",
-      "aria-label": "Book size"
-    }
-  });
-  const segment = control.createDiv({
-    cls: "atomic-reader-size-seg",
-    attr: { role: "group", "aria-label": "Book size" }
-  });
-  sheet.createDiv({
-    cls: "atomic-reader-size-note",
-    text: PHONE_HINT
-  });
-  return { root: sheet, segment, value };
-}
-function applyShellBox(box, geometry, reduced) {
-  if (!box) return;
-  box.setCssProps({
-    "--atomic-page-w": `${geometry.width}px`,
-    "--atomic-page-h": `${geometry.height}px`
-  });
-  box.toggleClass("is-instant", reduced);
-  box.setAttr("data-size", geometry.size);
-}
-function applyPage(pageHost, geometry, reduced) {
-  pageHost.addClass(READER_PAGE_CLASS);
-  pageHost.toggleClass("is-phone", geometry.surface === "phone");
-  pageHost.toggleClass("is-instant", reduced);
-  pageHost.setCssProps({
-    "--atomic-reader-page-w": `${geometry.width}px`,
-    "--atomic-reader-page-h": `${geometry.height}px`,
-    "--atomic-reader-clip-h": `${geometry.clipHeight}px`,
-    "--atomic-reader-font-size": `${geometry.fontSizePx}px`,
-    "--atomic-reader-line-height": `${geometry.lineHeightPx}px`
-  });
-}
-function clearPage(pageHost) {
-  pageHost.removeClass(READER_PAGE_CLASS);
-  pageHost.removeClass("is-phone");
-  pageHost.removeClass("is-instant");
-  for (const prop of PAGE_PROPS) pageHost.style.removeProperty(prop);
-}
-function prefersReduced(query, override) {
-  if (query?.matches) return true;
-  return override === true;
-}
-function pageList(pageHost) {
-  if (isPageList(pageHost)) return [...pageHost];
-  return [pageHost];
-}
-function isPageList(value) {
-  return Array.isArray(value);
-}
-function shortcutArmed(shortcutRoot, controlEl, pages) {
-  const active = controlEl.ownerDocument.activeElement;
-  if (!active?.instanceOf(Node)) return false;
-  if (shortcutRoot) return shortcutRoot.contains(active);
-  if (controlEl.contains(active)) return true;
-  return pages.some((page) => page.contains(active));
-}
-function keyTarget(event) {
-  if (event.targetNode) return event.targetNode;
-  const target = event.target;
-  if (target instanceof Node) return target;
-  return null;
-}
-function isTextField(target) {
-  if (!target?.instanceOf(HTMLElement)) return false;
-  if (target.instanceOf(HTMLInputElement) || target.instanceOf(HTMLTextAreaElement)) return true;
-  return target.isContentEditable;
-}
-function ownerView(node) {
-  return node.ownerDocument.defaultView;
-}
-
-// src/reader/size/shell-bind.ts
-var sizes = /* @__PURE__ */ new Map();
-var live = /* @__PURE__ */ new Map();
-var bookSizePlugin = null;
-var theaterLocked = false;
-function settleReaderSize(prior, shellSize) {
-  if (!prior || prior.shell !== shellSize) return { settled: shellSize, shell: shellSize };
-  return prior;
-}
-function registerBookSize(plugin) {
-  bookSizePlugin = plugin;
-  registerReaderSize({
-    attach(slot, session3) {
-      attachBookSize(slot, session3);
-    }
-  });
-}
-function resetBookSize() {
-  for (const entry of live.values()) entry.control.destroy();
-  live.clear();
-  sizes.clear();
-  theaterLocked = false;
-  bookSizePlugin = null;
-}
-function attachBookSize(slot, session3) {
-  if (slot.getAttribute("data-reader-slot") !== "size") return;
-  const root = readerRoot2(slot);
-  if (!root) return;
-  const notePath = session3.notePath;
-  releaseDisconnected();
-  live.get(notePath)?.control.destroy();
-  live.delete(notePath);
-  const shellSize = parseReaderSize(session3.size);
-  const memory = settleReaderSize(sizes.get(notePath), shellSize);
-  sizes.set(notePath, memory);
-  const surface = readerSurface(root);
-  const pages = readerPages(root);
-  const control = mountReaderSize({
-    controlEl: slot,
-    pageHost: pages.length > 0 ? pages : [root],
-    surface,
-    chrome: surface === "phone" ? "sheet" : "bar",
-    paint: "shell",
-    boxEl: root,
-    theaterLocked,
-    size: memory.settled,
-    shortcutRoot: root,
-    onChange(next) {
-      const current = sizes.get(notePath);
-      sizes.set(notePath, { settled: next, shell: current?.shell ?? shellSize });
-      saveBookSize(notePath, next);
-      session3.relayout?.(readerReflowBox(next, theaterLocked));
-    }
-  });
-  live.set(notePath, { control, root, session: session3 });
-}
-function releaseDisconnected() {
-  for (const [path, entry] of live) {
-    if (entry.root.isConnected) continue;
-    entry.control.destroy();
-    live.delete(path);
-  }
-}
-function saveBookSize(notePath, size) {
-  if (!bookSizePlugin || !notePath) return;
-  void bookSizePlugin.data.processNote(notePath, (markdown) => writeReaderSize(markdown, size)).catch((error) => {
-    console.error("Book size save failed", error);
-  });
-}
-function readerRoot2(slot) {
-  const root = slot.closest(".atomic-reader");
-  if (!root || !root.instanceOf(HTMLElement)) return null;
-  return root;
-}
-function readerSurface(root) {
-  return root.classList.contains("is-phone") ? "phone" : "desk";
-}
-function readerPages(root) {
-  const pages = [];
-  root.querySelectorAll(".atomic-reader-page").forEach((node) => {
-    if (node.instanceOf(HTMLElement)) pages.push(node);
-  });
-  return pages;
-}
 
 // src/reader/theater/rules.ts
 var THEATER_IDLE_MS = 2e3;
@@ -13715,7 +12787,7 @@ ${suppressCss()}
 
 // src/reader/theater/mount.ts
 var sessions2 = /* @__PURE__ */ new WeakMap();
-var live2 = /* @__PURE__ */ new WeakMap();
+var live = /* @__PURE__ */ new WeakMap();
 function mountTheater(options) {
   const frame = options.frame;
   const stage = options.stage ?? frame;
@@ -13728,7 +12800,7 @@ function mountTheater(options) {
   const idleMs = resolveIdle(options.idleMs);
   const clock = options.clock ?? clockFromView(doc.defaultView);
   const place = theaterPlace(surface, frame, stage);
-  live2.get(frame)?.destroy();
+  live.get(frame)?.destroy();
   const docSession = ensureDoc(doc);
   docSession.frames.add(frame);
   let closed = false;
@@ -13819,7 +12891,7 @@ function mountTheater(options) {
       leave(false);
     }
   };
-  live2.set(frame, handle);
+  live.set(frame, handle);
   arm();
   function leave(user) {
     if (closed) return;
@@ -13838,7 +12910,7 @@ function mountTheater(options) {
     frame.removeAttribute("data-atomic-theater-place");
     if (!stageHadRoom) stage.classList.remove("atomic-theater-stage");
     docSession.frames.delete(frame);
-    if (live2.get(frame) === handle) live2.delete(frame);
+    if (live.get(frame) === handle) live.delete(frame);
     if (docSession.frames.size === 0) {
       docSession.style.remove();
       sessions2.delete(doc);
@@ -14009,28 +13081,32 @@ function listen(target, type, fn) {
 
 // src/reader/theater/slot.ts
 var wanted = /* @__PURE__ */ new Set();
-var live3 = /* @__PURE__ */ new Map();
+var live2 = /* @__PURE__ */ new Map();
 var ENTER_TESTID = "atomic-theater-enter";
 var PAGE_WIDTH_VAR = "--atomic-page-w";
 var PAGE_HEIGHT_VAR = "--atomic-page-h";
 function attachReaderTheater(slot, session3, copy) {
-  const root = readerRoot3(slot);
+  const root = readerRoot2(slot);
   if (!root) return;
   const notePath = session3.notePath;
-  ensureEnter(slot, root, notePath, copy);
+  ensureEnter(slot, root, notePath, copy, session3);
   if (!wanted.has(notePath)) return;
-  openTheater(root, notePath, copy?.exitLabel);
+  openTheater(root, notePath, copy?.exitLabel, session3);
+}
+function preferReaderTheater(notePath, on) {
+  if (!notePath) return;
+  if (on) wanted.add(notePath);
 }
 function resetReaderTheater() {
-  for (const notePath of [...live3.keys()]) {
-    const current = live3.get(notePath);
+  for (const notePath of [...live2.keys()]) {
+    const current = live2.get(notePath);
     current?.handle.destroy();
     current?.unlock();
-    live3.delete(notePath);
+    live2.delete(notePath);
   }
   wanted.clear();
 }
-function ensureEnter(slot, root, notePath, copy) {
+function ensureEnter(slot, root, notePath, copy, session3) {
   if (findEnter(slot)) return;
   const doc = slot.ownerDocument;
   const button2 = doc.createElement("button");
@@ -14043,18 +13119,20 @@ function ensureEnter(slot, root, notePath, copy) {
   button2.textContent = label;
   button2.addEventListener("click", () => {
     wanted.add(notePath);
-    openTheater(root, notePath, copy?.exitLabel);
+    openTheater(root, notePath, copy?.exitLabel, session3);
   });
   slot.appendChild(button2);
 }
-function openTheater(root, notePath, exitLabel) {
-  const current = live3.get(notePath);
+function openTheater(root, notePath, exitLabel, session3) {
+  const current = live2.get(notePath);
   if (current?.handle.active && current.root === root) return;
   if (current) {
     current.handle.destroy();
     current.unlock();
-    live3.delete(notePath);
+    live2.delete(notePath);
   }
+  applyBox(session3, readerPageBox("xl", THEATER_PAGE_HEIGHT));
+  if (root.isConnected === false) return;
   const unlock = lockPageBox(root);
   const handle = mountTheater({
     frame: root,
@@ -14064,10 +13142,20 @@ function openTheater(root, notePath, exitLabel) {
     onExit: () => {
       wanted.delete(notePath);
       unlock();
-      if (live3.get(notePath)?.handle === handle) live3.delete(notePath);
+      if (live2.get(notePath)?.handle === handle) live2.delete(notePath);
+      applyBox(session3, readerPageBox("xl"));
     }
   });
-  live3.set(notePath, { root, handle, unlock });
+  live2.set(notePath, { root, handle, unlock });
+}
+function applyBox(session3, box) {
+  session3.relayout?.({
+    size: "xl",
+    width: box.w,
+    height: box.h,
+    bodyLines: box.bodyLines,
+    charsPerLine: box.charsPerLine
+  });
 }
 function lockPageBox(root) {
   const previousWidth = root.style.getPropertyValue(PAGE_WIDTH_VAR);
@@ -14085,7 +13173,7 @@ function restoreProp(root, name, previous) {
   if (previous) root.style.setProperty(name, previous);
   else root.style.removeProperty(name);
 }
-function readerRoot3(slot) {
+function readerRoot2(slot) {
   const found = slot.closest(".atomic-reader");
   if (!found || !isHtmlElement5(found)) return null;
   return found;
@@ -14105,6 +13193,813 @@ function isHtmlElement5(node) {
     return probed.instanceOf(HTMLElement);
   }
   return node.nodeType === 1;
+}
+
+// src/reader/shell/paginate.ts
+function wordsOf(text) {
+  return text.trim().split(/\s+/).filter(Boolean);
+}
+function countReaderLines(text, charsPerLine) {
+  const width = Math.max(1, charsPerLine);
+  const words = wordsOf(text);
+  if (!words.length) return 1;
+  let lines = 1;
+  let length = 0;
+  for (const word of words) {
+    const add = length === 0 ? word.length : word.length + 1;
+    if (length > 0 && length + add > width) {
+      lines += 1;
+      length = word.length;
+    } else {
+      length += add;
+    }
+  }
+  return lines;
+}
+function splitToFit(text, charsPerLine, bodyLines) {
+  const width = Math.max(1, charsPerLine);
+  const limit = Math.max(1, bodyLines);
+  if (countReaderLines(text, width) <= limit) return [text];
+  const words = wordsOf(text);
+  const pieces = [];
+  let current = [];
+  let lines = 1;
+  let length = 0;
+  const push = () => {
+    if (current.length) pieces.push(current.join(" "));
+    current = [];
+    lines = 1;
+    length = 0;
+  };
+  for (const word of words) {
+    const add = length === 0 ? word.length : word.length + 1;
+    if (length > 0 && length + add > width) {
+      if (lines >= limit) push();
+      else lines += 1;
+      current.push(word);
+      length = word.length;
+      continue;
+    }
+    current.push(word);
+    length += add;
+  }
+  push();
+  return pieces.length ? pieces : [text];
+}
+function paginateReaderBlocks(blocks, box) {
+  const bodyLines = Math.max(1, box.bodyLines);
+  const charsPerLine = Math.max(1, box.charsPerLine);
+  const pages = [];
+  let chapter = "";
+  let pageChapter = "";
+  let paragraphs = [];
+  let used = 0;
+  const flush = () => {
+    if (!paragraphs.length) return;
+    pages.push({
+      number: pages.length + 1,
+      chapter: pageChapter,
+      paragraphs
+    });
+    paragraphs = [];
+    used = 0;
+  };
+  const appendPiece = (piece) => {
+    const lines = countReaderLines(piece, charsPerLine);
+    const gap = paragraphs.length ? 1 : 0;
+    if (paragraphs.length && used + gap + lines > bodyLines) flush();
+    if (!paragraphs.length) pageChapter = chapter;
+    const gapNow = paragraphs.length ? 1 : 0;
+    paragraphs.push(piece);
+    used += gapNow + lines;
+  };
+  for (const block of blocks) {
+    const text = block.text.trim();
+    if (!text) continue;
+    if (block.kind === "heading") {
+      flush();
+      chapter = text;
+      continue;
+    }
+    for (const piece of splitToFit(text, charsPerLine, bodyLines)) {
+      appendPiece(piece);
+    }
+  }
+  flush();
+  return pages;
+}
+
+// src/reader/size/geometry.ts
+var THEATER_XL_HEIGHT = 500;
+function effectiveReaderSize(size, theaterLocked) {
+  return theaterLocked ? "xl" : size;
+}
+
+// src/reader/size/reflow.ts
+function readerReflowBox(size, theaterLocked) {
+  const drawn = effectiveReaderSize(size, theaterLocked);
+  const box = readerPageBox(drawn, theaterLocked ? THEATER_XL_HEIGHT : void 0);
+  return {
+    size,
+    width: box.w,
+    height: box.h,
+    bodyLines: box.bodyLines,
+    charsPerLine: box.charsPerLine
+  };
+}
+
+// src/reader/shell/pdf.ts
+function inspectPdf(bytes) {
+  const text = new TextDecoder("iso-8859-1").decode(bytes);
+  const encrypted = /\/Encrypt\b/.test(text);
+  let pages = 0;
+  const patterns = [
+    /\/Type\s*\/Pages\b[\s\S]{0,80}?\/Count\s+(\d+)/g,
+    /\/Count\s+(\d+)[\s\S]{0,80}?\/Type\s*\/Pages\b/g
+  ];
+  for (const pattern of patterns) {
+    for (const match of text.matchAll(pattern)) {
+      const count = Number(match[1]);
+      if (Number.isFinite(count) && count > pages) pages = Math.trunc(count);
+    }
+  }
+  return { pages, encrypted };
+}
+function pdfViewerSrc(resourcePath, page) {
+  const base = resourcePath.split("#")[0] ?? resourcePath;
+  const safe = Math.max(1, Math.trunc(page));
+  return `${base}#page=${safe}&toolbar=0&navpanes=0&view=FitH`;
+}
+
+// src/reader/shell/view.ts
+function layoutBox(size) {
+  const request = readerReflowBox(size, false);
+  return {
+    w: request.width,
+    h: request.height,
+    bodyLines: request.bodyLines,
+    charsPerLine: request.charsPerLine
+  };
+}
+function paintedBox(host) {
+  const root = host.querySelector(".atomic-reader");
+  if (!root?.instanceOf(HTMLElement)) return null;
+  const width = root.style.getPropertyValue("--atomic-page-w").trim();
+  const height = root.style.getPropertyValue("--atomic-page-h").trim();
+  if (!width || !height) return null;
+  return { w: width, h: height };
+}
+function slideBox(root, previous, box) {
+  if (!previous) return;
+  const width = `${box.w}px`;
+  const height = `${box.h}px`;
+  if (previous.w === width && previous.h === height) return;
+  root.setCssProps({ "--atomic-page-w": previous.w, "--atomic-page-h": previous.h });
+  void root.getBoundingClientRect();
+  root.setCssProps({ "--atomic-page-w": width, "--atomic-page-h": height });
+}
+var ATOMIC_READER_VIEW = "atomic-reader";
+function asRecord(value) {
+  if (!value || typeof value !== "object") return null;
+  return value;
+}
+function asText(value) {
+  return typeof value === "string" ? value : "";
+}
+function coverFromState(value) {
+  const record = asRecord(value);
+  if (!record) return null;
+  const x = Number(record.x);
+  const y = Number(record.y);
+  const width = Number(record.width);
+  const height = Number(record.height);
+  if (![x, y, width, height].every((part) => Number.isFinite(part))) return null;
+  return {
+    x,
+    y,
+    width,
+    height,
+    color: asText(record.color)
+  };
+}
+function elementTarget2(target) {
+  if (!target || !("instanceOf" in target)) return null;
+  const node = target;
+  return node.instanceOf(HTMLElement) ? node : null;
+}
+function readingAccent(plugin) {
+  const reading = plugin.settings.activityTypes.find((activity) => activity.id === "reading");
+  const color = reading?.baseColor ?? "";
+  return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "";
+}
+var AtomicReaderView = class extends import_obsidian17.ItemView {
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.plugin = plugin;
+    this.notePath = "";
+    this.filePath = "";
+    this.title = "";
+    this.kind = "epub";
+    this.returnPath = "";
+    this.coverRect = null;
+    this.size = "xl";
+    this.blocks = [];
+    this.layout = layoutBox("xl");
+    /** True after the size control paginates during this load. */
+    this.sizeFromReader = false;
+    this.canvasPath = "";
+    this.page = 1;
+    this.savedPage = 1;
+    this.total = 0;
+    this.leaves = [];
+    this.pdfSrc = "";
+    this.failure = "opening";
+    this.phone = false;
+    this.dirty = false;
+    this.ready = false;
+    this.loadToken = 0;
+    this.saveTimer = null;
+    this.observed = false;
+    this.keys = false;
+    this.theaterWanted = false;
+  }
+  getViewType() {
+    return ATOMIC_READER_VIEW;
+  }
+  getDisplayText() {
+    return this.title || "Book";
+  }
+  getIcon() {
+    return "book-open";
+  }
+  getState() {
+    return {
+      notePath: this.notePath,
+      filePath: this.filePath,
+      title: this.title,
+      kind: this.kind,
+      returnPath: this.returnPath,
+      coverRect: this.coverRect,
+      page: this.page
+    };
+  }
+  async setState(state, result) {
+    this.applyState(state);
+    result.history = true;
+    await this.loadDocument();
+  }
+  async onOpen() {
+    this.ensureObserver();
+    this.ensureKeys();
+    if (!this.ready) this.paint();
+  }
+  async onClose() {
+    this.loadToken += 1;
+    await this.flushSave();
+  }
+  applyState(state) {
+    const record = asRecord(state) ?? {};
+    this.notePath = asText(record.notePath);
+    this.filePath = asText(record.filePath);
+    this.title = asText(record.title);
+    this.kind = record.kind === "pdf" ? "pdf" : "epub";
+    this.returnPath = asText(record.returnPath) || this.notePath;
+    this.coverRect = coverFromState(record.coverRect);
+    const page = Number(record.page);
+    if (Number.isFinite(page) && page >= 1) this.page = Math.trunc(page);
+  }
+  ensureObserver() {
+    if (this.observed || typeof ResizeObserver === "undefined") return;
+    this.observed = true;
+    const observer = new ResizeObserver(() => {
+      const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
+      if (phone === this.phone) return;
+      this.phone = phone;
+      this.paint();
+    });
+    observer.observe(this.contentEl);
+    this.register(() => observer.disconnect());
+  }
+  ensureKeys() {
+    if (this.keys) return;
+    this.keys = true;
+    this.registerDomEvent(this.contentEl, "keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const target = elementTarget2(event.target);
+      if (target?.closest("input, textarea")) return;
+      event.preventDefault();
+      this.turn(event.key === "ArrowRight" ? 1 : -1);
+    });
+  }
+  async loadDocument() {
+    const token = ++this.loadToken;
+    this.failure = "opening";
+    this.ready = false;
+    this.leaves = [];
+    this.blocks = [];
+    this.sizeFromReader = false;
+    this.pdfSrc = "";
+    this.total = 0;
+    this.paint();
+    const file = this.plugin.data.getFileByPath(this.filePath);
+    if (!(file instanceof import_obsidian17.TFile)) {
+      this.failure = "unreadable";
+      this.ready = true;
+      this.paint();
+      return;
+    }
+    if (file.extension === "pdf") this.kind = "pdf";
+    if (file.extension === "epub") this.kind = "epub";
+    const note = this.plugin.data.getFileByPath(this.notePath);
+    let storedPage = 1;
+    if (note instanceof import_obsidian17.TFile) {
+      const cache = this.plugin.app.metadataCache.getFileCache(note);
+      const fields = cache?.frontmatter ? readerFieldsFromFrontmatter(cache.frontmatter) : readReaderNote(await this.plugin.app.vault.cachedRead(note));
+      if (token !== this.loadToken) return;
+      this.size = "xl";
+      const linked = sourcePathFromFrontmatter(fields.canvas);
+      this.canvasPath = linked || canvasPathForNote(this.notePath) || "";
+      storedPage = fields.page;
+    }
+    if (!this.sizeFromReader) this.layout = layoutBox(this.size);
+    this.page = storedPage;
+    this.savedPage = storedPage;
+    try {
+      const bytes = new Uint8Array(await this.plugin.app.vault.readBinary(file));
+      if (token !== this.loadToken) return;
+      switch (this.kind) {
+        case "pdf": {
+          const info = inspectPdf(bytes);
+          if (info.encrypted) this.failure = "encrypted";
+          else if (info.pages < 1) this.failure = "unreadable";
+          else {
+            this.total = info.pages;
+            this.pdfSrc = this.plugin.app.vault.getResourcePath(file);
+            this.failure = null;
+          }
+          break;
+        }
+        case "epub": {
+          const epub = await readEpub(bytes);
+          if (token !== this.loadToken) return;
+          this.blocks = epub.blocks;
+          this.leaves = paginateReaderBlocks(this.blocks, this.layout);
+          this.total = this.leaves.length;
+          this.failure = this.total > 0 ? null : "empty";
+          break;
+        }
+        default: {
+          const unexpected = this.kind;
+          throw new Error(unexpected);
+        }
+      }
+    } catch {
+      if (token !== this.loadToken) return;
+      this.failure = "unreadable";
+    }
+    if (token !== this.loadToken) return;
+    this.page = clampReaderPage(storedPage, Math.max(this.total, 1));
+    this.savedPage = this.page;
+    this.dirty = false;
+    this.ready = true;
+    this.phone = isPhoneReaderLayout(this.contentEl.clientWidth);
+    this.theaterWanted = this.plugin.settings.reader.theater;
+    this.paint();
+  }
+  leafAt(number) {
+    return this.leaves.find((leaf) => leaf.number === number) ?? null;
+  }
+  /** Phone moves one page. Desktop moves one spread. */
+  step(direction) {
+    if (!this.phone) return pageAfterTurn(this.page, this.total, direction);
+    if (this.total <= 0) return 1;
+    const current = clampReaderPage(this.page, this.total);
+    const next = current + direction;
+    if (next < 1 || next > this.total) return current;
+    return next;
+  }
+  turn(direction) {
+    if (this.failure) return;
+    const next = this.step(direction);
+    if (next === this.page) return;
+    this.page = next;
+    this.dirty = this.page !== this.savedPage;
+    this.paint();
+    if (this.dirty) this.scheduleSave();
+  }
+  scheduleSave() {
+    const view = this.contentEl.win;
+    if (this.saveTimer != null) view.clearTimeout(this.saveTimer);
+    const page = this.page;
+    const path = this.notePath;
+    this.saveTimer = view.setTimeout(() => {
+      this.saveTimer = null;
+      void this.writePage(path, page);
+    }, 400);
+  }
+  async writePage(path, page) {
+    if (!path) return;
+    await this.plugin.data.processNote(path, (current) => updateReaderPage(current, page));
+    if (this.page === page) {
+      this.savedPage = page;
+      this.dirty = false;
+    }
+  }
+  async flushSave() {
+    if (this.saveTimer != null) {
+      this.contentEl.win.clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    if (!this.dirty) return;
+    await this.writePage(this.notePath, this.page);
+  }
+  session() {
+    return {
+      notePath: this.notePath,
+      filePath: this.filePath,
+      title: this.title,
+      kind: this.kind,
+      returnPath: this.returnPath,
+      coverRect: this.coverRect,
+      page: this.page,
+      total: this.total,
+      size: this.size,
+      relayout: (request) => {
+        this.applyLayout(request);
+      }
+    };
+  }
+  /** Paginate the open EPUB. Size stays XL. Theater only changes the box. */
+  applyLayout(request) {
+    const box = {
+      w: request.width,
+      h: request.height,
+      bodyLines: Math.max(1, Math.round(request.bodyLines)),
+      charsPerLine: Math.max(1, Math.round(request.charsPerLine))
+    };
+    if (this.size === "xl" && this.layout.w === box.w && this.layout.h === box.h && this.layout.bodyLines === box.bodyLines && this.layout.charsPerLine === box.charsPerLine) {
+      return;
+    }
+    this.sizeFromReader = true;
+    this.size = "xl";
+    this.layout = box;
+    if (this.kind === "epub" && this.blocks.length > 0) {
+      this.leaves = paginateReaderBlocks(this.blocks, box);
+      this.total = this.leaves.length;
+      this.failure = this.total > 0 ? null : "empty";
+      const nextPage = clampReaderPage(this.page, Math.max(this.total, 1));
+      if (nextPage !== this.page) {
+        this.page = nextPage;
+        this.dirty = this.page !== this.savedPage;
+        if (this.dirty) this.scheduleSave();
+      }
+    }
+    this.paint();
+  }
+  attachMounts(root) {
+    const session3 = this.session();
+    const mounts2 = readerMounts();
+    const sizeSlot = root.querySelector("[data-reader-slot='size']");
+    if (sizeSlot?.instanceOf(HTMLElement)) mounts2.size?.attach?.(sizeSlot, session3);
+    const theaterSlot = root.querySelector("[data-reader-slot='theater']");
+    if (theaterSlot?.instanceOf(HTMLElement)) {
+      if (this.theaterWanted) {
+        preferReaderTheater(this.notePath, true);
+        this.theaterWanted = false;
+      }
+      mounts2.theater?.attach?.(theaterSlot, session3);
+    }
+    const askSlot = root.querySelector("[data-reader-slot='ask']");
+    if (askSlot?.instanceOf(HTMLElement)) mounts2.ask?.attach?.(askSlot, session3);
+  }
+  paint() {
+    const language = this.plugin.settings.language;
+    const box = this.layout;
+    const previous = paintedBox(this.contentEl);
+    const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
+    this.contentEl.empty();
+    const root = this.contentEl.createDiv({
+      cls: this.phone ? "fitness-plugin atomic-reader is-phone" : "fitness-plugin atomic-reader",
+      attr: {
+        "data-testid": "atomic-reader",
+        "data-reader-mount": "shell",
+        "data-kind": this.kind,
+        "data-page": String(this.page),
+        "data-total": String(this.total),
+        "data-size": this.size,
+        "data-body-lines": String(box.bodyLines),
+        tabindex: "0"
+      }
+    });
+    const accent = readingAccent(this.plugin);
+    root.setCssProps({
+      "--atomic-page-w": `${box.w}px`,
+      "--atomic-page-h": `${box.h}px`,
+      "--atomic-reader-progress": `${progress.percent}%`,
+      ...accent ? { "--atomic-c": accent } : {}
+    });
+    const bar = root.createDiv({ cls: "atomic-reader-bar" });
+    const shelf = bar.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-shelf" }
+    });
+    shelf.setText(t("view.reader.shelf", language));
+    shelf.addEventListener("click", () => {
+      void this.plugin.data.openPath(this.returnPath || this.notePath);
+    });
+    const name = bar.createSpan({
+      cls: "atomic-name atomic-reader-title",
+      attr: { "data-testid": "atomic-reader-title" }
+    });
+    name.createSpan({ cls: "atomic-dot" });
+    name.createSpan({ text: this.title || t("view.reader.openBook", language) });
+    if (this.canvasPath) {
+      const canvas = bar.createEl("button", {
+        cls: "atomic-btn is-quiet is-small",
+        attr: { type: "button", "data-testid": "atomic-reader-canvas" }
+      });
+      canvas.setText(t("view.reader.canvas", language));
+      canvas.addEventListener("click", () => {
+        void this.openCanvas();
+      });
+    }
+    const note = bar.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-note" }
+    });
+    note.setText(t("view.reader.note", language));
+    note.addEventListener("click", () => {
+      void this.plugin.data.openPath(this.notePath);
+    });
+    bar.createDiv({
+      cls: "atomic-reader-slot",
+      attr: { "data-reader-slot": "theater", "data-testid": "atomic-reader-slot-theater" }
+    });
+    const spreadEl = root.createDiv({ cls: "atomic-reader-spread" });
+    if (this.failure) {
+      const key = this.failure === "encrypted" ? "view.reader.encrypted" : this.failure === "empty" ? "view.reader.empty" : this.failure === "opening" ? "view.reader.opening" : "view.reader.unreadable";
+      spreadEl.createEl("p", {
+        cls: "atomic-reader-status",
+        attr: { "data-testid": "atomic-reader-status", "data-state": this.failure },
+        text: t(key, language)
+      });
+    } else {
+      const pair = spreadPages(this.page, this.total);
+      if (!this.phone) {
+        spreadEl.createDiv({
+          cls: "atomic-reader-gutter is-margin",
+          attr: { "data-reader-slot": "margin" }
+        });
+        this.paintPage(spreadEl, pair.verso, "verso");
+        this.paintPage(spreadEl, pair.recto, "recto");
+      } else {
+        const shown = clampReaderPage(this.page, Math.max(this.total, 1));
+        this.paintPage(spreadEl, this.total > 0 ? shown : null, "recto");
+      }
+    }
+    spreadEl.createDiv({
+      cls: "atomic-reader-gutter is-ask",
+      attr: { "data-reader-slot": "ask", "data-testid": "atomic-reader-slot-ask" }
+    });
+    this.paintFoot(root, language, progress);
+    this.attachMounts(root);
+    slideBox(root, previous, box);
+  }
+  paintPage(parent, number, side) {
+    const page = parent.createDiv({
+      cls: `atomic-reader-page is-${side}`,
+      attr: number ? { "data-testid": "atomic-reader-page", "data-page": String(number) } : { "data-blank": "true" }
+    });
+    if (!number) return;
+    const leaf = this.leafAt(number);
+    page.createSpan({
+      cls: "atomic-reader-pn",
+      text: String(number),
+      attr: { "data-testid": "atomic-reader-pn" }
+    });
+    if (this.kind === "pdf" && this.pdfSrc) {
+      page.createEl("iframe", {
+        cls: "atomic-reader-frame",
+        attr: { src: pdfViewerSrc(this.pdfSrc, number), title: this.title }
+      });
+      return;
+    }
+    for (const paragraph of leaf?.paragraphs ?? []) {
+      page.createEl("p", { text: paragraph });
+    }
+  }
+  async openCanvas() {
+    const path = this.canvasPath;
+    if (!path) return;
+    if (!this.plugin.data.getFileByPath(path)) {
+      const seeded = seedBookCanvas(this.notePath);
+      if (!seeded) return;
+      await this.plugin.data.writeNote(seeded.canvasPath, seeded.canvasJson);
+      await this.plugin.data.processNote(
+        this.notePath,
+        (current) => ensureRelatedCanvas(current, seeded.canvasPath)
+      );
+    }
+    await this.plugin.data.openPath(path);
+  }
+  paintFoot(root, language, progress) {
+    const foot = root.createDiv({ cls: "atomic-reader-foot" });
+    const prev = foot.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-prev" }
+    });
+    prev.setAttr("aria-label", t("view.reader.prev", language));
+    prev.setText("\u2039");
+    if (this.step(-1) === this.page || this.failure) prev.setAttr("disabled", "true");
+    else prev.addEventListener("click", () => this.turn(-1));
+    foot.createSpan({
+      cls: "atomic-reader-last",
+      attr: { "data-testid": "atomic-reader-last" },
+      text: this.phone ? t("view.reader.pageMark", language, { page: progress.page || this.page }) : t("view.reader.lastRead", language, { page: progress.page || this.page })
+    });
+    const meter = foot.createSpan({
+      cls: "atomic-reader-progress",
+      attr: { "data-testid": "atomic-reader-meter" }
+    });
+    meter.createEl("i");
+    foot.createSpan({
+      cls: "atomic-reader-count",
+      attr: { "data-testid": "atomic-reader-progress" },
+      text: this.phone ? t("view.reader.totalMark", language, { total: progress.total }) : t("view.reader.progress", language, {
+        page: progress.page,
+        total: progress.total
+      })
+    });
+    const next = foot.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-next" }
+    });
+    next.setAttr("aria-label", t("view.reader.next", language));
+    next.setText("\u203A");
+    if (this.step(1) === this.page || this.failure) next.setAttr("disabled", "true");
+    else next.addEventListener("click", () => this.turn(1));
+  }
+};
+
+// src/reader/shell/open.ts
+function bookFiles(plugin) {
+  const out = [];
+  for (const file of plugin.app.vault.getFiles()) {
+    const kind = bookFileKind(file.path);
+    if (!kind) continue;
+    out.push({ path: file.path, basename: file.basename, extension: file.extension });
+  }
+  return out;
+}
+function frontmatterOf(plugin, path) {
+  const file = plugin.data.getFileByPath(path);
+  if (!file) return {};
+  const cache = plugin.app.metadataCache.getFileCache(file);
+  return cache?.frontmatter ?? {};
+}
+function linkedFile(plugin, notePath, title) {
+  const frontmatter = frontmatterOf(plugin, notePath);
+  return resolveLinkedBookFile({
+    title,
+    notePath,
+    source: frontmatter.source,
+    files: bookFiles(plugin)
+  });
+}
+function prefersReducedMotion5() {
+  return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+async function openReaderDirect(plugin, request) {
+  const leaf = plugin.app.workspace.getLeaf(false);
+  await leaf.setViewState({
+    type: ATOMIC_READER_VIEW,
+    active: true,
+    state: {
+      notePath: request.notePath,
+      filePath: request.filePath,
+      title: request.title,
+      kind: request.kind,
+      returnPath: request.returnPath,
+      coverRect: request.coverRect
+    }
+  });
+  plugin.app.workspace.revealLeaf(leaf);
+}
+async function openLinkedBook(plugin, request) {
+  if (!plugin.settings.reader.enabled) {
+    new import_obsidian18.Notice(t("notice.readerOff", plugin.settings.language));
+    return;
+  }
+  const plan = readerOpenPlan({
+    reducedMotion: prefersReducedMotion5(),
+    hasFlight: Boolean(readerMounts().flight)
+  });
+  if (plan === "flight") {
+    const flight = readerMounts().flight;
+    if (flight) {
+      const handled = await flight.open(request);
+      if (handled) return;
+    }
+  }
+  await openReaderDirect(plugin, request);
+}
+async function openBookChooser2(plugin, request) {
+  const language = plugin.settings.language;
+  if (!plugin.settings.reader.enabled) {
+    new import_obsidian18.Notice(t("notice.readerOff", language));
+    return;
+  }
+  const file = linkedFile(plugin, request.notePath, request.title);
+  const width = request.ownerDocument.defaultView?.innerWidth ?? activeWindow.innerWidth;
+  const returnPath = plugin.app.workspace.getActiveFile()?.path || request.notePath;
+  if (plugin.settings.reader.defaultOpen === "notes") {
+    void plugin.data.openPath(request.notePath);
+    return;
+  }
+  if (plugin.settings.reader.defaultOpen === "book" && file) {
+    void openLinkedBook(plugin, {
+      notePath: request.notePath,
+      filePath: file.path,
+      title: request.title,
+      kind: file.kind,
+      returnPath,
+      coverRect: request.coverRect
+    });
+    return;
+  }
+  openBookChooser({
+    ownerDocument: request.ownerDocument,
+    title: request.title,
+    file,
+    language,
+    phone: isPhoneReaderLayout(width),
+    onChoose: (choice) => {
+      if (choice === "notes") {
+        void plugin.data.openPath(request.notePath);
+        return;
+      }
+      if (choice === "book" && file) {
+        void openLinkedBook(plugin, {
+          notePath: request.notePath,
+          filePath: file.path,
+          title: request.title,
+          kind: file.kind,
+          returnPath,
+          coverRect: request.coverRect
+        });
+      }
+    }
+  });
+}
+function titleFromFrontmatter(frontmatter, basename) {
+  const title = frontmatter.title;
+  if (typeof title === "string" && title.trim()) return title.trim();
+  return basename;
+}
+async function openActiveNoteBook(plugin) {
+  const language = plugin.settings.language;
+  const active = plugin.app.workspace.getActiveFile();
+  if (!(active instanceof import_obsidian18.TFile) || active.extension !== "md") {
+    new import_obsidian18.Notice(t("notice.readerNeedsNote", language));
+    return;
+  }
+  const frontmatter = frontmatterOf(plugin, active.path);
+  let source = frontmatter.source;
+  if (typeof source !== "string" || !source.trim()) {
+    source = readReaderNote(await plugin.app.vault.cachedRead(active)).source;
+  }
+  const title = titleFromFrontmatter(frontmatter, active.basename);
+  const file = resolveLinkedBookFile({
+    title,
+    notePath: active.path,
+    source,
+    files: bookFiles(plugin)
+  });
+  if (!file) {
+    new import_obsidian18.Notice(t("notice.readerNoFile", language));
+    return;
+  }
+  await openLinkedBook(plugin, {
+    notePath: active.path,
+    filePath: file.path,
+    title,
+    kind: file.kind,
+    returnPath: active.path,
+    coverRect: null
+  });
+}
+function closeReaderChrome() {
+  closeBookChooser();
+}
+
+// src/reader/size/shell-bind.ts
+function registerBookSize(_plugin) {
+  registerReaderSize({
+    attach() {
+    }
+  });
+}
+function resetBookSize() {
 }
 
 // src/main.ts
@@ -14258,7 +14153,7 @@ var FitnessPlugin = class extends import_obsidian19.Plugin {
       void openBookChooser2(this, request);
     });
     registerBookSize(this);
-    this.registerView(ATOMIC_READER_VIEW, (leaf2) => new AtomicReaderView(leaf2, this));
+    this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
     this.addCommand({
       id: "open-book",
       name: t("command.openBook", this.settings.language),

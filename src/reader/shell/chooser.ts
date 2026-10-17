@@ -11,6 +11,24 @@ type ChooserSession = {
 
 let session: ChooserSession | null = null;
 
+function rowIcon(doc: Document | null, kind: "notes" | "book"): HTMLElement {
+  const host = (doc ?? activeDocument).createElement("span");
+  host.className = "atomic-chooser-ico";
+  host.setAttribute("aria-hidden", "true");
+  const svg = (doc ?? activeDocument).createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  const path = (doc ?? activeDocument).createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute(
+    "d",
+    kind === "notes"
+      ? "M4 20h4l10-10-4-4L4 16v4zM13 7l4 4"
+      : "M6 4h9a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2V4z",
+  );
+  svg.append(path);
+  host.append(svg);
+  return host;
+}
+
 function overlayBody(owner: Document | undefined): HTMLElement {
   if (owner?.body && owner === activeDocument) return activeDocument.body;
   if (owner?.body) return owner.body;
@@ -73,6 +91,7 @@ export function openBookChooser(options: {
     cls: "atomic-chooser-row is-primary",
     attr: { type: "button", "data-testid": "atomic-chooser-notes", "data-chooser-act": "notes" },
   });
+  notes.append(rowIcon(sheet.ownerDocument, "notes"));
   const notesLabel = notes.createSpan({ cls: "atomic-chooser-label" });
   notesLabel.createEl("b", { text: t("view.reader.openNotes", options.language) });
   notesLabel.createSpan({ text: t("view.reader.openNotesHint", options.language) });
@@ -83,6 +102,7 @@ export function openBookChooser(options: {
       cls: "atomic-chooser-row",
       attr: { type: "button", "data-testid": "atomic-chooser-book", "data-chooser-act": "book" },
     });
+    book.append(rowIcon(sheet.ownerDocument, "book"));
     const bookLabel = book.createSpan({ cls: "atomic-chooser-label" });
     bookLabel.createEl("b", { text: t("view.reader.openBook", options.language) });
     const fileName = options.file.path.split("/").pop() ?? options.file.path;

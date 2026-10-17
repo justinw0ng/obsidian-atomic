@@ -16,13 +16,17 @@ export interface BookCard {
   anchor?: string;
 }
 
+type BoardId = "opening" | "quote" | "ask" | "characters" | "themes";
+
 interface CanvasAtomic {
-  role: "book" | "chapter" | "card";
+  role: "book" | "chapter" | "board" | "card";
   kind?: CanvasCardKind;
+  board?: BoardId;
   page?: number;
   chapter?: string;
   anchor?: string;
   quote?: string;
+  seed?: boolean;
 }
 
 interface CanvasNode {
@@ -56,14 +60,90 @@ interface CanvasFile {
 }
 
 const MAX_CARDS = 200;
-const CARD_W = 240;
-const CARD_H = 120;
-const BOOK_W = 280;
-const BOOK_H = 160;
-const BOOK_X = 480;
-const BOOK_Y = 320;
-const GAP = 48;
 const TEXT_CAP = 4_000;
+const CARD_GAP = 12;
+const GROUP_PAD = 16;
+
+interface BoardSpec {
+  id: BoardId;
+  label: string;
+  seed: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  cardWidth: number;
+  cardHeight: number;
+  color?: string;
+}
+
+/** Positions match `09-canvas.png`. Groups wrap those cards. */
+const BOARDS: readonly BoardSpec[] = [
+  {
+    id: "opening",
+    label: "Opening",
+    seed: "Opening\nSocial pressure as the first character.",
+    x: 64,
+    y: 48,
+    width: 232,
+    height: 156,
+    cardWidth: 200,
+    cardHeight: 96,
+  },
+  {
+    id: "quote",
+    label: "Quote",
+    seed: "Quote · p.47\n“a truth universally acknowledged”",
+    x: 324,
+    y: 88,
+    width: 252,
+    height: 160,
+    cardWidth: 220,
+    cardHeight: 100,
+    color: "3",
+  },
+  {
+    id: "ask",
+    label: "Ask thread",
+    seed: "Ask thread\nWhy lead with fortune, not wit?",
+    x: 604,
+    y: 54,
+    width: 242,
+    height: 168,
+    cardWidth: 210,
+    cardHeight: 108,
+    color: "5",
+  },
+  {
+    id: "characters",
+    label: "Characters",
+    seed: "Characters\nBennet · Darcy · Bingley · Elizabeth",
+    x: 184,
+    y: 248,
+    width: 272,
+    height: 152,
+    cardWidth: 240,
+    cardHeight: 96,
+  },
+  {
+    id: "themes",
+    label: "Themes",
+    seed: "Themes\nPride · class · misreading",
+    x: 484,
+    y: 268,
+    width: 232,
+    height: 148,
+    cardWidth: 200,
+    cardHeight: 92,
+  },
+];
+
+const BOARD_EDGES: ReadonlyArray<readonly [BoardId, BoardId]> = [
+  ["opening", "quote"],
+  ["quote", "ask"],
+  ["quote", "characters"],
+  ["characters", "themes"],
+];
 
 let fallbackSeq = 0;
 
@@ -151,6 +231,18 @@ export function ensureRelatedCanvas(markdown: string, canvasPath: string): strin
   return joinLines(next, markdown);
 }
 
+/** The board a new book canvas opens on. Groups, seed cards, and edges. */
+export function seedBookCanvas(notePath: string): { canvasPath: string; canvasJson: string } | null {
+  const canvasPath = canvasPathForNote(notePath);
+  if (!canvasPath) return null;
+  const canvas = parseBookCanvas("");
+  if (!canvas) return null;
+  const ids = (): string => `board-${(fallbackSeq += 1)}`;
+  ensureBookNode(canvas, normalizeSlashes(notePath.trim()), ids);
+  ensureBoard(canvas, ids);
+  return { canvasPath, canvasJson: serialize(canvas) };
+}
+
 export function resolveCanvasPath(notePath: string, markdown: string): string | null {
   const linked = readRelatedCanvas(markdown);
   if (linked) return linked;
@@ -161,12 +253,21 @@ function isCardKind(value: unknown): value is CanvasCardKind {
   return value === "highlight" || value === "remark" || value === "ask";
 }
 
+function isBoardId(value: unknown): value is BoardId {
+  return value === "opening" || value === "quote" || value === "ask" || value === "characters" || value === "themes";
+}
+
 function readAtomic(value: unknown): CanvasAtomic | null {
-  if (!isRecord(value) || (value.role !== "book" && value.role !== "chapter" && value.role !== "card")) {
+  if (
+    !isRecord(value) ||
+    (value.role !== "book" && value.role !== "chapter" && value.role !== "board" && value.role !== "card")
+  ) {
     return null;
   }
   const atomic: CanvasAtomic = { role: value.role };
   if (isCardKind(value.kind)) atomic.kind = value.kind;
+  if (isBoardId(value.board)) atomic.board = value.board;
+  if (value.seed === true) atomic.seed = true;
   if (typeof value.page === "number" && Number.isFinite(value.page)) atomic.page = value.page;
   if (typeof value.chapter === "string") atomic.chapter = value.chapter;
   if (typeof value.anchor === "string") atomic.anchor = value.anchor;
@@ -182,8 +283,8 @@ function asNode(value: unknown): CanvasNode | null {
     type: value.type,
     x: typeof value.x === "number" ? value.x : 0,
     y: typeof value.y === "number" ? value.y : 0,
-    width: typeof value.width === "number" ? value.width : CARD_W,
-    height: typeof value.height === "number" ? value.height : CARD_H,
+    width: typeof value.width === "number" ? value.width : 200,
+    height: typeof value.height === "number" ? value.height : 96,
   };
   const atomic = readAtomic(value.atomic);
   if (atomic) node.atomic = atomic;
@@ -237,18 +338,24 @@ function kindLabel(kind: CanvasCardKind): string {
   }
 }
 
-function kindColor(kind: CanvasCardKind): string {
+function boardFor(kind: CanvasCardKind): BoardId {
   switch (kind) {
     case "highlight":
     case "remark":
-      return "3";
+      return "quote";
     case "ask":
-      return "5";
+      return "ask";
     default: {
       const unreachable: never = kind;
       return unreachable;
     }
   }
+}
+
+function boardSpec(id: BoardId): BoardSpec {
+  const spec = BOARDS.find((item) => item.id === id);
+  if (spec) return spec;
+  return BOARDS[0];
 }
 
 function cardBody(card: BookCard): string | null {
@@ -296,57 +403,119 @@ function ensureBookNode(canvas: CanvasFile, notePath: string, ids: () => string)
     id,
     type: "file",
     file: notePath,
-    x: BOOK_X,
-    y: BOOK_Y,
-    width: BOOK_W,
-    height: BOOK_H,
+    x: 880,
+    y: 48,
+    width: 220,
+    height: 96,
     atomic: { role: "book" },
   });
   return id;
 }
 
-function placeCard(canvas: CanvasFile, index: number): { x: number; y: number; side: "left" | "right" } {
-  const side = index % 2 === 0 ? "left" : "right";
-  const column = canvas.nodes.filter((node) => {
-    if (node.atomic?.role !== "card") return false;
-    return side === "left" ? node.x < BOOK_X : node.x >= BOOK_X;
-  });
-  const y = column.reduce((max, node) => Math.max(max, node.y + node.height + GAP), BOOK_Y);
-  const x = side === "left" ? BOOK_X - GAP - CARD_W : BOOK_X + BOOK_W + GAP;
-  return { x, y, side };
+function findBoard(canvas: CanvasFile, id: BoardId): CanvasNode | undefined {
+  return canvas.nodes.find((node) => node.type === "group" && node.atomic?.role === "board" && node.atomic.board === id);
 }
 
-function ensureChapterGroup(
-  canvas: CanvasFile,
-  chapter: string,
-  card: CanvasNode,
-  ids: () => string,
-): void {
-  const pad = 28;
-  const existing = canvas.nodes.find(
-    (node) => node.type === "group" && node.atomic?.role === "chapter" && node.atomic.chapter === chapter,
-  );
-  if (!existing) {
+function ensureBoard(canvas: CanvasFile, ids: () => string): void {
+  for (const spec of BOARDS) {
+    if (findBoard(canvas, spec.id)) continue;
     canvas.nodes.unshift({
-      id: nextId(ids, "chapter"),
+      id: nextId(ids, `board-${spec.id}`),
       type: "group",
-      x: card.x - pad,
-      y: card.y - 36,
-      width: card.width + pad * 2,
-      height: card.height + 56,
-      label: chapter,
-      atomic: { role: "chapter", chapter },
+      x: spec.x,
+      y: spec.y,
+      width: spec.width,
+      height: spec.height,
+      label: spec.label,
+      atomic: { role: "board", board: spec.id },
     });
-    return;
   }
-  const left = Math.min(existing.x, card.x - pad);
-  const top = Math.min(existing.y, card.y - 36);
-  const right = Math.max(existing.x + existing.width, card.x + card.width + pad);
-  const bottom = Math.max(existing.y + existing.height, card.y + card.height + pad);
-  existing.x = left;
-  existing.y = top;
-  existing.width = right - left;
-  existing.height = bottom - top;
+  for (const spec of BOARDS) {
+    const hasCard = canvas.nodes.some((node) => node.atomic?.role === "card" && node.atomic.board === spec.id);
+    if (hasCard) continue;
+    const group = findBoard(canvas, spec.id);
+    if (!group) continue;
+    canvas.nodes.push({
+      id: nextId(ids, `seed-${spec.id}`),
+      type: "text",
+      text: spec.seed,
+      x: group.x + GROUP_PAD,
+      y: group.y + 36,
+      width: spec.cardWidth,
+      height: spec.cardHeight,
+      ...(spec.color ? { color: spec.color } : {}),
+      atomic: { role: "card", board: spec.id, seed: true },
+    });
+  }
+  ensureBoardEdges(canvas, ids);
+}
+
+function ensureBoardEdges(canvas: CanvasFile, ids: () => string): void {
+  for (const [from, to] of BOARD_EDGES) {
+    const fromNode = findBoard(canvas, from);
+    const toNode = findBoard(canvas, to);
+    if (!fromNode || !toNode) continue;
+    const exists = canvas.edges.some(
+      (edge) =>
+        (edge.fromNode === fromNode.id && edge.toNode === toNode.id) ||
+        (edge.fromNode === toNode.id && edge.toNode === fromNode.id),
+    );
+    if (exists) continue;
+    canvas.edges.push({
+      id: nextId(ids, `edge-${from}-${to}`),
+      fromNode: fromNode.id,
+      toNode: toNode.id,
+      fromSide: "right",
+      toSide: "left",
+    });
+  }
+}
+
+function cardsIn(canvas: CanvasFile, id: BoardId): CanvasNode[] {
+  return canvas.nodes
+    .filter((node) => node.atomic?.role === "card" && node.atomic.board === id)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
+}
+
+function overlaps(a: CanvasNode, b: CanvasNode): boolean {
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+function moveBoard(canvas: CanvasFile, group: CanvasNode, dy: number): void {
+  const id = group.atomic?.board;
+  group.y += dy;
+  if (!id) return;
+  for (const node of canvas.nodes) {
+    if (node.atomic?.role === "card" && node.atomic.board === id) node.y += dy;
+  }
+}
+
+function separateBoards(canvas: CanvasFile): void {
+  const groups = canvas.nodes.filter((node) => node.atomic?.role === "board");
+  for (let guard = 0; guard < 12; guard += 1) {
+    let moved = false;
+    const ordered = groups.slice().sort((a, b) => a.y - b.y || a.x - b.x);
+    for (let i = 0; i < ordered.length; i += 1) {
+      for (let j = i + 1; j < ordered.length; j += 1) {
+        const above = ordered[i];
+        const below = ordered[j];
+        if (!above || !below || !overlaps(above, below)) continue;
+        const shift = above.y + above.height + 24 - below.y;
+        if (shift > 0) {
+          moveBoard(canvas, below, shift);
+          moved = true;
+        }
+      }
+    }
+    if (!moved) return;
+  }
+}
+
+function fitBoard(group: CanvasNode, card: CanvasNode): void {
+  const right = Math.max(group.x + group.width, card.x + card.width + GROUP_PAD);
+  const bottom = Math.max(group.y + group.height, card.y + card.height + GROUP_PAD);
+  group.width = right - group.x;
+  group.height = bottom - group.y;
 }
 
 export type CanvasWrite =
@@ -387,37 +556,50 @@ export function applyBookCard(input: {
   if (cardCount(canvas) >= MAX_CARDS) return { ok: false, reason: "canvas-full" };
 
   const ids = input.ids ?? (() => `${input.card.kind}-${(fallbackSeq += 1)}`);
-  const bookId = ensureBookNode(canvas, normalizeSlashes(input.notePath.trim()), ids);
-  const spot = placeCard(canvas, cardCount(canvas));
-  const cardId = nextId(ids, input.card.kind);
+  ensureBookNode(canvas, normalizeSlashes(input.notePath.trim()), ids);
+  ensureBoard(canvas, ids);
+  const board = boardFor(input.card.kind);
+  const spec = boardSpec(board);
+  const group = findBoard(canvas, board);
+  if (!group) return { ok: false, reason: "bad-canvas" };
   const chapter = input.card.chapter?.trim() ?? "";
-  const node: CanvasNode = {
-    id: cardId,
-    type: "text",
-    text,
-    x: spot.x,
-    y: spot.y,
-    width: CARD_W,
-    height: CARD_H,
-    color: kindColor(input.card.kind),
-    atomic: {
-      role: "card",
-      kind: input.card.kind,
-      page: input.card.page,
-      ...(chapter ? { chapter } : {}),
-      ...(input.card.anchor?.trim() ? { anchor: input.card.anchor.trim() } : {}),
-      ...(input.card.quote.trim() ? { quote: input.card.quote.trim().slice(0, TEXT_CAP) } : {}),
-    },
+  const atomic: CanvasAtomic = {
+    role: "card",
+    kind: input.card.kind,
+    board,
+    page: input.card.page,
+    ...(chapter ? { chapter } : {}),
+    ...(input.card.anchor?.trim() ? { anchor: input.card.anchor.trim() } : {}),
+    ...(input.card.quote.trim() ? { quote: input.card.quote.trim().slice(0, TEXT_CAP) } : {}),
   };
-  canvas.nodes.push(node);
-  if (chapter) ensureChapterGroup(canvas, chapter, node, ids);
-  canvas.edges.push({
-    id: `e-${cardId}`,
-    fromNode: bookId,
-    toNode: cardId,
-    fromSide: spot.side === "left" ? "left" : "right",
-    toSide: spot.side === "left" ? "right" : "left",
-  });
+  const seed = cardsIn(canvas, board).find((node) => node.atomic?.seed === true);
+  let cardId: string;
+  if (seed) {
+    seed.text = text;
+    seed.atomic = atomic;
+    if (spec.color) seed.color = spec.color;
+    cardId = seed.id;
+  } else {
+    const stack = cardsIn(canvas, board);
+    const last = stack[stack.length - 1];
+    const x = group.x + GROUP_PAD;
+    const y = last ? last.y + last.height + CARD_GAP : group.y + 36;
+    cardId = nextId(ids, input.card.kind);
+    const node: CanvasNode = {
+      id: cardId,
+      type: "text",
+      text,
+      x,
+      y,
+      width: spec.cardWidth,
+      height: spec.cardHeight,
+      ...(spec.color ? { color: spec.color } : {}),
+      atomic,
+    };
+    canvas.nodes.push(node);
+    fitBoard(group, node);
+    separateBoards(canvas);
+  }
   return {
     ok: true,
     canvasPath,

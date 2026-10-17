@@ -18,6 +18,25 @@ function setVar(el: HTMLElement, name: string, value: string): void {
   el.setCssProps({ [name]: value });
 }
 
+/**
+ * Shift a centered selection pill so Highlight, Remark, and Ask stay on screen.
+ * A bar wider than the window is centered. Otherwise the nearer edge wins.
+ */
+export function selectionShift(
+  rect: { left: number; right: number },
+  viewWidth: number,
+  margin = 8,
+): number {
+  const width = rect.right - rect.left;
+  if (viewWidth <= 0 || width <= 0) return 0;
+  const room = viewWidth - margin * 2;
+  if (width >= room) return (viewWidth - width) / 2 - rect.left;
+  let shift = 0;
+  if (rect.right > viewWidth - margin) shift -= rect.right - (viewWidth - margin);
+  if (rect.left + shift < margin) shift += margin - (rect.left + shift);
+  return shift;
+}
+
 function clearRoot(host: HTMLElement): void {
   const stale: Element[] = [];
   for (const child of Array.from(host.children)) {
@@ -97,20 +116,23 @@ function paintSelection(doc: Document, root: HTMLElement, view: ReaderAskView, h
   const bar = doc.createElement("div");
   bar.className = "atomic-selbar";
   bar.setAttribute("data-testid", "atomic-selbar");
-  setVar(bar, "--atomic-sel-left", `${Math.round(view.selection.left)}px`);
+  const viewWidth = doc.defaultView?.innerWidth ?? 0;
+  const half = 110;
+  const rawLeft = view.selection.left;
+  const left = viewWidth > half * 2
+    ? Math.min(Math.max(rawLeft, half), viewWidth - half)
+    : rawLeft;
+  setVar(bar, "--atomic-sel-left", `${Math.round(left)}px`);
   setVar(bar, "--atomic-sel-top", `${Math.round(view.selection.top)}px`);
-  const glass = doc.createElement("div");
-  glass.className = "atomic-glass";
   if (view.chrome.showHighlight) {
-    glass.append(button(doc, "atomic-btn is-small", view.labels.highlight, handlers.onHighlight));
+    bar.append(button(doc, "atomic-btn is-small", view.labels.highlight, handlers.onHighlight));
   }
   if (view.chrome.showRemark) {
-    glass.append(button(doc, "atomic-btn is-small", view.labels.remark, handlers.onRemark));
+    bar.append(button(doc, "atomic-btn is-small", view.labels.remark, handlers.onRemark));
   }
   if (view.chrome.showAsk) {
-    glass.append(button(doc, "atomic-btn is-small is-primary", view.labels.ask, handlers.onAsk));
+    bar.append(button(doc, "atomic-btn is-small", view.labels.ask, handlers.onAsk));
   }
-  bar.append(glass);
   root.append(bar);
 }
 
@@ -118,17 +140,12 @@ function paintPanel(doc: Document, root: HTMLElement, view: ReaderAskView, handl
   const panel = view.panel;
   if (!panel) return;
   const el = doc.createElement("div");
-  el.className = panel.presentation === "sheet" ? "atomic-ask is-sheet" : "atomic-ask";
+  el.className = panel.presentation === "screen" ? "atomic-ask is-screen" : "atomic-ask";
   el.setAttribute("data-testid", "atomic-ask");
-  if (panel.presentation === "sheet") {
-    const grab = doc.createElement("div");
-    grab.className = "atomic-sheet-grab";
-    el.append(grab);
-  }
   const title = doc.createElement("h4");
   title.textContent = panel.title;
-  const subtitle = doc.createElement("span");
-  subtitle.className = "atomic-readout";
+  const subtitle = doc.createElement("p");
+  subtitle.className = "atomic-ask-key";
   subtitle.textContent = panel.subtitle;
   el.append(title, subtitle);
   if (panel.saved) {
@@ -141,16 +158,6 @@ function paintPanel(doc: Document, root: HTMLElement, view: ReaderAskView, handl
     saved.append(dot, label);
     el.append(saved);
   }
-  const seg = doc.createElement("div");
-  seg.className = "atomic-seg";
-  for (const scope of panel.scopes) {
-    const option = button(doc, scope.id === panel.scope ? "atomic-seg-option is-on" : "atomic-seg-option", scope.label, () => {
-      handlers.onScope?.(scope.id);
-    });
-    option.setAttribute("aria-pressed", scope.id === panel.scope ? "true" : "false");
-    seg.append(option);
-  }
-  el.append(seg);
   if (panel.confirm) {
     const confirm = doc.createElement("p");
     confirm.className = "atomic-hint";
@@ -185,11 +192,25 @@ function paintPanel(doc: Document, root: HTMLElement, view: ReaderAskView, handl
     if (question) handlers.onSend?.(question);
   });
   compose.append(field, send);
-  const hint = doc.createElement("p");
-  hint.className = "atomic-hint";
-  hint.textContent = panel.secretHint;
-  el.append(thread, compose, hint);
+  el.append(thread, compose);
+  if (panel.presentation === "screen") {
+    const hint = doc.createElement("p");
+    hint.className = "atomic-hint";
+    hint.textContent = panel.secretHint;
+    el.append(hint);
+  }
   root.append(el);
+}
+
+function pinDesktopAsk(root: HTMLElement, panel: HTMLElement): void {
+  if (panel.classList.contains("is-screen")) return;
+  const reader = root.closest(".atomic-reader");
+  const view = root.ownerDocument.defaultView;
+  if (!reader || !view) return;
+  const rect = reader.getBoundingClientRect();
+  setVar(panel, "--atomic-ask-top", `${Math.round(rect.top)}px`);
+  setVar(panel, "--atomic-ask-right", `${Math.round(Math.max(0, view.innerWidth - rect.right))}px`);
+  setVar(panel, "--atomic-ask-bottom", `${Math.round(Math.max(0, view.innerHeight - rect.bottom))}px`);
 }
 
 function paintSlot(
@@ -218,14 +239,23 @@ function paintSlot(
     if (view.slip && readerSlotForGutter(view.slip.gutter) === "ask") paintSlip(doc, root, view.slip);
     paintSelection(doc, root, view, handlers);
     paintPanel(doc, root, view, handlers);
-    const panel = root.querySelector(".atomic-ask");
-    if (panel && isHtmlElement(panel) && view.panel?.presentation === "sheet") {
-      const reader = host.closest(".atomic-reader");
-      const width = reader ? Math.round(reader.getBoundingClientRect().width) : 0;
-      if (width > 0) panel.setCssProps({ "--atomic-ask-span": `${width}px` });
-    }
   }
   host.append(root);
+  const panel = root.querySelector(".atomic-ask");
+  if (panel && isHtmlElement(panel)) pinDesktopAsk(root, panel);
+  const bar = root.querySelector(".atomic-selbar");
+  if (bar && isHtmlElement(bar)) pinSelection(bar);
+}
+
+function pinSelection(bar: HTMLElement): void {
+  const view = bar.ownerDocument.defaultView;
+  if (!view) return;
+  const rect = bar.getBoundingClientRect();
+  const shift = selectionShift({ left: rect.left, right: rect.right }, view.innerWidth ?? 0);
+  if (shift === 0) return;
+  const current = Number.parseFloat(bar.style.getPropertyValue("--atomic-sel-left"));
+  const base = Number.isFinite(current) ? current : rect.left + (rect.right - rect.left) / 2;
+  setVar(bar, "--atomic-sel-left", `${Math.round(base + shift)}px`);
 }
 
 /**

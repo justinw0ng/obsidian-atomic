@@ -1,10 +1,9 @@
 /**
  * Open Book flight for the reader shell.
  *
- * The shell calls the registered flight from Open Book. Full motion opens
- * the live reader, then plays the overlay on `activeDocument.body` onto
- * `.atomic-reader-page`. Reduced motion returns false so the shell opens
- * directly and does not build a second layout.
+ * The shell calls the registered flight from Open Book. The flight opens
+ * the live reader, then plays on that leaf: cover, flips, zoom out to scale 1.
+ * The snapshot is the settled reader. Reduced motion crossfades.
  */
 
 export {
@@ -15,12 +14,14 @@ export {
   FLIGHT_MS,
   FLIGHT_SKIP_MS,
   FLIP_LEAVES,
+  REDUCED_FADE_MS,
   PHONE_BOOK_PX,
   PHONE_FALLBACK_SCALE,
   PHONE_LAYOUT_MAX_PX,
   bookPx,
   fallbackScale,
   flightVars,
+  flightZoom,
   resolveFlightLayout,
   resolveFlightMotion,
   safeCoverColor,
@@ -29,6 +30,7 @@ export {
   type FlightLayout,
   type FlightMotion,
   type FlightVars,
+  type FlightZoom,
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 } from "./geometry.ts";
 export {
@@ -44,6 +46,7 @@ export {
   flightOverlayBody,
   mountOpenBookFlight,
   openBookFlightView,
+  readerFrameSignature,
   type OpenBookCover,
   type OpenBookFlightHandle,
   type OpenBookFlightReason,

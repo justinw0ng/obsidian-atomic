@@ -1,9 +1,8 @@
 import {
   FLIGHT_SKIP_MS,
   FLIP_LEAVES,
-  bookPx,
-  fallbackScale,
-  flightVars,
+  REDUCED_FADE_MS,
+  flightZoom,
   resolveFlightLayout,
   resolveFlightMotion,
   safeCoverColor,
@@ -11,7 +10,7 @@ import {
   type FlightBox,
   type FlightLayout,
   type FlightMotion,
-  type FlightVars,
+  type FlightZoom,
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 } from "./geometry.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -123,20 +122,10 @@ export function mountOpenBookFlight(
     layout,
   });
 
-  if (motion === "reduced") {
-    onLand?.("reduced");
-    return {
-      overlay: null,
-      abort() {},
-      skip() {},
-      done: Promise.resolve("reduced"),
-    };
-  }
-
   ensureFlightStyles(doc);
   const built = buildOverlay(doc, request, layout, motion);
   const overlay = built.overlay;
-  body.appendChild(overlay);
+  request.destination.appendChild(overlay);
 
   let closed = false;
   let timer = 0;
@@ -187,19 +176,13 @@ export function mountOpenBookFlight(
   const start = (spread: FlightBox | null): void => {
     if (closed) return;
     const page = spreadFromPainted(paintedPages(request.destination), request.page);
-    fillLeaf(doc, built.left, page.headingLeft, page.left);
-    fillLeaf(doc, built.right, page.headingRight, page.right);
     overlay.setAttribute("data-page", String(page.page));
-    applyVars(
-      built.book,
-      flightVars({
-        from: request.from,
-        dest: spread,
-        host: hostSize(view, overlay),
-        book: bookPx(layout),
-        fallbackToScale: fallbackScale(layout),
-      }),
-    );
+    if (motion === "reduced") {
+      overlay.classList.add("is-on");
+      timer = view.setTimeout(() => finish("reduced"), REDUCED_FADE_MS);
+      return;
+    }
+    applyZoom(built.camera, zoomFor(request.destination, spread));
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
@@ -300,35 +283,44 @@ function isHtmlElement(node: Node): node is HTMLElement {
   return node.nodeType === 1;
 }
 
-function applyVars(book: HTMLElement, vars: FlightVars): void {
-  book.style.setProperty("--from-x", vars.fromX);
-  book.style.setProperty("--from-y", vars.fromY);
-  book.style.setProperty("--from-s", vars.fromS);
-  book.style.setProperty("--to-x", vars.toX);
-  book.style.setProperty("--to-y", vars.toY);
-  book.style.setProperty("--to-s", vars.toS);
+function applyZoom(camera: HTMLElement, zoom: FlightZoom): void {
+  camera.style.setProperty("--flight-ox", zoom.originX);
+  camera.style.setProperty("--flight-oy", zoom.originY);
+  camera.style.setProperty("--flight-from", zoom.fromScale);
+  camera.style.setProperty("--flight-cover-x", zoom.coverX);
+  camera.style.setProperty("--flight-cover-y", zoom.coverY);
+  camera.style.setProperty("--flight-cover-w", zoom.coverW);
+  camera.style.setProperty("--flight-cover-h", zoom.coverH);
+}
+
+function zoomFor(destination: HTMLElement, spread: FlightBox | null): FlightZoom {
+  const host = destination.getBoundingClientRect();
+  return flightZoom({
+    host: { x: host.left, y: host.top, width: host.width, height: host.height },
+    spread,
+  });
 }
 
 type BuiltOverlay = {
   overlay: HTMLElement;
-  book: HTMLElement;
-  left: HTMLElement;
-  right: HTMLElement;
+  camera: HTMLElement;
 };
 
 function buildOverlay(
   doc: Document,
   request: OpenBookFlightRequest,
   layout: FlightLayout,
-  motion: Exclude<FlightMotion, "reduced">,
+  motion: FlightMotion,
 ): BuiltOverlay {
   const overlay = doc.createElement("div");
   overlay.className = "atomic-open-flight";
   overlay.classList.add(layout === "phone" ? "is-phone" : "is-desktop");
   if (motion === "flat") overlay.classList.add("is-flat");
+  if (motion === "reduced") overlay.classList.add("is-reduced");
   overlay.setAttribute("data-testid", "atomic-open-flight");
-  overlay.setAttribute("data-overlay-host", "window");
+  overlay.setAttribute("data-overlay-host", "leaf");
   overlay.setAttribute("data-motion", motion);
+  overlay.setAttribute("data-zoom", motion === "reduced" ? "fade" : "out");
   overlay.setAttribute("role", "presentation");
 
   const color = safeCoverColor(request.cover.color);
@@ -336,90 +328,155 @@ function buildOverlay(
   if (color) overlay.style.setProperty("--atomic-open-cover", color);
   if (ink) overlay.style.setProperty("--atomic-open-ink", ink);
 
-  const blur = doc.createElement("div");
-  blur.className = "atomic-open-blur";
-  const warm = doc.createElement("div");
-  warm.className = "atomic-open-warm";
-  warm.setAttribute("aria-hidden", "true");
-  const stage = doc.createElement("div");
-  stage.className = "atomic-open-stage";
-  const book = doc.createElement("div");
-  book.className = "atomic-open-book";
-  book.setAttribute("data-testid", "atomic-open-book");
+  if (motion === "reduced") return { overlay, camera: overlay };
 
-  const back = doc.createElement("div");
-  back.className = "atomic-open-back";
-  const left = leaf(doc, "left");
-  const right = leaf(doc, "right");
-  const gutter = doc.createElement("div");
-  gutter.className = "atomic-open-gutter";
-  gutter.setAttribute("aria-hidden", "true");
-  const stack = doc.createElement("div");
-  stack.className = "atomic-open-stack";
+  const camera = doc.createElement("div");
+  camera.className = "atomic-flight-camera";
+  camera.setAttribute("data-testid", "atomic-flight-camera");
+  const snapshot = snapshotReader(doc, request.destination);
+  snapshot.classList.add("atomic-flight-snapshot");
+  snapshot.setAttribute("data-testid", "atomic-flight-snapshot");
+  camera.appendChild(snapshot);
+
+  const flips = doc.createElement("div");
+  flips.className = "atomic-flight-flips";
+  flips.setAttribute("aria-hidden", "true");
   for (let index = 0; index < FLIP_LEAVES.length; index++) {
     const flip = doc.createElement("div");
-    flip.className = "atomic-open-flip";
-    stack.appendChild(flip);
+    flip.className = "atomic-flight-flip";
+    flips.appendChild(flip);
   }
+
   const cover = doc.createElement("div");
-  cover.className = "atomic-open-cover";
+  cover.className = "atomic-flight-cover";
   const face = doc.createElement("div");
-  face.className = "atomic-open-cover-face";
+  face.className = "atomic-flight-cover-face";
   const title = doc.createElement("span");
-  title.className = "atomic-open-title";
+  title.className = "atomic-flight-title";
   title.textContent = request.cover.title;
   face.appendChild(title);
   if (request.cover.author) {
     const author = doc.createElement("span");
-    author.className = "atomic-open-author";
+    author.className = "atomic-flight-author";
     author.textContent = request.cover.author;
     face.appendChild(author);
   }
   const inside = doc.createElement("div");
-  inside.className = "atomic-open-cover-in";
-  cover.appendChild(face);
-  cover.appendChild(inside);
-
-  book.append(back, left, right, gutter, stack, cover);
-  stage.appendChild(book);
+  inside.className = "atomic-flight-cover-in";
+  cover.append(face, inside);
 
   const hint = doc.createElement("div");
   hint.className = "atomic-open-hint";
   hint.setAttribute("data-testid", "atomic-open-flight-hint");
   hint.textContent = request.hint?.trim() || OPEN_BOOK_HINT;
 
-  overlay.append(blur, warm, stage, hint);
-  return { overlay, book, left, right };
+  camera.append(flips, cover);
+  overlay.append(camera, hint);
+  return { overlay, camera };
 }
 
-function leaf(doc: Document, side: "left" | "right"): HTMLElement {
-  const node = doc.createElement("div");
-  node.className = `atomic-open-leaf is-${side}`;
-  node.setAttribute("data-testid", "atomic-open-leaf");
-  node.setAttribute("data-side", side);
-  return node;
+function snapshotReader(doc: Document, source: HTMLElement): HTMLElement {
+  if (typeof source.cloneNode === "function") {
+    const cloned = source.cloneNode(true);
+    if (isHtmlElement(cloned)) return cloned;
+  }
+  return copyElement(doc, source);
 }
 
-function fillLeaf(
-  doc: Document,
-  leafNode: HTMLElement,
-  heading: string | undefined,
-  lines: readonly string[],
-): void {
-  const nodes: HTMLElement[] = [];
-  if (heading) {
-    const label = doc.createElement("p");
-    label.className = "atomic-open-k";
-    label.textContent = heading;
-    nodes.push(label);
+function copyElement(doc: Document, source: HTMLElement): HTMLElement {
+  const copy = doc.createElement(source.tagName.toLowerCase());
+  copy.className = source.className;
+  copyAttributes(source, copy);
+  copyStyle(source, copy);
+  const kids = source.children;
+  if (!kids || kids.length === 0) {
+    copy.textContent = source.textContent;
+    return copy;
   }
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index];
-    if (!line) continue;
-    const para = doc.createElement("p");
-    para.setAttribute("data-line", String(index));
-    para.textContent = line;
-    nodes.push(para);
+  for (let index = 0; index < kids.length; index++) {
+    const child = kids[index];
+    if (child && isHtmlElement(child)) copy.appendChild(copyElement(doc, child));
   }
-  leafNode.replaceChildren(...nodes);
+  return copy;
+}
+
+function copyStyle(from: HTMLElement, to: HTMLElement): void {
+  const style = from.style as CSSStyleDeclaration & { map?: Map<string, string> };
+  if (style.map) {
+    style.map.forEach((value, key) => {
+      to.style.setProperty(key, value);
+    });
+    return;
+  }
+  if (typeof style.length !== "number") return;
+  for (let index = 0; index < style.length; index++) {
+    const name = style.item(index);
+    if (!name) continue;
+    to.style.setProperty(name, style.getPropertyValue(name));
+  }
+}
+
+function copyAttributes(from: HTMLElement, to: HTMLElement): void {
+  const named = from.attributes;
+  if (named && typeof named.length === "number") {
+    for (let index = 0; index < named.length; index++) {
+      const attr = named.item(index);
+      if (!attr || attr.name === "class") continue;
+      to.setAttribute(attr.name, attr.value);
+    }
+    return;
+  }
+  const bag = (from as HTMLElement & { attrs?: Map<string, string> }).attrs;
+  if (!bag) return;
+  bag.forEach((value, key) => {
+    if (key !== "class") to.setAttribute(key, value);
+  });
+}
+
+/**
+ * Text, page numbers, and page box of a reader, or of the flight snapshot.
+ * A signature of the live reader skips the flight overlay, so the snapshot
+ * can sit inside that reader and still match the settled frame.
+ */
+export function readerFrameSignature(root: HTMLElement): string {
+  const insideFlight = belongsToFlight(root);
+  const parts: string[] = [];
+  parts.push(textOf(firstMatch(root, ".atomic-reader-bar", insideFlight)));
+  for (const node of matches(root, ".atomic-reader-pn", insideFlight)) {
+    parts.push((node.textContent ?? "").trim());
+  }
+  parts.push(textOf(firstMatch(root, ".atomic-reader-foot", insideFlight)));
+  for (const node of matches(root, ".atomic-reader-page, .atomic-page", insideFlight)) {
+    parts.push((node.textContent ?? "").replace(/\s+/g, " ").trim());
+  }
+  parts.push(root.style.getPropertyValue("--atomic-page-w"));
+  parts.push(root.style.getPropertyValue("--atomic-page-h"));
+  return parts.join("\n");
+}
+
+function belongsToFlight(node: Element): boolean {
+  let current: Element | null = node;
+  while (current) {
+    if (current.classList.contains("atomic-open-flight")) return true;
+    current = current.parentElement;
+  }
+  return false;
+}
+
+function matches(root: HTMLElement, selector: string, insideFlight: boolean): HTMLElement[] {
+  const found: HTMLElement[] = [];
+  root.querySelectorAll(selector).forEach((node) => {
+    if (!isHtmlElement(node)) return;
+    if (!insideFlight && belongsToFlight(node)) return;
+    found.push(node);
+  });
+  return found;
+}
+
+function firstMatch(root: HTMLElement, selector: string, insideFlight: boolean): Element | null {
+  return matches(root, selector, insideFlight)[0] ?? null;
+}
+
+function textOf(node: Element | null): string {
+  return (node?.textContent ?? "").replace(/\s+/g, " ").trim();
 }

@@ -33,7 +33,7 @@ export interface ReaderChrome {
   showAsk: boolean;
   showMargins: boolean;
   showSelectionBar: boolean;
-  askPresentation: "panel" | "sheet" | "hidden";
+  askPresentation: "panel" | "screen" | "hidden";
 }
 
 const CARD_HEIGHT = 72;
@@ -61,7 +61,7 @@ export function readerChrome(input: ReaderChromeInput): ReaderChrome {
   const askPresentation = !input.askOpen || !input.askEnabled
     ? "hidden"
     : input.surface === "phone"
-      ? "sheet"
+      ? "screen"
       : "panel";
   return {
     showHighlight: showSelectionBar,

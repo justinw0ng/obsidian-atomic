@@ -12,11 +12,14 @@ import {
   FLIP_LEAVES,
   OPEN_BOOK_HINT,
   PHONE_BOOK_PX,
+  REDUCED_FADE_MS,
   flightOverlayBody,
   flightVars,
+  flightZoom,
   mountOpenBookFlight,
   openBookFlightView,
   playOpenBookFlight,
+  readerFrameSignature,
   registerOpenBookFlight,
   resolveFlightLayout,
   resolveFlightMotion,
@@ -89,6 +92,26 @@ test("flight vars keep the phone book and the center fallback", () => {
   assert.equal(waiting.toX, "0px");
   assert.equal(waiting.toY, "0px");
   assert.equal(waiting.toS, "3.150");
+});
+
+test("flight zoom starts on the spread and ends at the settled reader", () => {
+  const zoom = flightZoom({
+    host: { x: 0, y: 0, width: HOST.width, height: HOST.height },
+    spread: SPREAD,
+  });
+  assert.equal(zoom.originX, "46.08%");
+  assert.equal(zoom.originY, "37.50%");
+  assert.equal(zoom.fromScale, "1.889");
+  assert.equal(zoom.coverX, "200px");
+  assert.equal(zoom.coverY, "100px");
+  assert.equal(zoom.coverW, "540px");
+  assert.equal(zoom.coverH, "340px");
+  const waiting = flightZoom({
+    host: { x: 0, y: 0, width: 0, height: 0 },
+    spread: null,
+  });
+  assert.equal(waiting.fromScale, "1.800");
+  assert.equal(waiting.originX, "50%");
 });
 
 test("spread box unions the shell pages and drops empty rects", () => {
@@ -177,10 +200,20 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.match(css, /--atomic-r-well:\s*14px/);
   assert.match(css, /Inter/);
   assert.match(css, /Literata/);
-  assert.match(css, /width:\s*168px/);
-  assert.match(css, /height:\s*248px/);
-  assert.match(css, /width:\s*120px/);
-  assert.match(css, /height:\s*178px/);
+  assert.match(css, /--atomic-open-cover:\s*#3d2a1c/);
+  assert.match(css, /align-items:\s*center/);
+  assert.match(css, /text-align:\s*center/);
+  assert.match(css, /background-color:\s*var\(--atomic-open-cover\)/);
+  assert.match(css, /background:\s*transparent/);
+  assert.match(css, /position:\s*absolute/);
+  assert.match(css, /inset:\s*0/);
+  assert.match(css, /transform:\s*scale\(var\(--flight-from\)\)/);
+  assert.match(css, /100% \{ transform: scale\(1\); \}/);
+  assert.match(css, /rotateY\(-178deg\); opacity: 0/);
+  assert.match(css, /86%, 100% \{ opacity: 0; \}/);
+  assert.doesNotMatch(css, /width:\s*168px/);
+  assert.doesNotMatch(css, /height:\s*248px/);
+  assert.doesNotMatch(css, /#000|background:\s*black/);
   assert.match(css, /rotateY\(-168deg\)/);
   assert.match(css, /rotateY\(-178deg\)/);
   assert.doesNotMatch(css, /!important/);
@@ -255,10 +288,14 @@ test("registered flight lands on the live reader page", async () => {
     const reduced = await playOpenBookFlight(() => {
       opened.push("reduced");
     }, request);
-    assert.equal(reduced, false);
-    assert.deepEqual(opened, []);
-    assert.equal(tap.doc.querySelector("[data-testid='atomic-open-flight']"), null);
-    assert.equal(tap.doc.getElementById("atomic-open-flight-style"), null);
+    assert.equal(reduced, true);
+    assert.deepEqual(opened, ["reduced"]);
+    const fade = tap.destination.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(fade.parentElement, tap.destination);
+    assert.equal(fade.getAttribute("data-overlay-host"), "leaf");
+    assert.equal(fade.getAttribute("data-zoom"), "fade");
+    assert.equal(fade.querySelector("[data-testid='atomic-flight-snapshot']"), null);
+    fade.remove();
 
     tap.media["(prefers-reduced-motion: reduce)"] = false;
     registerOpenBookFlight(async () => {
@@ -268,20 +305,21 @@ test("registered flight lands on the live reader page", async () => {
     assert.ok(flight);
     const handled = await flight.open(request);
     assert.equal(handled, true);
-    assert.deepEqual(opened, ["direct"]);
-    const overlay = tap.body.querySelector("[data-testid='atomic-open-flight']");
-    assert.equal(overlay.parentElement, tap.body);
-    assert.equal(overlay.getAttribute("data-overlay-host"), "window");
+    assert.deepEqual(opened, ["reduced", "direct"]);
+    const overlay = tap.destination.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(overlay.parentElement, tap.destination);
+    assert.equal(overlay.getAttribute("data-overlay-host"), "leaf");
+    assert.equal(overlay.getAttribute("data-zoom"), "out");
     assert.equal(tap.reading.contains(overlay), false);
-    const book = overlay.querySelector("[data-testid='atomic-open-book']");
-    assert.equal(book.style.getPropertyValue("--from-x"), "-378px");
-    assert.equal(book.style.getPropertyValue("--from-y"), "88px");
-    assert.equal(book.style.getPropertyValue("--from-s"), "0.381");
-    assert.equal(book.style.getPropertyValue("--to-x"), "-40px");
-    assert.equal(book.style.getPropertyValue("--to-y"), "-90px");
-    assert.equal(book.style.getPropertyValue("--to-s"), "1.523");
+    const camera = overlay.querySelector("[data-testid='atomic-flight-camera']");
+    assert.equal(camera.style.getPropertyValue("--flight-from"), "1.889");
+    assert.equal(camera.style.getPropertyValue("--flight-ox"), "46.08%");
     assert.equal(overlay.getAttribute("data-page"), "1");
-    assert.deepEqual(leafLines(overlay, "left"), ["Harbor light kept the first page."]);
+    const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+    assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
+    assert.equal(overlay.style.getPropertyValue("--atomic-open-cover"), "");
+    assert.equal(overlay.querySelector(".atomic-flight-title").textContent, "Harbor Notes");
+    assert.deepEqual(leafLines(overlay, "recto"), ["Harbor light kept the first page."]);
   } finally {
     delete globalThis.activeWindow;
     delete globalThis.activeDocument;
@@ -325,12 +363,14 @@ test("registered flight lands on the active leaf, not a hidden reader", async ()
       coverRect: { x: 100, y: 400, width: 64, height: 96, color: "#3d2a1c" },
     });
     assert.equal(handled, true);
-    const overlay = tap.body.querySelector("[data-testid='atomic-open-flight']");
-    const book = overlay.querySelector("[data-testid='atomic-open-book']");
-    assert.equal(book.style.getPropertyValue("--to-s"), "1.523");
+    const overlay = tap.destination.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(overlay.parentElement, tap.destination);
+    assert.equal(overlay.getAttribute("data-zoom"), "out");
     assert.equal(overlay.getAttribute("data-page"), "1");
-    assert.deepEqual(leafLines(overlay, "left"), ["Harbor light kept the first page."]);
+    assert.deepEqual(leafLines(overlay, "recto"), ["Harbor light kept the first page."]);
     assert.equal(overlay.textContent.includes("Hidden page"), false);
+    const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+    assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
   } finally {
     delete globalThis.activeWindow;
     delete globalThis.activeDocument;
@@ -355,10 +395,10 @@ test("registered flight stays blank when the reader has no lines yet", async () 
       coverRect: { x: 100, y: 400, width: 64, height: 96, color: "#3d2a1c" },
     });
     assert.equal(handled, true);
-    const overlay = tap.body.querySelector("[data-testid='atomic-open-flight']");
+    const overlay = tap.destination.querySelector("[data-testid='atomic-open-flight']");
     assert.equal(overlay.getAttribute("data-page"), "1");
-    assert.deepEqual(leafLines(overlay, "left"), []);
-    assert.deepEqual(leafLines(overlay, "right"), []);
+    assert.deepEqual(leafLines(overlay, "verso"), []);
+    assert.deepEqual(leafLines(overlay, "recto"), []);
     assert.equal(overlay.textContent.includes("universally acknowledged"), false);
     assert.equal(overlay.textContent.includes("Chapter I"), false);
   } finally {
@@ -386,38 +426,41 @@ test("flight lands on the page the shell painted", () => {
   });
   const overlay = handle.overlay;
   assert.ok(overlay);
-  assert.equal(overlay.parentElement, tap.body);
-  assert.equal(overlay.getAttribute("data-overlay-host"), "window");
+  assert.equal(overlay.parentElement, tap.destination);
+  assert.equal(overlay.getAttribute("data-overlay-host"), "leaf");
+  assert.equal(overlay.getAttribute("data-zoom"), "out");
   assert.equal(tap.reading.contains(overlay), false);
   assert.equal(overlay.getAttribute("data-page"), "12");
   assert.equal(overlay.getAttribute("data-motion"), "desktop");
-  assert.deepEqual(leafLines(overlay, "left"), ["Alpha line"]);
-  assert.deepEqual(leafLines(overlay, "right"), ["Beta line"]);
-  assert.deepEqual(leafLines(overlay, "left"), paragraphs(tap.verso));
-  assert.deepEqual(leafLines(overlay, "right"), paragraphs(tap.recto));
-  const book = overlay.querySelector("[data-testid='atomic-open-book']");
-  assert.equal(book.style.getPropertyValue("--to-x"), "-40px");
-  assert.equal(book.style.getPropertyValue("--to-y"), "-90px");
-  assert.equal(book.style.getPropertyValue("--to-s"), "1.523");
-  assert.equal(book.style.getPropertyValue("--from-x"), "-378px");
-  assert.equal(overlay.querySelector(".atomic-open-title").textContent, "Pride and Prejudice");
+  assert.deepEqual(leafLines(overlay, "verso"), ["Alpha line"]);
+  assert.deepEqual(leafLines(overlay, "recto"), ["Beta line"]);
+  assert.deepEqual(leafLines(overlay, "verso"), paragraphs(tap.verso));
+  assert.deepEqual(leafLines(overlay, "recto"), paragraphs(tap.recto));
+  const camera = overlay.querySelector("[data-testid='atomic-flight-camera']");
+  assert.equal(camera.style.getPropertyValue("--flight-from"), "1.889");
+  assert.equal(camera.style.getPropertyValue("--flight-ox"), "46.08%");
+  assert.equal(camera.style.getPropertyValue("--flight-oy"), "37.50%");
+  const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+  assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
+  assert.equal(overlay.querySelector(".atomic-flight-title").textContent, "Pride and Prejudice");
   assert.equal(overlay.querySelector(".atomic-open-hint").textContent, OPEN_BOOK_HINT);
-  assert.equal(overlay.querySelectorAll(".atomic-open-flip").length, FLIP_LEAVES.length);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-flip").length, FLIP_LEAVES.length);
   assert.equal(reasons.length, 0);
   assert.equal(tap.timers.size, 1);
   assert.equal([...tap.timers.values()][0].ms, FLIGHT_SKIP_MS);
 });
 
-test("empty shell pages still show the journey landing page", () => {
+test("empty shell pages do not invent a second book", () => {
   const tap = makeHost();
   const handle = mountOpenBookFlight(request(tap, { page: JOURNEY_LANDING_PAGE }));
   assert.equal(handle.overlay.getAttribute("data-page"), "47");
-  assert.deepEqual(leafLines(handle.overlay, "left"), JOURNEY_LANDING_PAGE.left);
-  assert.deepEqual(leafLines(handle.overlay, "right"), JOURNEY_LANDING_PAGE.right);
-  assert.equal(handle.overlay.querySelector(".atomic-open-k").textContent, "Chapter I");
+  assert.equal(handle.overlay.textContent.includes("universally acknowledged"), false);
+  assert.equal(handle.overlay.textContent.includes("Chapter I"), false);
+  const snapshot = handle.overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+  assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
 });
 
-test("reduced motion opens the shell page without a second layout", () => {
+test("reduced motion crossfades and does not build a second book", () => {
   const tap = makeHost();
   paint(tap.verso, ["Alpha line"]);
   paint(tap.recto, ["Beta line"], 12);
@@ -426,20 +469,30 @@ test("reduced motion opens the shell page without a second layout", () => {
   const handle = mountOpenBookFlight(request(tap, { reducedMotion: true }), (reason) => {
     reasons.push(reason);
   });
-  assert.equal(handle.overlay, null);
-  assert.deepEqual(reasons, ["reduced"]);
-  assert.equal(tap.doc.querySelector("[data-testid='atomic-open-flight']"), null);
+  assert.ok(handle.overlay);
+  assert.equal(handle.overlay.parentElement, tap.destination);
+  assert.equal(handle.overlay.getAttribute("data-motion"), "reduced");
+  assert.equal(handle.overlay.getAttribute("data-zoom"), "fade");
+  assert.equal(handle.overlay.querySelector("[data-testid='atomic-flight-snapshot']"), null);
+  assert.equal(handle.overlay.classList.contains("is-reduced"), true);
+  assert.deepEqual(reasons, []);
   assert.equal(tap.doc.querySelectorAll(".atomic-reader").length, readers);
   assert.deepEqual(paragraphs(tap.recto), ["Beta line"]);
-  assert.equal(tap.doc.querySelectorAll("style").length, 0);
+  assert.equal([...tap.timers.values()][0].ms, REDUCED_FADE_MS);
+  [...tap.timers.values()][0].fn();
+  assert.deepEqual(reasons, ["reduced"]);
+  assert.equal(tap.doc.querySelector("[data-testid='atomic-open-flight']"), null);
 });
 
-test("prefers-reduced-motion uses the same direct open", () => {
+test("prefers-reduced-motion crossfades on the leaf", () => {
   const tap = makeHost();
   tap.media["(prefers-reduced-motion: reduce)"] = true;
   const reasons = [];
   const handle = mountOpenBookFlight(request(tap), (reason) => reasons.push(reason));
-  assert.equal(handle.overlay, null);
+  assert.equal(handle.overlay.getAttribute("data-zoom"), "fade");
+  assert.equal(handle.overlay.parentElement, tap.destination);
+  assert.deepEqual(reasons, []);
+  [...tap.timers.values()][0].fn();
   assert.deepEqual(reasons, ["reduced"]);
 });
 
@@ -502,6 +555,11 @@ test("a second open aborts the first overlay", async () => {
   assert.deepEqual(firstReasons, []);
   assert.equal(await first.done, "aborted");
   assert.equal(first.overlay.isConnected, false);
+  assert.equal(second.overlay.getAttribute("data-zoom"), "fade");
+  assert.deepEqual(secondReasons, []);
+  const job = [...tap.timers.values()][0];
+  assert.equal(job.ms, REDUCED_FADE_MS);
+  job.fn();
   assert.deepEqual(secondReasons, ["reduced"]);
   assert.equal(tap.doc.querySelectorAll("[data-testid='atomic-open-flight']").length, 0);
   assert.equal(tap.doc.querySelectorAll("style").length, 1);
@@ -511,10 +569,13 @@ test("phone and coarse pointer pick their motions and still land on the spread",
   const phone = makeHost();
   const phoneFlight = mountOpenBookFlight(request(phone, { layout: "phone" }));
   assert.equal(phoneFlight.overlay.classList.contains("is-phone"), true);
+  assert.equal(phoneFlight.overlay.getAttribute("data-motion"), "phone");
   assert.equal(
-    phoneFlight.overlay.querySelector("[data-testid='atomic-open-book']").style.getPropertyValue("--from-s"),
-    "0.533",
+    phoneFlight.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-from"),
+    "1.889",
   );
+  const phoneSnap = phoneFlight.overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+  assert.equal(readerFrameSignature(phoneSnap), readerFrameSignature(phone.destination));
   phoneFlight.abort();
 
   const coarse = makeHost();
@@ -523,10 +584,8 @@ test("phone and coarse pointer pick their motions and still land on the spread",
   assert.equal(flat.overlay.getAttribute("data-motion"), "flat");
   assert.equal(flat.overlay.classList.contains("is-flat"), true);
   assert.equal(flat.overlay.classList.contains("is-phone"), true);
-  assert.equal(
-    flat.overlay.querySelector("[data-testid='atomic-open-book']").style.getPropertyValue("--to-s"),
-    "2.122",
-  );
+  assert.equal(flat.overlay.getAttribute("data-zoom"), "out");
+  assert.ok(flat.overlay.querySelector("[data-testid='atomic-flight-snapshot']"));
 });
 
 test("layout waits one frame when the shell pages have no rect yet", () => {
@@ -539,8 +598,8 @@ test("layout waits one frame when the shell pages have no rect yet", () => {
   tap.flushFrames();
   assert.equal(handle.overlay.classList.contains("is-playing"), true);
   assert.equal(
-    handle.overlay.querySelector("[data-testid='atomic-open-book']").style.getPropertyValue("--to-x"),
-    "-40px",
+    handle.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-from"),
+    "1.889",
   );
 });
 
@@ -585,8 +644,10 @@ function paragraphs(page) {
 }
 
 function leafLines(overlay, side) {
-  const leaf = overlay.querySelector(`[data-side="${side}"]`);
-  return [...leaf.querySelectorAll("[data-line]")].map((node) => node.textContent);
+  const snap = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+  const page = snap?.querySelector(`.is-${side}`);
+  if (!page) return [];
+  return [...page.querySelectorAll("p")].map((node) => node.textContent);
 }
 
 function makeHost({ rects = true } = {}) {
@@ -674,6 +735,7 @@ function makeHost({ rects = true } = {}) {
     recto.setRect(470, 100, 270, 340);
   }
   destination.append(verso, recto);
+  destination.setRect(0, 0, HOST.width, HOST.height);
   body.append(reading, destination);
 
   return {

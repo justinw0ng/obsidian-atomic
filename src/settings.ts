@@ -23,6 +23,7 @@ import { shadesFromBaseColor } from "./util/colors";
 import { isSafeVaultFolder } from "./util/vault-path";
 import { runGymLogSetup } from "./commands/gym-log-setup";
 import { askSettingRows } from "./reader/ask/settings-section";
+import { readerSettingRows } from "./reader/shell/preferences-section";
 
 export { mergeSettings } from "./util/merge-settings";
 
@@ -292,16 +293,15 @@ export class FitnessSettingTab extends PluginSettingTab {
         this.paintGymImport(setting);
       },
     });
-    rows.push(
-      ...askSettingRows({
-        app: this.app,
-        settings: this.plugin.settings,
-        save: () => this.plugin.saveSettings(),
-        redisplay: () => {
-          this.redrawSettings();
-        },
-      }),
-    );
+    const settingsHost = {
+      app: this.app,
+      settings: this.plugin.settings,
+      save: () => this.plugin.saveSettings(),
+      redisplay: () => {
+        this.redrawSettings();
+      },
+    };
+    rows.push(...askSettingRows(settingsHost), ...readerSettingRows(settingsHost));
     return rows;
   }
 

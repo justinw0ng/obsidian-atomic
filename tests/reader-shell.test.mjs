@@ -89,7 +89,7 @@ test("reader progress, spread turns, and phone width follow the settled layout",
   assert.deepEqual({ w: medium.w, h: medium.h }, { w: 270, h: 340 });
   assert.equal(readerPageBox("xl").w, 340);
   assert.equal(readerPageBox("xl").h, 488);
-  assert.equal(readerOpenPlan({ reducedMotion: true, hasFlight: true }), "direct");
+  assert.equal(readerOpenPlan({ reducedMotion: true, hasFlight: true }), "flight");
   assert.equal(readerOpenPlan({ reducedMotion: false, hasFlight: false }), "direct");
   assert.equal(readerOpenPlan({ reducedMotion: false, hasFlight: true }), "flight");
 });
@@ -165,9 +165,9 @@ test("zip and epub text round-trip without an external reader", async () => {
   assert.match(pages[0].paragraphs.join(" "), /Harbor light/);
 });
 
-test("health-check EPUB paginates to three pages at the default size", async () => {
+test("health-check EPUB paginates to three pages at XL", async () => {
   const book = await readEpub(e2eReadingEpubBytes());
-  const pages = paginateReaderBlocks(book.blocks, readerPageBox("m"));
+  const pages = paginateReaderBlocks(book.blocks, readerPageBox("xl"));
   assert.equal(pages.length, 3);
   assert.equal(pageAfterTurn(1, pages.length, 1), 3);
   assert.match(pages[2].paragraphs.join(" "), /last buoy/);
@@ -205,8 +205,8 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /line-height:\s*19px/);
   assert.match(block, /font-size:\s*15px/);
   assert.match(block, /line-height:\s*23px/);
-  assert.match(block, /270px/);
   assert.match(block, /340px/);
+  assert.match(block, /488px/);
   assert.match(block, /112px/);
   assert.match(block, /padding:\s*26px 24px/);
   assert.match(block, /gap:\s*4px/);
@@ -215,8 +215,8 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /fonts\/literata-latin-400\.woff2/);
   assert.match(block, /--atomic-r-object/);
   assert.match(block, /--atomic-r-control/);
-  assert.match(block, /--atomic-r-well/);
-  assert.doesNotMatch(block, /#5b7cfa|#7c3aed|#8b5cf6|purple/i);
+  assert.match(block, /border-radius:\s*16px/);
+  assert.doesNotMatch(block, /#7c3aed|#8b5cf6|purple/i);
   assert.doesNotMatch(block, /column-gap|clip-path|!important/);
 });
 

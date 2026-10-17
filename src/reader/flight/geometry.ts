@@ -29,9 +29,10 @@ export const PHONE_BOOK_PX = { width: 120, height: 178 } as const;
 export const DESKTOP_FALLBACK_SCALE = 3.15;
 export const PHONE_FALLBACK_SCALE = 2.35;
 
-/** Whole flight. The mock clears the overlay 50ms after the animation. */
+/** Whole flight. The overlay lifts 50ms after the zoom-out ends. */
 export const FLIGHT_MS = 1400;
 export const FLIGHT_SKIP_MS = 1450;
+export const REDUCED_FADE_MS = 280;
 export const FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 export const COVER_OPEN_MS = { duration: 900, delay: 180 } as const;
@@ -166,4 +167,57 @@ export function flightVars(input: {
 
 function px(value: number): string {
   return `${value}px`;
+}
+
+export type FlightZoom = {
+  originX: string;
+  originY: string;
+  fromScale: string;
+  coverX: string;
+  coverY: string;
+  coverW: string;
+  coverH: string;
+};
+
+/**
+ * Zoom out onto the settled reader.
+ * The camera starts large enough that the spread fills the leaf, then ends at scale 1.
+ */
+export function flightZoom(input: {
+  host: FlightBox;
+  spread: FlightBox | null;
+}): FlightZoom {
+  const fallback: FlightZoom = {
+    originX: "50%",
+    originY: "46%",
+    fromScale: "1.800",
+    coverX: "18%",
+    coverY: "12%",
+    coverW: "64%",
+    coverH: "70%",
+  };
+  if (input.host.width <= 0 || input.host.height <= 0 || !input.spread) return fallback;
+  const localX = input.spread.x - input.host.x;
+  const localY = input.spread.y - input.host.y;
+  const cx = ((localX + input.spread.width / 2) / input.host.width) * 100;
+  const cy = ((localY + input.spread.height / 2) / input.host.height) * 100;
+  const fill = Math.min(
+    input.host.width / input.spread.width,
+    input.host.height / input.spread.height,
+  );
+  const from = Math.max(1.15, Math.min(2.6, fill));
+  return {
+    originX: `${clampPercent(cx)}%`,
+    originY: `${clampPercent(cy)}%`,
+    fromScale: from.toFixed(3),
+    coverX: px(localX),
+    coverY: px(localY),
+    coverW: px(input.spread.width),
+    coverH: px(input.spread.height),
+  };
+}
+
+function clampPercent(value: number): string {
+  const next = Math.max(0, Math.min(100, value));
+  return next.toFixed(2);
 }

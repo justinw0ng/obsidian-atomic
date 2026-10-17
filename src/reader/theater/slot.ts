@@ -1,4 +1,6 @@
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { readerPageBox, type ReaderPageBox } from "../shell/model.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { THEATER_PAGE_HEIGHT, THEATER_PAGE_WIDTH, resolveTheaterSurface } from "./rules.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { mountTheater, type TheaterHandle } from "./mount.ts";
@@ -6,6 +8,14 @@ import { mountTheater, type TheaterHandle } from "./mount.ts";
 /** What the shell passes through `[data-reader-slot="theater"]`. */
 export interface TheaterSlotSession {
   notePath: string;
+  /** Theater is a taller XL page. Settled reading stays the XL page box. */
+  relayout?(request: {
+    size: "xl";
+    width: number;
+    height: number;
+    bodyLines: number;
+    charsPerLine: number;
+  }): void;
 }
 
 export interface TheaterSlotCopy {
@@ -39,9 +49,15 @@ export function attachReaderTheater(
   const root = readerRoot(slot);
   if (!root) return;
   const notePath = session.notePath;
-  ensureEnter(slot, root, notePath, copy);
+  ensureEnter(slot, root, notePath, copy, session);
   if (!wanted.has(notePath)) return;
-  openTheater(root, notePath, copy?.exitLabel);
+  openTheater(root, notePath, copy?.exitLabel, session);
+}
+
+/** Open theater on the next attach when the Reader setting asks for it. */
+export function preferReaderTheater(notePath: string, on: boolean): void {
+  if (!notePath) return;
+  if (on) wanted.add(notePath);
 }
 
 /** Drop every open room. Plugin unload calls this. Does not count as Exit. */
@@ -60,6 +76,7 @@ function ensureEnter(
   root: HTMLElement,
   notePath: string,
   copy: TheaterSlotCopy | undefined,
+  session: TheaterSlotSession,
 ): void {
   if (findEnter(slot)) return;
   const doc = slot.ownerDocument;
@@ -73,12 +90,17 @@ function ensureEnter(
   button.textContent = label;
   button.addEventListener("click", () => {
     wanted.add(notePath);
-    openTheater(root, notePath, copy?.exitLabel);
+    openTheater(root, notePath, copy?.exitLabel, session);
   });
   slot.appendChild(button);
 }
 
-function openTheater(root: HTMLElement, notePath: string, exitLabel: string | undefined): void {
+function openTheater(
+  root: HTMLElement,
+  notePath: string,
+  exitLabel: string | undefined,
+  session: TheaterSlotSession,
+): void {
   const current = live.get(notePath);
   if (current?.handle.active && current.root === root) return;
   if (current) {
@@ -86,6 +108,8 @@ function openTheater(root: HTMLElement, notePath: string, exitLabel: string | un
     current.unlock();
     live.delete(notePath);
   }
+  applyBox(session, readerPageBox("xl", THEATER_PAGE_HEIGHT));
+  if (root.isConnected === false) return;
   const unlock = lockPageBox(root);
   const handle = mountTheater({
     frame: root,
@@ -96,9 +120,20 @@ function openTheater(root: HTMLElement, notePath: string, exitLabel: string | un
       wanted.delete(notePath);
       unlock();
       if (live.get(notePath)?.handle === handle) live.delete(notePath);
+      applyBox(session, readerPageBox("xl"));
     },
   });
   live.set(notePath, { root, handle, unlock });
+}
+
+function applyBox(session: TheaterSlotSession, box: ReaderPageBox): void {
+  session.relayout?.({
+    size: "xl",
+    width: box.w,
+    height: box.h,
+    bodyLines: box.bodyLines,
+    charsPerLine: box.charsPerLine,
+  });
 }
 
 function lockPageBox(root: HTMLElement): () => void {

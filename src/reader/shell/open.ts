@@ -70,6 +70,10 @@ async function openLinkedBook(
   plugin: FitnessPlugin,
   request: ReaderOpenRequest,
 ): Promise<void> {
+  if (!plugin.settings.reader.enabled) {
+    new Notice(t("notice.readerOff", plugin.settings.language));
+    return;
+  }
   const plan = readerOpenPlan({
     reducedMotion: prefersReducedMotion(),
     hasFlight: Boolean(readerMounts().flight),
@@ -89,9 +93,28 @@ export async function openBookChooser(
   request: BookChooserRequest,
 ): Promise<void> {
   const language = plugin.settings.language;
+  if (!plugin.settings.reader.enabled) {
+    new Notice(t("notice.readerOff", language));
+    return;
+  }
   const file = linkedFile(plugin, request.notePath, request.title);
   const width = request.ownerDocument.defaultView?.innerWidth ?? activeWindow.innerWidth;
   const returnPath = plugin.app.workspace.getActiveFile()?.path || request.notePath;
+  if (plugin.settings.reader.defaultOpen === "notes") {
+    void plugin.data.openPath(request.notePath);
+    return;
+  }
+  if (plugin.settings.reader.defaultOpen === "book" && file) {
+    void openLinkedBook(plugin, {
+      notePath: request.notePath,
+      filePath: file.path,
+      title: request.title,
+      kind: file.kind,
+      returnPath,
+      coverRect: request.coverRect,
+    });
+    return;
+  }
   mountBookChooser({
     ownerDocument: request.ownerDocument,
     title: request.title,

@@ -145,6 +145,8 @@ On a gym session, a golf session, or a reading item, some properties are a dropd
 
 Those minutes fill the reading heatmap. The idle well shows the saved total.
 
+Open Book reads the file at one page size, XL (22 lines). The type stays Literata. There is no S·M·L·XL control and no size shortcut. A stored `reader.size` value is ignored. Theater uses that same XL page and leaves with Exit or Esc.
+
 ![Reading timer](./images/atomic-reading-timer.gif)
 
 ---

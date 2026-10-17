@@ -5,7 +5,6 @@ import { readEpub } from "./epub";
 import { readReaderNote, readerFieldsFromFrontmatter, updateReaderPage } from "./frontmatter";
 import { sourcePathFromFrontmatter } from "./link";
 import {
-  canTurnPage,
   clampReaderPage,
   isPhoneReaderLayout,
   pageAfterTurn,
@@ -15,6 +14,8 @@ import {
   type ReaderSizeId,
 } from "./model";
 import { readerMounts, type CoverRect, type ReaderLayoutRequest, type ReaderSession } from "./mount";
+import { canvasPathForNote, ensureRelatedCanvas, seedBookCanvas } from "../ask/canvas";
+import { preferReaderTheater } from "../theater/slot";
 import { paginateReaderBlocks, type ReaderBlock, type ReaderLeaf } from "./paginate";
 import { readerReflowBox } from "../size/reflow";
 import { inspectPdf, pdfViewerSrc } from "./pdf";
@@ -103,9 +104,9 @@ export class AtomicReaderView extends ItemView {
   private kind: ReaderKind = "epub";
   private returnPath = "";
   private coverRect: CoverRect | null = null;
-  private size: ReaderSizeId = "m";
+  private size: ReaderSizeId = "xl";
   private blocks: ReaderBlock[] = [];
-  private layout: ReaderPageBox = layoutBox("m");
+  private layout: ReaderPageBox = layoutBox("xl");
   /** True after the size control paginates during this load. */
   private sizeFromReader = false;
   private canvasPath = "";
@@ -122,6 +123,7 @@ export class AtomicReaderView extends ItemView {
   private saveTimer: number | null = null;
   private observed = false;
   private keys = false;
+  private theaterWanted = false;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -237,8 +239,9 @@ export class AtomicReaderView extends ItemView {
         ? readerFieldsFromFrontmatter(cache.frontmatter)
         : readReaderNote(await this.plugin.app.vault.cachedRead(note));
       if (token !== this.loadToken) return;
-      if (!this.sizeFromReader) this.size = fields.size;
-      this.canvasPath = sourcePathFromFrontmatter(fields.canvas);
+      this.size = "xl";
+      const linked = sourcePathFromFrontmatter(fields.canvas);
+      this.canvasPath = linked || canvasPathForNote(this.notePath) || "";
       storedPage = fields.page;
     }
     if (!this.sizeFromReader) this.layout = layoutBox(this.size);
@@ -285,6 +288,7 @@ export class AtomicReaderView extends ItemView {
     this.dirty = false;
     this.ready = true;
     this.phone = isPhoneReaderLayout(this.contentEl.clientWidth);
+    this.theaterWanted = this.plugin.settings.reader.theater;
     this.paint();
   }
 
@@ -292,9 +296,19 @@ export class AtomicReaderView extends ItemView {
     return this.leaves.find((leaf) => leaf.number === number) ?? null;
   }
 
+  /** Phone moves one page. Desktop moves one spread. */
+  private step(direction: -1 | 1): number {
+    if (!this.phone) return pageAfterTurn(this.page, this.total, direction);
+    if (this.total <= 0) return 1;
+    const current = clampReaderPage(this.page, this.total);
+    const next = current + direction;
+    if (next < 1 || next > this.total) return current;
+    return next;
+  }
+
   private turn(direction: -1 | 1): void {
     if (this.failure) return;
-    const next = pageAfterTurn(this.page, this.total, direction);
+    const next = this.step(direction);
     if (next === this.page) return;
     this.page = next;
     this.dirty = this.page !== this.savedPage;
@@ -348,7 +362,7 @@ export class AtomicReaderView extends ItemView {
     };
   }
 
-  /** Paginate the open EPUB for the box the size control is drawing. */
+  /** Paginate the open EPUB. Size stays XL. Theater only changes the box. */
   private applyLayout(request: ReaderLayoutRequest): void {
     const box: ReaderPageBox = {
       w: request.width,
@@ -357,7 +371,7 @@ export class AtomicReaderView extends ItemView {
       charsPerLine: Math.max(1, Math.round(request.charsPerLine)),
     };
     if (
-      this.size === request.size &&
+      this.size === "xl" &&
       this.layout.w === box.w &&
       this.layout.h === box.h &&
       this.layout.bodyLines === box.bodyLines &&
@@ -366,7 +380,7 @@ export class AtomicReaderView extends ItemView {
       return;
     }
     this.sizeFromReader = true;
-    this.size = request.size;
+    this.size = "xl";
     this.layout = box;
     if (this.kind === "epub" && this.blocks.length > 0) {
       this.leaves = paginateReaderBlocks(this.blocks, box);
@@ -388,7 +402,13 @@ export class AtomicReaderView extends ItemView {
     const sizeSlot = root.querySelector("[data-reader-slot='size']");
     if (sizeSlot?.instanceOf(HTMLElement)) mounts.size?.attach?.(sizeSlot, session);
     const theaterSlot = root.querySelector("[data-reader-slot='theater']");
-    if (theaterSlot?.instanceOf(HTMLElement)) mounts.theater?.attach?.(theaterSlot, session);
+    if (theaterSlot?.instanceOf(HTMLElement)) {
+      if (this.theaterWanted) {
+        preferReaderTheater(this.notePath, true);
+        this.theaterWanted = false;
+      }
+      mounts.theater?.attach?.(theaterSlot, session);
+    }
     const askSlot = root.querySelector("[data-reader-slot='ask']");
     if (askSlot?.instanceOf(HTMLElement)) mounts.ask?.attach?.(askSlot, session);
   }
@@ -437,25 +457,21 @@ export class AtomicReaderView extends ItemView {
     name.createSpan({ text: this.title || t("view.reader.openBook", language) });
     if (this.canvasPath) {
       const canvas = bar.createEl("button", {
-        cls: "atomic-link",
+        cls: "atomic-btn is-quiet is-small",
         attr: { type: "button", "data-testid": "atomic-reader-canvas" },
       });
       canvas.setText(t("view.reader.canvas", language));
       canvas.addEventListener("click", () => {
-        void this.plugin.data.openPath(this.canvasPath);
+        void this.openCanvas();
       });
     }
     const note = bar.createEl("button", {
-      cls: "atomic-link",
+      cls: "atomic-btn is-quiet is-small",
       attr: { type: "button", "data-testid": "atomic-reader-note" },
     });
     note.setText(t("view.reader.note", language));
     note.addEventListener("click", () => {
       void this.plugin.data.openPath(this.notePath);
-    });
-    bar.createDiv({
-      cls: "atomic-reader-slot",
-      attr: { "data-reader-slot": "size", "data-testid": "atomic-reader-slot-size" },
     });
     bar.createDiv({
       cls: "atomic-reader-slot",
@@ -487,8 +503,8 @@ export class AtomicReaderView extends ItemView {
         this.paintPage(spreadEl, pair.verso, "verso");
         this.paintPage(spreadEl, pair.recto, "recto");
       } else {
-        if (pair.verso) this.paintPage(spreadEl, pair.verso, "verso");
-        if (pair.recto) this.paintPage(spreadEl, pair.recto, "recto");
+        const shown = clampReaderPage(this.page, Math.max(this.total, 1));
+        this.paintPage(spreadEl, this.total > 0 ? shown : null, "recto");
       }
     }
     spreadEl.createDiv({
@@ -510,13 +526,11 @@ export class AtomicReaderView extends ItemView {
     });
     if (!number) return;
     const leaf = this.leafAt(number);
-    const chapter = leaf?.chapter ?? "";
-    const label = this.phone
-      ? [chapter, `p. ${number}`].filter(Boolean).join(" · ")
-      : side === "verso"
-        ? chapter
-        : `p. ${number}`;
-    if (label) page.createEl("h3", { text: label });
+    page.createSpan({
+      cls: "atomic-reader-pn",
+      text: String(number),
+      attr: { "data-testid": "atomic-reader-pn" },
+    });
     if (this.kind === "pdf" && this.pdfSrc) {
       page.createEl("iframe", {
         cls: "atomic-reader-frame",
@@ -527,6 +541,20 @@ export class AtomicReaderView extends ItemView {
     for (const paragraph of leaf?.paragraphs ?? []) {
       page.createEl("p", { text: paragraph });
     }
+  }
+
+  private async openCanvas(): Promise<void> {
+    const path = this.canvasPath;
+    if (!path) return;
+    if (!this.plugin.data.getFileByPath(path)) {
+      const seeded = seedBookCanvas(this.notePath);
+      if (!seeded) return;
+      await this.plugin.data.writeNote(seeded.canvasPath, seeded.canvasJson);
+      await this.plugin.data.processNote(this.notePath, (current) =>
+        ensureRelatedCanvas(current, seeded.canvasPath),
+      );
+    }
+    await this.plugin.data.openPath(path);
   }
 
   private paintFoot(
@@ -541,13 +569,15 @@ export class AtomicReaderView extends ItemView {
     });
     prev.setAttr("aria-label", t("view.reader.prev", language));
     prev.setText("‹");
-    if (!canTurnPage(this.page, this.total, -1) || this.failure) prev.setAttr("disabled", "true");
+    if (this.step(-1) === this.page || this.failure) prev.setAttr("disabled", "true");
     else prev.addEventListener("click", () => this.turn(-1));
 
     foot.createSpan({
       cls: "atomic-reader-last",
       attr: { "data-testid": "atomic-reader-last" },
-      text: t("view.reader.lastRead", language, { page: progress.page || this.page }),
+      text: this.phone
+        ? t("view.reader.pageMark", language, { page: progress.page || this.page })
+        : t("view.reader.lastRead", language, { page: progress.page || this.page }),
     });
     const meter = foot.createSpan({
       cls: "atomic-reader-progress",
@@ -557,11 +587,12 @@ export class AtomicReaderView extends ItemView {
     foot.createSpan({
       cls: "atomic-reader-count",
       attr: { "data-testid": "atomic-reader-progress" },
-      text: t("view.reader.progress", language, {
-        page: progress.page,
-        total: progress.total,
-        percent: progress.percent,
-      }),
+      text: this.phone
+        ? t("view.reader.totalMark", language, { total: progress.total })
+        : t("view.reader.progress", language, {
+            page: progress.page,
+            total: progress.total,
+          }),
     });
 
     const next = foot.createEl("button", {
@@ -570,7 +601,7 @@ export class AtomicReaderView extends ItemView {
     });
     next.setAttr("aria-label", t("view.reader.next", language));
     next.setText("›");
-    if (!canTurnPage(this.page, this.total, 1) || this.failure) next.setAttr("disabled", "true");
+    if (this.step(1) === this.page || this.failure) next.setAttr("disabled", "true");
     else next.addEventListener("click", () => this.turn(1));
   }
 }

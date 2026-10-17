@@ -10,9 +10,11 @@ import {
   applyBookCard,
   marginSourcesFromCanvas,
   readRelatedCanvas,
+  seedBookCanvas,
 } from "../src/reader/ask/canvas.ts";
 import { buildAskRequest, buildProbeRequest } from "../src/reader/ask/provider.ts";
 import { readerSlotForGutter } from "../src/reader/ask/remarks.ts";
+import { selectionShift } from "../src/reader/ask/paint.ts";
 import { marginNotesForPage, readerAskView } from "../src/reader/ask/view.ts";
 import {
   isSecretId,
@@ -64,6 +66,14 @@ function ids() {
 function note() {
   return readingItemMarkdown("Pride and Prejudice");
 }
+
+test("selection pill stays inside the window", () => {
+  assert.equal(selectionShift({ left: 1100, right: 1380 }, 1262), -126);
+  assert.equal(selectionShift({ left: -40, right: 240 }, 1262), 48);
+  assert.equal(selectionShift({ left: 400, right: 680 }, 1262), 0);
+  assert.equal(selectionShift({ left: 0, right: 0 }, 1262), 0);
+  assert.equal(selectionShift({ left: 20, right: 1400 }, 1262), -79);
+});
 
 test("secret store keeps the value in the port, not in settings", () => {
   const secrets = memorySecrets();
@@ -136,10 +146,15 @@ test("one canvas per book, created on the first remark", () => {
   assert.match(first.noteMarkdown, /## Remarks/);
   const canvas = JSON.parse(first.canvasJson);
   assert.equal(canvas.nodes.filter((node) => node.atomic?.role === "book").length, 1);
-  assert.equal(canvas.nodes.filter((node) => node.atomic?.role === "card").length, 1);
-  assert.equal(canvas.nodes.some((node) => node.type === "group" && node.label === "Chapter I"), true);
+  assert.equal(canvas.nodes.filter((node) => node.atomic?.role === "board").length, 5);
+  assert.equal(canvas.nodes.filter((node) => node.atomic?.kind === "remark").length, 1);
+  assert.equal(canvas.nodes.some((node) => node.type === "group" && node.label === "Ask thread"), true);
+  assert.equal(canvas.nodes.some((node) => node.type === "group" && node.label === "Opening"), true);
   assert.equal(canvas.nodes.some((node) => node.color === "6"), false);
-  assert.equal(canvas.edges.length, 1);
+  const quote = canvas.nodes.find((node) => node.atomic?.kind === "remark");
+  assert.equal(quote.atomic.board, "quote");
+  assert.equal(quote.color, "3");
+  assert.equal(canvas.edges.length, 4);
 
   const second = applyBookCard({
     notePath: NOTE,
@@ -158,7 +173,8 @@ test("one canvas per book, created on the first remark", () => {
   assert.equal(second.noteMarkdown, first.noteMarkdown);
   const again = JSON.parse(second.canvasJson);
   assert.equal(again.nodes.filter((node) => node.atomic?.role === "book").length, 1);
-  assert.equal(again.nodes.filter((node) => node.atomic?.role === "card").length, 2);
+  assert.equal(again.nodes.filter((node) => node.atomic?.kind === "highlight").length, 1);
+  assert.equal(again.nodes.filter((node) => node.atomic?.board === "quote" && node.atomic?.kind).length, 2);
 
   const linked = markdown.replace(
     "related_canvas:",
@@ -311,8 +327,34 @@ test("margin remarks line up beside the highlight and hide in theater", () => {
     confirmCharacters: 1200,
   });
   assert.equal(sheet.chrome.showSelectionBar, false);
-  assert.equal(sheet.panel.presentation, "sheet");
+  assert.equal(sheet.panel.presentation, "screen");
+  assert.equal(sheet.panel.title, "Ask · BYO key");
+  assert.equal(sheet.panel.subtitle, "Selection · p. 47");
   assert.match(sheet.panel.confirm, /1200/);
+
+  const desk = readerAskView({
+    ...viewInput([]),
+    askOpen: true,
+    hasSelection: true,
+  });
+  assert.equal(desk.panel.title, "Ask · BYO key");
+  assert.equal(desk.panel.subtitle, "Key from Obsidian secret storage ≥1.11.4");
+});
+
+test("a new book canvas opens on the journey board", () => {
+  const seeded = seedBookCanvas(NOTE);
+  assert.ok(seeded);
+  const canvas = JSON.parse(seeded.canvasJson);
+  const card = (board) => canvas.nodes.find((node) => node.atomic?.role === "card" && node.atomic.board === board);
+  assert.match(card("opening").text, /Social pressure as the first character/);
+  assert.match(card("quote").text, /a truth universally acknowledged/);
+  assert.equal(card("quote").color, "3");
+  assert.match(card("ask").text, /Why lead with fortune, not wit/);
+  assert.equal(card("ask").color, "5");
+  assert.match(card("characters").text, /Bennet · Darcy · Bingley · Elizabeth/);
+  assert.match(card("themes").text, /Pride · class · misreading/);
+  assert.equal(canvas.nodes.some((node) => node.color === "6"), false);
+  assert.equal(canvas.edges.length, 4);
 });
 
 function viewInput(notes) {
@@ -502,6 +544,6 @@ test("reader ask styles use the margin and ask classes without a purple accent",
   const styles = readFileSync(join(root, "styles.css"), "utf8");
   assert.match(styles, /\.atomic-reader-ask \.atomic-remark/);
   assert.match(styles, /\.atomic-mdot/);
-  assert.match(styles, /\.atomic-ask\.is-sheet/);
+  assert.match(styles, /\.atomic-ask\.is-screen/);
   assert.doesNotMatch(styles, /#7c3aed|#8b5cf6|#a855f7/);
 });

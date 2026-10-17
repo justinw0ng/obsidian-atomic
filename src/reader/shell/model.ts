@@ -117,11 +117,15 @@ export function canTurnPage(page: number, total: number, direction: -1 | 1): boo
   return pageAfterTurn(page, total, direction) !== clampReaderPage(page, Math.max(total, 0));
 }
 
-/** Flight plays only when a module registered and motion is allowed. */
+/**
+ * Flight plays when a module registered.
+ * Reduced motion still uses that module. The module crossfades instead of flying.
+ */
 export function readerOpenPlan(input: {
   reducedMotion: boolean;
   hasFlight: boolean;
 }): "flight" | "direct" {
-  if (input.reducedMotion || !input.hasFlight) return "direct";
+  void input.reducedMotion;
+  if (!input.hasFlight) return "direct";
   return "flight";
 }

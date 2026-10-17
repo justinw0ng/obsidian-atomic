@@ -26,6 +26,23 @@ export interface AskSettingsHost {
 }
 
 let replacingSecret = false;
+let probeFailed = false;
+
+function keyState(host: AskSettingsHost): "saved" | "empty" | "error" {
+  if (!host.settings.ask.secretName) return "empty";
+  if (probeFailed || !secretIsPresent(host.app, host.settings.ask.secretName)) return "error";
+  return "saved";
+}
+
+function paintKeyState(setting: Setting, host: AskSettingsHost, language: Language): void {
+  const state = keyState(host);
+  setting.settingEl.setAttr("data-ask-state", state);
+  setting.nameEl.createSpan({
+    cls: "atomic-secret-pill",
+    text: t(`settings.askState.${state}`, language),
+    attr: { "data-testid": "atomic-setting-ask-state", "data-state": state },
+  });
+}
 
 async function storeAsk(host: AskSettingsHost, ask: AskSettings): Promise<void> {
   host.settings.ask = normalizeAskSettings(ask);
@@ -39,15 +56,39 @@ function secretIsPresent(app: App, name: string): boolean {
   return typeof value === "string" && value.length > 0;
 }
 
-function paintStored(setting: Setting, host: AskSettingsHost, language: Language, name: string): void {
-  const present = secretIsPresent(host.app, name);
+function labelOpenStorage(root: HTMLElement, label: string): void {
+  const button = root.querySelector("button");
+  if (!button) return;
+  button.textContent = label;
+  button.classList.add("atomic-ask-open");
+}
+
+function paintStored(setting: Setting, host: AskSettingsHost, language: Language): void {
   setting.setName(t("settings.askKey", language));
-  setting.setDesc(
-    present
-      ? `${t("settings.askStored", language)} ${t("settings.askNameHint", language, { name })}`
-      : t("settings.askMissingOnDevice", language, { name }),
-  );
+  paintKeyState(setting, host, language);
+  const state = keyState(host);
   setting.settingEl.setAttr("data-testid", "atomic-setting-ask-key");
+  if (state === "error") {
+    setting.setDesc(t("settings.askErrorDesc", language));
+    setting.settingEl.createDiv({
+      cls: "atomic-ask-error",
+      text: t("settings.askErrorBanner", language),
+      attr: { "data-testid": "atomic-setting-ask-error" },
+    });
+    setting.addButton((button) => {
+      button.setButtonText(t("settings.askRetry", language)).onClick(() => {
+        void testSecret(host, language);
+      });
+    });
+    setting.addButton((button) => {
+      button.setButtonText(t("settings.askReplaceKey", language)).onClick(() => {
+        replacingSecret = true;
+        host.redisplay();
+      });
+    });
+    return;
+  }
+  setting.setDesc(t("settings.askSavedDesc", language));
   setting.controlEl.createSpan({
     cls: "atomic-secret-mask",
     text: "••••••••••••••••",
@@ -65,13 +106,13 @@ function paintStored(setting: Setting, host: AskSettingsHost, language: Language
   setting.addButton((button) => {
     button.setButtonText(t("settings.askRemove", language)).onClick(() => {
       replacingSecret = false;
+      probeFailed = false;
       void storeAsk(host, { ...host.settings.ask, secretName: "" }).then(() => {
         new Notice(t("notice.askRemoved", language));
         host.redisplay();
       });
     });
   });
-  if (!present) return;
   setting.addButton((button) => {
     button.setButtonText(t("settings.askTest", language)).onClick(() => {
       void testSecret(host, language);
@@ -81,21 +122,37 @@ function paintStored(setting: Setting, host: AskSettingsHost, language: Language
 
 function paintPicker(setting: Setting, host: AskSettingsHost, language: Language): void {
   if (!requireApiVersion(SECRET_API)) return;
-  setting.setName(t("settings.askPick", language));
-  setting.setDesc(t("settings.askPickDesc", language));
-  setting.settingEl.setAttr("data-testid", "atomic-setting-ask-pick");
-  setting.addComponent((el) => {
-    return new SecretComponent(host.app, el)
-      .setValue(host.settings.ask.secretName)
+  const replacing = replacingSecret && host.settings.ask.secretName.length > 0;
+  setting.setName(t(replacing ? "settings.askPick" : "settings.askKey", language));
+  paintKeyState(setting, host, language);
+  setting.setDesc(t(replacing ? "settings.askPickDesc" : "settings.askEmptyDesc", language));
+  setting.settingEl.setAttr("data-testid", replacing ? "atomic-setting-ask-pick" : "atomic-setting-ask-key");
+  const mount = (parent: HTMLElement): SecretComponent => {
+    return new SecretComponent(host.app, parent)
+      .setValue(replacing ? host.settings.ask.secretName : "")
       .onChange((value) => {
         const secretName = typeof value === "string" ? value : "";
         replacingSecret = false;
         void storeAsk(host, { ...host.settings.ask, secretName }).then(() => {
+          probeFailed = false;
           if (secretName) new Notice(t("notice.askSaved", language));
           host.redisplay();
         });
       });
+  };
+  if (replacing) {
+    setting.addComponent((el) => mount(el));
+    return;
+  }
+  const callout = setting.settingEl.createDiv({
+    cls: "atomic-ask-empty",
+    attr: { "data-testid": "atomic-setting-ask-empty" },
   });
+  callout.createEl("strong", { text: t("settings.askEmptyTitle", language) });
+  callout.createEl("p", { text: t("settings.askEmptyBody", language) });
+  const action = callout.createDiv({ cls: "atomic-ask-empty-action" });
+  mount(action);
+  labelOpenStorage(action, t("settings.askOpenStorage", language));
 }
 
 async function testSecret(host: AskSettingsHost, language: Language): Promise<void> {
@@ -105,18 +162,23 @@ async function testSecret(host: AskSettingsHost, language: Language): Promise<vo
     return;
   }
   const result = await probeAsk(host.settings.ask, secrets, obsidianHttpPort());
+  probeFailed = result === "provider-error";
   switch (result) {
     case "ok":
       new Notice(t("notice.askAnswered", language));
+      host.redisplay();
       return;
     case "need-secret":
       new Notice(t("notice.askNeedSecret", language));
+      host.redisplay();
       return;
     case "bad-url":
       new Notice(t("notice.askInvalidUrl", language));
+      host.redisplay();
       return;
     case "provider-error":
       new Notice(t("notice.askFailed", language));
+      host.redisplay();
       return;
     default: {
       const unreachable: never = result;
@@ -234,7 +296,7 @@ export function askSettingRows(host: AskSettingsHost): SettingsRow[] {
     paint: (setting) => {
       const name = host.settings.ask.secretName;
       if (name && !replacingSecret) {
-        paintStored(setting, host, language, name);
+        paintStored(setting, host, language);
         return;
       }
       paintPicker(setting, host, language);

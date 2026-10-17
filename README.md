@@ -42,7 +42,7 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Cue log (`atomic-cue-log`): type multiline markdown (English or Traditional Chinese) on a session note and click Add cue; logged cues show as the same index cards as the cue page
 - Cue pages (`atomic-cues` with `activity:`): every cue of the year as an index card. Hover lifts the card. Click or tap enlarges it in the center. The card grows with the cue and scrolls if it is taller than the window. A narrow list shows four lines of each cue.
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
-- Reading items with timers, book shelf, and Bases
+- Reading items with timers, book shelf, and Bases. Open Book uses one page size, XL. There is no page-size control
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Yearly dashboard: one totals row, one row per habit with monthly hour bars, a monthly chart, and recent sessions. Last opens the latest session note, including reading
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…

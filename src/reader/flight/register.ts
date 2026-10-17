@@ -21,7 +21,7 @@ export type OpenBookDirectOpen = (request: ReaderOpenRequest) => Promise<void> |
 
 /**
  * Hand the shell this flight. The plugin passes its direct open.
- * Reduced motion returns false and does not call that open.
+ * Reduced motion still opens, then the flight module crossfades.
  */
 export function registerOpenBookFlight(openDirect: OpenBookDirectOpen): void {
   registerReaderFlight({
@@ -32,8 +32,8 @@ export function registerOpenBookFlight(openDirect: OpenBookDirectOpen): void {
 }
 
 /**
- * Full motion reveals the live reader under the body overlay and returns true.
- * Reduced motion, or no tap window, returns false so the shell opens directly.
+ * Opens the live reader, then plays the flight on that leaf.
+ * Reduced motion crossfades. No tap window returns false so the shell opens directly.
  */
 export async function playOpenBookFlight(
   openDirect: OpenBookDirectOpen,
@@ -41,10 +41,7 @@ export async function playOpenBookFlight(
 ): Promise<boolean> {
   const view = openBookFlightView();
   if (!view) return false;
-  if (prefersReducedMotion(view)) {
-    abortOpenBookFlight(view);
-    return false;
-  }
+  if (prefersReducedMotion(view)) abortOpenBookFlight(view);
   await openDirect(request);
   const destination = await waitForLiveReader(view);
   if (destination) {
@@ -53,7 +50,6 @@ export async function playOpenBookFlight(
       from: coverBox(request),
       cover: {
         title: request.title,
-        color: request.coverRect?.color,
       },
       page: { page: 1, left: [], right: [] },
       destination,

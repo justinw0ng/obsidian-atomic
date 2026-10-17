@@ -2341,12 +2341,17 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
                 return Math.round(rects[1].left - rects[0].right);
               })(),
               size: Boolean(root.querySelector('[data-testid="atomic-reader-slot-size"]')),
+              pageBox: root.getAttribute("data-size") || "",
+              pageNumber: root.querySelector('[data-testid="atomic-reader-pn"]')?.textContent || "",
+              heading: Boolean(root.querySelector(".atomic-reader-page h3")),
+              flight: Boolean(document.querySelector('[data-testid="atomic-open-flight"]')),
               theater: Boolean(root.querySelector('[data-testid="atomic-reader-slot-theater"]')),
               ask: Boolean(root.querySelector('[data-testid="atomic-reader-slot-ask"]')),
+              canvas: Boolean(root.querySelector('[data-testid="atomic-reader-canvas"]')),
               status: root.querySelector('[data-testid="atomic-reader-status"]')?.getAttribute("data-state") || "",
             };
           `);
-          return reader && reader.total === "3" && reader.status === "";
+          return reader && reader.total === "3" && reader.status === "" && reader.flight === false;
         }, 8000);
       } catch (error) {
         throw new Error(`${error.message} last=${JSON.stringify(reader)}`);
@@ -2360,16 +2365,22 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(reader.fontSize, "12.5px");
       assert.equal(reader.lineHeight, "19px");
       assert.match(reader.fontFamily, /Literata/);
-      assert.equal(reader.pageWidth, 270);
-      assert.equal(reader.pageHeight, 340);
+      assert.equal(reader.pageWidth, 340);
+      assert.equal(reader.pageHeight, 488);
       assert.equal(reader.radius, "3px");
       assert.equal(reader.pad, "26px 24px 26px 24px");
       assert.equal(reader.margin, "0px 0px 0px 0px");
       assert.equal(reader.barGap, "4px");
       assert.ok(Math.abs(reader.seam) <= 1, `pages sit together ${reader.seam}`);
-      assert.equal(reader.size, true);
+      assert.equal(reader.size, false);
+      assert.equal(reader.pageBox, "xl");
+      assert.match(reader.progress, /1 \/ 3/);
+      assert.doesNotMatch(reader.progress, /%/);
+      assert.equal(reader.pageNumber, "1");
+      assert.equal(reader.heading, false);
       assert.equal(reader.theater, true);
       assert.equal(reader.ask, true);
+      assert.equal(reader.canvas, true);
       await shot(driver, "reader-shell-desktop");
 
       await driver.executeScript(`
@@ -2419,9 +2430,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
               lineHeight: style?.lineHeight || "",
               margin: root?.querySelector("[data-reader-slot='margin']") ? true : false,
               ask: Boolean(root?.querySelector('[data-testid="atomic-reader-slot-ask"]')),
+              pages: root?.querySelectorAll('[data-testid="atomic-reader-page"]').length || 0,
+              canvas: Boolean(root?.querySelector('[data-testid="atomic-reader-canvas"]')),
             };
           `);
-          return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px";
+          return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px" && phone.pages === 1;
         }, 8000);
       } catch (error) {
         throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
@@ -2429,6 +2442,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(phone.lineHeight, "23px");
       assert.equal(phone.margin, false);
       assert.equal(phone.ask, true);
+      assert.equal(phone.pages, 1);
+      assert.equal(phone.canvas, true);
       await shot(driver, "reader-shell-phone");
       await restoreDesktopPointer(driver, desktopViewport);
 
@@ -2888,48 +2903,29 @@ ${E2E_CUE_LOG_FENCE}
           || readers[0]
           || null;
         if (!overlay || !reader) return null;
-        const book = overlay.querySelector('[data-testid="atomic-open-book"]');
-        const toS = book?.style.getPropertyValue("--to-s") || "";
-        const toX = book?.style.getPropertyValue("--to-x") || "";
-        const toY = book?.style.getPropertyValue("--to-y") || "";
-        if (!toS) return null;
-        const pages = [...reader.querySelectorAll(".atomic-reader-page")].filter((el) => {
-          const rect = el.getBoundingClientRect();
-          return rect.width > 0 && rect.height > 0;
-        });
-        if (pages.length === 0) return null;
-        let left = Infinity;
-        let top = Infinity;
-        let right = -Infinity;
-        let bottom = -Infinity;
-        for (const el of pages) {
-          const rect = el.getBoundingClientRect();
-          left = Math.min(left, rect.left);
-          top = Math.min(top, rect.top);
-          right = Math.max(right, rect.right);
-          bottom = Math.max(bottom, rect.bottom);
-        }
-        const destW = right - left;
-        const destH = bottom - top;
-        const host = overlay.getBoundingClientRect();
-        const phone = overlay.classList.contains("is-phone");
-        const bookW = phone ? 120 : 168;
-        const bookH = phone ? 178 : 248;
-        const line = reader.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
+        const camera = overlay.querySelector('[data-testid="atomic-flight-camera"]');
+        const snapshot = overlay.querySelector('[data-testid="atomic-flight-snapshot"]');
+        const from = camera?.style.getPropertyValue("--flight-from") || "";
+        if (!camera || !snapshot || !from) return null;
+        const textOf = (node) => (node?.textContent || "").replace(/\\s+/g, " ").trim();
+        const pageText = (root, skipFlight) => [...root.querySelectorAll(".atomic-reader-page, .atomic-page")]
+          .filter((el) => !skipFlight || !el.closest(".atomic-open-flight"))
+          .map((el) => textOf(el))
+          .join("\\n");
+        const line = reader.querySelector(".atomic-reader-page p")?.textContent || "";
         return {
           host: overlay.getAttribute("data-overlay-host") || "",
+          zoom: overlay.getAttribute("data-zoom") || "",
           onBody: overlay.parentElement === document.body,
           insideReader: reader.contains(overlay),
-          toS,
-          toX,
-          toY,
-          expectS: Math.min(destW / (bookW * 0.92), destH / (bookH * 0.9)).toFixed(3),
-          expectX: (left + destW / 2) - host.width / 2,
-          expectY: (top + destH / 2) - host.height / 2,
+          from,
           page: overlay.getAttribute("data-page") || "",
           readerPage: reader.getAttribute("data-page") || "",
           line,
-          leaf: overlay.textContent || "",
+          snapPages: pageText(snapshot, false),
+          livePages: pageText(reader, true),
+          background: getComputedStyle(overlay).backgroundColor,
+          book: Boolean(overlay.querySelector('[data-testid="atomic-open-book"]')),
         };
       `);
 
@@ -2989,14 +2985,14 @@ ${E2E_CUE_LOG_FENCE}
             const widths = reader
               ? [...reader.querySelectorAll(".atomic-reader-page")].map((el) => Math.round(el.getBoundingClientRect().width))
               : [];
-            const book = overlay?.querySelector('[data-testid="atomic-open-book"]');
+            const camera = overlay?.querySelector('[data-testid="atomic-flight-camera"]');
             return {
               readers: readers.length,
               active: Boolean(reader?.closest(".workspace-leaf")?.classList.contains("mod-active")),
               chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
               overlay: Boolean(overlay),
               total: reader?.getAttribute("data-total") || "",
-              toS: book?.style.getPropertyValue("--to-s") || "",
+              from: camera?.style.getPropertyValue("--flight-from") || "",
               widths,
               reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
             };
@@ -3004,27 +3000,22 @@ ${E2E_CUE_LOG_FENCE}
           seen.push(snap);
           if (seen.length > 8) seen.shift();
           flight = await flightReport();
-          return Boolean(flight?.toS);
+          return Boolean(flight?.from);
         }, 8000);
       } catch (error) {
         throw new Error(`${error.message} last=${JSON.stringify(flight)} seen=${JSON.stringify(seen)}`);
       }
-      assert.equal(flight.host, "window");
-      assert.equal(flight.onBody, true);
-      assert.equal(flight.insideReader, false);
+      assert.equal(flight.host, "leaf");
+      assert.equal(flight.zoom, "out");
+      assert.equal(flight.onBody, false);
+      assert.equal(flight.insideReader, true);
+      assert.equal(flight.book, false);
       assert.equal(flight.page, flight.readerPage);
-      assert.notEqual(flight.toS, "3.150");
-      assert.notEqual(flight.toS, "2.350");
-      const toX = Number(String(flight.toX).replace(/px$/, ""));
-      const toY = Number(String(flight.toY).replace(/px$/, ""));
-      assert.ok(Math.abs(toX - flight.expectX) < 1.5, `to-x ${flight.toX} vs ${flight.expectX}`);
-      assert.ok(Math.abs(toY - flight.expectY) < 1.5, `to-y ${flight.toY} vs ${flight.expectY}`);
-      assert.ok(
-        Math.abs(Number(flight.toS) - Number(flight.expectS)) < 0.02,
-        `to-s ${flight.toS} vs ${flight.expectS}`,
-      );
+      assert.ok(Number(flight.from) > 1, `zoom starts above the settled reader ${flight.from}`);
+      assert.equal(flight.snapPages, flight.livePages);
       assert.ok(flight.line.length > 0, "the live page has a paragraph");
-      assert.ok(flight.leaf.includes(flight.line), flight.leaf);
+      assert.ok(flight.snapPages.includes(flight.line), flight.snapPages);
+      assert.notEqual(flight.background, "rgb(0, 0, 0)");
 
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-open-flight"]').click();
@@ -3076,14 +3067,19 @@ ${E2E_CUE_LOG_FENCE}
           const state = await driver.executeScript(`
             const reader = document.querySelector('[data-testid="atomic-reader"]');
             const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+            const snapshot = overlay?.querySelector('[data-testid="atomic-flight-snapshot"]');
             return {
               total: reader?.getAttribute("data-total") || "",
               mount: reader?.getAttribute("data-reader-mount") || "",
               overlay: Boolean(overlay),
+              zoom: overlay?.getAttribute("data-zoom") || "",
+              snapshot: Boolean(snapshot),
             };
           `);
-          if (state.overlay) throw new Error("reduced motion built an Open Book overlay");
-          return state.total === "3" && state.mount === "shell";
+          if (state.snapshot || (state.overlay && state.zoom !== "fade")) {
+            throw new Error(`reduced motion built a flight ${JSON.stringify(state)}`);
+          }
+          return state.total === "3" && state.mount === "shell" && state.overlay === false;
         }, 8000);
       } finally {
         try {
@@ -3159,8 +3155,8 @@ ${E2E_CUE_LOG_FENCE}
             return settled.theater === false
               && settled.total === "3"
               && settled.status === ""
-              && settled.pageWidth === 270
-              && settled.pageHeight === 340
+              && settled.pageWidth === 340
+              && settled.pageHeight === 488
               && settled.enter === "Theater";
           }, 8000);
         } catch (error) {
@@ -3293,7 +3289,7 @@ ${E2E_CUE_LOG_FENCE}
               enter: Boolean(root?.querySelector('[data-testid="atomic-theater-enter"]')),
             };
           `);
-          return back.theater === false && back.pageWidth === 270 && back.pageHeight === 340 && back.enter;
+          return back.theater === false && back.pageWidth === 340 && back.pageHeight === 488 && back.enter;
         }, 4000);
 
         try {
@@ -3374,7 +3370,7 @@ ${E2E_CUE_LOG_FENCE}
     });
   });
 
-  it("changes book size from the reader slot and keeps the type", async () => {
+  it("keeps the settled reader at XL with no size control", async () => {
     await check(driver, "reader-book-size", async () => {
       const desktopViewport = await driver.executeScript(
         `return { width: window.innerWidth, height: window.innerHeight }`,
@@ -3482,74 +3478,30 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             desk = await readSize();
-            return desk.phone === false && desk.fontSize === "12.5px" && desk.pressed === "false" && desk.bodyLines === "15" && desk.text.length > 0;
+            return desk.phone === false && desk.fontSize === "12.5px" && desk.bodyLines === "22" && desk.pageWidth === 340 && desk.pageHeight === 488 && desk.text.length > 0;
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} desk=${JSON.stringify(desk)}`);
         }
-
-        desk = {};
-        await driver.executeScript(`
-          const roots = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
-          const root = roots.find((node) => node.getBoundingClientRect().width > 0);
-          const button = root?.querySelector('[data-reader-slot="size"] [data-testid="atomic-reader-size-xl"]');
-          if (!button) throw new Error("missing xl button");
-          button.click();
-        `);
-        try {
-          await driver.wait(async () => {
-            desk = await readSize();
-            return desk.pageWidth === 340 && desk.pageHeight === 488 && desk.bodyLines === "22" && /reader\.size:\s*xl/.test(desk.saved) && desk.text.length > 0;
-          }, 8000);
-        } catch (error) {
-          throw new Error(`${error.message} last=${JSON.stringify(desk)}`);
-        }
-        assert.equal(desk.fontSize, "12.5px");
         assert.equal(desk.lineHeight, "19px");
-        assert.equal(desk.phone, false);
-        assert.equal(desk.inSlot, true);
+        assert.equal(desk.inSlot, false);
         assert.equal(desk.sheet, false);
-        assert.equal(desk.bar, false);
-        assert.match(desk.hint, /⌘/);
-
-        await driver.executeScript(`
-          const roots = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
-          const root = roots.find((node) => node.getBoundingClientRect().width > 0);
-          root?.querySelector('[data-reader-slot="size"] [data-testid="atomic-reader-size-s"]')?.click();
-        `);
-        let small = {};
-        try {
-          await driver.wait(async () => {
-            small = await readSize();
-            return small.pageWidth === 230 && small.pageHeight === 280 && small.bodyLines === "12" && /reader\.size:\s*s/.test(small.saved);
-          }, 8000);
-        } catch (error) {
-          throw new Error(`${error.message} small=${JSON.stringify(small)}`);
-        }
-        assert.equal(small.fontSize, "12.5px");
-        assert.equal(small.lineHeight, "19px");
+        assert.equal(desk.hint, "");
+        assert.equal(desk.saved, "none");
 
         await forceViewport(390, 844, true);
         let phone = {};
         try {
           await driver.wait(async () => {
             phone = await readSize();
-            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px";
+            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false;
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
         }
         assert.equal(phone.lineHeight, "23px");
-        assert.equal(phone.inSlot, true);
-        assert.equal(phone.controlPhone, true);
-        assert.equal(phone.bar, false);
-        assert.equal(phone.sheet, true);
-        assert.equal(phone.rowPad, "10px 4px 10px 4px");
-        assert.ok(phone.sheetTop > 0, `phone sheet sits under the bar ${JSON.stringify(phone)}`);
-        assert.ok(
-          phone.sheetBottom >= 8 && phone.sheetBottom <= 20,
-          `phone sheet keeps the bottom inset ${JSON.stringify(phone)}`,
-        );
+        assert.equal(phone.inSlot, false);
+        assert.equal(phone.sheet, false);
         await shot(driver, "reader-book-size-phone");
       } finally {
         await restoreDesktopPointer(driver, desktopViewport);

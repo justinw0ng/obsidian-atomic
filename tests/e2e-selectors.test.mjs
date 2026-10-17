@@ -280,7 +280,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(reader, /data-testid": "atomic-reader"/);
   assert.match(reader, /data-testid": "atomic-reader-progress"/);
   assert.match(reader, /data-testid": "atomic-reader-next"/);
-  assert.match(reader, /data-testid": "atomic-reader-slot-size"/);
+  assert.doesNotMatch(reader, /data-testid": "atomic-reader-slot-size"/);
+  assert.match(reader, /data-testid": "atomic-reader-pn"/);
   assert.match(reader, /data-testid": "atomic-reader-slot-theater"/);
   assert.match(reader, /data-testid": "atomic-reader-slot-ask"/);
   assert.match(shelf, /"atomic-bookshelf-scroll"/);
