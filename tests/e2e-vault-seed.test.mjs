@@ -76,7 +76,8 @@ test("seedE2eVault writes health-check fixture notes without deploying the plugi
     const reading = readFileSync(join(vault, E2E_FILES.readingCurrent), "utf8");
     assert.match(reading, /status: reading/);
     assert.match(reading, /```atomic-timer/);
-    assert.match(reading, new RegExp(`source: "${E2E_FILES.readingCurrentEpub.replace(/\./g, "\\.")}"`));
+    const sourcePattern = E2E_FILES.readingCurrentEpub.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
+    assert.match(reading, new RegExp(`source: "${sourcePattern}"`));
     const epub = readFileSync(join(vault, E2E_FILES.readingCurrentEpub));
     assert.equal(epub[0], 0x50);
     assert.equal(epub[1], 0x4b);

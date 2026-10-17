@@ -16,7 +16,7 @@ const PAGE_PROPS = [
 ] as const;
 
 const PHONE_HINT = "Larger book, same type size — more lines per page. Saved for this book.";
-const DESK_HINT = "⌘− / ⌘+";
+const DESK_HINT = "⌘ − / +";
 
 export type ReaderSizeChrome = "bar" | "sheet";
 
@@ -243,6 +243,10 @@ function mountPhoneSlot(controlEl: HTMLElement): SizeSlot {
   const sheet = controlEl.createDiv({
     cls: "fitness-plugin atomic-reader-size-sheet",
     attr: { "data-testid": "atomic-reader-size-sheet" },
+  });
+  sheet.createDiv({
+    cls: "atomic-reader-size-title",
+    text: "Reading",
   });
   const row = sheet.createDiv({ cls: "atomic-reader-size-row" });
   row.createSpan({ text: "Book size" });

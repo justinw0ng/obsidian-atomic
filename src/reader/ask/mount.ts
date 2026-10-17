@@ -133,7 +133,7 @@ function syncSelection(root: HTMLElement, notePath: string, target: HTMLElement 
     text: text.slice(0, 4_000),
     page,
     left: rect.left + rect.width / 2,
-    top: rect.top,
+    top: rect.bottom,
   };
   const prev = state.selection;
   if (prev && prev.text === next.text && prev.page === next.page && Math.abs(prev.left - next.left) < 2) {

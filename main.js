@@ -9937,8 +9937,18 @@ function decodeXml(text) {
 function visibleText(html) {
   return decodeXml(html.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 }
+function dropWrapped(html, tag) {
+  const pattern = tag === "script" ? /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi : /<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+  let current = html;
+  let previous = "";
+  while (current !== previous) {
+    previous = current;
+    current = current.replace(pattern, "");
+  }
+  return current;
+}
 function htmlToReaderBlocks(html) {
-  const withoutNoise = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
+  const withoutNoise = dropWrapped(dropWrapped(html, "script"), "style");
   const blocks = [];
   const pattern = /<(h[1-6]|p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi;
   for (const match of withoutNoise.matchAll(pattern)) {
@@ -10400,9 +10410,10 @@ function paintReaderAsk(host, view, handlers = {}) {
   const margin = host.closest(".atomic-reader")?.querySelector("[data-reader-slot='margin']") ?? null;
   if (isHtmlElement(margin)) paintSlot(margin, view, handlers, "margin");
   const spread = host.closest(".atomic-reader-spread");
-  if (!spread) return;
+  const reader = host.closest(".atomic-reader");
   const open = Boolean(view.panel || view.slip || view.selection);
-  spread.classList.toggle("is-ask-open", open);
+  if (spread) spread.classList.toggle("is-ask-open", open);
+  if (reader) reader.classList.toggle("is-ask-panel", Boolean(view.panel));
 }
 
 // src/reader/ask/view.ts
@@ -10566,7 +10577,7 @@ function syncSelection(root, notePath, target) {
     text: text.slice(0, 4e3),
     page,
     left: rect.left + rect.width / 2,
-    top: rect.top
+    top: rect.bottom
   };
   const prev = state.selection;
   if (prev && prev.text === next.text && prev.page === next.page && Math.abs(prev.left - next.left) < 2) {
@@ -11996,7 +12007,7 @@ function openBookChooser(options) {
   const sheet = overlay.createDiv({
     cls: options.phone ? "atomic-chooser fitness-plugin is-phone" : "atomic-chooser fitness-plugin"
   });
-  if (options.phone) sheet.createDiv({ cls: "atomic-chooser-grab" });
+  sheet.createDiv({ cls: "atomic-chooser-grab" });
   const notes = sheet.createEl("button", {
     cls: "atomic-chooser-row is-primary",
     attr: { type: "button", "data-testid": "atomic-chooser-notes", "data-chooser-act": "notes" }
@@ -12873,7 +12884,7 @@ var PAGE_PROPS = [
   "--atomic-reader-line-height"
 ];
 var PHONE_HINT = "Larger book, same type size \u2014 more lines per page. Saved for this book.";
-var DESK_HINT = "\u2318\u2212 / \u2318+";
+var DESK_HINT = "\u2318 \u2212 / +";
 function mountReaderSize(options) {
   const controlEl = options.controlEl;
   const pages = pageList(options.pageHost);
@@ -13029,6 +13040,10 @@ function mountPhoneSlot(controlEl) {
   const sheet = controlEl.createDiv({
     cls: "fitness-plugin atomic-reader-size-sheet",
     attr: { "data-testid": "atomic-reader-size-sheet" }
+  });
+  sheet.createDiv({
+    cls: "atomic-reader-size-title",
+    text: "Reading"
   });
   const row = sheet.createDiv({ cls: "atomic-reader-size-row" });
   row.createSpan({ text: "Book size" });
@@ -13390,7 +13405,7 @@ body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
   z-index: 8;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   height: 40px;
   padding: 0 6px;
   border-radius: var(--atomic-r-well, 14px);
@@ -13439,7 +13454,7 @@ body.theme-dark .atomic-theater-root.is-theater .th-exit {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 18px;
+  bottom: 14px;
   z-index: 6;
   text-align: center;
   pointer-events: none;
@@ -13476,7 +13491,9 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
   gap: 0;
   background: transparent;
   justify-content: center;
-  align-items: center;
+  align-items: start;
+  padding: 68px 0 28px;
+  box-sizing: border-box;
 }
 .atomic-theater-root.is-theater .atomic-page,
 .atomic-theater-root.is-theater .atomic-reader-page {
@@ -13678,7 +13695,9 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
 .atomic-theater-root.is-theater .atomic-reader-spread {
   grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
   justify-content: center;
-  align-items: center;
+  align-items: start;
+  padding: 68px 0 28px;
+  box-sizing: border-box;
   background: transparent;
 }
 .atomic-theater-root.is-theater.is-phone .atomic-reader-spread,

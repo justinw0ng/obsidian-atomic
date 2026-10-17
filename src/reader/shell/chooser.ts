@@ -67,7 +67,7 @@ export function openBookChooser(options: {
       ? "atomic-chooser fitness-plugin is-phone"
       : "atomic-chooser fitness-plugin",
   });
-  if (options.phone) sheet.createDiv({ cls: "atomic-chooser-grab" });
+  sheet.createDiv({ cls: "atomic-chooser-grab" });
 
   const notes = sheet.createEl("button", {
     cls: "atomic-chooser-row is-primary",

@@ -178,6 +178,10 @@ test("html blocks ignore scripts and pdf info stays inside the file bytes", () =
     `<style>p{color:red}</style><script>alert(1)</script><p>Safe &amp; plain</p>`,
   );
   assert.deepEqual(blocks, [{ kind: "paragraph", text: "Safe & plain" }]);
+  const nested = htmlToReaderBlocks(
+    "<scr<script>ipt>alert(1)</script><style>p{color:red}</style ><p>Kept</p>",
+  );
+  assert.deepEqual(nested, [{ kind: "paragraph", text: "Kept" }]);
 
   const pdf = encoder.encode(
     "%PDF-1.4\n2 0 obj << /Type /Pages /Count 4 /Kids [3 0 R] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF",
@@ -200,6 +204,10 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /270px/);
   assert.match(block, /340px/);
   assert.match(block, /112px/);
+  assert.match(block, /padding:\s*26px 24px/);
+  assert.match(block, /gap:\s*4px/);
+  assert.match(block, /width:\s*340px/);
+  assert.match(block, /width:\s*420px/);
   assert.match(block, /fonts\/literata-latin-400\.woff2/);
   assert.match(block, /--atomic-r-object/);
   assert.match(block, /--atomic-r-control/);

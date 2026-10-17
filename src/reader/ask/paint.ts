@@ -239,7 +239,8 @@ export function paintReaderAsk(host: HTMLElement, view: ReaderAskView, handlers:
   const margin = host.closest(".atomic-reader")?.querySelector("[data-reader-slot='margin']") ?? null;
   if (isHtmlElement(margin)) paintSlot(margin, view, handlers, "margin");
   const spread = host.closest(".atomic-reader-spread");
-  if (!spread) return;
+  const reader = host.closest(".atomic-reader");
   const open = Boolean(view.panel || view.slip || view.selection);
-  spread.classList.toggle("is-ask-open", open);
+  if (spread) spread.classList.toggle("is-ask-open", open);
+  if (reader) reader.classList.toggle("is-ask-panel", Boolean(view.panel));
 }

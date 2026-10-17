@@ -133,7 +133,7 @@ body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
   z-index: 8;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   height: 40px;
   padding: 0 6px;
   border-radius: var(--atomic-r-well, 14px);
@@ -182,7 +182,7 @@ body.theme-dark .atomic-theater-root.is-theater .th-exit {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 18px;
+  bottom: 14px;
   z-index: 6;
   text-align: center;
   pointer-events: none;
@@ -219,7 +219,9 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
   gap: 0;
   background: transparent;
   justify-content: center;
-  align-items: center;
+  align-items: start;
+  padding: 68px 0 28px;
+  box-sizing: border-box;
 }
 .atomic-theater-root.is-theater .atomic-page,
 .atomic-theater-root.is-theater .atomic-reader-page {
@@ -421,7 +423,9 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
 .atomic-theater-root.is-theater .atomic-reader-spread {
   grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
   justify-content: center;
-  align-items: center;
+  align-items: start;
+  padding: 68px 0 28px;
+  box-sizing: border-box;
   background: transparent;
 }
 .atomic-theater-root.is-theater.is-phone .atomic-reader-spread,

@@ -272,6 +272,8 @@ test("phone keeps the page card, parks Exit below the island, and turns tools of
   assert.equal(collect(handle.root, (node) => node.classList.contains("th-hint")).every((node) => node.hidden), true);
   assert.match(THEATER_CSS, /data-atomic-theater-place="content"\] \.th-chrome \{\s*top: 8px;/);
   assert.match(THEATER_CSS, /surface="phone"\] \.th-chrome \{\s*top: 58px;/);
+  assert.match(THEATER_CSS, /gap:\s*12px/);
+  assert.match(THEATER_CSS, /padding:\s*68px 0 28px/);
 
   const buttons = collect(handle.root, (node) => node.tagName === "BUTTON");
   assert.deepEqual(buttons.map((node) => node.textContent), ["ExitEsc"]);

@@ -31,10 +31,23 @@ function visibleText(html: string): string {
     .trim();
 }
 
+/** Drop every script or style element, including a nested or spaced end tag. */
+function dropWrapped(html: string, tag: "script" | "style"): string {
+  const pattern =
+    tag === "script"
+      ? /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi
+      : /<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+  let current = html;
+  let previous = "";
+  while (current !== previous) {
+    previous = current;
+    current = current.replace(pattern, "");
+  }
+  return current;
+}
+
 export function htmlToReaderBlocks(html: string): ReaderBlock[] {
-  const withoutNoise = html
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "");
+  const withoutNoise = dropWrapped(dropWrapped(html, "script"), "style");
   const blocks: ReaderBlock[] = [];
   const pattern = /<(h[1-6]|p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi;
   for (const match of withoutNoise.matchAll(pattern)) {

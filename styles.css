@@ -3084,7 +3084,7 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: 40px minmax(0, 1fr) 28px;
+  grid-template-rows: 40px minmax(0, 1fr) 36px;
   background: var(--background-primary);
   max-width: none;
 }
@@ -3092,9 +3092,9 @@
 .atomic-reader-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   min-width: 0;
-  padding: 0 16px;
+  padding: 0 28px;
   border-bottom: 1px solid var(--atomic-rule);
 }
 
@@ -3116,51 +3116,63 @@
 .atomic-reader-spread {
   position: relative;
   display: grid;
-  grid-template-columns: 112px var(--atomic-page-w) var(--atomic-page-w) 112px;
+  grid-template-columns: 120px var(--atomic-page-w) var(--atomic-page-w) 120px;
   justify-content: center;
-  align-items: center;
+  align-items: start;
   min-height: 0;
+  padding: 4px 0 12px;
   overflow: auto;
   background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
 }
 
 .atomic-reader-gutter {
   position: relative;
-  width: 112px;
-  min-width: 112px;
+  width: 120px;
+  min-width: 120px;
   height: var(--atomic-page-h);
-  margin: 18px 0;
-  align-self: center;
+  margin: 0;
+  align-self: start;
 }
 
 .atomic-reader-page {
   position: relative;
+  box-sizing: border-box;
   width: var(--atomic-page-w);
   height: var(--atomic-page-h);
-  margin: 18px 8px;
-  padding: 22px 22px 28px;
+  margin: 0;
+  padding: 26px 24px;
   overflow: hidden;
   border-radius: var(--atomic-r-object);
   background: var(--atomic-paper);
   box-shadow: 0 0 0 1px var(--atomic-rule);
+  user-select: text;
 }
 
 .atomic-reader-page h3 {
-  margin: 0 0 14px;
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  margin: 0;
   font-family: var(--atomic-reader-serif);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
+  text-align: center;
   text-transform: uppercase;
   color: var(--atomic-ink-2);
 }
 
 .atomic-reader-page p {
-  margin: 0 0 11px;
+  margin: 0;
   font-family: var(--atomic-reader-serif);
   font-size: 12.5px;
   line-height: 19px;
   color: var(--atomic-ink);
+}
+
+.atomic-reader-page p + p {
+  margin-top: 19px;
 }
 
 .atomic-reader-page p:last-child {
@@ -3186,9 +3198,9 @@
 .atomic-reader-foot {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
-  padding: 0 16px;
+  padding: 0 28px;
   border-top: 1px solid var(--atomic-rule);
   color: var(--atomic-ink-2);
   font-family: var(--atomic-mono);
@@ -3224,8 +3236,8 @@
 }
 
 .atomic-reader.is-phone .atomic-reader-bar {
-  padding: 0 10px;
-  gap: 6px;
+  padding: 0 16px;
+  gap: 4px;
 }
 
 .atomic-reader.is-phone .atomic-reader-spread {
@@ -3252,9 +3264,13 @@
   width: auto;
   height: auto;
   margin: 0;
-  padding: 22px 22px 28px;
+  padding: 26px 24px;
   overflow: auto;
   box-shadow: none;
+}
+
+.atomic-reader.is-phone .atomic-reader-page p + p {
+  margin-top: 23px;
 }
 
 .atomic-reader.is-phone .atomic-reader-page p {
@@ -3270,8 +3286,9 @@
   left: 0;
   z-index: 1000;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+  padding: 0 16px 24px;
   background: rgba(34, 34, 34, 0.28);
 }
 
@@ -3281,9 +3298,9 @@
 }
 
 .atomic-chooser {
-  width: 360px;
-  max-width: calc(100% - 32px);
-  padding: 8px;
+  width: 420px;
+  max-width: 100%;
+  padding: 10px 12px 14px;
   border-radius: var(--atomic-r-well);
   background: var(--background-primary);
   box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0, 0, 0, 0.4);
@@ -3478,11 +3495,19 @@
   font-family: var(--font-interface);
 }
 
+.fitness-plugin .atomic-reader-size-title {
+  padding: 0 4px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--atomic-ink);
+}
+
 .fitness-plugin .atomic-reader-size-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 4px 8px;
+  padding: 10px 4px;
+  border-top: 1px solid var(--atomic-rule);
   font-size: 13px;
   color: var(--atomic-ink);
 }
@@ -3553,8 +3578,22 @@
 }
 
 .atomic-reader.is-phone [data-reader-slot="size"] {
-  flex: 1 1 auto;
+  flex: none;
+  width: auto;
   min-width: 0;
+}
+
+.atomic-reader.is-phone .atomic-reader-size-sheet {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  z-index: 6;
+  box-sizing: border-box;
+  padding: 12px 12px 4px;
+  border-radius: 16px;
+  background: var(--background-primary);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
 }
 
 
@@ -3584,6 +3623,18 @@
 .atomic-reader-ask .atomic-selbar,
 .atomic-reader-ask .atomic-ask {
   pointer-events: auto;
+}
+
+.atomic-reader:not(.is-phone) .atomic-reader-gutter.is-margin .atomic-remark {
+  left: 0;
+  right: auto;
+  width: 112px;
+}
+
+.atomic-reader:not(.is-phone) .atomic-reader-gutter.is-ask .atomic-remark {
+  left: auto;
+  right: 0;
+  width: 112px;
 }
 
 .atomic-reader-ask .atomic-remark {
@@ -3666,14 +3717,14 @@
   z-index: 30;
   left: var(--atomic-sel-left, 16px);
   top: var(--atomic-sel-top, 16px);
-  transform: translate(-50%, -120%);
+  transform: translate(-50%, 8px);
 }
 
 .atomic-reader-ask .atomic-selbar .atomic-glass {
-  height: auto;
-  padding: 4px;
-  gap: 4px;
-  border-radius: var(--atomic-r-well);
+  height: 34px;
+  padding: 0 6px;
+  gap: 2px;
+  border-radius: 999px;
 }
 
 .atomic-reader-gutter.is-ask .atomic-ask {
@@ -3684,15 +3735,29 @@
   z-index: 7;
   display: flex;
   flex-direction: column;
-  width: 300px;
-  padding: 16px 16px 18px;
+  gap: 12px;
+  width: 340px;
+  padding: 18px 16px;
   background: var(--background-primary);
   border-left: 1px solid var(--atomic-rule);
   color: var(--atomic-ink);
 }
 
+.atomic-reader.is-ask-panel:not(.is-phone) .atomic-reader-gutter.is-ask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  height: auto;
+}
+
+.atomic-reader.is-ask-panel:not(.is-phone) .atomic-ask:not(.is-sheet) {
+  top: -40px;
+  bottom: -36px;
+}
+
 .atomic-reader-ask .atomic-ask h4 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 14px;
   font-weight: 650;
 }
@@ -3718,10 +3783,10 @@
 .atomic-reader-ask .atomic-thread {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   flex: 1;
   min-height: 0;
-  margin: 12px 0;
+  margin: 0;
   overflow: auto;
 }
 

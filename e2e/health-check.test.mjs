@@ -2330,6 +2330,16 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
               pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
               pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
               radius: boxStyle?.borderRadius || "",
+              pad: boxStyle ? [boxStyle.paddingTop, boxStyle.paddingRight, boxStyle.paddingBottom, boxStyle.paddingLeft].join(" ") : "",
+              margin: boxStyle ? [boxStyle.marginTop, boxStyle.marginRight, boxStyle.marginBottom, boxStyle.marginLeft].join(" ") : "",
+              barGap: getComputedStyle(root.querySelector(".atomic-reader-bar")).gap || "",
+              seam: (() => {
+                const rects = [...root.querySelectorAll(".atomic-reader-page")]
+                  .map((el) => el.getBoundingClientRect())
+                  .sort((a, b) => a.left - b.left);
+                if (rects.length < 2) return -1;
+                return Math.round(rects[1].left - rects[0].right);
+              })(),
               size: Boolean(root.querySelector('[data-testid="atomic-reader-slot-size"]')),
               theater: Boolean(root.querySelector('[data-testid="atomic-reader-slot-theater"]')),
               ask: Boolean(root.querySelector('[data-testid="atomic-reader-slot-ask"]')),
@@ -2353,6 +2363,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(reader.pageWidth, 270);
       assert.equal(reader.pageHeight, 340);
       assert.equal(reader.radius, "3px");
+      assert.equal(reader.pad, "26px 24px 26px 24px");
+      assert.equal(reader.margin, "0px 0px 0px 0px");
+      assert.equal(reader.barGap, "4px");
+      assert.ok(Math.abs(reader.seam) <= 1, `pages sit together ${reader.seam}`);
       assert.equal(reader.size, true);
       assert.equal(reader.theater, true);
       assert.equal(reader.ask, true);
@@ -2811,6 +2825,39 @@ ${E2E_CUE_LOG_FENCE}
         assert.equal(slots.marginHost, true);
         assert.equal(slots.marginPainted, true);
       }
+      const askSpace = await driver.executeScript(`
+        const probe = document.createElement("div");
+        probe.className = "atomic-ask";
+        const gutter = document.querySelector("[data-reader-slot='ask']");
+        gutter?.appendChild(probe);
+        const style = getComputedStyle(probe);
+        const remarkHost = document.querySelector("[data-testid='atomic-reader-margin']");
+        const remark = document.createElement("button");
+        remark.className = "atomic-remark";
+        remarkHost?.appendChild(remark);
+        const remarkStyle = remark.isConnected ? getComputedStyle(remark) : null;
+        const report = {
+          width: style.width,
+          paddingTop: style.paddingTop,
+          paddingRight: style.paddingRight,
+          paddingBottom: style.paddingBottom,
+          paddingLeft: style.paddingLeft,
+          gap: style.gap,
+          remarkPad: remarkStyle
+            ? [remarkStyle.paddingTop, remarkStyle.paddingRight, remarkStyle.paddingBottom, remarkStyle.paddingLeft].join(" ")
+            : "",
+        };
+        probe.remove();
+        remark.remove();
+        return report;
+      `);
+      assert.equal(askSpace.width, "340px");
+      assert.equal(askSpace.paddingTop, "18px");
+      assert.equal(askSpace.paddingRight, "16px");
+      assert.equal(askSpace.paddingBottom, "18px");
+      assert.equal(askSpace.paddingLeft, "16px");
+      assert.equal(askSpace.gap, "12px");
+      if (!slots.phone) assert.equal(askSpace.remarkPad, "8px 10px 8px 10px");
     });
   });
 
@@ -3147,9 +3194,15 @@ ${E2E_CUE_LOG_FENCE}
               room: Boolean(room),
               barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
               askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
-              voidColor: root ? getComputedStyle(root).getPropertyValue("--theater-void").trim() : "",
-            };
-          `);
+            voidColor: root ? getComputedStyle(root).getPropertyValue("--theater-void").trim() : "",
+            air: (() => {
+              const pageTop = rect?.top ?? 0;
+              const chromeBottom = chrome?.getBoundingClientRect().bottom ?? 0;
+              return Math.round(pageTop - chromeBottom);
+            })(),
+            chromeGap: chrome ? getComputedStyle(chrome).gap : "",
+          };
+        `);
           return on.theater && on.pageWidth === 340 && on.pageHeight === 500;
         }, 8000);
         const desk = await driver.executeScript(`
@@ -3180,6 +3233,22 @@ ${E2E_CUE_LOG_FENCE}
         assert.equal(desk.askHidden, true);
         assert.equal(desk.inBar, false);
         assert.equal(desk.voidColor, "#ebe8e2");
+        const theaterSpace = await driver.executeScript(`
+          const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+          const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+          const chrome = root?.querySelector('[data-testid="atomic-theater-chrome"]');
+          const pageTop = box?.getBoundingClientRect().top ?? 0;
+          const chromeBottom = chrome?.getBoundingClientRect().bottom ?? 0;
+          return {
+            air: Math.round(pageTop - chromeBottom),
+            chromeGap: chrome ? getComputedStyle(chrome).gap : "",
+          };
+        `);
+        assert.equal(theaterSpace.chromeGap, "12px");
+        assert.ok(
+          theaterSpace.air >= 8 && theaterSpace.air <= 40,
+          `theater page needs air under the Exit pill ${JSON.stringify(theaterSpace)}`,
+        );
         await shot(driver, "reader-theater-light");
 
         await driver.executeScript(`document.body.classList.add("theme-dark");`);
@@ -3344,6 +3413,23 @@ ${E2E_CUE_LOG_FENCE}
             controlPhone: control?.classList.contains("is-phone") === true,
             sheet: Boolean(slot?.querySelector('[data-testid="atomic-reader-size-sheet"]')),
             hint: slot?.querySelector('[data-testid="atomic-reader-size-hint"]')?.textContent || "",
+            rowPad: (() => {
+              const row = slot?.querySelector(".atomic-reader-size-row");
+              if (!row) return "";
+              const style = getComputedStyle(row);
+              return [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft].join(" ");
+            })(),
+            sheetTop: (() => {
+              const sheet = slot?.querySelector('[data-testid="atomic-reader-size-sheet"]');
+              const bar = root?.querySelector(".atomic-reader-bar");
+              if (!sheet || !bar || !root) return -1;
+              return Math.round(sheet.getBoundingClientRect().top - bar.getBoundingClientRect().bottom);
+            })(),
+            sheetBottom: (() => {
+              const sheet = slot?.querySelector('[data-testid="atomic-reader-size-sheet"]');
+              if (!sheet || !root) return -1;
+              return Math.round(root.getBoundingClientRect().bottom - sheet.getBoundingClientRect().bottom);
+            })(),
             saved: /reader\\.size:\\s*\\S+/.test(body) ? (body.match(/reader\\.size:\\s*\\S+/) || [])[0] : "none",
           };
         })();
@@ -3458,6 +3544,12 @@ ${E2E_CUE_LOG_FENCE}
         assert.equal(phone.controlPhone, true);
         assert.equal(phone.bar, false);
         assert.equal(phone.sheet, true);
+        assert.equal(phone.rowPad, "10px 4px 10px 4px");
+        assert.ok(phone.sheetTop > 0, `phone sheet sits under the bar ${JSON.stringify(phone)}`);
+        assert.ok(
+          phone.sheetBottom >= 8 && phone.sheetBottom <= 20,
+          `phone sheet keeps the bottom inset ${JSON.stringify(phone)}`,
+        );
         await shot(driver, "reader-book-size-phone");
       } finally {
         await restoreDesktopPointer(driver, desktopViewport);
