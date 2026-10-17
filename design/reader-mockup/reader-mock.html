@@ -1027,7 +1027,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 .ob-phone-screen.is-theater .atomic-page {
   width: min(320px, calc(100% - 40px));
-  height: var(--page-h, 340px);
+  height: min(calc(var(--page-h, 340px) + 160px), calc(100% - 96px));
   margin: 0 auto;
   overflow: hidden;
   border-radius: 2px;
