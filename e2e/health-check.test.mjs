@@ -2764,6 +2764,55 @@ ${E2E_CUE_LOG_FENCE}
     });
   });
 
+  it("keeps the Ask key out of plugin data and paints remarks into the reader slots", async () => {
+    await check(driver, "reader-ask-slots", async () => {
+      await openAtomicSettings(driver);
+      const askRow = await driver.executeScript(`
+        const row = document.querySelector(
+          '[data-testid="atomic-setting-ask"], [data-testid="atomic-setting-ask-update"]',
+        );
+        const ask = app.plugins.getPlugin("atomic-tracker").settings.ask;
+        return {
+          visible: !!row,
+          keys: ask ? Object.keys(ask).sort() : [],
+          secretName: ask ? ask.secretName : null,
+        };
+      `);
+      assert.equal(askRow.visible, true);
+      assert.deepEqual(askRow.keys, ["baseUrl", "model", "provider", "secretName"]);
+      assert.equal(typeof askRow.secretName, "string");
+      await closeSettings(driver);
+
+      await openVaultFile(driver, E2E_FILES.readingCurrent);
+      await driver.executeScript(`
+        app.commands.executeCommandById("atomic-tracker:open-book");
+      `);
+      let slots = {};
+      await driver.wait(async () => {
+        slots = await driver.executeScript(`
+          const root = document.querySelector('[data-testid="atomic-reader"]');
+          const ask = root?.querySelector("[data-reader-slot='ask']");
+          const margin = root?.querySelector("[data-reader-slot='margin']");
+          return {
+            askHost: ask?.getAttribute("data-atomic-ask-host") === "true",
+            askPainted: Boolean(ask?.querySelector("[data-atomic-ask-root]")),
+            marginHost: margin ? margin.getAttribute("data-atomic-ask-host") === "true" : false,
+            marginPainted: margin ? Boolean(margin.querySelector("[data-atomic-ask-root]")) : false,
+            phone: root?.classList.contains("is-phone") === true,
+            total: root?.getAttribute("data-total") || "",
+          };
+        `);
+        return slots.askHost && slots.askPainted && slots.total !== "0" && slots.total !== ""
+          && (slots.phone || (slots.marginHost && slots.marginPainted));
+      }, 8000);
+      assert.equal(slots.askHost, true);
+      assert.equal(slots.askPainted, true);
+      if (!slots.phone) {
+        assert.equal(slots.marginHost, true);
+        assert.equal(slots.marginPainted, true);
+      }
+    });
+  });
 
   it("flies Open Book onto the live reader page", async () => {
     await check(driver, "open-book-flight", async () => {

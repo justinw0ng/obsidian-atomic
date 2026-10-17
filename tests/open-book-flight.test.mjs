@@ -190,7 +190,7 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
 });
 
 test("flight source stays in its folder and off other readers", () => {
-  assert.deepEqual(readdirSync(join(root, "src/reader")).sort(), ["flight", "shell"]);
+  assert.deepEqual(readdirSync(join(root, "src/reader")).sort(), ["ask", "flight", "shell", "size", "theater"]);
   const names = readdirSync(flightDir).sort();
   assert.deepEqual(names, [
     "geometry.ts",
