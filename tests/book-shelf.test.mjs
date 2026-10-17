@@ -297,14 +297,15 @@ test("unclipBookShelfAncestors opens codeblock overflow and stops at the note sc
   assert.equal(scroller.style.overflow, "auto");
 });
 
-test("book shelf reads the title under the plank and opens the note", () => {
+test("book shelf reads the title under the plank and opens the chooser", () => {
   const source = readFileSync(
     join(repoRoot, "src/views/book-shelf.ts"),
     "utf8",
   );
   assert.match(source, /atomic-shelf-readout/);
   assert.match(source, /showBookReadout/);
-  assert.match(source, /data\.openPath\(item\.path\)/);
+  assert.match(source, /presentBookChooser/);
+  assert.doesNotMatch(source, /data\.openPath\(item\.path\)/);
   assert.doesNotMatch(source, /bookDetailFixedPosition/);
   assert.doesNotMatch(source, /is-ported/);
 });

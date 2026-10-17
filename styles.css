@@ -3046,3 +3046,325 @@
   unicode-range: U+2E80-2FFF, U+3000-303F, U+3040-30FF, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF, U+FF00-FFEF;
 }
 
+/* ------------------------------------------------------------------ reader shell
+   Settled reader and the Open Notes / Open Book chooser.
+   Flight, theater, size, and ask attach through src/reader/shell/mount.ts.
+   Page type is Literata. Chrome stays on the 1.5.0 tokens.
+*/
+
+@font-face {
+  font-family: "Literata";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/literata-latin-400.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Literata";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/literata-latin-600.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+.workspace-leaf-content[data-type="atomic-reader"] > .view-content {
+  height: 100%;
+  padding: 0;
+}
+
+.atomic-reader {
+  --atomic-page-w: 270px;
+  --atomic-page-h: 340px;
+  --atomic-reader-progress: 0%;
+  --atomic-reader-serif: "Literata", "Source Serif 4", Georgia, serif;
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: 40px minmax(0, 1fr) 28px;
+  background: var(--background-primary);
+  max-width: none;
+}
+
+.atomic-reader-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--atomic-rule);
+}
+
+.atomic-reader-bar .atomic-reader-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.atomic-reader-title span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atomic-reader-slot {
+  flex: none;
+}
+
+.atomic-reader-spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: 112px var(--atomic-page-w) var(--atomic-page-w) 112px;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  overflow: auto;
+  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
+}
+
+.atomic-reader-gutter {
+  position: relative;
+  width: 112px;
+  min-width: 112px;
+  height: var(--atomic-page-h);
+  margin: 18px 0;
+  align-self: center;
+}
+
+.atomic-reader-page {
+  position: relative;
+  width: var(--atomic-page-w);
+  height: var(--atomic-page-h);
+  margin: 18px 8px;
+  padding: 22px 22px 28px;
+  overflow: hidden;
+  border-radius: var(--atomic-r-object);
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px var(--atomic-rule);
+}
+
+.atomic-reader-page h3 {
+  margin: 0 0 14px;
+  font-family: var(--atomic-reader-serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--atomic-ink-2);
+}
+
+.atomic-reader-page p {
+  margin: 0 0 11px;
+  font-family: var(--atomic-reader-serif);
+  font-size: 12.5px;
+  line-height: 19px;
+  color: var(--atomic-ink);
+}
+
+.atomic-reader-page p:last-child {
+  margin-bottom: 0;
+}
+
+.atomic-reader-frame {
+  display: block;
+  width: 100%;
+  height: calc(100% - 27px);
+  border: 0;
+  background: var(--atomic-paper);
+}
+
+.atomic-reader-status {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--atomic-ink-2);
+}
+
+.atomic-reader-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 16px;
+  border-top: 1px solid var(--atomic-rule);
+  color: var(--atomic-ink-2);
+  font-family: var(--atomic-mono);
+  font-size: 11px;
+}
+
+.atomic-reader-last,
+.atomic-reader-count {
+  white-space: nowrap;
+}
+
+.atomic-reader-progress {
+  flex: 1;
+  height: 3px;
+  border-radius: var(--atomic-r-object);
+  background: var(--atomic-fill-2);
+}
+
+.atomic-reader-progress > i {
+  display: block;
+  height: 100%;
+  width: var(--atomic-reader-progress);
+  border-radius: inherit;
+  background: var(--atomic-c);
+}
+
+.atomic-reader-foot .atomic-btn:disabled {
+  opacity: 0.35;
+}
+
+.atomic-reader.is-phone {
+  grid-template-rows: 40px minmax(0, 1fr) auto;
+}
+
+.atomic-reader.is-phone .atomic-reader-bar {
+  padding: 0 10px;
+  gap: 6px;
+}
+
+.atomic-reader.is-phone .atomic-reader-spread {
+  grid-template-columns: 1fr;
+  background: var(--background-primary);
+}
+
+.atomic-reader.is-phone .atomic-reader-gutter.is-margin {
+  display: none;
+}
+
+.atomic-reader.is-phone .atomic-reader-gutter.is-ask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 22px;
+  min-width: 22px;
+  height: auto;
+  margin: 0;
+}
+
+.atomic-reader.is-phone .atomic-reader-page {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 22px 22px 28px;
+  overflow: auto;
+  box-shadow: none;
+}
+
+.atomic-reader.is-phone .atomic-reader-page p {
+  font-size: 15px;
+  line-height: 23px;
+}
+
+.atomic-chooser-scrim {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 34, 34, 0.28);
+}
+
+.atomic-chooser-scrim.is-phone {
+  align-items: flex-end;
+  background: rgba(34, 34, 34, 0.4);
+}
+
+.atomic-chooser {
+  width: 360px;
+  max-width: calc(100% - 32px);
+  padding: 8px;
+  border-radius: var(--atomic-r-well);
+  background: var(--background-primary);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0, 0, 0, 0.4);
+}
+
+.atomic-chooser.is-phone {
+  width: 100%;
+  max-width: none;
+  padding: 10px 12px 18px;
+  border-radius: var(--atomic-r-well) var(--atomic-r-well) 0 0;
+}
+
+.atomic-chooser-grab {
+  width: 40px;
+  height: 4px;
+  margin: 4px auto 10px;
+  border-radius: var(--atomic-r-object);
+  background: var(--atomic-fill-3);
+}
+
+.atomic-chooser-row,
+.atomic-chooser-cancel {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--atomic-ink);
+  font-family: var(--atomic-font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.atomic-chooser-row {
+  padding: 12px;
+  border-radius: var(--atomic-r-control);
+}
+
+.atomic-chooser-row:hover,
+.atomic-chooser-row.is-primary {
+  background: var(--atomic-fill-1);
+}
+
+.atomic-chooser-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.atomic-chooser-label b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.atomic-chooser-label span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--atomic-ink-2);
+}
+
+.atomic-chooser-kbd {
+  font-family: var(--atomic-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.atomic-chooser-cancel {
+  justify-content: center;
+  margin-top: 4px;
+  padding: 10px;
+  font-size: 13px;
+  color: var(--atomic-ink-2);
+}
+
+.atomic-chooser-row:focus-visible,
+.atomic-chooser-cancel:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
+}
+

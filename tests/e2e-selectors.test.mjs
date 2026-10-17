@@ -267,6 +267,22 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const shelf = src("src/views/book-shelf.ts");
   assert.match(shelf, /data-testid": "atomic-bookshelf"/);
   assert.match(shelf, /data-testid": "atomic-book"/);
+  assert.match(shelf, /presentBookChooser/);
+
+  const chooser = src("src/reader/shell/chooser.ts");
+  assert.match(chooser, /data-testid": "atomic-chooser"/);
+  assert.match(chooser, /data-testid": "atomic-chooser-notes"/);
+  assert.match(chooser, /data-testid": "atomic-chooser-book"/);
+  assert.match(chooser, /data-overlay-host": "window"/);
+  assert.match(chooser, /activeDocument\.body/);
+
+  const reader = src("src/reader/shell/view.ts");
+  assert.match(reader, /data-testid": "atomic-reader"/);
+  assert.match(reader, /data-testid": "atomic-reader-progress"/);
+  assert.match(reader, /data-testid": "atomic-reader-next"/);
+  assert.match(reader, /data-testid": "atomic-reader-slot-size"/);
+  assert.match(reader, /data-testid": "atomic-reader-slot-theater"/);
+  assert.match(reader, /data-testid": "atomic-reader-slot-ask"/);
   assert.match(shelf, /"atomic-bookshelf-scroll"/);
   assert.match(shelf, /atomic-scrollport/);
   assert.match(shelf, /"data-scale": String\(scale\)/);
@@ -316,6 +332,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-heatmap-month/);
   assert.match(health, /atomic-heatmap-scroll/);
   assert.match(health, /atomic-bookshelf-scroll/);
+  assert.match(health, /atomic-chooser/);
+  assert.match(health, /atomic-chooser-notes/);
+  assert.match(health, /atomic-chooser-book/);
+  assert.match(health, /atomic-reader/);
+  assert.match(health, /atomic-reader-progress/);
+  assert.match(health, /atomic-reader-next/);
+  assert.match(health, /data-overlay-host/);
   assert.match(health, /heatmap-scrollbars/);
   assert.match(health, /heatmap-month-align/);
   assert.match(health, /gym-session-timer/);

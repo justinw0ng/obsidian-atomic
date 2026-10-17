@@ -12,6 +12,8 @@ import { BOOK_GAP_PX, DEFAULT_BOOK_WIDTH_PX, ROW_PADDING_PX, bookHeightForWidth,
 import { measureElementWidth } from "../util/element-width.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { PaintMemo, sameList } from "../util/paint-memo.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { presentBookChooser } from "../reader/shell/present.ts";
 
 export { bookHeightForWidth, bookWidthForContainer, booksPerRow, chunkItems, resolveBookShelfScale };
 
@@ -268,8 +270,8 @@ export function hoverFinePointer(
 
 /**
  * Hover on a fine pointer only pops the book. The click opens the cover.
- * The next click opens the note. A coarse pointer lifts on the first tap
- * and opens the note on the next. Reduced motion skips the cover swing.
+ * The next click opens the chooser. A coarse pointer lifts on the first tap
+ * and opens the chooser on the next. Reduced motion skips the cover swing.
  */
 export function bookClickOpensNote(options: {
   hoverFine: boolean;
@@ -422,7 +424,19 @@ function createBook(
       return;
     }
     button.classList.remove(COVER_OPEN_CLASS);
-    void data.openPath(item.path);
+    const rect = button.getBoundingClientRect();
+    presentBookChooser({
+      notePath: item.path,
+      title: item.title,
+      coverRect: {
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        color: item.spineColor,
+      },
+      ownerDocument: button.ownerDocument,
+    });
   });
 }
 

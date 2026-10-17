@@ -23,7 +23,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian14 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 
 // src/dates.ts
 var utcMonthShortZh = new Intl.DateTimeFormat("zh-HK", {
@@ -234,6 +234,7 @@ var en = {
   "command.createDailyNoteTemplate": "Create daily note template",
   "command.createTodaysDailyNote": "Create today's daily note",
   "command.openDashboard": "Open dashboard",
+  "command.openBook": "Open book",
   "notice.created": "Created: {path}",
   "notice.reloadForCommands": "Language saved. Reload the plugin or Obsidian to refresh command palette names.",
   "notice.enterExerciseType": "Enter an exercise type name first.",
@@ -246,6 +247,8 @@ var en = {
   "notice.noGolfActivity": "No golf activity configured",
   "notice.noReadingHobby": "No Reading hobby configured",
   "notice.dashboardNotFound": "Dashboard not found: {path}",
+  "notice.readerNeedsNote": "Open a book note first.",
+  "notice.readerNoFile": "No EPUB or PDF for this book.",
   "notice.openedExistingSession": "Opened existing {activity} session: {path}",
   "notice.createdSession": "Created {activity} session: {path}",
   "notice.invalidDate": "Invalid date",
@@ -458,12 +461,27 @@ var en = {
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
   "view.bookShelf.summary": "{count} books \xB7 {reading} reading \xB7 {finished} finished",
   "view.bookShelf.clickToOpen": "Click to open",
-  "view.bookShelf.clickAgain": "Click again to open the note",
-  "view.bookShelf.tapAgain": "Tap again to open",
+  "view.bookShelf.clickAgain": "Click again to choose",
+  "view.bookShelf.tapAgain": "Tap again to choose",
   "view.bookShelf.noActivity": "No timer-backed hobby activity configured for {activity}.",
   "view.bookShelf.empty": "No Reading items yet. Run New reading item.",
   "view.bookShelf.emptyFiltered": "No Reading items with status: {statuses}.",
   "view.bookShelf.invalidStatuses": "Unknown book shelf status values: {statuses}",
+  "view.reader.openNotes": "Open Notes",
+  "view.reader.openNotesHint": "Continue the book note \xB7 default",
+  "view.reader.openBook": "Open Book",
+  "view.reader.cancel": "Cancel",
+  "view.reader.shelf": "Shelf",
+  "view.reader.note": "Note",
+  "view.reader.canvas": "Canvas",
+  "view.reader.lastRead": "Last read \xB7 p. {page}",
+  "view.reader.progress": "{page} / {total} \xB7 {percent}%",
+  "view.reader.prev": "Previous page",
+  "view.reader.next": "Next page",
+  "view.reader.opening": "Opening\u2026",
+  "view.reader.encrypted": "This file is encrypted.",
+  "view.reader.unreadable": "This file cannot be opened.",
+  "view.reader.empty": "This book has no pages.",
   "view.timer.needsSavedNote": "Timer can only run from a saved note.",
   "view.timer.caption": "Timer",
   "view.timer.minuteUnit": "min",
@@ -553,6 +571,7 @@ var zhHantEn = {
   "command.createDailyNoteTemplate": "\u5EFA\u7ACB\u6BCF\u65E5\u7B46\u8A18\u7BC4\u672C",
   "command.createTodaysDailyNote": "\u5EFA\u7ACB\u4ECA\u65E5\u7B46\u8A18",
   "command.openDashboard": "\u958B\u555F\u5100\u8868\u677F",
+  "command.openBook": "\u6253\u958B\u66F8",
   "notice.created": "\u5DF2\u5EFA\u7ACB: {path}",
   "notice.reloadForCommands": "\u8A9E\u8A00\u5DF2\u5132\u5B58\u3002\u8ACB\u91CD\u65B0\u8F09\u5165\u5916\u639B\u6216 Obsidian \u4EE5\u66F4\u65B0\u547D\u4EE4\u540D\u7A31\u3002",
   "notice.enterExerciseType": "\u8ACB\u5148\u8F38\u5165\u904B\u52D5\u985E\u578B\u540D\u7A31\u3002",
@@ -565,6 +584,8 @@ var zhHantEn = {
   "notice.noGolfActivity": "\u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
   "notice.noReadingHobby": "\u5C1A\u672A\u8A2D\u5B9A\u7747\u66F8\u8208\u8DA3",
   "notice.dashboardNotFound": "\u627E\u4E0D\u5230\u5100\u8868\u677F: {path}",
+  "notice.readerNeedsNote": "\u8ACB\u5148\u6253\u958B\u4E00\u672C\u7B46\u8A18\u3002",
+  "notice.readerNoFile": "\u5462\u672C\u66F8\u5187 EPUB \u6216 PDF\u3002",
   "notice.openedExistingSession": "\u5DF2\u958B\u555F\u73FE\u6709 {activity} \u8A13\u7DF4: {path}",
   "notice.createdSession": "\u5DF2\u5EFA\u7ACB {activity} \u8A13\u7DF4: {path}",
   "notice.invalidDate": "\u65E5\u671F\u7121\u6548",
@@ -777,7 +798,7 @@ var zhHantEn = {
   "view.cueLog.needsSavedNote": "\u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
   "view.bookShelf.summary": "{count} \u672C \xB7 {reading} \u672C\u95B1\u8B80\u4E2D \xB7 {finished} \u672C\u8B80\u5B8C",
   "view.bookShelf.clickToOpen": "\u64B3\u4E00\u4E0B\u958B\u555F",
-  "view.bookShelf.tapAgain": "\u518D\u64B3\u4E00\u6B21\u958B\u555F",
+  "view.bookShelf.tapAgain": "\u518D\u64B3\u4E00\u6B21\u9078\u64C7",
   "view.bookShelf.noActivity": "\u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
   "view.bookShelf.empty": "\u5C1A\u672A\u6709\u95B1\u8B80\u9805\u76EE\u3002\u8ACB\u57F7\u884C New reading item\u3002",
   "view.bookShelf.emptyFiltered": "\u6C92\u6709\u72C0\u614B\u70BA {statuses} \u7684\u95B1\u8B80\u9805\u76EE\u3002",
@@ -811,7 +832,22 @@ var zhHantEn = {
   "muscle.Glutes": "\u81C0",
   "muscle.Calves": "\u5C0F\u817F",
   "muscle.Core": "\u6838\u5FC3",
-  "view.bookShelf.clickAgain": "\u518D\u64B3\u4E00\u6B21\u958B\u555F\u7B46\u8A18"
+  "view.bookShelf.clickAgain": "\u518D\u64B3\u4E00\u6B21\u9078\u64C7",
+  "view.reader.openNotes": "\u6253\u958B\u7B46\u8A18",
+  "view.reader.openNotesHint": "\u7E7C\u7E8C\u672C\u66F8\u7B46\u8A18 \xB7 \u9810\u8A2D",
+  "view.reader.openBook": "\u6253\u958B\u66F8",
+  "view.reader.cancel": "\u53D6\u6D88",
+  "view.reader.shelf": "\u66F8\u67B6",
+  "view.reader.note": "\u7B46\u8A18",
+  "view.reader.canvas": "Canvas",
+  "view.reader.lastRead": "\u4E0A\u6B21\u8B80\u5230 \xB7 \u7B2C {page} \u9801",
+  "view.reader.progress": "\u7B2C {page} \u9801\uFF0C\u5171 {total} \u9801 \xB7 {percent}%",
+  "view.reader.prev": "\u4E0A\u4E00\u9801",
+  "view.reader.next": "\u4E0B\u4E00\u9801",
+  "view.reader.opening": "\u6253\u958B\u7DCA\u2026",
+  "view.reader.encrypted": "\u5462\u500B\u6A94\u6848\u6709\u52A0\u5BC6\u3002",
+  "view.reader.unreadable": "\u5462\u500B\u6A94\u6848\u6253\u5514\u958B\u3002",
+  "view.reader.empty": "\u5462\u672C\u66F8\u5187\u9801\u3002"
 };
 
 // src/i18n/index.ts
@@ -3029,8 +3065,8 @@ async function renderAtomicCueLog(plugin, el, host, generation) {
   }
   const compose = root.createDiv({ cls: "atomic-well atomic-cue-log-compose" });
   const fields = compose.createDiv({ cls: "atomic-cue-log-fields" });
-  const field = fields.createDiv({ cls: "atomic-field atomic-cue-log-field" });
-  const input = field.createEl("textarea", {
+  const field2 = fields.createDiv({ cls: "atomic-field atomic-cue-log-field" });
+  const input = field2.createEl("textarea", {
     cls: "atomic-field-value atomic-cue-log-text",
     attr: {
       rows: "3",
@@ -3168,17 +3204,17 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
 }
 async function collectCues(data, activityType, year) {
   const sessions = await Promise.all(
-    data.listSessions(activityType.folder, year).filter((session2) => !!session2.date).map(async (session2) => ({
-      session: session2,
-      reminders: await data.getSessionReminders(session2.path)
+    data.listSessions(activityType.folder, year).filter((session3) => !!session3.date).map(async (session3) => ({
+      session: session3,
+      reminders: await data.getSessionReminders(session3.path)
     }))
   );
   const cues = [];
-  for (const { session: session2, reminders } of sessions) {
-    const focus = session2.focus.join(", ");
+  for (const { session: session3, reminders } of sessions) {
+    const focus = session3.focus.join(", ");
     for (const text of reminders) {
       if (!text) continue;
-      cues.push({ text, date: session2.date, focus });
+      cues.push({ text, date: session3.date, focus });
     }
   }
   return cues;
@@ -4169,11 +4205,11 @@ function appendBars(parent, bars, variant) {
     const future = variant === "month" && bar.future === true;
     const active = bar.value > 0 && !future;
     const stub = future ? " is-future" : active ? "" : " is-zero";
-    const attr = { ...bar.attrs };
-    if (bar.title) attr.title = bar.title;
+    const attr2 = { ...bar.attrs };
+    if (bar.title) attr2.title = bar.title;
     const el = parent.createSpan({
       cls: `atomic-dash-bar is-${variant}${stub}${variant === "month" ? " atomic-bar" : ""}`,
-      attr: Object.keys(attr).length ? attr : void 0
+      attr: Object.keys(attr2).length ? attr2 : void 0
     });
     if (variant === "month") {
       if (!future) el.style.setProperty("--v", active ? (bar.height / 100).toFixed(3) : "0");
@@ -4537,6 +4573,131 @@ function renderDashboardRecent(root, model, ctx) {
   }
 }
 
+// src/core/digit-roll.ts
+function rollChars(text) {
+  const chars = [...String(text)];
+  const last = chars.length - 1;
+  return chars.map((char, index) => {
+    if (/^\d$/.test(char)) {
+      return {
+        kind: "digit",
+        value: Number(char),
+        indexFromRight: last - index
+      };
+    }
+    return { kind: "glyph", value: char };
+  });
+}
+
+// src/views/digit-roll.ts
+function viewOf(el) {
+  return el.ownerDocument.defaultView;
+}
+function prefersReducedMotion2(el) {
+  const view = viewOf(el);
+  if (!view?.matchMedia) return false;
+  return view.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function isDigitEl(node) {
+  if (!node || typeof node.classList?.contains !== "function") return false;
+  return node.classList.contains("atomic-digit");
+}
+function makeDigit(parent, start) {
+  const digit = parent.createSpan({ cls: "atomic-digit" });
+  digit.createSpan({ cls: "atomic-digit-ghost", text: String(start) });
+  const clip = digit.createSpan({
+    cls: "atomic-digit-clip",
+    attr: { "aria-hidden": "true" }
+  });
+  const reel = clip.createSpan({ cls: "atomic-reel" });
+  reel.setCssProps({ "--d": String(start) });
+  for (let i = 0; i < 10; i++) reel.createSpan({ text: String(i) });
+  return digit;
+}
+function makeGlyph(parent, value) {
+  return parent.createSpan({ cls: "atomic-glyph", text: value });
+}
+function putChildren(el, nodes) {
+  if (typeof el.replaceChildren === "function") {
+    el.replaceChildren(...nodes);
+    return;
+  }
+  el.empty();
+  for (const node of nodes) {
+    if (typeof el.appendChild === "function") el.appendChild(node);
+  }
+}
+function applyDigit(node, value) {
+  const reel = node.querySelector(".atomic-reel");
+  if (!reel || typeof reel.setCssProps !== "function") return;
+  reel.setCssProps({ "--d": String(value) });
+}
+function setRoll(el, text, animate) {
+  const motion = animate && !prefersReducedMotion2(el);
+  const old = Array.from(el.children).reverse();
+  const next = [];
+  for (const part of rollChars(text)) {
+    switch (part.kind) {
+      case "digit": {
+        const prev = old[part.indexFromRight];
+        let node;
+        if (isDigitEl(prev)) {
+          node = prev;
+        } else {
+          node = makeDigit(el, motion ? 0 : part.value);
+          if (motion) node.classList.add("is-entering");
+        }
+        node.setCssProps({ "--i": String(part.indexFromRight) });
+        const ghost = node.firstChild;
+        if (ghost) ghost.textContent = String(part.value);
+        next.push({ node, digit: part.value });
+        break;
+      }
+      case "glyph":
+        next.push({ node: makeGlyph(el, part.value), digit: null });
+        break;
+      default: {
+        const unseen = part;
+        throw new Error(`Unknown roll char: ${JSON.stringify(unseen)}`);
+      }
+    }
+  }
+  putChildren(el, next.map((item) => item.node));
+  el.setAttribute("aria-label", text);
+  const apply = () => {
+    for (const item of next) {
+      if (item.digit !== null) applyDigit(item.node, item.digit);
+    }
+  };
+  const view = viewOf(el);
+  if (motion && view?.requestAnimationFrame) {
+    void el.offsetWidth;
+    view.requestAnimationFrame(apply);
+  } else {
+    apply();
+  }
+}
+function appendRoll(parent, text, animate = false) {
+  const el = parent.createSpan({
+    cls: "atomic-roll",
+    attr: { "data-testid": "atomic-roll" }
+  });
+  setRoll(el, text, animate);
+  return el;
+}
+function playRolls(root) {
+  const nodes = root.querySelectorAll(".atomic-roll");
+  for (const node of Array.from(nodes)) {
+    if (typeof node.empty !== "function") continue;
+    const el = node;
+    if (prefersReducedMotion2(el)) continue;
+    const text = el.getAttribute("aria-label");
+    if (!text) continue;
+    el.empty();
+    setRoll(el, text, true);
+  }
+}
+
 // src/views/dashboard.ts
 var renderGeneration = /* @__PURE__ */ new WeakMap();
 var dashboardPaint = new PaintMemo(
@@ -4584,7 +4745,8 @@ function renderHeader(root, model, ctx, onYear) {
     button.addEventListener("click", () => onYear(target));
   };
   yearButton("\u2039", "view.dashboard.prevYear", "atomic-dashboard-year-prev", model.year - 1);
-  switcher.createSpan({ cls: "atomic-stepper-value", text: String(model.year) });
+  const yearValue = switcher.createSpan({ cls: "atomic-stepper-value" });
+  appendRoll(yearValue, String(model.year));
   yearButton("\u203A", "view.dashboard.nextYear", "atomic-dashboard-year-next", model.year + 1);
   const range = top.createDiv({ cls: "atomic-readout atomic-dash-range" });
   if (model.firstDate && model.lastDate) {
@@ -4622,12 +4784,12 @@ function appendKpiCard(grid, id, label) {
 function appendHoursMinutes(target, totalMinutes, ctx, tight) {
   const { hours, minutes } = splitHoursMinutes(totalMinutes);
   const unit = tight ? "atomic-unit is-tight" : "atomic-unit";
-  target.appendText(formatCount(hours));
+  appendRoll(target, formatCount(hours));
   target.createSpan({
     cls: unit,
     text: t("view.dashboard.hourUnitShort", ctx.language)
   });
-  target.appendText(String(minutes).padStart(2, "0"));
+  appendRoll(target, String(minutes).padStart(2, "0"));
   target.createSpan({
     cls: unit,
     text: t("view.dashboard.minuteUnitShort", ctx.language)
@@ -4646,7 +4808,7 @@ function renderKpis(root, model, ctx) {
   );
   if (exercise.length) {
     const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
-    sessions.value.setText(formatCount(model.totalSessions));
+    appendRoll(sessions.value, formatCount(model.totalSessions));
     appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx, false);
@@ -4659,7 +4821,7 @@ function renderKpis(root, model, ctx) {
   }
   if (model.totalVolumeKg != null) {
     const volume = appendKpiCard(grid, "volume", t("view.dashboard.kpiVolume", ctx.language));
-    volume.value.appendText(formatKg(model.totalVolumeKg));
+    appendRoll(volume.value, formatKg(model.totalVolumeKg));
     volume.value.createSpan({
       cls: "atomic-unit",
       text: t("view.dashboard.kgUnit", ctx.language)
@@ -4680,7 +4842,7 @@ function renderKpis(root, model, ctx) {
   }
 }
 function appendStat(parent, value, unit) {
-  parent.appendText(value);
+  appendRoll(parent, value);
   parent.createSpan({ cls: "atomic-unit", text: unit });
 }
 function appendDetail(parent, value, unit) {
@@ -4817,7 +4979,7 @@ function renderActivities(root, model, ctx) {
   renderLedgerHead(ledger, ctx);
   for (const card of model.activities) renderActivityRow(ledger, card, ctx);
 }
-async function renderDashboard(el, data, activityTypes, year, language, timezone) {
+async function renderDashboard(el, data, activityTypes, year, language, timezone, animateRolls = false) {
   const generation = (renderGeneration.get(el) ?? 0) + 1;
   renderGeneration.set(el, generation);
   const input = await collectDashboardInput(data, activityTypes, year);
@@ -4831,7 +4993,7 @@ async function renderDashboard(el, data, activityTypes, year, language, timezone
   });
   const ctx = { data, language, timezone, year };
   const onYear = (nextYear) => {
-    void renderDashboard(el, data, activityTypes, nextYear, language, timezone);
+    void renderDashboard(el, data, activityTypes, nextYear, language, timezone, true);
   };
   renderHeader(root, model, ctx, onYear);
   renderKpis(root, model, ctx);
@@ -4839,6 +5001,10 @@ async function renderDashboard(el, data, activityTypes, year, language, timezone
   renderDashboardMonthly(root, model, ctx);
   renderDashboardDetails(root, model, ctx);
   renderDashboardRecent(root, model, ctx);
+  if (!animateRolls || prefersReducedMotion2(root)) return;
+  const view = root.ownerDocument.defaultView;
+  if (view?.requestAnimationFrame) view.requestAnimationFrame(() => playRolls(root));
+  else playRolls(root);
 }
 
 // src/util/book-shelf-layout.ts
@@ -4907,6 +5073,15 @@ function measureElementWidth(el, fallbackWidth = 0) {
     node = node.parentElement;
   }
   return Number.isFinite(fallbackWidth) && fallbackWidth > 0 ? fallbackWidth : 0;
+}
+
+// src/reader/shell/present.ts
+var presenter = null;
+function registerBookChooser(next) {
+  presenter = next;
+}
+function presentBookChooser(request) {
+  presenter?.(request);
 }
 
 // src/views/book-shelf.ts
@@ -5056,7 +5231,7 @@ function hoverFineMedia() {
   if (typeof window.matchMedia !== "function") return null;
   return window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)");
 }
-function prefersReducedMotion2() {
+function prefersReducedMotion3() {
   if (typeof window.matchMedia !== "function") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -5156,7 +5331,7 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     if (!bookClickOpensNote({
       hoverFine,
       coverOpen,
-      reducedMotion: prefersReducedMotion2()
+      reducedMotion: prefersReducedMotion3()
     })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeOpenCovers(shelf);
@@ -5165,7 +5340,19 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
       return;
     }
     button.classList.remove(COVER_OPEN_CLASS);
-    void data.openPath(item.path);
+    const rect = button.getBoundingClientRect();
+    presentBookChooser({
+      notePath: item.path,
+      title: item.title,
+      coverRect: {
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        color: item.spineColor
+      },
+      ownerDocument: button.ownerDocument
+    });
   });
 }
 function paintRows(frame, items, perRow, data, language, emptyText, ribbonColor, readout) {
@@ -5483,7 +5670,7 @@ function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
   void colors;
   for (const week of weeks) {
     for (const day of week) {
-      const attr = {
+      const attr2 = {
         "data-minutes": String(day.minutes),
         "data-date": day.fullDate,
         "data-ymd": day.date,
@@ -5493,10 +5680,10 @@ function appendHeatmapWeeks(parent, weeks, colors, tooltip, tooltipOpen) {
           day.minutes
         )
       };
-      if (day.isToday) attr["data-testid"] = "atomic-heatmap-today";
-      if (day.path && day.isCurrentYear && !day.isFuture) attr["data-path"] = day.path;
-      if (day.isCurrentYear && !day.isFuture) attr["data-l"] = String(day.level);
-      parent.createDiv({ cls: cellClass(day), attr });
+      if (day.isToday) attr2["data-testid"] = "atomic-heatmap-today";
+      if (day.path && day.isCurrentYear && !day.isFuture) attr2["data-path"] = day.path;
+      if (day.isCurrentYear && !day.isFuture) attr2["data-l"] = String(day.level);
+      parent.createDiv({ cls: cellClass(day), attr: attr2 });
     }
   }
 }
@@ -6399,15 +6586,15 @@ async function renderAtomicGymLog(plugin, el, sourcePath) {
   });
 }
 function addField(parent, label) {
-  const field = parent.createDiv({ cls: "atomic-field atomic-gym-log-field" });
-  const caption = field.createSpan({ cls: "atomic-field-label atomic-caption" });
+  const field2 = parent.createDiv({ cls: "atomic-field atomic-gym-log-field" });
+  const caption = field2.createSpan({ cls: "atomic-field-label atomic-caption" });
   caption.setText(label);
-  return field;
+  return field2;
 }
 function addRepsStepper(parent, label) {
-  const field = parent.createDiv({ cls: "atomic-stepper is-tall atomic-gym-log-field" });
-  field.createSpan({ cls: "atomic-stepper-label atomic-caption", text: label });
-  const input = field.createEl("input", {
+  const field2 = parent.createDiv({ cls: "atomic-stepper is-tall atomic-gym-log-field" });
+  field2.createSpan({ cls: "atomic-stepper-label atomic-caption", text: label });
+  const input = field2.createEl("input", {
     cls: "atomic-stepper-value",
     attr: {
       type: "text",
@@ -6421,14 +6608,14 @@ function addRepsStepper(parent, label) {
     const next = (Number.isFinite(current) ? current : 0) + delta;
     input.value = String(Math.max(0, next));
   };
-  const minus = field.createEl("button", {
+  const minus = field2.createEl("button", {
     text: "\u2212",
     cls: "atomic-btn",
     attr: { type: "button", "aria-label": label }
   });
   minus.addEventListener("click", () => step(-1));
-  field.insertBefore(minus, input);
-  field.createEl("button", {
+  field2.insertBefore(minus, input);
+  field2.createEl("button", {
     text: "+",
     cls: "atomic-btn",
     attr: { type: "button", "aria-label": label }
@@ -6481,10 +6668,10 @@ function elapsedClock(iso, now = Date.now()) {
   const pad = (value) => String(value).padStart(2, "0");
   return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${pad(minutes)}:${pad(seconds)}`;
 }
-function paintTimer(plugin, el, sourcePath) {
-  void renderAtomicTimer(plugin, el, sourcePath);
+function paintTimer(plugin, el, sourcePath, options) {
+  void renderAtomicTimer(plugin, el, sourcePath, void 0, options);
 }
-async function renderAtomicTimer(plugin, el, sourcePath, generation) {
+async function renderAtomicTimer(plugin, el, sourcePath, generation, options) {
   const markdown = sourcePath ? await plugin.data.readCachedBody(sourcePath) : "";
   if (isStaleBlockRender(el, generation)) {
     return;
@@ -6563,7 +6750,9 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
             new import_obsidian8.Notice(
               t("notice.timerLogged", plugin.settings.language, { minutes: minutes2 })
             );
-            paintTimer(plugin, el, sourcePath);
+            paintTimer(plugin, el, sourcePath, {
+              rollFrom: String(displayedTimerMinutes(readTimerFrontmatter(latest)))
+            });
             return;
           }
           case "item": {
@@ -6579,6 +6768,7 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
               plugin.settings.language
             );
             if (note === null) return;
+            const before = displayedTimerMinutes(itemFrontmatter);
             const result = stopTimer({
               markdown: latest,
               startedAtIso: itemFrontmatter.timerStartedAt,
@@ -6591,7 +6781,7 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
                 minutes: result.minutes
               })
             );
-            paintTimer(plugin, el, sourcePath);
+            paintTimer(plugin, el, sourcePath, { rollFrom: String(before) });
             return;
           }
           default: {
@@ -6618,7 +6808,14 @@ async function renderAtomicTimer(plugin, el, sourcePath, generation) {
     return;
   }
   appendCatalogLabel(caption, t("view.timer.caption", language));
-  clock.appendText(String(minutes));
+  const shown = options?.rollFrom ?? String(minutes);
+  const roll = appendRoll(clock, shown);
+  if (options?.rollFrom != null && options.rollFrom !== String(minutes)) {
+    const view = clock.ownerDocument.defaultView;
+    const apply = () => setRoll(roll, String(minutes), true);
+    if (view?.requestAnimationFrame) view.requestAnimationFrame(apply);
+    else apply();
+  }
   clock.createSpan({ cls: "atomic-unit", text: t("view.timer.minuteUnit", language) });
   actions.createEl("button", {
     text: t("view.timer.start", plugin.settings.language),
@@ -6692,19 +6889,19 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
       total: activities.length
     })
   );
-  for (const { activity, session: session2 } of rows) {
+  for (const { activity, session: session3 } of rows) {
     const line = root.createDiv({
-      cls: session2?.path ? "atomic-recent-row atomic-today-row" : "atomic-recent-row atomic-today-row is-empty",
-      attr: session2?.path ? {
+      cls: session3?.path ? "atomic-recent-row atomic-today-row" : "atomic-recent-row atomic-today-row is-empty",
+      attr: session3?.path ? {
         "data-testid": "atomic-today-row",
-        "data-path": session2.path,
+        "data-path": session3.path,
         role: "link",
         tabindex: "0"
       } : void 0
     });
     line.setCssProps({ "--atomic-c": activity.colors[2] });
-    if (session2?.path) {
-      const path = session2.path;
+    if (session3?.path) {
+      const path = session3.path;
       const open = (event) => {
         event.preventDefault();
         void data.openPath(path);
@@ -6719,14 +6916,15 @@ async function renderTodaySessions(el, data, activityTypes, dateStr, language, g
     name.createSpan({ cls: "atomic-dot" });
     name.createSpan({ text: labelForLanguage(activity.label, language) });
     const sum = line.createSpan({ cls: "atomic-recent-sum" });
-    if (session2) {
-      sum.createEl("strong", { text: String(session2.minutes) });
+    if (session3) {
+      const minutes = sum.createEl("strong");
+      appendRoll(minutes, String(session3.minutes));
       sum.appendText(" ");
       appendInlineCatalog(sum, t("view.dashboard.minuteWord", language));
     } else {
       sum.setText(t("view.today.noSession", language));
     }
-    line.createSpan({ cls: "atomic-recent-arrow", text: session2?.path ? "\u2192" : "" });
+    line.createSpan({ cls: "atomic-recent-arrow", text: session3?.path ? "\u2192" : "" });
   }
 }
 
@@ -6919,12 +7117,12 @@ var import_obsidian10 = require("obsidian");
 // src/util/duration-map.ts
 function durationMapFromSessions(sessions) {
   const map = /* @__PURE__ */ new Map();
-  for (const session2 of sessions) {
-    if (!session2.date) continue;
-    const entry = map.get(session2.date) || { minutes: 0, path: null };
-    entry.minutes += session2.duration_min;
-    if (!entry.path) entry.path = session2.path;
-    map.set(session2.date, entry);
+  for (const session3 of sessions) {
+    if (!session3.date) continue;
+    const entry = map.get(session3.date) || { minutes: 0, path: null };
+    entry.minutes += session3.duration_min;
+    if (!entry.path) entry.path = session3.path;
+    map.set(session3.date, entry);
   }
   return map;
 }
@@ -7699,7 +7897,7 @@ var import_obsidian12 = require("obsidian");
 
 // src/core/update-notes.json
 var update_notes_default = {
-  version: "1.5.5",
+  version: "1.5.6",
   body: {
     en: "Atomic has a new look. The dashboard, heatmap, cue cards, book shelf, and timer got a new design. Give them a try.",
     "zh-Hant": "Atomic \u500B\u6A23\u65B0\u5497 \u2014 Dashboard\u3001Heat Map\u3001cue cards\u3001\u66F8\u67B6\u540C timer \u90FD\u6539\u5497\u500B\u8A2D\u8A08\uFF0C\u5FEB\u5572\u8A66\u5413\u5566\uFF01"
@@ -7906,16 +8104,16 @@ function wrapLastSettingControl(setting, options) {
   const last = setting.controlEl.lastElementChild;
   if (!last) return;
   const classes = options.action ? "atomic-setting-field atomic-setting-field-action" : "atomic-setting-field";
-  const field = setting.controlEl.createDiv({
+  const field2 = setting.controlEl.createDiv({
     cls: classes,
     attr: { "data-testid": options.testId }
   });
-  field.createSpan({
+  field2.createSpan({
     cls: options.action ? "atomic-setting-field-label is-spacer" : "atomic-setting-field-label",
     text: options.action ? "\xA0" : options.label,
     attr: { "data-testid": `${options.testId}-label` }
   });
-  field.appendChild(last);
+  field2.appendChild(last);
 }
 function isFunction(value) {
   return typeof value === "function";
@@ -8486,9 +8684,1318 @@ function dedicatedCueHostPaths(settings) {
   return [...paths];
 }
 
+// src/reader/shell/open.ts
+var import_obsidian15 = require("obsidian");
+
+// src/reader/shell/model.ts
+var READER_PHONE_MAX_WIDTH = 780;
+var PAGE_PAD_TOP = 22;
+var PAGE_PAD_BOTTOM = 28;
+var HEADING_BLOCK = 27;
+var LINE_HEIGHT = 19;
+var CHAR_WIDTH = 6.25;
+var BOXES = {
+  s: { w: 230, h: 280 },
+  m: { w: 270, h: 340 },
+  l: { w: 305, h: 410 },
+  xl: { w: 340, h: 488 }
+};
+function readerSizeId(value) {
+  const text = String(value ?? "").trim().toLowerCase();
+  if (text === "s" || text === "m" || text === "l" || text === "xl") return text;
+  return "m";
+}
+function readerPageBox(size) {
+  const box = BOXES[size];
+  const textHeight = box.h - PAGE_PAD_TOP - PAGE_PAD_BOTTOM - HEADING_BLOCK;
+  return {
+    w: box.w,
+    h: box.h,
+    bodyLines: Math.max(1, Math.floor(textHeight / LINE_HEIGHT)),
+    charsPerLine: Math.max(8, Math.floor((box.w - 44) / CHAR_WIDTH))
+  };
+}
+function isPhoneReaderLayout(width) {
+  if (!Number.isFinite(width) || width <= 0) return false;
+  return width < READER_PHONE_MAX_WIDTH;
+}
+function clampReaderPage(page, total) {
+  if (total <= 0) return 1;
+  if (!Number.isFinite(page)) return 1;
+  const next = Math.trunc(page);
+  if (next < 1) return 1;
+  if (next > total) return total;
+  return next;
+}
+function readerProgress(page, total) {
+  const safeTotal = Number.isFinite(total) && total > 0 ? Math.trunc(total) : 0;
+  const safePage = safeTotal === 0 ? 0 : clampReaderPage(page, safeTotal);
+  const percent = safeTotal === 0 ? 0 : Math.round(safePage / safeTotal * 100);
+  return { page: safePage, total: safeTotal, percent };
+}
+function spreadPages(page, total) {
+  if (total <= 0) return { verso: null, recto: null };
+  const current = clampReaderPage(page, total);
+  if (current % 2 === 1) {
+    return { verso: current > 1 ? current - 1 : null, recto: current };
+  }
+  return { verso: current, recto: current < total ? current + 1 : null };
+}
+function visiblePage(spread, fallback) {
+  return spread.recto ?? spread.verso ?? fallback;
+}
+function pageAfterTurn(page, total, direction) {
+  if (total <= 0) return 1;
+  const current = clampReaderPage(page, total);
+  const spread = spreadPages(current, total);
+  if (direction > 0) {
+    const last = visiblePage(spread, current);
+    const nextStart = last + 1;
+    if (nextStart > total) return current;
+    return visiblePage(spreadPages(nextStart, total), nextStart);
+  }
+  const first = spread.verso ?? spread.recto ?? current;
+  const prevLast = first - 1;
+  if (prevLast < 1) return current;
+  return visiblePage(spreadPages(prevLast, total), prevLast);
+}
+function canTurnPage(page, total, direction) {
+  return pageAfterTurn(page, total, direction) !== clampReaderPage(page, Math.max(total, 0));
+}
+function readerOpenPlan(input) {
+  if (input.reducedMotion || !input.hasFlight) return "direct";
+  return "flight";
+}
+
+// src/reader/shell/frontmatter.ts
+var EMPTY = {
+  source: "",
+  page: 1,
+  size: "m",
+  pagesHint: null,
+  canvas: ""
+};
+function unquote(value) {
+  const text = value.trim();
+  if (text.startsWith('"') && text.endsWith('"') || text.startsWith("'") && text.endsWith("'")) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+function positiveInt(value) {
+  const number = typeof value === "number" ? value : Number(String(value ?? "").trim());
+  if (!Number.isFinite(number) || number < 1) return null;
+  return Math.trunc(number);
+}
+function splitFrontmatter2(markdown) {
+  const lines = String(markdown ?? "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") return { lines, endIndex: index };
+  }
+  return null;
+}
+function finish(lines) {
+  const text = lines.join("\n");
+  return text.endsWith("\n") ? text : `${text}
+`;
+}
+function field(record, key) {
+  return record[key];
+}
+function nestedReader(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value;
+}
+function readerFieldsFromFrontmatter(frontmatter) {
+  if (!frontmatter) return { ...EMPTY };
+  const reader = nestedReader(field(frontmatter, "reader"));
+  const page = positiveInt(reader ? field(reader, "page") : void 0) ?? positiveInt(field(frontmatter, "reader.page")) ?? 1;
+  const size = readerSizeId(
+    (reader ? field(reader, "size") : void 0) ?? field(frontmatter, "reader.size")
+  );
+  const sourceValue = field(frontmatter, "source");
+  const canvasValue = field(frontmatter, "related_canvas");
+  return {
+    source: typeof sourceValue === "string" ? sourceValue.trim() : "",
+    page,
+    size,
+    pagesHint: positiveInt(field(frontmatter, "pages")),
+    canvas: typeof canvasValue === "string" ? canvasValue.trim() : ""
+  };
+}
+function readReaderNote(markdown) {
+  const parts = splitFrontmatter2(markdown);
+  if (!parts) return { ...EMPTY };
+  let source = "";
+  let page = null;
+  let size = null;
+  let pagesHint = null;
+  let canvas = "";
+  let inReader = false;
+  for (let index = 1; index < parts.endIndex; index += 1) {
+    const line = parts.lines[index];
+    if (inReader) {
+      if (!/^\s+/.test(line) || /^\s*$/.test(line)) {
+        inReader = false;
+      } else {
+        const nestedPage = line.match(/^\s+page\s*:\s*(.*)$/);
+        if (nestedPage) page = positiveInt(unquote(nestedPage[1])) ?? page;
+        const nestedSize = line.match(/^\s+size\s*:\s*(.*)$/);
+        if (nestedSize) size = readerSizeId(unquote(nestedSize[1]));
+        continue;
+      }
+    }
+    const reader = line.match(/^reader\s*:\s*(.*)$/);
+    if (reader) {
+      const rest = reader[1].trim();
+      if (!rest) {
+        inReader = true;
+        continue;
+      }
+      const inlinePage = rest.match(/page\s*:\s*(\d+)/);
+      if (inlinePage) page = positiveInt(inlinePage[1]);
+      const inlineSize = rest.match(/size\s*:\s*([A-Za-z]+)/);
+      if (inlineSize) size = readerSizeId(inlineSize[1]);
+      continue;
+    }
+    const flatPage = line.match(/^reader\.page\s*:\s*(.*)$/);
+    if (flatPage) page = positiveInt(unquote(flatPage[1])) ?? page;
+    const flatSize = line.match(/^reader\.size\s*:\s*(.*)$/);
+    if (flatSize) size = readerSizeId(unquote(flatSize[1]));
+    const sourceLine = line.match(/^source\s*:\s*(.*)$/);
+    if (sourceLine) source = unquote(sourceLine[1]);
+    const pagesLine = line.match(/^pages\s*:\s*(.*)$/);
+    if (pagesLine) pagesHint = positiveInt(unquote(pagesLine[1]));
+    const canvasLine = line.match(/^related_canvas\s*:\s*(.*)$/);
+    if (canvasLine) canvas = unquote(canvasLine[1]);
+  }
+  return {
+    source,
+    page: page ?? 1,
+    size: size ?? "m",
+    pagesHint,
+    canvas
+  };
+}
+function updateReaderPage(markdown, page) {
+  const safe = Math.max(1, Math.trunc(page));
+  const text = String(markdown ?? "");
+  const parts = splitFrontmatter2(text);
+  if (!parts) {
+    const body = text.replace(/^\n/, "");
+    return `---
+reader:
+  page: ${safe}
+---
+
+${body}`;
+  }
+  const lines = parts.lines.slice();
+  const end = () => splitFrontmatter2(lines.join("\n"))?.endIndex ?? lines.length - 1;
+  let limit = end();
+  for (let index = 1; index < limit; index += 1) {
+    if (/^reader\.page\s*:/.test(lines[index])) {
+      lines[index] = `reader.page: ${safe}`;
+      return finish(lines);
+    }
+  }
+  limit = end();
+  for (let index = 1; index < limit; index += 1) {
+    const match = lines[index].match(/^reader\s*:\s*(.*)$/);
+    if (!match) continue;
+    const rest = match[1].trim();
+    if (rest.startsWith("{")) {
+      if (/page\s*:/.test(rest)) {
+        lines[index] = lines[index].replace(/page\s*:\s*\d+/, `page: ${safe}`);
+      } else {
+        lines[index] = lines[index].replace(/\{\s*/, `{ page: ${safe}, `);
+      }
+      return finish(lines);
+    }
+    if (rest && rest !== "|" && rest !== ">") continue;
+    let cursor = index + 1;
+    const blockEnd = end();
+    for (; cursor < blockEnd; cursor += 1) {
+      if (!/^\s+/.test(lines[cursor])) break;
+      if (/^\s+page\s*:/.test(lines[cursor])) {
+        const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
+        lines[cursor] = `${indent}page: ${safe}`;
+        return finish(lines);
+      }
+    }
+    lines.splice(index + 1, 0, `  page: ${safe}`);
+    return finish(lines);
+  }
+  const closing = end();
+  lines.splice(closing, 0, "reader:", `  page: ${safe}`);
+  return finish(lines);
+}
+
+// src/reader/shell/link.ts
+function normalizeVaultPath3(path) {
+  return String(path || "").replace(/\\/g, "/").replace(/^\.\//, "").replace(/\/+/g, "/").replace(/^\//, "").trim();
+}
+function bookFileKind(path) {
+  const ext = normalizeVaultPath3(path).split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "epub" || ext === "pdf") return ext;
+  return null;
+}
+function bookTitleKey(title) {
+  return String(title || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+function noteBasename(notePath) {
+  const file = normalizeVaultPath3(notePath).split("/").pop() ?? "";
+  return file.replace(/\.md$/i, "");
+}
+function vaultDirectory(path) {
+  const norm = normalizeVaultPath3(path);
+  const slash = norm.lastIndexOf("/");
+  return slash === -1 ? "" : norm.slice(0, slash);
+}
+function sourcePathFromFrontmatter(source) {
+  if (typeof source !== "string") return "";
+  let text = source.trim();
+  if (text.startsWith("!")) text = text.slice(1).trim();
+  const wiki = text.match(/^\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]$/);
+  if (wiki) text = wiki[1].trim();
+  return normalizeVaultPath3(text);
+}
+function fileKey(file) {
+  return bookTitleKey(file.basename);
+}
+function findByPath(files, path) {
+  const norm = normalizeVaultPath3(path).toLowerCase();
+  for (const file of files) {
+    if (normalizeVaultPath3(file.path).toLowerCase() === norm) return file;
+  }
+  return null;
+}
+function findByBasename(files, source) {
+  const base = source.split("/").pop() ?? source;
+  const dot = base.lastIndexOf(".");
+  const name = bookTitleKey(dot === -1 ? base : base.slice(0, dot));
+  const kind = bookFileKind(base);
+  if (!name || !kind) return null;
+  const matches = files.filter(
+    (file) => fileKey(file) === name && file.extension.toLowerCase() === kind
+  );
+  return matches.length === 1 ? matches[0] : null;
+}
+function resolveLinkedBookFile(input) {
+  const files = input.files.filter((file) => bookFileKind(file.path) != null);
+  const source = sourcePathFromFrontmatter(input.source);
+  const sourceKind = bookFileKind(source);
+  if (source && sourceKind) {
+    const exact = findByPath(files, source) ?? findByBasename(files, source);
+    if (exact) {
+      const kind2 = bookFileKind(exact.path);
+      if (kind2) return { kind: kind2, path: normalizeVaultPath3(exact.path) };
+    }
+  }
+  const keys = new Set(
+    [input.title, noteBasename(input.notePath)].map((value) => bookTitleKey(value)).filter(Boolean)
+  );
+  const noteDir = vaultDirectory(input.notePath);
+  const matches = files.filter((file) => keys.has(fileKey(file)));
+  if (!matches.length) return null;
+  matches.sort((left, right) => {
+    const leftDir = vaultDirectory(left.path) === noteDir ? 0 : 1;
+    const rightDir = vaultDirectory(right.path) === noteDir ? 0 : 1;
+    if (leftDir !== rightDir) return leftDir - rightDir;
+    const leftKind = bookFileKind(left.path) === "epub" ? 0 : 1;
+    const rightKind = bookFileKind(right.path) === "epub" ? 0 : 1;
+    if (leftKind !== rightKind) return leftKind - rightKind;
+    return left.path.localeCompare(right.path);
+  });
+  const best = matches[0];
+  const kind = bookFileKind(best.path);
+  if (!kind) return null;
+  return { kind, path: normalizeVaultPath3(best.path) };
+}
+
+// src/reader/shell/mount.ts
+var mounts = {};
+function readerMounts() {
+  return mounts;
+}
+function resetReaderMounts() {
+  delete mounts.flight;
+  delete mounts.theater;
+  delete mounts.size;
+  delete mounts.ask;
+}
+
+// src/reader/shell/chooser.ts
+var session2 = null;
+function overlayBody(owner) {
+  if (owner?.body && owner === activeDocument) return activeDocument.body;
+  if (owner?.body) return owner.body;
+  return activeDocument.body;
+}
+function elementTarget(target) {
+  if (!target || !("instanceOf" in target)) return null;
+  const node = target;
+  return node.instanceOf(HTMLElement) ? node : null;
+}
+function closeBookChooser() {
+  const current = session2;
+  if (!current) return;
+  session2 = null;
+  current.view.removeEventListener("keydown", current.onKey, true);
+  current.overlay.detach();
+}
+function openBookChooser(options) {
+  closeBookChooser();
+  let settled = false;
+  const body = overlayBody(options.ownerDocument);
+  const view = body.win;
+  const overlay = body.createDiv({
+    cls: "atomic-chooser-scrim",
+    attr: {
+      "data-testid": "atomic-chooser",
+      "data-overlay-host": "window",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": options.title
+    }
+  });
+  if (options.phone) overlay.addClass("is-phone");
+  const sheet = overlay.createDiv({
+    cls: options.phone ? "atomic-chooser fitness-plugin is-phone" : "atomic-chooser fitness-plugin"
+  });
+  if (options.phone) sheet.createDiv({ cls: "atomic-chooser-grab" });
+  const notes = sheet.createEl("button", {
+    cls: "atomic-chooser-row is-primary",
+    attr: { type: "button", "data-testid": "atomic-chooser-notes", "data-chooser-act": "notes" }
+  });
+  const notesLabel = notes.createSpan({ cls: "atomic-chooser-label" });
+  notesLabel.createEl("b", { text: t("view.reader.openNotes", options.language) });
+  notesLabel.createSpan({ text: t("view.reader.openNotesHint", options.language) });
+  notes.createSpan({ cls: "atomic-chooser-kbd", text: "\u21B5" });
+  if (options.file) {
+    const book = sheet.createEl("button", {
+      cls: "atomic-chooser-row",
+      attr: { type: "button", "data-testid": "atomic-chooser-book", "data-chooser-act": "book" }
+    });
+    const bookLabel = book.createSpan({ cls: "atomic-chooser-label" });
+    bookLabel.createEl("b", { text: t("view.reader.openBook", options.language) });
+    const fileName = options.file.path.split("/").pop() ?? options.file.path;
+    bookLabel.createSpan({ text: fileName });
+  }
+  const cancel = sheet.createEl("button", {
+    cls: "atomic-chooser-cancel",
+    attr: { type: "button", "data-testid": "atomic-chooser-cancel", "data-chooser-act": "cancel" }
+  });
+  cancel.setText(t("view.reader.cancel", options.language));
+  const choose = (choice) => {
+    if (settled) return;
+    settled = true;
+    closeBookChooser();
+    options.onChoose(choice);
+  };
+  const onKey = (event) => {
+    if (!session2 || session2.overlay !== overlay) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      choose("cancel");
+      return;
+    }
+    if (event.key !== "Enter" || event.repeat) return;
+    const target = elementTarget(event.target);
+    const act = target?.getAttribute("data-chooser-act");
+    if (act === "book" || act === "cancel") return;
+    event.preventDefault();
+    choose("notes");
+  };
+  overlay.addEventListener("click", (event) => {
+    const target = elementTarget(event.target);
+    if (!target) return;
+    if (target === overlay) {
+      choose("cancel");
+      return;
+    }
+    const act = target.closest("[data-chooser-act]")?.getAttribute("data-chooser-act");
+    if (act === "notes" || act === "book" || act === "cancel") choose(act);
+  });
+  view.addEventListener("keydown", onKey, true);
+  session2 = { overlay, onKey, view };
+  notes.focus();
+}
+
+// src/reader/shell/view.ts
+var import_obsidian14 = require("obsidian");
+
+// src/reader/shell/zip.ts
+var SIG_CENTRAL = 33639248;
+var SIG_LOCAL = 67324752;
+var MAX_ENTRY_BYTES = 8 * 1024 * 1024;
+function viewOf2(bytes) {
+  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+}
+function findEocd(bytes) {
+  const start = Math.max(0, bytes.length - (22 + 65535));
+  for (let index = bytes.length - 22; index >= start; index -= 1) {
+    if (bytes[index] === 80 && bytes[index + 1] === 75 && bytes[index + 2] === 5 && bytes[index + 3] === 6) {
+      return index;
+    }
+  }
+  return -1;
+}
+function safeName(name) {
+  const text = name.replace(/\\/g, "/").replace(/^\/+/, "");
+  if (!text || text.includes("\0")) return null;
+  const parts = text.split("/");
+  const out = [];
+  for (const part of parts) {
+    if (!part || part === ".") continue;
+    if (part === "..") return null;
+    out.push(part);
+  }
+  return out.join("/");
+}
+async function inflateRaw(bytes) {
+  if (typeof DecompressionStream !== "function") {
+    throw new Error("deflate is unavailable");
+  }
+  const stream = new DecompressionStream("deflate-raw");
+  const writer = stream.writable.getWriter();
+  const reader = stream.readable.getReader();
+  const copy = bytes.slice();
+  const write = writer.write(copy).then(() => writer.close());
+  const chunks = [];
+  let total = 0;
+  const read = (async () => {
+    for (; ; ) {
+      const step = await reader.read();
+      if (step.done) break;
+      if (!step.value) continue;
+      total += step.value.byteLength;
+      if (total > MAX_ENTRY_BYTES) throw new Error("zip entry is too large");
+      chunks.push(step.value);
+    }
+  })();
+  await Promise.all([write, read]);
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
+}
+async function openZip(bytes) {
+  const eocd = findEocd(bytes);
+  if (eocd < 0) throw new Error("zip end of central directory was not found");
+  const view = viewOf2(bytes);
+  const count = view.getUint16(eocd + 10, true);
+  const offset = view.getUint32(eocd + 16, true);
+  if (count === 65535 || offset === 4294967295) {
+    throw new Error("zip64 archives are not supported");
+  }
+  const decoder = new TextDecoder("utf-8");
+  const entries = [];
+  let cursor = offset;
+  for (let index = 0; index < count; index += 1) {
+    if (cursor + 46 > bytes.length) throw new Error("zip central directory is truncated");
+    if (view.getUint32(cursor, true) !== SIG_CENTRAL) {
+      throw new Error("zip central directory entry is invalid");
+    }
+    const flags = view.getUint16(cursor + 8, true);
+    const method = view.getUint16(cursor + 10, true);
+    const compressedSize = view.getUint32(cursor + 20, true);
+    const uncompressedSize = view.getUint32(cursor + 24, true);
+    const nameLength = view.getUint16(cursor + 28, true);
+    const extraLength = view.getUint16(cursor + 30, true);
+    const commentLength = view.getUint16(cursor + 32, true);
+    const localOffset = view.getUint32(cursor + 42, true);
+    const nameBytes = bytes.subarray(cursor + 46, cursor + 46 + nameLength);
+    const name = safeName(decoder.decode(nameBytes));
+    cursor += 46 + nameLength + extraLength + commentLength;
+    if (!name) continue;
+    const encrypted = (flags & 1) === 1;
+    entries.push({
+      name,
+      read: async () => {
+        if (encrypted) throw new Error("zip entry is encrypted");
+        if (method !== 0 && method !== 8) throw new Error("zip method is unsupported");
+        if (uncompressedSize > MAX_ENTRY_BYTES || compressedSize > MAX_ENTRY_BYTES) {
+          throw new Error("zip entry is too large");
+        }
+        if (localOffset + 30 > bytes.length) throw new Error("zip local header is truncated");
+        if (view.getUint32(localOffset, true) !== SIG_LOCAL) {
+          throw new Error("zip local header is invalid");
+        }
+        const localName = view.getUint16(localOffset + 26, true);
+        const localExtra = view.getUint16(localOffset + 28, true);
+        const dataOffset = localOffset + 30 + localName + localExtra;
+        const data = bytes.subarray(dataOffset, dataOffset + compressedSize);
+        if (data.byteLength !== compressedSize) throw new Error("zip entry is truncated");
+        if (method === 0) return data.slice();
+        return inflateRaw(data);
+      }
+    });
+  }
+  return { entries };
+}
+function zipEntry(archive, name) {
+  const norm = name.replace(/\\/g, "/").replace(/^\/+/, "");
+  const exact = archive.entries.find((entry) => entry.name === norm);
+  if (exact) return exact;
+  const lower = norm.toLowerCase();
+  return archive.entries.find((entry) => entry.name.toLowerCase() === lower) ?? null;
+}
+
+// src/reader/shell/epub.ts
+function decodeXml(text) {
+  return text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+    const code = Number.parseInt(hex, 16);
+    return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+  }).replace(/&#(\d+);/g, (_, dec) => {
+    const code = Number(dec);
+    return Number.isFinite(code) ? String.fromCodePoint(code) : "";
+  }).replace(/&nbsp;/g, " ").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
+function visibleText(html) {
+  return decodeXml(html.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+function htmlToReaderBlocks(html) {
+  const withoutNoise = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "");
+  const blocks = [];
+  const pattern = /<(h[1-6]|p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  for (const match of withoutNoise.matchAll(pattern)) {
+    const text = visibleText(match[2] ?? "");
+    if (!text) continue;
+    const tag = (match[1] ?? "").toLowerCase();
+    blocks.push({ kind: tag.startsWith("h") ? "heading" : "paragraph", text });
+  }
+  if (blocks.length) return blocks;
+  const fallback = visibleText(withoutNoise.replace(/<\/(div|section|article)>/gi, "\n"));
+  return fallback ? [{ kind: "paragraph", text: fallback }] : [];
+}
+function attr(tag, name) {
+  const match = tag.match(new RegExp(`${name}\\s*=\\s*["']([^"']+)["']`, "i"));
+  return match?.[1]?.trim() ?? "";
+}
+function resolveZipPath(baseFile, href) {
+  const decoded = decodeURIComponent(href.split("#")[0] ?? "").replace(/\\/g, "/");
+  if (!decoded) return "";
+  if (decoded.startsWith("/")) return decoded.replace(/^\/+/, "");
+  const dir = baseFile.includes("/") ? baseFile.slice(0, baseFile.lastIndexOf("/") + 1) : "";
+  const parts = `${dir}${decoded}`.split("/");
+  const out = [];
+  for (const part of parts) {
+    if (!part || part === ".") continue;
+    if (part === "..") {
+      out.pop();
+      continue;
+    }
+    out.push(part);
+  }
+  return out.join("/");
+}
+async function textEntry(archive, name) {
+  const entry = zipEntry(archive, name);
+  if (!entry) throw new Error(`missing ${name}`);
+  const bytes = await entry.read();
+  return new TextDecoder("utf-8").decode(bytes);
+}
+async function readEpub(bytes) {
+  const archive = await openZip(bytes);
+  const container = await textEntry(archive, "META-INF/container.xml");
+  const root = container.match(/full-path\s*=\s*["']([^"']+)["']/i)?.[1];
+  if (!root) throw new Error("epub container has no rootfile");
+  const opfPath = resolveZipPath("", root);
+  const opf = await textEntry(archive, opfPath);
+  const manifest = /* @__PURE__ */ new Map();
+  for (const tag of opf.matchAll(/<item\b[^>]*>/gi)) {
+    const raw = tag[0] ?? "";
+    const id = attr(raw, "id");
+    const href = attr(raw, "href");
+    if (!id || !href) continue;
+    manifest.set(id, resolveZipPath(opfPath, href));
+  }
+  const spine = [];
+  for (const tag of opf.matchAll(/<itemref\b[^>]*>/gi)) {
+    const idref = attr(tag[0] ?? "", "idref");
+    const href = manifest.get(idref);
+    if (href) spine.push(href);
+  }
+  const blocks = [];
+  for (const href of spine) {
+    let html = "";
+    try {
+      html = await textEntry(archive, href);
+    } catch {
+      continue;
+    }
+    blocks.push(...htmlToReaderBlocks(html));
+  }
+  return { blocks };
+}
+
+// src/reader/shell/paginate.ts
+function wordsOf(text) {
+  return text.trim().split(/\s+/).filter(Boolean);
+}
+function countReaderLines(text, charsPerLine) {
+  const width = Math.max(1, charsPerLine);
+  const words = wordsOf(text);
+  if (!words.length) return 1;
+  let lines = 1;
+  let length = 0;
+  for (const word of words) {
+    const add = length === 0 ? word.length : word.length + 1;
+    if (length > 0 && length + add > width) {
+      lines += 1;
+      length = word.length;
+    } else {
+      length += add;
+    }
+  }
+  return lines;
+}
+function splitToFit(text, charsPerLine, bodyLines) {
+  const width = Math.max(1, charsPerLine);
+  const limit = Math.max(1, bodyLines);
+  if (countReaderLines(text, width) <= limit) return [text];
+  const words = wordsOf(text);
+  const pieces = [];
+  let current = [];
+  let lines = 1;
+  let length = 0;
+  const push = () => {
+    if (current.length) pieces.push(current.join(" "));
+    current = [];
+    lines = 1;
+    length = 0;
+  };
+  for (const word of words) {
+    const add = length === 0 ? word.length : word.length + 1;
+    if (length > 0 && length + add > width) {
+      if (lines >= limit) push();
+      else lines += 1;
+      current.push(word);
+      length = word.length;
+      continue;
+    }
+    current.push(word);
+    length += add;
+  }
+  push();
+  return pieces.length ? pieces : [text];
+}
+function paginateReaderBlocks(blocks, box) {
+  const bodyLines = Math.max(1, box.bodyLines);
+  const charsPerLine = Math.max(1, box.charsPerLine);
+  const pages = [];
+  let chapter = "";
+  let pageChapter = "";
+  let paragraphs = [];
+  let used = 0;
+  const flush = () => {
+    if (!paragraphs.length) return;
+    pages.push({
+      number: pages.length + 1,
+      chapter: pageChapter,
+      paragraphs
+    });
+    paragraphs = [];
+    used = 0;
+  };
+  const appendPiece = (piece) => {
+    const lines = countReaderLines(piece, charsPerLine);
+    const gap = paragraphs.length ? 1 : 0;
+    if (paragraphs.length && used + gap + lines > bodyLines) flush();
+    if (!paragraphs.length) pageChapter = chapter;
+    const gapNow = paragraphs.length ? 1 : 0;
+    paragraphs.push(piece);
+    used += gapNow + lines;
+  };
+  for (const block of blocks) {
+    const text = block.text.trim();
+    if (!text) continue;
+    if (block.kind === "heading") {
+      flush();
+      chapter = text;
+      continue;
+    }
+    for (const piece of splitToFit(text, charsPerLine, bodyLines)) {
+      appendPiece(piece);
+    }
+  }
+  flush();
+  return pages;
+}
+
+// src/reader/shell/pdf.ts
+function inspectPdf(bytes) {
+  const text = new TextDecoder("iso-8859-1").decode(bytes);
+  const encrypted = /\/Encrypt\b/.test(text);
+  let pages = 0;
+  const patterns = [
+    /\/Type\s*\/Pages\b[\s\S]{0,80}?\/Count\s+(\d+)/g,
+    /\/Count\s+(\d+)[\s\S]{0,80}?\/Type\s*\/Pages\b/g
+  ];
+  for (const pattern of patterns) {
+    for (const match of text.matchAll(pattern)) {
+      const count = Number(match[1]);
+      if (Number.isFinite(count) && count > pages) pages = Math.trunc(count);
+    }
+  }
+  return { pages, encrypted };
+}
+function pdfViewerSrc(resourcePath, page) {
+  const base = resourcePath.split("#")[0] ?? resourcePath;
+  const safe = Math.max(1, Math.trunc(page));
+  return `${base}#page=${safe}&toolbar=0&navpanes=0&view=FitH`;
+}
+
+// src/reader/shell/view.ts
+var ATOMIC_READER_VIEW = "atomic-reader";
+function asRecord(value) {
+  if (!value || typeof value !== "object") return null;
+  return value;
+}
+function asText(value) {
+  return typeof value === "string" ? value : "";
+}
+function coverFromState(value) {
+  const record = asRecord(value);
+  if (!record) return null;
+  const x = Number(record.x);
+  const y = Number(record.y);
+  const width = Number(record.width);
+  const height = Number(record.height);
+  if (![x, y, width, height].every((part) => Number.isFinite(part))) return null;
+  return {
+    x,
+    y,
+    width,
+    height,
+    color: asText(record.color)
+  };
+}
+function elementTarget2(target) {
+  if (!target || !("instanceOf" in target)) return null;
+  const node = target;
+  return node.instanceOf(HTMLElement) ? node : null;
+}
+function readingAccent(plugin) {
+  const reading = plugin.settings.activityTypes.find((activity) => activity.id === "reading");
+  const color = reading?.baseColor ?? "";
+  return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "";
+}
+var AtomicReaderView = class extends import_obsidian14.ItemView {
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.plugin = plugin;
+    this.notePath = "";
+    this.filePath = "";
+    this.title = "";
+    this.kind = "epub";
+    this.returnPath = "";
+    this.coverRect = null;
+    this.size = "m";
+    this.canvasPath = "";
+    this.page = 1;
+    this.savedPage = 1;
+    this.total = 0;
+    this.leaves = [];
+    this.pdfSrc = "";
+    this.failure = "opening";
+    this.phone = false;
+    this.dirty = false;
+    this.ready = false;
+    this.loadToken = 0;
+    this.saveTimer = null;
+    this.observed = false;
+    this.keys = false;
+  }
+  getViewType() {
+    return ATOMIC_READER_VIEW;
+  }
+  getDisplayText() {
+    return this.title || "Book";
+  }
+  getIcon() {
+    return "book-open";
+  }
+  getState() {
+    return {
+      notePath: this.notePath,
+      filePath: this.filePath,
+      title: this.title,
+      kind: this.kind,
+      returnPath: this.returnPath,
+      coverRect: this.coverRect,
+      page: this.page
+    };
+  }
+  async setState(state, result) {
+    this.applyState(state);
+    result.history = true;
+    await this.loadDocument();
+  }
+  async onOpen() {
+    this.ensureObserver();
+    this.ensureKeys();
+    if (!this.ready) this.paint();
+  }
+  async onClose() {
+    this.loadToken += 1;
+    await this.flushSave();
+  }
+  applyState(state) {
+    const record = asRecord(state) ?? {};
+    this.notePath = asText(record.notePath);
+    this.filePath = asText(record.filePath);
+    this.title = asText(record.title);
+    this.kind = record.kind === "pdf" ? "pdf" : "epub";
+    this.returnPath = asText(record.returnPath) || this.notePath;
+    this.coverRect = coverFromState(record.coverRect);
+    const page = Number(record.page);
+    if (Number.isFinite(page) && page >= 1) this.page = Math.trunc(page);
+  }
+  ensureObserver() {
+    if (this.observed || typeof ResizeObserver === "undefined") return;
+    this.observed = true;
+    const observer = new ResizeObserver(() => {
+      const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
+      if (phone === this.phone) return;
+      this.phone = phone;
+      this.paint();
+    });
+    observer.observe(this.contentEl);
+    this.register(() => observer.disconnect());
+  }
+  ensureKeys() {
+    if (this.keys) return;
+    this.keys = true;
+    this.registerDomEvent(this.contentEl, "keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const target = elementTarget2(event.target);
+      if (target?.closest("input, textarea")) return;
+      event.preventDefault();
+      this.turn(event.key === "ArrowRight" ? 1 : -1);
+    });
+  }
+  async loadDocument() {
+    const token = ++this.loadToken;
+    this.failure = "opening";
+    this.ready = false;
+    this.leaves = [];
+    this.pdfSrc = "";
+    this.total = 0;
+    this.paint();
+    const file = this.plugin.data.getFileByPath(this.filePath);
+    if (!(file instanceof import_obsidian14.TFile)) {
+      this.failure = "unreadable";
+      this.ready = true;
+      this.paint();
+      return;
+    }
+    if (file.extension === "pdf") this.kind = "pdf";
+    if (file.extension === "epub") this.kind = "epub";
+    const note = this.plugin.data.getFileByPath(this.notePath);
+    let storedPage = 1;
+    if (note instanceof import_obsidian14.TFile) {
+      const cache = this.plugin.app.metadataCache.getFileCache(note);
+      const fields = cache?.frontmatter ? readerFieldsFromFrontmatter(cache.frontmatter) : readReaderNote(await this.plugin.app.vault.cachedRead(note));
+      if (token !== this.loadToken) return;
+      this.size = fields.size;
+      this.canvasPath = sourcePathFromFrontmatter(fields.canvas);
+      storedPage = fields.page;
+    }
+    this.page = storedPage;
+    this.savedPage = storedPage;
+    try {
+      const bytes = new Uint8Array(await this.plugin.app.vault.readBinary(file));
+      if (token !== this.loadToken) return;
+      switch (this.kind) {
+        case "pdf": {
+          const info = inspectPdf(bytes);
+          if (info.encrypted) this.failure = "encrypted";
+          else if (info.pages < 1) this.failure = "unreadable";
+          else {
+            this.total = info.pages;
+            this.pdfSrc = this.plugin.app.vault.getResourcePath(file);
+            this.failure = null;
+          }
+          break;
+        }
+        case "epub": {
+          const epub = await readEpub(bytes);
+          if (token !== this.loadToken) return;
+          this.leaves = paginateReaderBlocks(epub.blocks, readerPageBox(this.size));
+          this.total = this.leaves.length;
+          this.failure = this.total > 0 ? null : "empty";
+          break;
+        }
+        default: {
+          const unexpected = this.kind;
+          throw new Error(unexpected);
+        }
+      }
+    } catch {
+      if (token !== this.loadToken) return;
+      this.failure = "unreadable";
+    }
+    if (token !== this.loadToken) return;
+    this.page = clampReaderPage(storedPage, Math.max(this.total, 1));
+    this.savedPage = this.page;
+    this.dirty = false;
+    this.ready = true;
+    this.phone = isPhoneReaderLayout(this.contentEl.clientWidth);
+    this.paint();
+  }
+  leafAt(number) {
+    return this.leaves.find((leaf) => leaf.number === number) ?? null;
+  }
+  turn(direction) {
+    if (this.failure) return;
+    const next = pageAfterTurn(this.page, this.total, direction);
+    if (next === this.page) return;
+    this.page = next;
+    this.dirty = this.page !== this.savedPage;
+    this.paint();
+    if (this.dirty) this.scheduleSave();
+  }
+  scheduleSave() {
+    const view = this.contentEl.win;
+    if (this.saveTimer != null) view.clearTimeout(this.saveTimer);
+    const page = this.page;
+    const path = this.notePath;
+    this.saveTimer = view.setTimeout(() => {
+      this.saveTimer = null;
+      void this.writePage(path, page);
+    }, 400);
+  }
+  async writePage(path, page) {
+    if (!path) return;
+    await this.plugin.data.processNote(path, (current) => updateReaderPage(current, page));
+    if (this.page === page) {
+      this.savedPage = page;
+      this.dirty = false;
+    }
+  }
+  async flushSave() {
+    if (this.saveTimer != null) {
+      this.contentEl.win.clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    if (!this.dirty) return;
+    await this.writePage(this.notePath, this.page);
+  }
+  session() {
+    return {
+      notePath: this.notePath,
+      filePath: this.filePath,
+      title: this.title,
+      kind: this.kind,
+      returnPath: this.returnPath,
+      coverRect: this.coverRect,
+      page: this.page,
+      total: this.total,
+      size: this.size
+    };
+  }
+  attachMounts(root) {
+    const session3 = this.session();
+    const mounts2 = readerMounts();
+    const sizeSlot = root.querySelector("[data-reader-slot='size']");
+    if (sizeSlot?.instanceOf(HTMLElement)) mounts2.size?.attach?.(sizeSlot, session3);
+    const theaterSlot = root.querySelector("[data-reader-slot='theater']");
+    if (theaterSlot?.instanceOf(HTMLElement)) mounts2.theater?.attach?.(theaterSlot, session3);
+    const askSlot = root.querySelector("[data-reader-slot='ask']");
+    if (askSlot?.instanceOf(HTMLElement)) mounts2.ask?.attach?.(askSlot, session3);
+  }
+  paint() {
+    const language = this.plugin.settings.language;
+    const box = readerPageBox(this.size);
+    const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
+    this.contentEl.empty();
+    const root = this.contentEl.createDiv({
+      cls: this.phone ? "fitness-plugin atomic-reader is-phone" : "fitness-plugin atomic-reader",
+      attr: {
+        "data-testid": "atomic-reader",
+        "data-reader-mount": "shell",
+        "data-kind": this.kind,
+        "data-page": String(this.page),
+        "data-total": String(this.total),
+        "data-size": this.size,
+        tabindex: "0"
+      }
+    });
+    const accent = readingAccent(this.plugin);
+    root.setCssProps({
+      "--atomic-page-w": `${box.w}px`,
+      "--atomic-page-h": `${box.h}px`,
+      "--atomic-reader-progress": `${progress.percent}%`,
+      ...accent ? { "--atomic-c": accent } : {}
+    });
+    const bar = root.createDiv({ cls: "atomic-reader-bar" });
+    const shelf = bar.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-shelf" }
+    });
+    shelf.setText(t("view.reader.shelf", language));
+    shelf.addEventListener("click", () => {
+      void this.plugin.data.openPath(this.returnPath || this.notePath);
+    });
+    const name = bar.createSpan({
+      cls: "atomic-name atomic-reader-title",
+      attr: { "data-testid": "atomic-reader-title" }
+    });
+    name.createSpan({ cls: "atomic-dot" });
+    name.createSpan({ text: this.title || t("view.reader.openBook", language) });
+    if (this.canvasPath) {
+      const canvas = bar.createEl("button", {
+        cls: "atomic-link",
+        attr: { type: "button", "data-testid": "atomic-reader-canvas" }
+      });
+      canvas.setText(t("view.reader.canvas", language));
+      canvas.addEventListener("click", () => {
+        void this.plugin.data.openPath(this.canvasPath);
+      });
+    }
+    const note = bar.createEl("button", {
+      cls: "atomic-link",
+      attr: { type: "button", "data-testid": "atomic-reader-note" }
+    });
+    note.setText(t("view.reader.note", language));
+    note.addEventListener("click", () => {
+      void this.plugin.data.openPath(this.notePath);
+    });
+    bar.createDiv({
+      cls: "atomic-reader-slot",
+      attr: { "data-reader-slot": "size", "data-testid": "atomic-reader-slot-size" }
+    });
+    bar.createDiv({
+      cls: "atomic-reader-slot",
+      attr: { "data-reader-slot": "theater", "data-testid": "atomic-reader-slot-theater" }
+    });
+    const spreadEl = root.createDiv({ cls: "atomic-reader-spread" });
+    if (this.failure) {
+      const key = this.failure === "encrypted" ? "view.reader.encrypted" : this.failure === "empty" ? "view.reader.empty" : this.failure === "opening" ? "view.reader.opening" : "view.reader.unreadable";
+      spreadEl.createEl("p", {
+        cls: "atomic-reader-status",
+        attr: { "data-testid": "atomic-reader-status", "data-state": this.failure },
+        text: t(key, language)
+      });
+    } else {
+      const pair = spreadPages(this.page, this.total);
+      if (!this.phone) {
+        spreadEl.createDiv({
+          cls: "atomic-reader-gutter is-margin",
+          attr: { "data-reader-slot": "margin" }
+        });
+        this.paintPage(spreadEl, pair.verso, "verso");
+        this.paintPage(spreadEl, pair.recto, "recto");
+      } else {
+        if (pair.verso) this.paintPage(spreadEl, pair.verso, "verso");
+        if (pair.recto) this.paintPage(spreadEl, pair.recto, "recto");
+      }
+    }
+    spreadEl.createDiv({
+      cls: "atomic-reader-gutter is-ask",
+      attr: { "data-reader-slot": "ask", "data-testid": "atomic-reader-slot-ask" }
+    });
+    this.paintFoot(root, language, progress);
+    this.attachMounts(root);
+  }
+  paintPage(parent, number, side) {
+    const page = parent.createDiv({
+      cls: `atomic-reader-page is-${side}`,
+      attr: number ? { "data-testid": "atomic-reader-page", "data-page": String(number) } : { "data-blank": "true" }
+    });
+    if (!number) return;
+    const leaf = this.leafAt(number);
+    const chapter = leaf?.chapter ?? "";
+    const label = this.phone ? [chapter, `p. ${number}`].filter(Boolean).join(" \xB7 ") : side === "verso" ? chapter : `p. ${number}`;
+    if (label) page.createEl("h3", { text: label });
+    if (this.kind === "pdf" && this.pdfSrc) {
+      page.createEl("iframe", {
+        cls: "atomic-reader-frame",
+        attr: { src: pdfViewerSrc(this.pdfSrc, number), title: this.title }
+      });
+      return;
+    }
+    for (const paragraph of leaf?.paragraphs ?? []) {
+      page.createEl("p", { text: paragraph });
+    }
+  }
+  paintFoot(root, language, progress) {
+    const foot = root.createDiv({ cls: "atomic-reader-foot" });
+    const prev = foot.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-prev" }
+    });
+    prev.setAttr("aria-label", t("view.reader.prev", language));
+    prev.setText("\u2039");
+    if (!canTurnPage(this.page, this.total, -1) || this.failure) prev.setAttr("disabled", "true");
+    else prev.addEventListener("click", () => this.turn(-1));
+    foot.createSpan({
+      cls: "atomic-reader-last",
+      attr: { "data-testid": "atomic-reader-last" },
+      text: t("view.reader.lastRead", language, { page: progress.page || this.page })
+    });
+    const meter = foot.createSpan({
+      cls: "atomic-reader-progress",
+      attr: { "data-testid": "atomic-reader-meter" }
+    });
+    meter.createEl("i");
+    foot.createSpan({
+      cls: "atomic-reader-count",
+      attr: { "data-testid": "atomic-reader-progress" },
+      text: t("view.reader.progress", language, {
+        page: progress.page,
+        total: progress.total,
+        percent: progress.percent
+      })
+    });
+    const next = foot.createEl("button", {
+      cls: "atomic-btn is-quiet is-small",
+      attr: { type: "button", "data-testid": "atomic-reader-next" }
+    });
+    next.setAttr("aria-label", t("view.reader.next", language));
+    next.setText("\u203A");
+    if (!canTurnPage(this.page, this.total, 1) || this.failure) next.setAttr("disabled", "true");
+    else next.addEventListener("click", () => this.turn(1));
+  }
+};
+
+// src/reader/shell/open.ts
+function bookFiles(plugin) {
+  const out = [];
+  for (const file of plugin.app.vault.getFiles()) {
+    const kind = bookFileKind(file.path);
+    if (!kind) continue;
+    out.push({ path: file.path, basename: file.basename, extension: file.extension });
+  }
+  return out;
+}
+function frontmatterOf(plugin, path) {
+  const file = plugin.data.getFileByPath(path);
+  if (!file) return {};
+  const cache = plugin.app.metadataCache.getFileCache(file);
+  return cache?.frontmatter ?? {};
+}
+function linkedFile(plugin, notePath, title) {
+  const frontmatter = frontmatterOf(plugin, notePath);
+  return resolveLinkedBookFile({
+    title,
+    notePath,
+    source: frontmatter.source,
+    files: bookFiles(plugin)
+  });
+}
+function prefersReducedMotion4() {
+  return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+async function openReaderDirect(plugin, request) {
+  const leaf = plugin.app.workspace.getLeaf(false);
+  await leaf.setViewState({
+    type: ATOMIC_READER_VIEW,
+    active: true,
+    state: {
+      notePath: request.notePath,
+      filePath: request.filePath,
+      title: request.title,
+      kind: request.kind,
+      returnPath: request.returnPath,
+      coverRect: request.coverRect
+    }
+  });
+  plugin.app.workspace.revealLeaf(leaf);
+}
+async function openLinkedBook(plugin, request) {
+  const plan = readerOpenPlan({
+    reducedMotion: prefersReducedMotion4(),
+    hasFlight: Boolean(readerMounts().flight)
+  });
+  if (plan === "flight") {
+    const flight = readerMounts().flight;
+    if (flight) {
+      const handled = await flight.open(request);
+      if (handled) return;
+    }
+  }
+  await openReaderDirect(plugin, request);
+}
+async function openBookChooser2(plugin, request) {
+  const language = plugin.settings.language;
+  const file = linkedFile(plugin, request.notePath, request.title);
+  const width = request.ownerDocument.defaultView?.innerWidth ?? activeWindow.innerWidth;
+  const returnPath = plugin.app.workspace.getActiveFile()?.path || request.notePath;
+  openBookChooser({
+    ownerDocument: request.ownerDocument,
+    title: request.title,
+    file,
+    language,
+    phone: isPhoneReaderLayout(width),
+    onChoose: (choice) => {
+      if (choice === "notes") {
+        void plugin.data.openPath(request.notePath);
+        return;
+      }
+      if (choice === "book" && file) {
+        void openLinkedBook(plugin, {
+          notePath: request.notePath,
+          filePath: file.path,
+          title: request.title,
+          kind: file.kind,
+          returnPath,
+          coverRect: request.coverRect
+        });
+      }
+    }
+  });
+}
+function titleFromFrontmatter(frontmatter, basename) {
+  const title = frontmatter.title;
+  if (typeof title === "string" && title.trim()) return title.trim();
+  return basename;
+}
+async function openActiveNoteBook(plugin) {
+  const language = plugin.settings.language;
+  const active = plugin.app.workspace.getActiveFile();
+  if (!(active instanceof import_obsidian15.TFile) || active.extension !== "md") {
+    new import_obsidian15.Notice(t("notice.readerNeedsNote", language));
+    return;
+  }
+  const frontmatter = frontmatterOf(plugin, active.path);
+  let source = frontmatter.source;
+  if (typeof source !== "string" || !source.trim()) {
+    source = readReaderNote(await plugin.app.vault.cachedRead(active)).source;
+  }
+  const title = titleFromFrontmatter(frontmatter, active.basename);
+  const file = resolveLinkedBookFile({
+    title,
+    notePath: active.path,
+    source,
+    files: bookFiles(plugin)
+  });
+  if (!file) {
+    new import_obsidian15.Notice(t("notice.readerNoFile", language));
+    return;
+  }
+  await openLinkedBook(plugin, {
+    notePath: active.path,
+    filePath: file.path,
+    title,
+    kind: file.kind,
+    returnPath: active.path,
+    coverRect: null
+  });
+}
+function closeReaderChrome() {
+  closeBookChooser();
+}
+
 // src/main.ts
 var REFRESH_DEBOUNCE_MS = 300;
-var FitnessPlugin = class extends import_obsidian14.Plugin {
+var FitnessPlugin = class extends import_obsidian16.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -8556,7 +10063,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian14.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian16.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -8567,7 +10074,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian14.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian16.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -8623,6 +10130,17 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
         );
       }
     });
+    registerBookChooser((request) => {
+      void openBookChooser2(this, request);
+    });
+    this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
+    this.addCommand({
+      id: "open-book",
+      name: t("command.openBook", this.settings.language),
+      callback: () => {
+        void openActiveNoteBook(this);
+      }
+    });
     this.addCommand({
       id: "open-dashboard",
       name: t("command.openDashboard", this.settings.language),
@@ -8640,6 +10158,8 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
   }
   onunload() {
     this.unloaded = true;
+    closeReaderChrome();
+    resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {
       window.clearTimeout(this.refreshTimer);
@@ -8749,7 +10269,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
   }
   chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian14.Notice(t(emptyNoticeKey, this.settings.language));
+      new import_obsidian16.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return suggestItem(
@@ -8787,7 +10307,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian14.Notice(t("notice.noGymActivity", this.settings.language));
+      new import_obsidian16.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createActivitySession(
@@ -8801,7 +10321,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian14.Notice(t("notice.noGolfActivity", this.settings.language));
+      new import_obsidian16.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createActivitySession(
@@ -8815,7 +10335,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new import_obsidian14.Notice(t("notice.noReadingHobby", this.settings.language));
+      new import_obsidian16.Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
@@ -8828,7 +10348,7 @@ var FitnessPlugin = class extends import_obsidian14.Plugin {
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian14.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
+      new import_obsidian16.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);

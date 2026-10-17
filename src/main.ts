@@ -36,6 +36,10 @@ import {
   rewriteDedicatedCueFences,
 } from "./util/rewrite-cue-fences";
 import { suggestItem } from "./util/suggest-item";
+import { closeReaderChrome, openActiveNoteBook, openBookChooser } from "./reader/shell/open";
+import { resetReaderMounts } from "./reader/shell/mount";
+import { registerBookChooser } from "./reader/shell/present";
+import { ATOMIC_READER_VIEW, AtomicReaderView } from "./reader/shell/view";
 
 const REFRESH_DEBOUNCE_MS = 300;
 
@@ -190,6 +194,18 @@ export default class FitnessPlugin extends Plugin {
       },
     });
 
+    registerBookChooser((request) => {
+      void openBookChooser(this, request);
+    });
+    this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
+    this.addCommand({
+      id: "open-book",
+      name: t("command.openBook", this.settings.language),
+      callback: () => {
+        void openActiveNoteBook(this);
+      },
+    });
+
     this.addCommand({
       id: "open-dashboard",
       name: t("command.openDashboard", this.settings.language),
@@ -209,6 +225,8 @@ export default class FitnessPlugin extends Plugin {
 
   onunload() {
     this.unloaded = true;
+    closeReaderChrome();
+    resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {
       window.clearTimeout(this.refreshTimer);
