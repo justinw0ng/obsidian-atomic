@@ -6,3 +6,5 @@ export { readReaderSize, readReaderSizeFromRecord, writeReaderSize } from "./fro
 export { READER_LINES_CLASS, READER_PAGE_CLASS, READER_SIZE_CLASS, mountReaderSize, type MountReaderSizeOptions, type ReaderSizeControl } from "./mount.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 export { readerSizeShortcutDirection, type ReaderSizeShortcutDirection } from "./shortcut.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+export { registerBookSize, resetBookSize, setReaderSizeTheaterLocked, settleReaderSize, type BookSizeHost, type ReaderSizeMemory } from "./shell-bind.ts";

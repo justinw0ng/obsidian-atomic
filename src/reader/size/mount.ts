@@ -18,6 +18,10 @@ const PAGE_PROPS = [
 const PHONE_HINT = "Larger book, same type size — more lines per page. Saved for this book.";
 const DESK_HINT = "⌘− / ⌘+";
 
+export type ReaderSizeChrome = "bar" | "sheet";
+
+export type ReaderSizePaint = "page" | "shell";
+
 export type MountReaderSizeOptions = {
   /** Toolbar slot on the desk, or the book-size slot on the phone sheet. */
   controlEl: HTMLElement;
@@ -27,6 +31,18 @@ export type MountReaderSizeOptions = {
    */
   pageHost: HTMLElement | readonly HTMLElement[];
   surface?: ReaderSizeSurface;
+  /**
+   * "sheet" is the phone reading sheet. "bar" fits `[data-reader-slot="size"]`.
+   * Desk is always a bar. Phone defaults to the sheet.
+   */
+  chrome?: ReaderSizeChrome;
+  /**
+   * "page" sizes pageHost. "shell" writes `--atomic-page-w/h` on boxEl
+   * and leaves the shell page markup alone.
+   */
+  paint?: ReaderSizePaint;
+  /** Reader root for paint "shell". */
+  boxEl?: HTMLElement;
   /**
    * Theater draws XL and hides S·M·L·XL. The saved size is left alone.
    * The shell owns theater chrome; this flag is the only theater hook.
@@ -62,12 +78,14 @@ export function mountReaderSize(options: MountReaderSizeOptions): ReaderSizeCont
   }
 
   const surface: ReaderSizeSurface = options.surface === "phone" ? "phone" : "desk";
+  const chrome = chromeFor(surface, options.chrome);
+  const shellPaint = options.paint === "shell";
   let settled = parseReaderSize(options.size);
   let theaterLocked = options.theaterLocked === true;
   let destroyed = false;
 
   controlEl.empty();
-  const slot = surface === "phone" ? mountPhoneSlot(controlEl) : mountDeskSlot(controlEl);
+  const slot = mountSlot(chrome, controlEl, surface);
   const buttons = new Map<ReaderSizeId, HTMLButtonElement>();
   for (const size of READER_SIZE_ORDER) {
     const button = slot.segment.createEl("button", {
@@ -118,7 +136,8 @@ export function mountReaderSize(options: MountReaderSizeOptions): ReaderSizeCont
       motionQuery?.removeEventListener("change", onMotion);
       view?.removeEventListener("keydown", onKey);
       controlEl.empty();
-      for (const page of pages) clearPage(page);
+      if (shellPaint) options.boxEl?.removeClass("is-instant");
+      else for (const page of pages) clearPage(page);
     },
     getSize: () => settled,
     getEffectiveSize: () => effectiveReaderSize(settled, theaterLocked),
@@ -150,7 +169,8 @@ export function mountReaderSize(options: MountReaderSizeOptions): ReaderSizeCont
       theater: theaterLocked,
     });
     const reduced = prefersReduced(motionQuery, options.reducedMotion);
-    for (const page of pages) applyPage(page, drawn, reduced);
+    if (shellPaint) applyShellBox(options.boxEl, drawn, reduced);
+    else for (const page of pages) applyPage(page, drawn, reduced);
     slot.root.toggleClass("is-theater-locked", theaterLocked);
     if (theaterLocked) slot.root.setAttr("hidden", "true");
     else slot.root.removeAttribute("hidden");
@@ -172,9 +192,43 @@ type SizeSlot = {
   value: HTMLElement | null;
 };
 
-function mountDeskSlot(controlEl: HTMLElement): SizeSlot {
+function chromeFor(surface: ReaderSizeSurface, chrome: ReaderSizeChrome | undefined): ReaderSizeChrome {
+  switch (chrome) {
+    case "bar":
+    case "sheet":
+      return chrome;
+    case undefined:
+      return surface === "phone" ? "sheet" : "bar";
+    default: {
+      const unseen: never = chrome;
+      return unseen;
+    }
+  }
+}
+
+function mountSlot(
+  chrome: ReaderSizeChrome,
+  controlEl: HTMLElement,
+  surface: ReaderSizeSurface,
+): SizeSlot {
+  switch (chrome) {
+    case "bar":
+      return mountBarSlot(controlEl, surface);
+    case "sheet":
+      return mountPhoneSlot(controlEl);
+    default: {
+      const unseen: never = chrome;
+      return unseen;
+    }
+  }
+}
+
+function mountBarSlot(controlEl: HTMLElement, surface: ReaderSizeSurface): SizeSlot {
+  const phone = surface === "phone";
   const root = controlEl.createDiv({
-    cls: `fitness-plugin ${READER_SIZE_CLASS}`,
+    cls: phone
+      ? `fitness-plugin ${READER_SIZE_CLASS} is-phone is-bar`
+      : `fitness-plugin ${READER_SIZE_CLASS}`,
     attr: {
       "data-testid": "atomic-reader-size",
       "aria-label": "Book size",
@@ -184,11 +238,13 @@ function mountDeskSlot(controlEl: HTMLElement): SizeSlot {
     cls: "atomic-reader-size-seg",
     attr: { role: "group", "aria-label": "Book size" },
   });
-  root.createSpan({
-    cls: "atomic-reader-size-hint",
-    text: DESK_HINT,
-    attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" },
-  });
+  if (!phone) {
+    root.createSpan({
+      cls: "atomic-reader-size-hint",
+      text: DESK_HINT,
+      attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" },
+    });
+  }
   return { root, segment, value: null };
 }
 
@@ -219,6 +275,20 @@ function mountPhoneSlot(controlEl: HTMLElement): SizeSlot {
     text: PHONE_HINT,
   });
   return { root: sheet, segment, value };
+}
+
+function applyShellBox(
+  box: HTMLElement | undefined,
+  geometry: ReaderPageGeometry,
+  reduced: boolean,
+): void {
+  if (!box) return;
+  box.setCssProps({
+    "--atomic-page-w": `${geometry.width}px`,
+    "--atomic-page-h": `${geometry.height}px`,
+  });
+  box.toggleClass("is-instant", reduced);
+  box.setAttr("data-size", geometry.size);
 }
 
 function applyPage(pageHost: HTMLElement, geometry: ReaderPageGeometry, reduced: boolean): void {

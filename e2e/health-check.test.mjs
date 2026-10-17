@@ -2759,6 +2759,140 @@ ${E2E_CUE_LOG_FENCE}
       await waitForNotice(driver, "Enable the Bases core plugin");
     });
   });
+
+  it("changes book size from the reader slot and keeps the type", async () => {
+    await check(driver, "reader-book-size", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      const clickTitledBook = (title) => driver.executeScript(`
+        document.querySelector(
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
+        ).click();
+      `, title);
+      const readSize = () => driver.executeScript(`
+        const root = document.querySelector('[data-testid="atomic-reader"]');
+        const page = root?.querySelector('[data-testid="atomic-reader-page"] p');
+        const style = page ? getComputedStyle(page) : null;
+        const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+        const slot = root?.querySelector('[data-reader-slot="size"]');
+        const control = slot?.querySelector('[data-testid="atomic-reader-size"]');
+        return (async () => {
+          const note = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.readingCurrent)});
+          const body = note ? await app.vault.read(note) : "";
+          return {
+            pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
+            pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+            fontSize: style?.fontSize || "",
+            lineHeight: style?.lineHeight || "",
+            phone: root?.classList.contains("is-phone") === true,
+            rootWidth: root ? Math.round(root.getBoundingClientRect().width) : 0,
+            inSlot: Boolean(slot && control && slot.contains(control)),
+            bar: control?.classList.contains("is-bar") === true,
+            controlPhone: control?.classList.contains("is-phone") === true,
+            sheet: Boolean(slot?.querySelector('[data-testid="atomic-reader-size-sheet"]')),
+            hint: slot?.querySelector('[data-testid="atomic-reader-size-hint"]')?.textContent || "",
+            saved: body,
+          };
+        })();
+      `);
+      try {
+        await restoreDesktopPointer(driver, desktopViewport);
+        await openVaultFile(driver, E2E_FILES.bookshelfAll);
+        await waitCss(
+          driver,
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+        );
+        await clickTitledBook("Currently Reading");
+        try {
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 700);
+        } catch {
+          await clickTitledBook("Currently Reading");
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 8000);
+        }
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        `);
+        await driver.wait(async () => {
+          const ready = await driver.executeScript(`
+            const slot = document.querySelector('[data-reader-slot="size"]');
+            return Boolean(slot?.querySelector('[data-testid="atomic-reader-size-xl"]'));
+          `);
+          return ready;
+        }, 8000);
+
+        let desk = {};
+        await driver.executeScript(`
+          document.querySelector('[data-reader-slot="size"] [data-testid="atomic-reader-size-xl"]').click();
+        `);
+        try {
+          await driver.wait(async () => {
+            desk = await readSize();
+            return desk.pageWidth === 340 && desk.pageHeight === 488 && /reader\.size:\s*xl/.test(desk.saved);
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(desk)}`);
+        }
+        assert.equal(desk.fontSize, "12.5px");
+        assert.equal(desk.lineHeight, "19px");
+        assert.equal(desk.phone, false);
+        assert.equal(desk.inSlot, true);
+        assert.equal(desk.sheet, false);
+        assert.equal(desk.bar, false);
+        assert.match(desk.hint, /⌘/);
+
+        await driver.executeScript(`
+          document.querySelector('[data-reader-slot="size"] [data-testid="atomic-reader-size-s"]').click();
+        `);
+        await driver.wait(async () => {
+          const small = await readSize();
+          return small.pageWidth === 230 && small.pageHeight === 280 && /reader\.size:\s*s/.test(small.saved);
+        }, 8000);
+
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 390,
+            height: 844,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(390, 844)`);
+        }
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+        `);
+        let phone = {};
+        try {
+          await driver.wait(async () => {
+            phone = await readSize();
+            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px";
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
+        }
+        assert.equal(phone.lineHeight, "23px");
+        assert.equal(phone.inSlot, true);
+        assert.equal(phone.controlPhone, true);
+        assert.equal(phone.bar, true);
+        assert.equal(phone.sheet, false);
+        await shot(driver, "reader-book-size-phone");
+      } finally {
+        await restoreDesktopPointer(driver, desktopViewport);
+      }
+    });
+  });
 });
 
 if (skipReason) {

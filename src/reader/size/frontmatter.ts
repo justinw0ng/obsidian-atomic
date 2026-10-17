@@ -56,7 +56,40 @@ export function writeReaderSize(markdown: string, size: ReaderSizeId): string {
     }
     next.push(fence.lines[index]);
   }
+  syncNestedReaderSize(next, size);
   return ensureTrailingNewline(next.join(nl), nl);
+}
+
+/**
+ * The shell prefers a nested `size` under `reader:` over the flat key.
+ * When that line is already present, keep it on the same value.
+ */
+function syncNestedReaderSize(lines: string[], size: ReaderSizeId): void {
+  let end = lines.length;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") {
+      end = index;
+      break;
+    }
+  }
+  for (let index = 1; index < end; index += 1) {
+    const reader = lines[index].match(/^reader\s*:\s*(.*)$/);
+    if (!reader) continue;
+    const rest = reader[1].trim();
+    if (rest.startsWith("{")) {
+      if (/size\s*:/.test(rest)) {
+        lines[index] = lines[index].replace(/size\s*:\s*[^,}\s]+/, `size: ${size}`);
+      }
+      continue;
+    }
+    if (rest && rest !== "|" && rest !== ">") continue;
+    for (let cursor = index + 1; cursor < end; cursor += 1) {
+      if (!/^\s+/.test(lines[cursor])) break;
+      if (!/^\s+size\s*:/.test(lines[cursor])) continue;
+      const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
+      lines[cursor] = `${indent}size: ${size}`;
+    }
+  }
 }
 
 function splitFrontmatter(markdown: string): { lines: string[]; end: number } | null {

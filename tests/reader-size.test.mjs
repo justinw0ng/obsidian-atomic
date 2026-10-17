@@ -19,8 +19,10 @@ import {
   readerPageGeometry,
   readerSizeShortcutDirection,
   stepReaderSize,
+  settleReaderSize,
   writeReaderSize,
 } from "../src/reader/size/index.ts";
+import { readReaderNote } from "../src/reader/shell/frontmatter.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const fixture = readFileSync(join(root, "tests/fixtures/reader-size-note.md"), "utf8");
@@ -135,6 +137,35 @@ test("reader.size in the note body is not the saved size", () => {
   const saved = writeReaderSize(withBody, "s");
   assert.equal(readReaderSize(saved), "s");
   assert.match(saved, /# Pride and Prejudice[\s\S]*reader\.size: xl/);
+});
+
+test("flat reader.size updates a nested reader size the shell prefers", () => {
+  const note = "---\nreader.size: s\nreader:\n  page: 3\n  size: m\nsize: 12\n---\n\nBody\n";
+  assert.equal(readReaderNote(note).size, "m");
+  assert.equal(readReaderNote(note).page, 3);
+  const saved = writeReaderSize(note, "xl");
+  assert.match(saved, /^reader\.size: xl$/m);
+  assert.match(saved, /^  size: xl$/m);
+  assert.match(saved, /^  page: 3$/m);
+  assert.match(saved, /^size: 12$/m);
+  assert.equal(readReaderNote(saved).size, "xl");
+  assert.equal(readReaderNote(saved).page, 3);
+  assert.equal(writeReaderSize(saved, "xl"), saved);
+
+  const inline = "---\ntitle: Book\nreader: { page: 3, size: m }\n---\n";
+  const flowed = writeReaderSize(inline, "l");
+  assert.match(flowed, /reader: \{ page: 3, size: l \}/);
+  assert.match(flowed, /^reader\.size: l$/m);
+  assert.equal(readReaderNote(flowed).size, "l");
+  assert.equal(readReaderNote(flowed).page, 3);
+});
+
+test("a chosen size survives shell repaints until the note is read again", () => {
+  const opened = settleReaderSize(undefined, "m");
+  assert.deepEqual(opened, { settled: "m", shell: "m" });
+  const chosen = { settled: "xl", shell: "m" };
+  assert.deepEqual(settleReaderSize(chosen, "m"), chosen);
+  assert.deepEqual(settleReaderSize(chosen, "s"), { settled: "s", shell: "s" });
 });
 
 test("a note without frontmatter gains a reader.size fence", () => {

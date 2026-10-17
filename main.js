@@ -9016,6 +9016,9 @@ function resolveLinkedBookFile(input) {
 
 // src/reader/shell/mount.ts
 var mounts = {};
+function registerReaderSize(size) {
+  mounts.size = size;
+}
 function readerMounts() {
   return mounts;
 }
@@ -9993,6 +9996,488 @@ function closeReaderChrome() {
   closeBookChooser();
 }
 
+// src/reader/size/geometry.ts
+var READER_SIZE_ORDER = ["s", "m", "l", "xl"];
+var DEFAULT_READER_SIZE = "m";
+var READER_SIZE_FRONTMATTER_KEY = "reader.size";
+var READER_DESK_TYPE = { fontSizePx: 12.5, lineHeightPx: 19 };
+var READER_PHONE_TYPE = { fontSizePx: 15, lineHeightPx: 23 };
+var READER_PAGE_PAD_Y = { top: 26, bottom: 26 };
+var READER_PAGE_BOX = {
+  s: { width: 230, height: 280, theaterHeight: 280 },
+  m: { width: 270, height: 340, theaterHeight: 340 },
+  l: { width: 305, height: 410, theaterHeight: 420 },
+  xl: { width: 340, height: 488, theaterHeight: 500 }
+};
+function isReaderSizeId(value) {
+  return READER_SIZE_ORDER.some((size) => size === value);
+}
+function parseReaderSize(value) {
+  const token = String(value ?? "").trim().toLowerCase();
+  if (isReaderSizeId(token)) return token;
+  return DEFAULT_READER_SIZE;
+}
+function readerSizeLabel(size) {
+  switch (size) {
+    case "s":
+      return "S";
+    case "m":
+      return "M";
+    case "l":
+      return "L";
+    case "xl":
+      return "XL";
+    default: {
+      const unseen = size;
+      return unseen;
+    }
+  }
+}
+function stepReaderSize(size, direction) {
+  const index = READER_SIZE_ORDER.indexOf(size);
+  const next = Math.max(0, Math.min(READER_SIZE_ORDER.length - 1, index + direction));
+  return READER_SIZE_ORDER[next];
+}
+function effectiveReaderSize(size, theaterLocked2) {
+  return theaterLocked2 ? "xl" : size;
+}
+function readerPageGeometry(size, options) {
+  const surface = options?.surface ?? "desk";
+  const theater = options?.theater === true;
+  const applied = effectiveReaderSize(size, theater);
+  const box = READER_PAGE_BOX[applied];
+  const height = theater ? box.theaterHeight : box.height;
+  const type = surface === "phone" ? READER_PHONE_TYPE : READER_DESK_TYPE;
+  const contentHeight = height - READER_PAGE_PAD_Y.top - READER_PAGE_PAD_Y.bottom;
+  const lines = Math.max(0, Math.floor(contentHeight / type.lineHeightPx));
+  return {
+    size: applied,
+    surface,
+    theater,
+    width: box.width,
+    height,
+    fontSizePx: type.fontSizePx,
+    lineHeightPx: type.lineHeightPx,
+    paddingTop: READER_PAGE_PAD_Y.top,
+    paddingBottom: READER_PAGE_PAD_Y.bottom,
+    contentHeight,
+    lines,
+    clipHeight: lines * type.lineHeightPx
+  };
+}
+
+// src/reader/size/frontmatter.ts
+var KEY_LINE = /^reader\.size\s*:(.*)$/;
+function writeReaderSize(markdown, size) {
+  const text = String(markdown ?? "");
+  const nl = text.includes("\r\n") ? "\r\n" : "\n";
+  const line = `${READER_SIZE_FRONTMATTER_KEY}: ${size}`;
+  const fence = splitFrontmatter3(text);
+  if (!fence) {
+    const body = text.replace(/^\uFEFF?/, "");
+    const spacer = body.length === 0 || body.startsWith(nl) ? "" : nl;
+    return `---${nl}${line}${nl}---${nl}${spacer}${body}`;
+  }
+  let replaced = false;
+  const next = [];
+  for (let index = 0; index < fence.lines.length; index += 1) {
+    if (index === fence.end && !replaced) next.push(line);
+    if (index > 0 && index < fence.end && KEY_LINE.test(fence.lines[index])) {
+      if (!replaced) next.push(line);
+      replaced = true;
+      continue;
+    }
+    next.push(fence.lines[index]);
+  }
+  syncNestedReaderSize(next, size);
+  return ensureTrailingNewline2(next.join(nl), nl);
+}
+function syncNestedReaderSize(lines, size) {
+  let end = lines.length;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") {
+      end = index;
+      break;
+    }
+  }
+  for (let index = 1; index < end; index += 1) {
+    const reader = lines[index].match(/^reader\s*:\s*(.*)$/);
+    if (!reader) continue;
+    const rest = reader[1].trim();
+    if (rest.startsWith("{")) {
+      if (/size\s*:/.test(rest)) {
+        lines[index] = lines[index].replace(/size\s*:\s*[^,}\s]+/, `size: ${size}`);
+      }
+      continue;
+    }
+    if (rest && rest !== "|" && rest !== ">") continue;
+    for (let cursor = index + 1; cursor < end; cursor += 1) {
+      if (!/^\s+/.test(lines[cursor])) break;
+      if (!/^\s+size\s*:/.test(lines[cursor])) continue;
+      const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
+      lines[cursor] = `${indent}size: ${size}`;
+    }
+  }
+}
+function splitFrontmatter3(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  if (lines[0]?.replace(/^\uFEFF/, "").trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") return { lines, end: index };
+  }
+  return null;
+}
+function ensureTrailingNewline2(markdown, nl) {
+  if (markdown.endsWith(nl)) return markdown;
+  return `${markdown}${nl}`;
+}
+
+// src/reader/size/shortcut.ts
+function readerSizeShortcutDirection(event) {
+  if (!(event.metaKey || event.ctrlKey) || event.altKey) return null;
+  if (event.key === "-") return -1;
+  if (event.key === "=" || event.key === "+") return 1;
+  return null;
+}
+
+// src/reader/size/mount.ts
+var READER_SIZE_CLASS = "atomic-reader-size";
+var READER_PAGE_CLASS = "atomic-reader-sized";
+var PAGE_PROPS = [
+  "--atomic-reader-page-w",
+  "--atomic-reader-page-h",
+  "--atomic-reader-clip-h",
+  "--atomic-reader-font-size",
+  "--atomic-reader-line-height"
+];
+var PHONE_HINT = "Larger book, same type size \u2014 more lines per page. Saved for this book.";
+var DESK_HINT = "\u2318\u2212 / \u2318+";
+function mountReaderSize(options) {
+  const controlEl = options.controlEl;
+  const pages = pageList(options.pageHost);
+  if (pages.length === 0 || pages.some((page) => page === controlEl)) {
+    throw new Error("Book size control and page must be different elements");
+  }
+  const surface = options.surface === "phone" ? "phone" : "desk";
+  const chrome = chromeFor(surface, options.chrome);
+  const shellPaint = options.paint === "shell";
+  let settled = parseReaderSize(options.size);
+  let theaterLocked2 = options.theaterLocked === true;
+  let destroyed = false;
+  controlEl.empty();
+  const slot = mountSlot(chrome, controlEl, surface);
+  const buttons = /* @__PURE__ */ new Map();
+  for (const size of READER_SIZE_ORDER) {
+    const button = slot.segment.createEl("button", {
+      cls: "atomic-reader-size-opt",
+      attr: {
+        type: "button",
+        "data-size": size,
+        "data-testid": `atomic-reader-size-${size}`,
+        "aria-pressed": "false"
+      }
+    });
+    button.createSpan({
+      cls: `atomic-reader-size-book is-${size}`,
+      attr: { "aria-hidden": "true" }
+    });
+    button.createSpan({ text: readerSizeLabel(size) });
+    button.addEventListener("click", () => {
+      if (destroyed || theaterLocked2) return;
+      commit(size);
+    });
+    buttons.set(size, button);
+  }
+  const view = ownerView(pages[0]);
+  const motionQuery = view?.matchMedia("(prefers-reduced-motion: reduce)") ?? null;
+  const onMotion = () => {
+    if (!destroyed) paint();
+  };
+  motionQuery?.addEventListener("change", onMotion);
+  const onKey = (event) => {
+    if (destroyed || theaterLocked2 || event.defaultPrevented) return;
+    const direction = readerSizeShortcutDirection(event);
+    if (direction == null) return;
+    if (isTextField(keyTarget(event))) return;
+    if (!shortcutArmed(options.shortcutRoot, controlEl, pages)) return;
+    event.preventDefault();
+    commit(stepReaderSize(settled, direction));
+  };
+  view?.addEventListener("keydown", onKey);
+  paint();
+  return {
+    destroy() {
+      if (destroyed) return;
+      destroyed = true;
+      motionQuery?.removeEventListener("change", onMotion);
+      view?.removeEventListener("keydown", onKey);
+      controlEl.empty();
+      if (shellPaint) options.boxEl?.removeClass("is-instant");
+      else for (const page of pages) clearPage(page);
+    },
+    getSize: () => settled,
+    getEffectiveSize: () => effectiveReaderSize(settled, theaterLocked2),
+    setSize(size) {
+      if (destroyed) return;
+      settled = parseReaderSize(size);
+      paint();
+    },
+    setTheaterLocked(locked) {
+      if (destroyed) return;
+      theaterLocked2 = locked;
+      paint();
+    }
+  };
+  function commit(next) {
+    if (next === settled) {
+      paint();
+      return;
+    }
+    settled = next;
+    paint();
+    options.onChange?.(settled);
+  }
+  function paint() {
+    const drawn = readerPageGeometry(settled, {
+      surface,
+      theater: theaterLocked2
+    });
+    const reduced = prefersReduced(motionQuery, options.reducedMotion);
+    if (shellPaint) applyShellBox(options.boxEl, drawn, reduced);
+    else for (const page of pages) applyPage(page, drawn, reduced);
+    slot.root.toggleClass("is-theater-locked", theaterLocked2);
+    if (theaterLocked2) slot.root.setAttr("hidden", "true");
+    else slot.root.removeAttribute("hidden");
+    slot.root.setAttr("aria-hidden", theaterLocked2 ? "true" : "false");
+    if (slot.value) slot.value.setText(readerSizeLabel(settled));
+    for (const size of READER_SIZE_ORDER) {
+      const button = buttons.get(size);
+      if (!button) continue;
+      const on = size === settled;
+      button.toggleClass("is-on", on);
+      button.setAttr("aria-pressed", on ? "true" : "false");
+    }
+  }
+}
+function chromeFor(surface, chrome) {
+  switch (chrome) {
+    case "bar":
+    case "sheet":
+      return chrome;
+    case void 0:
+      return surface === "phone" ? "sheet" : "bar";
+    default: {
+      const unseen = chrome;
+      return unseen;
+    }
+  }
+}
+function mountSlot(chrome, controlEl, surface) {
+  switch (chrome) {
+    case "bar":
+      return mountBarSlot(controlEl, surface);
+    case "sheet":
+      return mountPhoneSlot(controlEl);
+    default: {
+      const unseen = chrome;
+      return unseen;
+    }
+  }
+}
+function mountBarSlot(controlEl, surface) {
+  const phone = surface === "phone";
+  const root = controlEl.createDiv({
+    cls: phone ? `fitness-plugin ${READER_SIZE_CLASS} is-phone is-bar` : `fitness-plugin ${READER_SIZE_CLASS}`,
+    attr: {
+      "data-testid": "atomic-reader-size",
+      "aria-label": "Book size"
+    }
+  });
+  const segment = root.createDiv({
+    cls: "atomic-reader-size-seg",
+    attr: { role: "group", "aria-label": "Book size" }
+  });
+  if (!phone) {
+    root.createSpan({
+      cls: "atomic-reader-size-hint",
+      text: DESK_HINT,
+      attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" }
+    });
+  }
+  return { root, segment, value: null };
+}
+function mountPhoneSlot(controlEl) {
+  const sheet = controlEl.createDiv({
+    cls: "fitness-plugin atomic-reader-size-sheet",
+    attr: { "data-testid": "atomic-reader-size-sheet" }
+  });
+  const row = sheet.createDiv({ cls: "atomic-reader-size-row" });
+  row.createSpan({ text: "Book size" });
+  const value = row.createSpan({
+    cls: "atomic-reader-size-value",
+    attr: { "data-testid": "atomic-reader-size-value" }
+  });
+  const control = sheet.createDiv({
+    cls: `${READER_SIZE_CLASS} is-phone`,
+    attr: {
+      "data-testid": "atomic-reader-size",
+      "aria-label": "Book size"
+    }
+  });
+  const segment = control.createDiv({
+    cls: "atomic-reader-size-seg",
+    attr: { role: "group", "aria-label": "Book size" }
+  });
+  sheet.createDiv({
+    cls: "atomic-reader-size-note",
+    text: PHONE_HINT
+  });
+  return { root: sheet, segment, value };
+}
+function applyShellBox(box, geometry, reduced) {
+  if (!box) return;
+  box.setCssProps({
+    "--atomic-page-w": `${geometry.width}px`,
+    "--atomic-page-h": `${geometry.height}px`
+  });
+  box.toggleClass("is-instant", reduced);
+  box.setAttr("data-size", geometry.size);
+}
+function applyPage(pageHost, geometry, reduced) {
+  pageHost.addClass(READER_PAGE_CLASS);
+  pageHost.toggleClass("is-phone", geometry.surface === "phone");
+  pageHost.toggleClass("is-instant", reduced);
+  pageHost.setCssProps({
+    "--atomic-reader-page-w": `${geometry.width}px`,
+    "--atomic-reader-page-h": `${geometry.height}px`,
+    "--atomic-reader-clip-h": `${geometry.clipHeight}px`,
+    "--atomic-reader-font-size": `${geometry.fontSizePx}px`,
+    "--atomic-reader-line-height": `${geometry.lineHeightPx}px`
+  });
+}
+function clearPage(pageHost) {
+  pageHost.removeClass(READER_PAGE_CLASS);
+  pageHost.removeClass("is-phone");
+  pageHost.removeClass("is-instant");
+  for (const prop of PAGE_PROPS) pageHost.style.removeProperty(prop);
+}
+function prefersReduced(query, override) {
+  if (query?.matches) return true;
+  return override === true;
+}
+function pageList(pageHost) {
+  if (isPageList(pageHost)) return [...pageHost];
+  return [pageHost];
+}
+function isPageList(value) {
+  return Array.isArray(value);
+}
+function shortcutArmed(shortcutRoot, controlEl, pages) {
+  const active = controlEl.ownerDocument.activeElement;
+  if (!active?.instanceOf(Node)) return false;
+  if (shortcutRoot) return shortcutRoot.contains(active);
+  if (controlEl.contains(active)) return true;
+  return pages.some((page) => page.contains(active));
+}
+function keyTarget(event) {
+  if (event.targetNode) return event.targetNode;
+  const target = event.target;
+  if (target instanceof Node) return target;
+  return null;
+}
+function isTextField(target) {
+  if (!target?.instanceOf(HTMLElement)) return false;
+  if (target.instanceOf(HTMLInputElement) || target.instanceOf(HTMLTextAreaElement)) return true;
+  return target.isContentEditable;
+}
+function ownerView(node) {
+  return node.ownerDocument.defaultView;
+}
+
+// src/reader/size/shell-bind.ts
+var sizes = /* @__PURE__ */ new Map();
+var live = /* @__PURE__ */ new Map();
+var bookSizePlugin = null;
+var theaterLocked = false;
+function settleReaderSize(prior, shellSize) {
+  if (!prior || prior.shell !== shellSize) return { settled: shellSize, shell: shellSize };
+  return prior;
+}
+function registerBookSize(plugin) {
+  bookSizePlugin = plugin;
+  registerReaderSize({
+    attach(slot, session3) {
+      attachBookSize(slot, session3);
+    }
+  });
+}
+function resetBookSize() {
+  for (const entry of live.values()) entry.control.destroy();
+  live.clear();
+  sizes.clear();
+  theaterLocked = false;
+  bookSizePlugin = null;
+}
+function attachBookSize(slot, session3) {
+  if (slot.getAttribute("data-reader-slot") !== "size") return;
+  const root = readerRoot(slot);
+  if (!root) return;
+  const notePath = session3.notePath;
+  releaseDisconnected();
+  live.get(notePath)?.control.destroy();
+  live.delete(notePath);
+  const shellSize = parseReaderSize(session3.size);
+  const memory = settleReaderSize(sizes.get(notePath), shellSize);
+  sizes.set(notePath, memory);
+  const surface = readerSurface(root);
+  const pages = readerPages(root);
+  const control = mountReaderSize({
+    controlEl: slot,
+    pageHost: pages.length > 0 ? pages : [root],
+    surface,
+    chrome: "bar",
+    paint: "shell",
+    boxEl: root,
+    theaterLocked,
+    size: memory.settled,
+    shortcutRoot: root,
+    onChange(next) {
+      const current = sizes.get(notePath);
+      sizes.set(notePath, { settled: next, shell: current?.shell ?? shellSize });
+      saveBookSize(notePath, next);
+    }
+  });
+  live.set(notePath, { control, root });
+}
+function releaseDisconnected() {
+  for (const [path, entry] of live) {
+    if (entry.root.isConnected) continue;
+    entry.control.destroy();
+    live.delete(path);
+  }
+}
+function saveBookSize(notePath, size) {
+  if (!bookSizePlugin || !notePath) return;
+  void bookSizePlugin.data.processNote(notePath, (markdown) => writeReaderSize(markdown, size)).catch((error) => {
+    console.error("Book size save failed", error);
+  });
+}
+function readerRoot(slot) {
+  const root = slot.closest(".atomic-reader");
+  if (!root || !root.instanceOf(HTMLElement)) return null;
+  return root;
+}
+function readerSurface(root) {
+  return root.classList.contains("is-phone") ? "phone" : "desk";
+}
+function readerPages(root) {
+  const pages = [];
+  root.querySelectorAll(".atomic-reader-page").forEach((node) => {
+    if (node.instanceOf(HTMLElement)) pages.push(node);
+  });
+  return pages;
+}
+
 // src/main.ts
 var REFRESH_DEBOUNCE_MS = 300;
 var FitnessPlugin = class extends import_obsidian16.Plugin {
@@ -10133,6 +10618,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
     registerBookChooser((request) => {
       void openBookChooser2(this, request);
     });
+    registerBookSize(this);
     this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
     this.addCommand({
       id: "open-book",
@@ -10159,6 +10645,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   onunload() {
     this.unloaded = true;
     closeReaderChrome();
+    resetBookSize();
     resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {
