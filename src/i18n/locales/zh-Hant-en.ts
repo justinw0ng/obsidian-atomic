@@ -334,4 +334,6 @@ export const zhHantEn = {
   "view.reader.encrypted": "呢個檔案有加密。",
   "view.reader.unreadable": "呢個檔案打唔開。",
   "view.reader.empty": "呢本書冇頁。",
+  "view.reader.theater": "劇場",
+  "view.reader.theaterExit": "離開",
 } satisfies LocaleTable;

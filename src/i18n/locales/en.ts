@@ -312,6 +312,8 @@ export const en = {
   "view.reader.encrypted": "This file is encrypted.",
   "view.reader.unreadable": "This file cannot be opened.",
   "view.reader.empty": "This book has no pages.",
+  "view.reader.theater": "Theater",
+  "view.reader.theaterExit": "Exit",
   "view.timer.needsSavedNote": "Timer can only run from a saved note.",
   "view.timer.caption": "Timer",
   "view.timer.minuteUnit": "min",
