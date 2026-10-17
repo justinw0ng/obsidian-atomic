@@ -1,10 +1,10 @@
-# Reader mockup — notes
+# Reader mockup — 1.6.0 design notes
 
-This folder is a **design review only**. `reader-mock.html` is not plugin code. Do not merge it as a feature.
+This folder is the **1.6.0 design** review. `reader-mock.html` is not plugin code. Do not merge it as a feature. Plugin version stays **1.5.6** until an explicit bump.
 
-The approved design is the OpenPencil journey in `design/reader-journey/` (`JOURNEY.md`, `journey.source.html`, `atomic-reader-journey.fig`, PNGs in `export/`). This HTML mock is kept in sync with that journey so reviewers can click through chooser, flight, theme-matched theater, and book size. Theme and motion toggles match the 1.5.0 revamp board. Copy is short and plain.
+The approved design is the OpenPencil journey in `design/reader-journey/` (`JOURNEY.md`, `journey.source.html`, `atomic-reader-journey.fig`, PNGs in `export/`). This HTML mock is kept in sync with that journey so reviewers can click through chooser, flight, theme-matched theater, and book size. Theme and motion toggles match the 1.5.0 token board. Copy is short and plain.
 
-## What this proposes
+## What this proposes (1.6.0)
 
 A new **reader** for EPUB and PDF files that already live in the vault. It is separate from the existing book note, and linked to it.
 
@@ -193,4 +193,4 @@ Confirm + size warning. Retrieval over a full paste. Stay optional forever.
 
 ## Source of truth
 
-The approved OpenPencil reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`, `JOURNEY.md`) is the spec. This HTML mock matches that spec (chooser, flight, theme-matched theater locked to XL with Exit Esc only, book size on the settled reader). Theater PNGs are `export/06-theater*.png`; size compare is `export/07b-book-size.png`; HTML mock refs live in `export/refs/`. Frames `06c` / `06d` / `06cd` are removed. Older HTML stills that showed a dark stage around an unchanged reader are superseded.
+The approved OpenPencil **1.6.0** reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`, `JOURNEY.md`) is the spec. This HTML mock matches that spec (chooser, flight, theme-matched theater locked to XL with Exit Esc only, book size on the settled reader). Theater PNGs are `export/06-theater*.png`; size compare is `export/07b-book-size.png`; HTML mock refs live in `export/refs/`. Frames `06c` / `06d` / `06cd` are removed. Older HTML stills that showed a dark stage around an unchanged reader are superseded.

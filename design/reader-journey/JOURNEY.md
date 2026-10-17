@@ -1,6 +1,6 @@
-# Atomic Tracker — EPUB/PDF reader journey (1.5.0)
+# Atomic Tracker — EPUB/PDF reader journey (1.6.0)
 
-Design board for Carmy’s Atomic Tracker reader. Visual language follows the **1.5.0 revamp**: hairlines, object/control/well radii (3 / 9 / 14), Timeless Type, liquid glass, plank bookshelf. No purple gradients or mismatched radii.
+**1.6.0 design.** Spec for the next minor. Visual language follows the shipped **1.5.0 revamp**: hairlines, object/control/well radii (3 / 9 / 14), Timeless Type, liquid glass, plank bookshelf. No purple gradients or mismatched radii. This PR does not bump `manifest.json`.
 
 ## Flow
 
