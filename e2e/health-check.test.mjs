@@ -2784,6 +2784,8 @@ ${E2E_CUE_LOG_FENCE}
           return {
             pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
             pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+            text: page?.textContent || "",
+            bodyLines: root?.getAttribute("data-body-lines") || "",
             fontSize: style?.fontSize || "",
             lineHeight: style?.lineHeight || "",
             phone: root?.classList.contains("is-phone") === true,
@@ -2849,7 +2851,7 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             desk = await readSize();
-            return desk.phone === false && desk.fontSize === "12.5px" && desk.pressed === "false";
+            return desk.phone === false && desk.fontSize === "12.5px" && desk.pressed === "false" && desk.bodyLines === "15" && desk.text.length > 0;
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} desk=${JSON.stringify(desk)}`);
@@ -2866,7 +2868,7 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             desk = await readSize();
-            return desk.pageWidth === 340 && desk.pageHeight === 488 && /reader\.size:\s*xl/.test(desk.saved);
+            return desk.pageWidth === 340 && desk.pageHeight === 488 && desk.bodyLines === "22" && /reader\.size:\s*xl/.test(desk.saved) && desk.text.length > 0;
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} last=${JSON.stringify(desk)}`);
@@ -2888,7 +2890,7 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             small = await readSize();
-            return small.pageWidth === 230 && small.pageHeight === 280 && /reader\.size:\s*s/.test(small.saved);
+            return small.pageWidth === 230 && small.pageHeight === 280 && small.bodyLines === "12" && /reader\.size:\s*s/.test(small.saved);
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} small=${JSON.stringify(small)}`);

@@ -159,8 +159,8 @@ export function mountReaderSize(options: MountReaderSizeOptions): ReaderSizeCont
       return;
     }
     settled = next;
-    paint();
     options.onChange?.(settled);
+    if (!destroyed) paint();
   }
 
   function paint(): void {

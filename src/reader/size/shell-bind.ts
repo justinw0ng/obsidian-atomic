@@ -6,6 +6,8 @@ import { parseReaderSize, type ReaderSizeId, type ReaderSizeSurface } from "./ge
 import { writeReaderSize } from "./frontmatter.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { mountReaderSize, type ReaderSizeControl } from "./mount.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { readerReflowBox } from "./reflow.ts";
 
 export type BookSizeHost = {
   data: {
@@ -22,6 +24,7 @@ export type ReaderSizeMemory = {
 type LiveSize = {
   control: ReaderSizeControl;
   root: HTMLElement;
+  session: ReaderSession;
 };
 
 const sizes = new Map<string, ReaderSizeMemory>();
@@ -63,7 +66,11 @@ export function resetBookSize(): void {
 export function setReaderSizeTheaterLocked(locked: boolean): void {
   theaterLocked = locked;
   releaseDisconnected();
-  for (const entry of live.values()) entry.control.setTheaterLocked(locked);
+  for (const entry of [...live.values()]) {
+    const request = readerReflowBox(entry.control.getSize(), locked);
+    if (entry.session.relayout) entry.session.relayout(request);
+    else entry.control.setTheaterLocked(locked);
+  }
 }
 
 function attachBookSize(slot: HTMLElement, session: ReaderSession): void {
@@ -95,9 +102,10 @@ function attachBookSize(slot: HTMLElement, session: ReaderSession): void {
       const current = sizes.get(notePath);
       sizes.set(notePath, { settled: next, shell: current?.shell ?? shellSize });
       saveBookSize(notePath, next);
+      session.relayout?.(readerReflowBox(next, theaterLocked));
     },
   });
-  live.set(notePath, { control, root });
+  live.set(notePath, { control, root, session });
 }
 
 function releaseDisconnected(): void {

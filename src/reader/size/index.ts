@@ -8,3 +8,5 @@ export { READER_LINES_CLASS, READER_PAGE_CLASS, READER_SIZE_CLASS, mountReaderSi
 export { readerSizeShortcutDirection, type ReaderSizeShortcutDirection } from "./shortcut.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 export { registerBookSize, resetBookSize, setReaderSizeTheaterLocked, settleReaderSize, type BookSizeHost, type ReaderSizeMemory } from "./shell-bind.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+export { readerReflowBox, type ReaderReflowBox } from "./reflow.ts";

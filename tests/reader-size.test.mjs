@@ -19,10 +19,12 @@ import {
   readerPageGeometry,
   readerSizeShortcutDirection,
   stepReaderSize,
+  readerReflowBox,
   settleReaderSize,
   writeReaderSize,
 } from "../src/reader/size/index.ts";
 import { readReaderNote } from "../src/reader/shell/frontmatter.ts";
+import { paginateReaderBlocks } from "../src/reader/shell/paginate.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const fixture = readFileSync(join(root, "tests/fixtures/reader-size-note.md"), "utf8");
@@ -158,6 +160,36 @@ test("flat reader.size updates a nested reader size the shell prefers", () => {
   assert.match(flowed, /^reader\.size: l$/m);
   assert.equal(readReaderNote(flowed).size, "l");
   assert.equal(readReaderNote(flowed).page, 3);
+});
+
+test("a size change reflows through the shell paginator", () => {
+  const medium = readerReflowBox("m", false);
+  const extra = readerReflowBox("xl", false);
+  const theater = readerReflowBox("m", true);
+  assert.equal(medium.bodyLines, 15);
+  assert.equal(medium.width, 270);
+  assert.equal(medium.height, 340);
+  assert.equal(extra.bodyLines, 22);
+  assert.equal(extra.width, 340);
+  assert.equal(extra.height, 488);
+  assert.equal(theater.size, "m");
+  assert.equal(theater.bodyLines, 23);
+  assert.equal(theater.width, 340);
+  assert.equal(theater.height, 500);
+  assert.equal(theater.charsPerLine, extra.charsPerLine);
+
+  const text = Array.from({ length: 120 }, (_, index) => `word${index}`).join(" ");
+  const blocks = [{ kind: "paragraph", text }];
+  const mediumPages = paginateReaderBlocks(blocks, medium);
+  const extraPages = paginateReaderBlocks(blocks, extra);
+  const theaterPages = paginateReaderBlocks(blocks, theater);
+  assert.ok(mediumPages.length > 1);
+  assert.ok(extraPages.length < mediumPages.length);
+  assert.ok(theaterPages.length <= extraPages.length);
+  assert.equal(
+    paginateReaderBlocks(blocks, readerReflowBox("m", false)).length,
+    mediumPages.length,
+  );
 });
 
 test("a chosen size survives shell repaints until the note is read again", () => {

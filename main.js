@@ -9431,6 +9431,89 @@ function paginateReaderBlocks(blocks, box) {
   return pages;
 }
 
+// src/reader/size/geometry.ts
+var READER_SIZE_ORDER = ["s", "m", "l", "xl"];
+var DEFAULT_READER_SIZE = "m";
+var READER_SIZE_FRONTMATTER_KEY = "reader.size";
+var READER_DESK_TYPE = { fontSizePx: 12.5, lineHeightPx: 19 };
+var READER_PHONE_TYPE = { fontSizePx: 15, lineHeightPx: 23 };
+var READER_PAGE_PAD_Y = { top: 26, bottom: 26 };
+var READER_PAGE_BOX = {
+  s: { width: 230, height: 280, theaterHeight: 280 },
+  m: { width: 270, height: 340, theaterHeight: 340 },
+  l: { width: 305, height: 410, theaterHeight: 420 },
+  xl: { width: 340, height: 488, theaterHeight: 500 }
+};
+function isReaderSizeId(value) {
+  return READER_SIZE_ORDER.some((size) => size === value);
+}
+function parseReaderSize(value) {
+  const token = String(value ?? "").trim().toLowerCase();
+  if (isReaderSizeId(token)) return token;
+  return DEFAULT_READER_SIZE;
+}
+function readerSizeLabel(size) {
+  switch (size) {
+    case "s":
+      return "S";
+    case "m":
+      return "M";
+    case "l":
+      return "L";
+    case "xl":
+      return "XL";
+    default: {
+      const unseen = size;
+      return unseen;
+    }
+  }
+}
+function stepReaderSize(size, direction) {
+  const index = READER_SIZE_ORDER.indexOf(size);
+  const next = Math.max(0, Math.min(READER_SIZE_ORDER.length - 1, index + direction));
+  return READER_SIZE_ORDER[next];
+}
+function effectiveReaderSize(size, theaterLocked2) {
+  return theaterLocked2 ? "xl" : size;
+}
+function readerPageGeometry(size, options) {
+  const surface = options?.surface ?? "desk";
+  const theater = options?.theater === true;
+  const applied = effectiveReaderSize(size, theater);
+  const box = READER_PAGE_BOX[applied];
+  const height = theater ? box.theaterHeight : box.height;
+  const type = surface === "phone" ? READER_PHONE_TYPE : READER_DESK_TYPE;
+  const contentHeight = height - READER_PAGE_PAD_Y.top - READER_PAGE_PAD_Y.bottom;
+  const lines = Math.max(0, Math.floor(contentHeight / type.lineHeightPx));
+  return {
+    size: applied,
+    surface,
+    theater,
+    width: box.width,
+    height,
+    fontSizePx: type.fontSizePx,
+    lineHeightPx: type.lineHeightPx,
+    paddingTop: READER_PAGE_PAD_Y.top,
+    paddingBottom: READER_PAGE_PAD_Y.bottom,
+    contentHeight,
+    lines,
+    clipHeight: lines * type.lineHeightPx
+  };
+}
+
+// src/reader/size/reflow.ts
+function readerReflowBox(size, theaterLocked2) {
+  const drawn = readerPageGeometry(size, { theater: theaterLocked2, surface: "desk" });
+  const shell = readerPageBox(drawn.size);
+  return {
+    size,
+    width: drawn.width,
+    height: drawn.height,
+    bodyLines: drawn.lines,
+    charsPerLine: shell.charsPerLine
+  };
+}
+
 // src/reader/shell/pdf.ts
 function inspectPdf(bytes) {
   const text = new TextDecoder("iso-8859-1").decode(bytes);
@@ -9455,6 +9538,32 @@ function pdfViewerSrc(resourcePath, page) {
 }
 
 // src/reader/shell/view.ts
+function layoutBox(size) {
+  const request = readerReflowBox(size, false);
+  return {
+    w: request.width,
+    h: request.height,
+    bodyLines: request.bodyLines,
+    charsPerLine: request.charsPerLine
+  };
+}
+function paintedBox(host) {
+  const root = host.querySelector(".atomic-reader");
+  if (!root?.instanceOf(HTMLElement)) return null;
+  const width = root.style.getPropertyValue("--atomic-page-w").trim();
+  const height = root.style.getPropertyValue("--atomic-page-h").trim();
+  if (!width || !height) return null;
+  return { w: width, h: height };
+}
+function slideBox(root, previous, box) {
+  if (!previous) return;
+  const width = `${box.w}px`;
+  const height = `${box.h}px`;
+  if (previous.w === width && previous.h === height) return;
+  root.setCssProps({ "--atomic-page-w": previous.w, "--atomic-page-h": previous.h });
+  void root.getBoundingClientRect();
+  root.setCssProps({ "--atomic-page-w": width, "--atomic-page-h": height });
+}
 var ATOMIC_READER_VIEW = "atomic-reader";
 function asRecord(value) {
   if (!value || typeof value !== "object") return null;
@@ -9500,6 +9609,10 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
     this.returnPath = "";
     this.coverRect = null;
     this.size = "m";
+    this.blocks = [];
+    this.layout = layoutBox("m");
+    /** True after the size control paginates during this load. */
+    this.sizeFromReader = false;
     this.canvasPath = "";
     this.page = 1;
     this.savedPage = 1;
@@ -9588,6 +9701,8 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
     this.failure = "opening";
     this.ready = false;
     this.leaves = [];
+    this.blocks = [];
+    this.sizeFromReader = false;
     this.pdfSrc = "";
     this.total = 0;
     this.paint();
@@ -9606,10 +9721,11 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
       const cache = this.plugin.app.metadataCache.getFileCache(note);
       const fields = cache?.frontmatter ? readerFieldsFromFrontmatter(cache.frontmatter) : readReaderNote(await this.plugin.app.vault.cachedRead(note));
       if (token !== this.loadToken) return;
-      this.size = fields.size;
+      if (!this.sizeFromReader) this.size = fields.size;
       this.canvasPath = sourcePathFromFrontmatter(fields.canvas);
       storedPage = fields.page;
     }
+    if (!this.sizeFromReader) this.layout = layoutBox(this.size);
     this.page = storedPage;
     this.savedPage = storedPage;
     try {
@@ -9630,7 +9746,8 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
         case "epub": {
           const epub = await readEpub(bytes);
           if (token !== this.loadToken) return;
-          this.leaves = paginateReaderBlocks(epub.blocks, readerPageBox(this.size));
+          this.blocks = epub.blocks;
+          this.leaves = paginateReaderBlocks(this.blocks, this.layout);
           this.total = this.leaves.length;
           this.failure = this.total > 0 ? null : "empty";
           break;
@@ -9700,8 +9817,38 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
       coverRect: this.coverRect,
       page: this.page,
       total: this.total,
-      size: this.size
+      size: this.size,
+      relayout: (request) => {
+        this.applyLayout(request);
+      }
     };
+  }
+  /** Paginate the open EPUB for the box the size control is drawing. */
+  applyLayout(request) {
+    const box = {
+      w: request.width,
+      h: request.height,
+      bodyLines: Math.max(1, Math.round(request.bodyLines)),
+      charsPerLine: Math.max(1, Math.round(request.charsPerLine))
+    };
+    if (this.size === request.size && this.layout.w === box.w && this.layout.h === box.h && this.layout.bodyLines === box.bodyLines && this.layout.charsPerLine === box.charsPerLine) {
+      return;
+    }
+    this.sizeFromReader = true;
+    this.size = request.size;
+    this.layout = box;
+    if (this.kind === "epub" && this.blocks.length > 0) {
+      this.leaves = paginateReaderBlocks(this.blocks, box);
+      this.total = this.leaves.length;
+      this.failure = this.total > 0 ? null : "empty";
+      const nextPage = clampReaderPage(this.page, Math.max(this.total, 1));
+      if (nextPage !== this.page) {
+        this.page = nextPage;
+        this.dirty = this.page !== this.savedPage;
+        if (this.dirty) this.scheduleSave();
+      }
+    }
+    this.paint();
   }
   attachMounts(root) {
     const session3 = this.session();
@@ -9715,7 +9862,8 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
   }
   paint() {
     const language = this.plugin.settings.language;
-    const box = readerPageBox(this.size);
+    const box = this.layout;
+    const previous = paintedBox(this.contentEl);
     const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
     this.contentEl.empty();
     const root = this.contentEl.createDiv({
@@ -9727,6 +9875,7 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
         "data-page": String(this.page),
         "data-total": String(this.total),
         "data-size": this.size,
+        "data-body-lines": String(box.bodyLines),
         tabindex: "0"
       }
     });
@@ -9806,6 +9955,7 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
     });
     this.paintFoot(root, language, progress);
     this.attachMounts(root);
+    slideBox(root, previous, box);
   }
   paintPage(parent, number, side) {
     const page = parent.createDiv({
@@ -9996,76 +10146,6 @@ function closeReaderChrome() {
   closeBookChooser();
 }
 
-// src/reader/size/geometry.ts
-var READER_SIZE_ORDER = ["s", "m", "l", "xl"];
-var DEFAULT_READER_SIZE = "m";
-var READER_SIZE_FRONTMATTER_KEY = "reader.size";
-var READER_DESK_TYPE = { fontSizePx: 12.5, lineHeightPx: 19 };
-var READER_PHONE_TYPE = { fontSizePx: 15, lineHeightPx: 23 };
-var READER_PAGE_PAD_Y = { top: 26, bottom: 26 };
-var READER_PAGE_BOX = {
-  s: { width: 230, height: 280, theaterHeight: 280 },
-  m: { width: 270, height: 340, theaterHeight: 340 },
-  l: { width: 305, height: 410, theaterHeight: 420 },
-  xl: { width: 340, height: 488, theaterHeight: 500 }
-};
-function isReaderSizeId(value) {
-  return READER_SIZE_ORDER.some((size) => size === value);
-}
-function parseReaderSize(value) {
-  const token = String(value ?? "").trim().toLowerCase();
-  if (isReaderSizeId(token)) return token;
-  return DEFAULT_READER_SIZE;
-}
-function readerSizeLabel(size) {
-  switch (size) {
-    case "s":
-      return "S";
-    case "m":
-      return "M";
-    case "l":
-      return "L";
-    case "xl":
-      return "XL";
-    default: {
-      const unseen = size;
-      return unseen;
-    }
-  }
-}
-function stepReaderSize(size, direction) {
-  const index = READER_SIZE_ORDER.indexOf(size);
-  const next = Math.max(0, Math.min(READER_SIZE_ORDER.length - 1, index + direction));
-  return READER_SIZE_ORDER[next];
-}
-function effectiveReaderSize(size, theaterLocked2) {
-  return theaterLocked2 ? "xl" : size;
-}
-function readerPageGeometry(size, options) {
-  const surface = options?.surface ?? "desk";
-  const theater = options?.theater === true;
-  const applied = effectiveReaderSize(size, theater);
-  const box = READER_PAGE_BOX[applied];
-  const height = theater ? box.theaterHeight : box.height;
-  const type = surface === "phone" ? READER_PHONE_TYPE : READER_DESK_TYPE;
-  const contentHeight = height - READER_PAGE_PAD_Y.top - READER_PAGE_PAD_Y.bottom;
-  const lines = Math.max(0, Math.floor(contentHeight / type.lineHeightPx));
-  return {
-    size: applied,
-    surface,
-    theater,
-    width: box.width,
-    height,
-    fontSizePx: type.fontSizePx,
-    lineHeightPx: type.lineHeightPx,
-    paddingTop: READER_PAGE_PAD_Y.top,
-    paddingBottom: READER_PAGE_PAD_Y.bottom,
-    contentHeight,
-    lines,
-    clipHeight: lines * type.lineHeightPx
-  };
-}
-
 // src/reader/size/frontmatter.ts
 var KEY_LINE = /^reader\.size\s*:(.*)$/;
 function writeReaderSize(markdown, size) {
@@ -10234,8 +10314,8 @@ function mountReaderSize(options) {
       return;
     }
     settled = next;
-    paint();
     options.onChange?.(settled);
+    if (!destroyed) paint();
   }
   function paint() {
     const drawn = readerPageGeometry(settled, {
@@ -10445,9 +10525,10 @@ function attachBookSize(slot, session3) {
       const current = sizes.get(notePath);
       sizes.set(notePath, { settled: next, shell: current?.shell ?? shellSize });
       saveBookSize(notePath, next);
+      session3.relayout?.(readerReflowBox(next, theaterLocked));
     }
   });
-  live.set(notePath, { control, root });
+  live.set(notePath, { control, root, session: session3 });
 }
 function releaseDisconnected() {
   for (const [path, entry] of live) {
