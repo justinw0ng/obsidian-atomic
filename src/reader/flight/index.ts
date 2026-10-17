@@ -32,7 +32,6 @@ export {
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 } from "./geometry.ts";
 export {
-  JOURNEY_LANDING_PAGE,
   spreadFromPainted,
   type OpenBookPage,
   type PaintedPage,

@@ -8811,24 +8811,6 @@ function px(value) {
 }
 
 // src/reader/flight/page.ts
-var JOURNEY_LANDING_PAGE = {
-  page: 47,
-  headingLeft: "Chapter I",
-  headingRight: "p. 47",
-  left: [
-    "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.",
-    "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of some one or other of their daughters.",
-    "\u201CMy dear Mr. Bennet,\u201D said his lady to him one day, \u201Chave you heard that Netherfield Park is let at last?\u201D",
-    "Mr. Bennet replied that he had not."
-  ],
-  right: [
-    "\u201CBut it is,\u201D returned she; \u201Cfor Mrs. Long has just been here, and she told me all about it.\u201D",
-    "Mr. Bennet made no answer.",
-    "\u201CDo you not want to know who has taken it?\u201D cried his wife impatiently.",
-    "\u201CYou want to tell me, and I have no objection to hearing it.\u201D",
-    "This was invitation enough. \u201CWhy, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England.\u201D"
-  ]
-};
 function spreadFromPainted(pages, fallback) {
   const painted = pages.map((page) => ({ page: page.page, lines: cleanLines(page.lines) })).filter((page) => page.lines.length > 0);
   const leftPage = painted[0];
@@ -9480,7 +9462,7 @@ async function playOpenBookFlight(openDirect, request) {
         title: request.title,
         color: request.coverRect?.color
       },
-      page: JOURNEY_LANDING_PAGE,
+      page: { page: 1, left: [], right: [] },
       destination
     });
   }

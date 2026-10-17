@@ -10,8 +10,6 @@ import {
   openBookFlightView,
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 } from "./mount.ts";
-// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { JOURNEY_LANDING_PAGE } from "./page.ts";
 
 /** How many frames to wait for the live page box before the fallback scale. */
 const LIVE_PAGE_FRAMES = 16;
@@ -57,7 +55,7 @@ export async function playOpenBookFlight(
         title: request.title,
         color: request.coverRect?.color,
       },
-      page: JOURNEY_LANDING_PAGE,
+      page: { page: 1, left: [], right: [] },
       destination,
     });
   }

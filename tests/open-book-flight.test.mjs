@@ -10,7 +10,6 @@ import {
   FLIGHT_MS,
   FLIGHT_SKIP_MS,
   FLIP_LEAVES,
-  JOURNEY_LANDING_PAGE,
   OPEN_BOOK_HINT,
   PHONE_BOOK_PX,
   flightOverlayBody,
@@ -30,6 +29,26 @@ import { readerMounts, resetReaderMounts } from "../src/reader/shell/mount.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const flightDir = join(root, "src/reader/flight");
+
+/** Pride and Prejudice, the page the approved journey lands on. Unit fixture only. */
+const JOURNEY_LANDING_PAGE = {
+  page: 47,
+  headingLeft: "Chapter I",
+  headingRight: "p. 47",
+  left: [
+    "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.",
+    "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of some one or other of their daughters.",
+    "“My dear Mr. Bennet,” said his lady to him one day, “have you heard that Netherfield Park is let at last?”",
+    "Mr. Bennet replied that he had not.",
+  ],
+  right: [
+    "“But it is,” returned she; “for Mrs. Long has just been here, and she told me all about it.”",
+    "Mr. Bennet made no answer.",
+    "“Do you not want to know who has taken it?” cried his wife impatiently.",
+    "“You want to tell me, and I have no objection to hearing it.”",
+    "This was invitation enough. “Why, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England.”",
+  ],
+};
 
 const COVER = { x: 100, y: 400, width: 64, height: 96 };
 const HOST = { width: 1020, height: 720 };
@@ -194,6 +213,12 @@ test("flight source stays in its folder and off other readers", () => {
   assert.match(mount, /\.atomic-reader-page/);
   const register = readFileSync(join(flightDir, "register.ts"), "utf8");
   assert.match(register, /registerReaderFlight/);
+  assert.match(register, /page:\s*1/);
+  assert.match(register, /left:\s*\[\]/);
+  assert.match(register, /right:\s*\[\]/);
+  assert.doesNotMatch(register, /JOURNEY_LANDING_PAGE|universally acknowledged/);
+  assert.doesNotMatch(readFileSync(join(flightDir, "index.ts"), "utf8"), /JOURNEY_LANDING_PAGE/);
+  assert.doesNotMatch(readFileSync(join(flightDir, "page.ts"), "utf8"), /JOURNEY_LANDING_PAGE|universally acknowledged/);
   const main = readFileSync(join(root, "src/main.ts"), "utf8");
   assert.match(main, /registerOpenBookFlight/);
   assert.equal(openBookFlightView(), null);
@@ -306,6 +331,36 @@ test("registered flight lands on the active leaf, not a hidden reader", async ()
     assert.equal(overlay.getAttribute("data-page"), "1");
     assert.deepEqual(leafLines(overlay, "left"), ["Harbor light kept the first page."]);
     assert.equal(overlay.textContent.includes("Hidden page"), false);
+  } finally {
+    delete globalThis.activeWindow;
+    delete globalThis.activeDocument;
+    resetReaderMounts();
+  }
+});
+
+test("registered flight stays blank when the reader has no lines yet", async () => {
+  const tap = makeHost();
+  tap.destination.setAttribute("data-testid", "atomic-reader");
+  tap.verso.className = "atomic-reader-page is-verso";
+  tap.recto.className = "atomic-reader-page is-recto";
+  globalThis.activeWindow = tap.view;
+  globalThis.activeDocument = tap.doc;
+  try {
+    const handled = await playOpenBookFlight(async () => {}, {
+      notePath: "notes/book.md",
+      filePath: "notes/book.pdf",
+      title: "Harbor Notes",
+      kind: "pdf",
+      returnPath: "notes/shelf.md",
+      coverRect: { x: 100, y: 400, width: 64, height: 96, color: "#3d2a1c" },
+    });
+    assert.equal(handled, true);
+    const overlay = tap.body.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(overlay.getAttribute("data-page"), "1");
+    assert.deepEqual(leafLines(overlay, "left"), []);
+    assert.deepEqual(leafLines(overlay, "right"), []);
+    assert.equal(overlay.textContent.includes("universally acknowledged"), false);
+    assert.equal(overlay.textContent.includes("Chapter I"), false);
   } finally {
     delete globalThis.activeWindow;
     delete globalThis.activeDocument;
