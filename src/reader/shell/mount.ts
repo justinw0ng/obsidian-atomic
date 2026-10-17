@@ -18,10 +18,21 @@ export type ReaderOpenRequest = {
   coverRect: CoverRect | null;
 };
 
+/** Ask the open reader to paginate again for the box on screen. */
+export type ReaderLayoutRequest = {
+  /** Settled size. Theater leaves this alone and only changes the box. */
+  size: ReaderSizeId;
+  width: number;
+  height: number;
+  bodyLines: number;
+  charsPerLine: number;
+};
+
 export type ReaderSession = ReaderOpenRequest & {
   page: number;
   total: number;
   size: ReaderSizeId;
+  relayout?(request: ReaderLayoutRequest): void;
 };
 
 export type ReaderFlight = {

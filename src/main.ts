@@ -41,6 +41,7 @@ import { registerReaderTheater, resetReaderMounts } from "./reader/shell/mount";
 import { closeReaderChrome, openActiveNoteBook, openBookChooser, openReaderDirect } from "./reader/shell/open";
 import { registerBookChooser } from "./reader/shell/present";
 import { ATOMIC_READER_VIEW, AtomicReaderView } from "./reader/shell/view";
+import { registerBookSize, resetBookSize } from "./reader/size/shell-bind";
 import { attachReaderTheater, resetReaderTheater } from "./reader/theater/slot";
 
 const REFRESH_DEBOUNCE_MS = 300;
@@ -208,6 +209,7 @@ export default class FitnessPlugin extends Plugin {
     registerBookChooser((request) => {
       void openBookChooser(this, request);
     });
+    registerBookSize(this);
     this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
     this.addCommand({
       id: "open-book",
@@ -237,6 +239,7 @@ export default class FitnessPlugin extends Plugin {
   onunload() {
     this.unloaded = true;
     closeReaderChrome();
+    resetBookSize();
     resetReaderTheater();
     resetReaderMounts();
     this.liveBlocks = [];

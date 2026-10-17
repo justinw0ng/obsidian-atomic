@@ -3255,10 +3255,164 @@ ${E2E_CUE_LOG_FENCE}
       }
     });
   });
-});
 
-if (skipReason) {
-  console.log(`Skipping Selenium E2E: ${skipReason}`);
-} else {
-  console.log(`Selenium artifacts directory: ${ARTIFACT_DIR}`);
-}
+  it("changes book size from the reader slot and keeps the type", async () => {
+    await check(driver, "reader-book-size", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      const clickTitledBook = (title) => driver.executeScript(`
+        document.querySelector(
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
+        ).click();
+      `, title);
+      const readSize = () => driver.executeScript(`
+        const roots = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+        const root = roots.find((node) => node.getBoundingClientRect().width > 0) || null;
+        const page = root?.querySelector('[data-testid="atomic-reader-page"] p');
+        const style = page ? getComputedStyle(page) : null;
+        const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+        const slot = root?.querySelector('[data-reader-slot="size"]');
+        const control = slot?.querySelector('[data-testid="atomic-reader-size"]');
+        return (async () => {
+          const note = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.readingCurrent)});
+          const body = note ? await app.vault.read(note) : "";
+          return {
+            pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
+            pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+            text: page?.textContent || "",
+            bodyLines: root?.getAttribute("data-body-lines") || "",
+            fontSize: style?.fontSize || "",
+            lineHeight: style?.lineHeight || "",
+            phone: root?.classList.contains("is-phone") === true,
+            rootWidth: root ? Math.round(root.getBoundingClientRect().width) : 0,
+            inSlot: Boolean(slot && control && slot.contains(control)),
+            readers: document.querySelectorAll('[data-testid="atomic-reader"]').length,
+            pressed: slot?.querySelector('[data-testid="atomic-reader-size-xl"]')?.getAttribute("aria-pressed") || "",
+            pageW: root ? getComputedStyle(root).getPropertyValue("--atomic-page-w").trim() : "",
+            pageH: root ? getComputedStyle(root).getPropertyValue("--atomic-page-h").trim() : "",
+            bar: control?.classList.contains("is-bar") === true,
+            controlPhone: control?.classList.contains("is-phone") === true,
+            sheet: Boolean(slot?.querySelector('[data-testid="atomic-reader-size-sheet"]')),
+            hint: slot?.querySelector('[data-testid="atomic-reader-size-hint"]')?.textContent || "",
+            saved: /reader\\.size:\\s*\\S+/.test(body) ? (body.match(/reader\\.size:\\s*\\S+/) || [])[0] : "none",
+          };
+        })();
+      `);
+      const forceViewport = async (width, height, mobile) => {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width,
+            height,
+            deviceScaleFactor: 1,
+            mobile,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(arguments[0], arguments[1])`, width, height);
+        }
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+        `);
+      };
+      try {
+        await restoreDesktopPointer(driver, desktopViewport);
+        await forceViewport(1400, 900, false);
+        await openVaultFile(driver, E2E_FILES.bookshelfAll);
+        await waitCss(
+          driver,
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+        );
+        await clickTitledBook("Currently Reading");
+        try {
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 700);
+        } catch {
+          await clickTitledBook("Currently Reading");
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 8000);
+        }
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        `);
+        let desk = {};
+        try {
+          await driver.wait(async () => {
+            desk = await readSize();
+            return desk.phone === false && desk.fontSize === "12.5px" && desk.pressed === "false" && desk.bodyLines === "15" && desk.text.length > 0;
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} desk=${JSON.stringify(desk)}`);
+        }
+
+        desk = {};
+        await driver.executeScript(`
+          const roots = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+          const root = roots.find((node) => node.getBoundingClientRect().width > 0);
+          const button = root?.querySelector('[data-reader-slot="size"] [data-testid="atomic-reader-size-xl"]');
+          if (!button) throw new Error("missing xl button");
+          button.click();
+        `);
+        try {
+          await driver.wait(async () => {
+            desk = await readSize();
+            return desk.pageWidth === 340 && desk.pageHeight === 488 && desk.bodyLines === "22" && /reader\.size:\s*xl/.test(desk.saved) && desk.text.length > 0;
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(desk)}`);
+        }
+        assert.equal(desk.fontSize, "12.5px");
+        assert.equal(desk.lineHeight, "19px");
+        assert.equal(desk.phone, false);
+        assert.equal(desk.inSlot, true);
+        assert.equal(desk.sheet, false);
+        assert.equal(desk.bar, false);
+        assert.match(desk.hint, /⌘/);
+
+        await driver.executeScript(`
+          const roots = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+          const root = roots.find((node) => node.getBoundingClientRect().width > 0);
+          root?.querySelector('[data-reader-slot="size"] [data-testid="atomic-reader-size-s"]')?.click();
+        `);
+        let small = {};
+        try {
+          await driver.wait(async () => {
+            small = await readSize();
+            return small.pageWidth === 230 && small.pageHeight === 280 && small.bodyLines === "12" && /reader\.size:\s*s/.test(small.saved);
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} small=${JSON.stringify(small)}`);
+        }
+        assert.equal(small.fontSize, "12.5px");
+        assert.equal(small.lineHeight, "19px");
+
+        await forceViewport(390, 844, true);
+        let phone = {};
+        try {
+          await driver.wait(async () => {
+            phone = await readSize();
+            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px";
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
+        }
+        assert.equal(phone.lineHeight, "23px");
+        assert.equal(phone.inSlot, true);
+        assert.equal(phone.controlPhone, true);
+        assert.equal(phone.bar, false);
+        assert.equal(phone.sheet, true);
+        await shot(driver, "reader-book-size-phone");
+      } finally {
+        await restoreDesktopPointer(driver, desktopViewport);
+      }
+    });
+  });
+});

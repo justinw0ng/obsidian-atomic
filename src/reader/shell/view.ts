@@ -9,14 +9,49 @@ import {
   clampReaderPage,
   isPhoneReaderLayout,
   pageAfterTurn,
-  readerPageBox,
   readerProgress,
   spreadPages,
+  type ReaderPageBox,
   type ReaderSizeId,
 } from "./model";
-import { readerMounts, type CoverRect, type ReaderSession } from "./mount";
-import { paginateReaderBlocks, type ReaderLeaf } from "./paginate";
+import { readerMounts, type CoverRect, type ReaderLayoutRequest, type ReaderSession } from "./mount";
+import { paginateReaderBlocks, type ReaderBlock, type ReaderLeaf } from "./paginate";
+import { readerReflowBox } from "../size/reflow";
 import { inspectPdf, pdfViewerSrc } from "./pdf";
+
+function layoutBox(size: ReaderSizeId): ReaderPageBox {
+  const request = readerReflowBox(size, false);
+  return {
+    w: request.width,
+    h: request.height,
+    bodyLines: request.bodyLines,
+    charsPerLine: request.charsPerLine,
+  };
+}
+
+function paintedBox(host: HTMLElement): { w: string; h: string } | null {
+  const root = host.querySelector(".atomic-reader");
+  if (!root?.instanceOf(HTMLElement)) return null;
+  const width = root.style.getPropertyValue("--atomic-page-w").trim();
+  const height = root.style.getPropertyValue("--atomic-page-h").trim();
+  if (!width || !height) return null;
+  return { w: width, h: height };
+}
+
+/** Start the existing page transition from the box that was just on screen. */
+function slideBox(
+  root: HTMLElement,
+  previous: { w: string; h: string } | null,
+  box: ReaderPageBox,
+): void {
+  if (!previous) return;
+  const width = `${box.w}px`;
+  const height = `${box.h}px`;
+  if (previous.w === width && previous.h === height) return;
+  root.setCssProps({ "--atomic-page-w": previous.w, "--atomic-page-h": previous.h });
+  void root.getBoundingClientRect();
+  root.setCssProps({ "--atomic-page-w": width, "--atomic-page-h": height });
+}
 
 export const ATOMIC_READER_VIEW = "atomic-reader";
 
@@ -69,6 +104,10 @@ export class AtomicReaderView extends ItemView {
   private returnPath = "";
   private coverRect: CoverRect | null = null;
   private size: ReaderSizeId = "m";
+  private blocks: ReaderBlock[] = [];
+  private layout: ReaderPageBox = layoutBox("m");
+  /** True after the size control paginates during this load. */
+  private sizeFromReader = false;
   private canvasPath = "";
   private page = 1;
   private savedPage = 1;
@@ -174,6 +213,8 @@ export class AtomicReaderView extends ItemView {
     this.failure = "opening";
     this.ready = false;
     this.leaves = [];
+    this.blocks = [];
+    this.sizeFromReader = false;
     this.pdfSrc = "";
     this.total = 0;
     this.paint();
@@ -196,10 +237,11 @@ export class AtomicReaderView extends ItemView {
         ? readerFieldsFromFrontmatter(cache.frontmatter)
         : readReaderNote(await this.plugin.app.vault.cachedRead(note));
       if (token !== this.loadToken) return;
-      this.size = fields.size;
+      if (!this.sizeFromReader) this.size = fields.size;
       this.canvasPath = sourcePathFromFrontmatter(fields.canvas);
       storedPage = fields.page;
     }
+    if (!this.sizeFromReader) this.layout = layoutBox(this.size);
     this.page = storedPage;
     this.savedPage = storedPage;
 
@@ -221,7 +263,8 @@ export class AtomicReaderView extends ItemView {
         case "epub": {
           const epub = await readEpub(bytes);
           if (token !== this.loadToken) return;
-          this.leaves = paginateReaderBlocks(epub.blocks, readerPageBox(this.size));
+          this.blocks = epub.blocks;
+          this.leaves = paginateReaderBlocks(this.blocks, this.layout);
           this.total = this.leaves.length;
           this.failure = this.total > 0 ? null : "empty";
           break;
@@ -299,7 +342,44 @@ export class AtomicReaderView extends ItemView {
       page: this.page,
       total: this.total,
       size: this.size,
+      relayout: (request) => {
+        this.applyLayout(request);
+      },
     };
+  }
+
+  /** Paginate the open EPUB for the box the size control is drawing. */
+  private applyLayout(request: ReaderLayoutRequest): void {
+    const box: ReaderPageBox = {
+      w: request.width,
+      h: request.height,
+      bodyLines: Math.max(1, Math.round(request.bodyLines)),
+      charsPerLine: Math.max(1, Math.round(request.charsPerLine)),
+    };
+    if (
+      this.size === request.size &&
+      this.layout.w === box.w &&
+      this.layout.h === box.h &&
+      this.layout.bodyLines === box.bodyLines &&
+      this.layout.charsPerLine === box.charsPerLine
+    ) {
+      return;
+    }
+    this.sizeFromReader = true;
+    this.size = request.size;
+    this.layout = box;
+    if (this.kind === "epub" && this.blocks.length > 0) {
+      this.leaves = paginateReaderBlocks(this.blocks, box);
+      this.total = this.leaves.length;
+      this.failure = this.total > 0 ? null : "empty";
+      const nextPage = clampReaderPage(this.page, Math.max(this.total, 1));
+      if (nextPage !== this.page) {
+        this.page = nextPage;
+        this.dirty = this.page !== this.savedPage;
+        if (this.dirty) this.scheduleSave();
+      }
+    }
+    this.paint();
   }
 
   private attachMounts(root: HTMLElement): void {
@@ -315,7 +395,8 @@ export class AtomicReaderView extends ItemView {
 
   private paint(): void {
     const language = this.plugin.settings.language;
-    const box = readerPageBox(this.size);
+    const box = this.layout;
+    const previous = paintedBox(this.contentEl);
     const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
     this.contentEl.empty();
     const root = this.contentEl.createDiv({
@@ -327,6 +408,7 @@ export class AtomicReaderView extends ItemView {
         "data-page": String(this.page),
         "data-total": String(this.total),
         "data-size": this.size,
+        "data-body-lines": String(box.bodyLines),
         tabindex: "0",
       },
     });
@@ -416,6 +498,7 @@ export class AtomicReaderView extends ItemView {
 
     this.paintFoot(root, language, progress);
     this.attachMounts(root);
+    slideBox(root, previous, box);
   }
 
   private paintPage(parent: HTMLElement, number: number | null, side: "verso" | "recto"): void {
