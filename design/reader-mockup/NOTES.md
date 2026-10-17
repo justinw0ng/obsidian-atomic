@@ -163,3 +163,7 @@ Confirm + size warning. Retrieval over a full paste. Stay optional forever.
 - Handwriting / stylus layers
 - Continuous scroll as the only PDF mode (page mode first)
 - Translating the whole book
+
+## Superseded
+
+The approved OpenPencil reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`) supersedes the HTML open/theater mock in this folder. `reader-mock.html` is kept for reference only.
