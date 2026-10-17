@@ -40,6 +40,23 @@ export interface DayActivity {
   path: string | null;
 }
 
+export type AskProviderId = "openai" | "anthropic" | "openai-compatible";
+
+/** Ask preferences saved in data.json. Never the API key. */
+export interface AskSettings {
+  provider: AskProviderId;
+  model: string;
+  secretName: string;
+  baseUrl: string;
+}
+
+export const DEFAULT_ASK_SETTINGS: AskSettings = {
+  provider: "openai",
+  model: "",
+  secretName: "",
+  baseUrl: "",
+};
+
 export interface FitnessSettings {
   language: Language;
   timezone: string;
@@ -50,6 +67,7 @@ export interface FitnessSettings {
   gymExercises: GymExercisePair[];
   gymLogSetup: GymLogSetup;
   lastSeenUpdateNoteVersion: string;
+  ask: AskSettings;
 }
 
 export const GREEN: [string, string, string, string] = [
@@ -127,4 +145,5 @@ export const DEFAULT_SETTINGS: FitnessSettings = {
   gymExercises: [],
   gymLogSetup: "complete",
   lastSeenUpdateNoteVersion: "",
+  ask: { ...DEFAULT_ASK_SETTINGS },
 };

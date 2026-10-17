@@ -3368,3 +3368,256 @@
   box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
 }
 
+/* Ask remarks. The shell owns the page. Cards sit in its gutters. */
+
+.atomic-reader-spread.is-ask-open {
+  overflow: visible;
+}
+
+.atomic-reader-spread.is-ask-open .atomic-reader-gutter.is-ask {
+  z-index: 4;
+}
+
+.atomic-reader-gutter > .atomic-reader-ask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  font-family: var(--font-interface, var(--atomic-font));
+}
+
+.atomic-reader-ask .atomic-remark,
+.atomic-reader-ask .atomic-mdot,
+.atomic-reader-ask .atomic-slip,
+.atomic-reader-ask .atomic-selbar,
+.atomic-reader-ask .atomic-ask {
+  pointer-events: auto;
+}
+
+.atomic-reader-ask .atomic-remark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--atomic-remark-top, 0px);
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 0;
+  border-left: 3px solid #e0b430;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+  color: var(--atomic-ink-2);
+  font-family: var(--font-interface, var(--atomic-font));
+  font-size: 12px;
+  line-height: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.atomic-reader-gutter.is-ask .atomic-remark,
+.atomic-reader-ask .atomic-remark.is-ai {
+  border-left-color: var(--interactive-accent);
+}
+
+.atomic-reader-ask .atomic-remark strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--atomic-ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.atomic-reader-ask .atomic-remark.is-ai strong {
+  color: var(--interactive-accent);
+}
+
+.atomic-reader-ask .atomic-mdot {
+  position: absolute;
+  right: 6px;
+  top: var(--atomic-remark-top, 0px);
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+  cursor: pointer;
+}
+
+.atomic-reader-ask .atomic-slip {
+  position: absolute;
+  right: 8px;
+  top: var(--atomic-remark-top, 0px);
+  z-index: 4;
+  width: 168px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--interactive-accent);
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+}
+
+.atomic-reader-ask .atomic-slip[data-kind="quote"] {
+  border-left-color: #e0b430;
+}
+
+.atomic-reader-ask .atomic-slip .atomic-hint {
+  margin: 0;
+}
+
+.atomic-reader-ask .atomic-selbar {
+  position: fixed;
+  z-index: 30;
+  left: var(--atomic-sel-left, 16px);
+  top: var(--atomic-sel-top, 16px);
+  transform: translate(-50%, -120%);
+}
+
+.atomic-reader-ask .atomic-selbar .atomic-glass {
+  height: auto;
+  padding: 4px;
+  gap: 4px;
+  border-radius: var(--atomic-r-well);
+}
+
+.atomic-reader-gutter.is-ask .atomic-ask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  padding: 16px 16px 18px;
+  background: var(--background-primary);
+  border-left: 1px solid var(--atomic-rule);
+  color: var(--atomic-ink);
+}
+
+.atomic-reader-ask .atomic-ask h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.atomic-reader-ask .atomic-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.atomic-reader-ask .atomic-saved i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--interactive-accent);
+}
+
+.atomic-reader-ask .atomic-ask .atomic-seg {
+  margin-top: 10px;
+}
+
+.atomic-reader-ask .atomic-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  margin: 12px 0;
+  overflow: auto;
+}
+
+.atomic-reader-ask .atomic-bubble {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.atomic-reader-ask .atomic-bubble.is-user {
+  align-self: flex-end;
+  margin-left: auto;
+  background: var(--atomic-ink);
+  color: var(--atomic-paper);
+}
+
+.atomic-reader-ask .atomic-compose {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding: 8px 10px 8px 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+
+.atomic-reader-ask .atomic-compose:focus-within {
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
+}
+
+.atomic-reader-ask .atomic-compose textarea {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 22px;
+  min-height: 22px;
+  max-height: 88px;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--atomic-ink);
+  font: 13px/1.45 var(--font-interface, var(--atomic-font));
+}
+
+.atomic-reader-ask .atomic-compose textarea::placeholder {
+  color: var(--atomic-ink-2);
+}
+
+.atomic-reader-ask .atomic-compose .atomic-btn.is-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.atomic-reader-ask .atomic-ask.is-sheet {
+  top: auto;
+  left: auto;
+  width: var(--atomic-ask-span, 320px);
+  padding: 10px 16px 18px;
+  border-left: 0;
+  border-radius: var(--atomic-r-well) var(--atomic-r-well) 0 0;
+  box-shadow: 0 -1px 0 var(--atomic-rule), 0 -18px 40px -24px rgba(0, 0, 0, 0.45);
+}
+
+.atomic-reader-ask .atomic-sheet-grab {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 12px;
+  border-radius: 99px;
+  background: var(--atomic-fill-3);
+}
+
+.atomic-reader-ask .atomic-ask.is-sheet .atomic-thread {
+  flex: none;
+  max-height: 220px;
+}
+
+.atomic-secret-mask {
+  font-family: var(--font-monospace, var(--atomic-mono));
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+

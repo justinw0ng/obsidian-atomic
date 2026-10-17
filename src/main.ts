@@ -36,6 +36,7 @@ import {
   rewriteDedicatedCueFences,
 } from "./util/rewrite-cue-fences";
 import { suggestItem } from "./util/suggest-item";
+import { registerAskOnShell, resetAskSession } from "./reader/ask/mount";
 import { closeReaderChrome, openActiveNoteBook, openBookChooser } from "./reader/shell/open";
 import { resetReaderMounts } from "./reader/shell/mount";
 import { registerBookChooser } from "./reader/shell/present";
@@ -55,6 +56,7 @@ export default class FitnessPlugin extends Plugin {
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
+    registerAskOnShell(this);
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language,
     });
@@ -226,6 +228,7 @@ export default class FitnessPlugin extends Plugin {
   onunload() {
     this.unloaded = true;
     closeReaderChrome();
+    resetAskSession();
     resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {

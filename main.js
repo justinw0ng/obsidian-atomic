@@ -23,7 +23,7 @@ __export(main_exports, {
   default: () => FitnessPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian16 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 
 // src/dates.ts
 var utcMonthShortZh = new Intl.DateTimeFormat("zh-HK", {
@@ -221,6 +221,31 @@ var en = {
   "settings.gymExercisesCount": "{count} saved pairs",
   "settings.gymImport": "Import from gym notes",
   "settings.gymImportDesc": "Find exercises in your gym notes and add the set form to notes that do not have it yet.",
+  "settings.askHeading": "Ask",
+  "settings.askHeadingDesc": "Ask uses a key from Obsidian secrets. Atomic does not run a model. The key never goes in plugin data, notes, or the canvas.",
+  "settings.askUpdate": "Update Obsidian to ask",
+  "settings.askUpdateDesc": "Ask keeps the key in Obsidian secrets. That needs version 1.11.4 or newer. Update Obsidian. Ask stays off. We do not keep a key in plugin data.",
+  "settings.askStillWorks": "Read, highlight, and remark still work.",
+  "settings.askProvider": "Provider",
+  "settings.askProviderDesc": "The provider you call with your own key. Ask needs a network. Reading does not.",
+  "settings.askProvider.openai": "OpenAI",
+  "settings.askProvider.anthropic": "Anthropic",
+  "settings.askProvider.openai-compatible": "OpenAI-compatible",
+  "settings.askModel": "Model",
+  "settings.askModelDesc": "Leave blank to use the provider default.",
+  "settings.askBaseUrl": "Base URL",
+  "settings.askBaseUrlDesc": "API root ending in /v1, or the full chat completions URL. Local http is limited to localhost.",
+  "settings.askKey": "API key",
+  "settings.askKeyDesc": "Settings keep the name only. The value stays in the app Keychain on this device.",
+  "settings.askStored": "Stored in Obsidian secrets",
+  "settings.askMissingOnDevice": "This device has no value for {name}. Create it in the Keychain.",
+  "settings.askNameHint": "Name {name}. A synced vault copies the name, not the key.",
+  "settings.askReplace": "Replace",
+  "settings.askRemove": "Remove",
+  "settings.askTest": "Test",
+  "settings.askPick": "Keychain secret",
+  "settings.askPickDesc": "Pick a secret or create one. Settings keep the name, not the value.",
+  "settings.askMask": "Masked key",
   "command.newGymSession": "New gym session",
   "command.newGolfSession": "New golf session",
   "command.newExerciseSession": "New exercise session",
@@ -242,6 +267,12 @@ var en = {
   "notice.activityDeleted": "Removed {label} from settings.",
   "notice.noHobbyActivities": "No enabled general habits configured",
   "notice.folderUnsafe": "Folder must be a safe vault-relative path.",
+  "notice.askAnswered": "Provider answered",
+  "notice.askNeedSecret": "Link a secret to ask",
+  "notice.askFailed": "The provider did not answer",
+  "notice.askSaved": "Saved in Obsidian secrets",
+  "notice.askRemoved": "Unlinked the secret name. The Keychain entry is still there.",
+  "notice.askInvalidUrl": "Use an https URL, or http on localhost.",
   "notice.noExerciseActivities": "No exercise activities configured",
   "notice.noGymActivity": "No gym activity configured",
   "notice.noGolfActivity": "No golf activity configured",
@@ -510,7 +541,26 @@ var en = {
   "muscle.Hamstrings": "Hamstrings",
   "muscle.Glutes": "Glutes",
   "muscle.Calves": "Calves",
-  "muscle.Core": "Core"
+  "muscle.Core": "Core",
+  "reader.highlight": "Highlight",
+  "reader.remark": "Remark",
+  "reader.ask": "Ask",
+  "reader.send": "Send",
+  "reader.scopePage": "This page",
+  "reader.scopeSelection": "Selection",
+  "reader.scopeBook": "Whole book",
+  "reader.savedCanvas": "Saved to canvas",
+  "reader.askTitle": "Ask about this book",
+  "reader.askPlaceholder": "Ask about this passage\u2026",
+  "reader.askPlaceholderPhone": "Ask\u2026",
+  "reader.confirmBook": "This sends about {chars} characters on your key. It can cost money and the text leaves the vault.",
+  "reader.remarkLabel": "Remark \xB7 p. {page}",
+  "reader.askLabel": "Ask \xB7 p. {page}",
+  "reader.highlightLabel": "Highlight \xB7 p. {page}",
+  "reader.openCanvas": "Open canvas card",
+  "reader.secretReady": "Secret storage \xB7 configured",
+  "reader.secretMissing": "Link a secret in settings to ask",
+  "reader.pageLabel": "{title} \xB7 p. {page}"
 };
 
 // src/i18n/locales/zh-Hant-en.ts
@@ -558,6 +608,31 @@ var zhHantEn = {
   "settings.gymExercisesCount": "\u5B58\u5497 {count} \u7D44",
   "settings.gymImport": "\u7531\u5065\u8EAB\u7B46\u8A18\u532F\u5165",
   "settings.gymImportDesc": "\u55BA\u5065\u8EAB\u7B46\u8A18\u6435\u8FD4\u7528\u904E\u5605\u52D5\u4F5C\uFF0C\u540C\u57CB\u55BA\u672A\u6709\u8868\u55AE\u5605\u7B46\u8A18\u52A0\u4E0A\u7D44\u6578\u8868\u55AE\u3002",
+  "settings.askHeading": "Ask",
+  "settings.askHeadingDesc": "Ask \u7528\u4F60\u81EA\u5DF1\u628A\u5319\uFF0C\u5319\u653E\u55BA Obsidian secrets\u3002Atomic \u5514\u6703\u81EA\u5DF1\u8DD1\u6A21\u578B\u3002\u5319\u5514\u6703\u5BEB\u5165\u5916\u639B\u8CC7\u6599\u3001\u7B46\u8A18\u6216\u8005 canvas\u3002",
+  "settings.askUpdate": "\u66F4\u65B0 Obsidian \u5148\u53EF\u4EE5\u7528 Ask",
+  "settings.askUpdateDesc": "Ask \u628A\u5319\u653E\u55BA Obsidian secrets\uFF0C\u9700\u8981 1.11.4 \u6216\u66F4\u65B0\u3002\u8ACB\u66F4\u65B0 Obsidian\u3002Ask \u6703\u4FDD\u6301\u95DC\u9589\u3002\u6211\u54CB\u5514\u6703\u628A\u5319\u5BEB\u5165\u5916\u639B\u8CC7\u6599\u3002",
+  "settings.askStillWorks": "\u95B1\u8B80\u3001\u756B\u91CD\u9EDE\u540C\u5099\u8A3B\u4ECD\u7136\u7528\u5F97\u3002",
+  "settings.askProvider": "\u4F9B\u61C9\u5546",
+  "settings.askProviderDesc": "\u7528\u4F60\u81EA\u5DF1\u628A\u5319\u547C\u53EB\u5605\u4F9B\u61C9\u5546\u3002Ask \u9700\u8981\u7DB2\u7D61\u3002\u95B1\u8B80\u5514\u4F7F\u3002",
+  "settings.askProvider.openai": "OpenAI",
+  "settings.askProvider.anthropic": "Anthropic",
+  "settings.askProvider.openai-compatible": "OpenAI-compatible",
+  "settings.askModel": "\u6A21\u578B",
+  "settings.askModelDesc": "\u7559\u7A7A\u5C31\u7528\u4F9B\u61C9\u5546\u9810\u8A2D\u6A21\u578B\u3002",
+  "settings.askBaseUrl": "Base URL",
+  "settings.askBaseUrlDesc": "API \u6839\u8DEF\u5F91\uFF0C\u7D50\u5C3E\u4FC2 /v1\uFF0C\u6216\u8005\u5B8C\u6574\u5605 chat completions URL\u3002\u672C\u6A5F http \u53EA\u9650 localhost\u3002",
+  "settings.askKey": "API \u5319",
+  "settings.askKeyDesc": "\u8A2D\u5B9A\u53EA\u4FDD\u7559\u540D\u7A31\u3002\u6578\u503C\u7559\u55BA\u5462\u90E8\u6A5F\u5605 Keychain\u3002",
+  "settings.askStored": "\u5DF2\u5B58\u653E\u55BA Obsidian secrets",
+  "settings.askMissingOnDevice": "\u5462\u90E8\u6A5F\u672A\u6709 {name} \u5605\u6578\u503C\u3002\u8ACB\u55BA Keychain \u5EFA\u7ACB\u3002",
+  "settings.askNameHint": "\u540D\u7A31 {name}\u3002\u540C\u6B65 vault \u53EA\u6703\u6284\u540D\u7A31\uFF0C\u5514\u6703\u6284\u5319\u3002",
+  "settings.askReplace": "\u66F4\u63DB",
+  "settings.askRemove": "\u89E3\u9664",
+  "settings.askTest": "\u6E2C\u8A66",
+  "settings.askPick": "Keychain \u5BC6\u9470",
+  "settings.askPickDesc": "\u63C0\u4E00\u500B\u5BC6\u9470\u6216\u8005\u65B0\u5EFA\u3002\u8A2D\u5B9A\u53EA\u4FDD\u7559\u540D\u7A31\uFF0C\u5514\u4FDD\u7559\u6578\u503C\u3002",
+  "settings.askMask": "\u5DF2\u906E\u84CB\u5605\u5319",
   "command.newGymSession": "\u65B0\u589E\u5065\u8EAB\u8A13\u7DF4",
   "command.newGolfSession": "\u65B0\u589E\u9AD8\u723E\u592B\u8A13\u7DF4",
   "command.newExerciseSession": "\u65B0\u589E\u904B\u52D5\u8A13\u7DF4",
@@ -579,6 +654,12 @@ var zhHantEn = {
   "notice.activityDeleted": "\u5DF2\u5F9E\u8A2D\u5B9A\u79FB\u9664 {label}\u3002",
   "notice.noHobbyActivities": "\u5C1A\u672A\u8A2D\u5B9A\u5DF2\u555F\u7528\u7684\u4E00\u822C\u7FD2\u6163",
   "notice.folderUnsafe": "\u8CC7\u6599\u593E\u5FC5\u9808\u662F\u5B89\u5168\u7684 vault \u76F8\u5C0D\u8DEF\u5F91\u3002",
+  "notice.askAnswered": "\u4F9B\u61C9\u5546\u5DF2\u56DE\u8986",
+  "notice.askNeedSecret": "\u9023\u7D50\u4E00\u500B\u5BC6\u9470\u5148\u53EF\u4EE5 Ask",
+  "notice.askFailed": "\u4F9B\u61C9\u5546\u672A\u6709\u56DE\u8986",
+  "notice.askSaved": "\u5DF2\u5B58\u653E\u55BA Obsidian secrets",
+  "notice.askRemoved": "\u5DF2\u89E3\u9664\u5BC6\u9470\u540D\u7A31\u3002Keychain \u5165\u9762\u5605\u9805\u76EE\u4ECD\u7136\u55BA\u5EA6\u3002",
+  "notice.askInvalidUrl": "\u8ACB\u7528 https\uFF0C\u6216\u8005 localhost \u5605 http\u3002",
   "notice.noExerciseActivities": "\u5C1A\u672A\u8A2D\u5B9A\u904B\u52D5\u6D3B\u52D5",
   "notice.noGymActivity": "\u5C1A\u672A\u8A2D\u5B9A\u5065\u8EAB\u6D3B\u52D5",
   "notice.noGolfActivity": "\u5C1A\u672A\u8A2D\u5B9A\u9AD8\u723E\u592B\u6D3B\u52D5",
@@ -847,7 +928,26 @@ var zhHantEn = {
   "view.reader.opening": "\u6253\u958B\u7DCA\u2026",
   "view.reader.encrypted": "\u5462\u500B\u6A94\u6848\u6709\u52A0\u5BC6\u3002",
   "view.reader.unreadable": "\u5462\u500B\u6A94\u6848\u6253\u5514\u958B\u3002",
-  "view.reader.empty": "\u5462\u672C\u66F8\u5187\u9801\u3002"
+  "view.reader.empty": "\u5462\u672C\u66F8\u5187\u9801\u3002",
+  "reader.highlight": "\u756B\u91CD\u9EDE",
+  "reader.remark": "\u5099\u8A3B",
+  "reader.ask": "Ask",
+  "reader.send": "\u9001\u51FA",
+  "reader.scopePage": "\u5462\u9801",
+  "reader.scopeSelection": "\u9078\u53D6\u6587\u5B57",
+  "reader.scopeBook": "\u6210\u672C\u66F8",
+  "reader.savedCanvas": "\u5DF2\u5BEB\u5165 canvas",
+  "reader.askTitle": "\u554F\u5462\u672C\u66F8",
+  "reader.askPlaceholder": "\u554F\u5462\u6BB5\u6587\u5B57\u2026",
+  "reader.askPlaceholderPhone": "\u554F\u2026",
+  "reader.confirmBook": "\u5462\u6B21\u6703\u7528\u4F60\u628A\u5319\u9001\u51FA\u5927\u7D04 {chars} \u500B\u5B57\u3002\u53EF\u80FD\u6536\u8CBB\uFF0C\u6587\u5B57\u4EA6\u6703\u96E2\u958B vault\u3002",
+  "reader.remarkLabel": "\u5099\u8A3B \xB7 p. {page}",
+  "reader.askLabel": "Ask \xB7 p. {page}",
+  "reader.highlightLabel": "\u756B\u91CD\u9EDE \xB7 p. {page}",
+  "reader.openCanvas": "\u6253\u958B canvas \u5361\u7247",
+  "reader.secretReady": "Secret storage \u5DF2\u8A2D\u5B9A",
+  "reader.secretMissing": "\u53BB\u8A2D\u5B9A\u9023\u7D50\u5BC6\u9470\u5148\u53EF\u4EE5 Ask",
+  "reader.pageLabel": "{title} \xB7 p. {page}"
 };
 
 // src/i18n/index.ts
@@ -870,6 +970,12 @@ function t(key, language, vars) {
 }
 
 // src/types.ts
+var DEFAULT_ASK_SETTINGS = {
+  provider: "openai",
+  model: "",
+  secretName: "",
+  baseUrl: ""
+};
 var GREEN = [
   "#9be9a8",
   "#40c463",
@@ -938,7 +1044,8 @@ var DEFAULT_SETTINGS = {
   activityTypes: DEFAULT_ACTIVITY_TYPES,
   gymExercises: [],
   gymLogSetup: "complete",
-  lastSeenUpdateNoteVersion: ""
+  lastSeenUpdateNoteVersion: "",
+  ask: { ...DEFAULT_ASK_SETTINGS }
 };
 
 // src/util/colors.ts
@@ -2500,11 +2607,11 @@ function renderActions(el, plugin) {
     attr: { "data-testid": "atomic-actions" }
   });
   for (const activity of actionActivities(plugin.settings.activityTypes)) {
-    const button = root.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
-    const dot = button.createSpan({ cls: "atomic-dot" });
+    const button2 = root.createEl("button", { cls: "atomic-btn", attr: { type: "button" } });
+    const dot = button2.createSpan({ cls: "atomic-dot" });
     dot.setCssProps({ "--atomic-c": activity.colors[2] });
-    button.createSpan({ text: labelForLanguage(activity.label, plugin.settings.language) });
-    button.addEventListener("click", () => {
+    button2.createSpan({ text: labelForLanguage(activity.label, plugin.settings.language) });
+    button2.addEventListener("click", () => {
       if (activity.domain === "hobby" && activity.noteModel === "item") {
         void plugin.createHobbyItem(activity);
         return;
@@ -4605,11 +4712,11 @@ function isDigitEl(node) {
 function makeDigit(parent, start) {
   const digit = parent.createSpan({ cls: "atomic-digit" });
   digit.createSpan({ cls: "atomic-digit-ghost", text: String(start) });
-  const clip = digit.createSpan({
+  const clip2 = digit.createSpan({
     cls: "atomic-digit-clip",
     attr: { "aria-hidden": "true" }
   });
-  const reel = clip.createSpan({ cls: "atomic-reel" });
+  const reel = clip2.createSpan({ cls: "atomic-reel" });
   reel.setCssProps({ "--d": String(start) });
   for (let i = 0; i < 10; i++) reel.createSpan({ text: String(i) });
   return digit;
@@ -4737,12 +4844,12 @@ function renderHeader(root, model, ctx, onYear) {
   const top = root.createDiv({ cls: "atomic-dash-top" });
   const switcher = top.createDiv({ cls: "atomic-stepper" });
   const yearButton = (label, key, testId, target) => {
-    const button = switcher.createEl("button", {
+    const button2 = switcher.createEl("button", {
       text: label,
       cls: "atomic-btn is-icon",
       attr: { "aria-label": t(key, ctx.language), "data-testid": testId, type: "button" }
     });
-    button.addEventListener("click", () => onYear(target));
+    button2.addEventListener("click", () => onYear(target));
   };
   yearButton("\u2039", "view.dashboard.prevYear", "atomic-dashboard-year-prev", model.year - 1);
   const yearValue = switcher.createSpan({ cls: "atomic-stepper-value" });
@@ -5266,7 +5373,7 @@ function titleLengthClass(title) {
   return "";
 }
 function createBook(parent, item, data, language, ribbonColor, readout) {
-  const button = parent.createEl("button", {
+  const button2 = parent.createEl("button", {
     cls: "atomic-book",
     attr: {
       type: "button",
@@ -5276,16 +5383,16 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
       "data-path": item.path
     }
   });
-  button.style.setProperty("--atomic-book-color", item.spineColor);
+  button2.style.setProperty("--atomic-book-color", item.spineColor);
   const titleClass = titleLengthClass(item.title);
-  const pages = button.createDiv({ cls: "atomic-book-pages" });
+  const pages = button2.createDiv({ cls: "atomic-book-pages" });
   pages.createDiv({
     cls: ["atomic-book-pages-title", titleClass].filter(Boolean).join(" "),
     text: item.title
   });
   const author = item.authors[0];
   if (author) pages.createDiv({ cls: "atomic-book-pages-meta", text: author });
-  const face = button.createDiv({ cls: "atomic-book-face" });
+  const face = button2.createDiv({ cls: "atomic-book-face" });
   const coverSrc = resolveCoverSrc(item.cover, data, item.path);
   if (coverSrc) {
     face.createEl("img", {
@@ -5299,35 +5406,35 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     });
   }
   if (item.status === "reading") {
-    const ribbon = button.createSpan({ cls: "atomic-book-ribbon" });
+    const ribbon = button2.createSpan({ cls: "atomic-book-ribbon" });
     ribbon.style.setProperty("--atomic-c", ribbonColor);
   }
-  button.addEventListener("pointermove", (event) => {
+  button2.addEventListener("pointermove", (event) => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    const rect = button.getBoundingClientRect();
+    const rect = button2.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
     const px = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    button.style.setProperty("--px", px.toFixed(3));
-    button.style.setProperty("--py", py.toFixed(3));
-    button.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
-    button.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
+    button2.style.setProperty("--px", px.toFixed(3));
+    button2.style.setProperty("--py", py.toFixed(3));
+    button2.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
+    button2.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
   });
-  button.addEventListener("pointerenter", () => {
+  button2.addEventListener("pointerenter", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
     showBookReadout(readout, item, language, "preview");
   });
-  button.addEventListener("pointerleave", () => {
+  button2.addEventListener("pointerleave", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    button.classList.remove(COVER_OPEN_CLASS);
+    button2.classList.remove(COVER_OPEN_CLASS);
     const summary = readout.dataset.shelfSummary;
     if (summary) readout.setText(summary);
   });
-  button.addEventListener("click", (event) => {
+  button2.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
+    const coverOpen = button2.classList.contains(COVER_OPEN_CLASS);
     if (!bookClickOpensNote({
       hoverFine,
       coverOpen,
@@ -5335,12 +5442,12 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     })) {
       const shelf = parent.closest(".atomic-book-shelf") ?? parent;
       closeOpenCovers(shelf);
-      button.classList.add(COVER_OPEN_CLASS);
+      button2.classList.add(COVER_OPEN_CLASS);
       showBookReadout(readout, item, language, "again", hoverFine);
       return;
     }
-    button.classList.remove(COVER_OPEN_CLASS);
-    const rect = button.getBoundingClientRect();
+    button2.classList.remove(COVER_OPEN_CLASS);
+    const rect = button2.getBoundingClientRect();
     presentBookChooser({
       notePath: item.path,
       title: item.title,
@@ -5351,7 +5458,7 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
         height: rect.height,
         color: item.spineColor
       },
-      ownerDocument: button.ownerDocument
+      ownerDocument: button2.ownerDocument
     });
   });
 }
@@ -6300,17 +6407,17 @@ var GymLogSetupModal = class extends import_obsidian6.Modal {
     contentEl.createEl("h2", { text: t("modal.gymSetupTitle", language) });
     contentEl.createEl("p", { text: t("modal.gymSetupLead", language) });
     contentEl.createEl("p", { text: t("modal.gymSetupBody", language) });
-    new import_obsidian6.Setting(contentEl).addButton((button) => {
-      button.setButtonText(t("modal.gymSetupLater", language));
-      button.buttonEl.setAttr("data-testid", "atomic-gym-log-setup-later");
-      button.onClick(() => {
+    new import_obsidian6.Setting(contentEl).addButton((button2) => {
+      button2.setButtonText(t("modal.gymSetupLater", language));
+      button2.buttonEl.setAttr("data-testid", "atomic-gym-log-setup-later");
+      button2.onClick(() => {
         void this.skip();
       });
-    }).addButton((button) => {
-      button.setButtonText(t("modal.gymSetupConfirm", language));
-      button.setCta();
-      button.buttonEl.setAttr("data-testid", "atomic-gym-log-setup-confirm");
-      button.onClick(() => {
+    }).addButton((button2) => {
+      button2.setButtonText(t("modal.gymSetupConfirm", language));
+      button2.setCta();
+      button2.buttonEl.setAttr("data-testid", "atomic-gym-log-setup-confirm");
+      button2.onClick(() => {
         void this.confirm();
       });
     });
@@ -6379,9 +6486,9 @@ var NewGymExerciseModal = class extends import_obsidian6.Modal {
     this.customMuscleRow = customSetting.settingEl;
     this.syncCustomMuscleVisibility();
     new import_obsidian6.Setting(contentEl).addButton(
-      (button) => button.setButtonText(t("modal.cancel", this.language)).onClick(() => this.finish(null))
+      (button2) => button2.setButtonText(t("modal.cancel", this.language)).onClick(() => this.finish(null))
     ).addButton(
-      (button) => button.setButtonText(t("modal.ok", this.language)).setCta().onClick(() => this.submit())
+      (button2) => button2.setButtonText(t("modal.ok", this.language)).setCta().onClick(() => this.submit())
     );
   }
   syncCustomMuscleVisibility() {
@@ -8008,7 +8115,1001 @@ function showUpdateNoteNotice(message) {
 }
 
 // src/settings.ts
+var import_obsidian15 = require("obsidian");
+
+// src/reader/ask/settings-section.ts
+var import_obsidian14 = require("obsidian");
+
+// src/reader/ask/obsidian-port.ts
 var import_obsidian13 = require("obsidian");
+var SECRET_API = "1.11.4";
+function obsidianSecretPort(app) {
+  if (!(0, import_obsidian13.requireApiVersion)(SECRET_API)) return null;
+  return {
+    get(id) {
+      const value = app.secretStorage.getSecret(id);
+      return typeof value === "string" && value.length > 0 ? value : null;
+    },
+    set(id, secret) {
+      app.secretStorage.setSecret(id, secret);
+    },
+    list() {
+      return app.secretStorage.listSecrets();
+    }
+  };
+}
+function obsidianHttpPort() {
+  return {
+    async send(request) {
+      try {
+        const response = await (0, import_obsidian13.requestUrl)({
+          url: request.url,
+          method: request.method,
+          headers: request.headers,
+          throw: false,
+          ...request.body !== void 0 ? { body: request.body, contentType: "application/json" } : {}
+        });
+        return { status: response.status, body: response.text };
+      } catch {
+        return { status: 0, body: "" };
+      }
+    }
+  };
+}
+
+// src/reader/ask/canvas.ts
+var MAX_CARDS = 200;
+var CARD_W = 240;
+var CARD_H = 120;
+var BOOK_W = 280;
+var BOOK_H = 160;
+var BOOK_X = 480;
+var BOOK_Y = 320;
+var GAP = 48;
+var TEXT_CAP = 4e3;
+var fallbackSeq = 0;
+function canvasPathForNote(notePath) {
+  const normalized = normalizeSlashes(notePath.trim());
+  if (!isSafeVaultNotePath(normalized)) return null;
+  return `${normalized.slice(0, -".md".length)}.canvas`;
+}
+function isSafeCanvasPath(path) {
+  const normalized = normalizeSlashes(path.trim());
+  if (!normalized.toLowerCase().endsWith(".canvas")) return false;
+  const asNote = `${normalized.slice(0, -".canvas".length)}.md`;
+  return isSafeVaultNotePath(asNote);
+}
+function unquote(value) {
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1).replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+  }
+  if (trimmed.length >= 2 && trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+function cleanCanvasRef(raw) {
+  let value = unquote(raw).trim();
+  if (value.startsWith("[[") && value.endsWith("]]")) {
+    value = value.slice(2, -2);
+    const alias = value.indexOf("|");
+    if (alias >= 0) value = value.slice(0, alias);
+    value = value.trim();
+  }
+  return normalizeSlashes(value);
+}
+function splitFrontmatter2(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index]?.trim() === "---") return { lines, endIndex: index };
+  }
+  return null;
+}
+function joinLines(lines, source) {
+  const nl = source.includes("\r\n") ? "\r\n" : "\n";
+  const text = lines.join(nl);
+  return source.endsWith("\n") || source.endsWith("\r\n") ? `${text}${nl}` : text;
+}
+function readRelatedCanvas(markdown) {
+  const parts = splitFrontmatter2(markdown);
+  if (!parts) return "";
+  for (let index = 1; index < parts.endIndex; index += 1) {
+    const match = parts.lines[index]?.match(/^related_canvas\s*:\s*(.*)$/);
+    if (!match) continue;
+    const ref = cleanCanvasRef(match[1] ?? "");
+    return isSafeCanvasPath(ref) ? ref : "";
+  }
+  return "";
+}
+function ensureRelatedCanvas(markdown, canvasPath) {
+  if (!isSafeCanvasPath(canvasPath)) return markdown;
+  if (readRelatedCanvas(markdown)) return markdown;
+  const line = `related_canvas: ${yamlScalar(canvasPath)}`;
+  const parts = splitFrontmatter2(markdown);
+  if (!parts) {
+    return `---
+${line}
+---
+
+${markdown}`;
+  }
+  const next = parts.lines.slice();
+  let replaced = false;
+  for (let index = 1; index < parts.endIndex; index += 1) {
+    if (/^related_canvas\s*:/.test(next[index] ?? "")) {
+      next[index] = line;
+      replaced = true;
+      break;
+    }
+  }
+  if (!replaced) next.splice(parts.endIndex, 0, line);
+  return joinLines(next, markdown);
+}
+function resolveCanvasPath(notePath, markdown) {
+  const linked = readRelatedCanvas(markdown);
+  if (linked) return linked;
+  return canvasPathForNote(notePath);
+}
+function isCardKind(value) {
+  return value === "highlight" || value === "remark" || value === "ask";
+}
+function readAtomic(value) {
+  if (!isRecord(value) || value.role !== "book" && value.role !== "chapter" && value.role !== "card") {
+    return null;
+  }
+  const atomic = { role: value.role };
+  if (isCardKind(value.kind)) atomic.kind = value.kind;
+  if (typeof value.page === "number" && Number.isFinite(value.page)) atomic.page = value.page;
+  if (typeof value.chapter === "string") atomic.chapter = value.chapter;
+  if (typeof value.anchor === "string") atomic.anchor = value.anchor;
+  if (typeof value.quote === "string") atomic.quote = value.quote;
+  return atomic;
+}
+function asNode(value) {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.type !== "string") return null;
+  const node = {
+    ...value,
+    id: value.id,
+    type: value.type,
+    x: typeof value.x === "number" ? value.x : 0,
+    y: typeof value.y === "number" ? value.y : 0,
+    width: typeof value.width === "number" ? value.width : CARD_W,
+    height: typeof value.height === "number" ? value.height : CARD_H
+  };
+  const atomic = readAtomic(value.atomic);
+  if (atomic) node.atomic = atomic;
+  return node;
+}
+function asEdge(value) {
+  if (!isRecord(value) || typeof value.id !== "string") return null;
+  if (typeof value.fromNode !== "string" || typeof value.toNode !== "string") return null;
+  return { ...value, id: value.id, fromNode: value.fromNode, toNode: value.toNode };
+}
+function parseBookCanvas(json) {
+  if (json == null || json.trim() === "") return { nodes: [], edges: [], extra: {} };
+  let parsed;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return null;
+  }
+  if (!isRecord(parsed)) return null;
+  const nodes = Array.isArray(parsed.nodes) ? parsed.nodes.map(asNode).filter((node) => node !== null) : [];
+  const edges = Array.isArray(parsed.edges) ? parsed.edges.map(asEdge).filter((edge) => edge !== null) : [];
+  const extra = {};
+  for (const [key, value] of Object.entries(parsed)) {
+    if (key !== "nodes" && key !== "edges") extra[key] = value;
+  }
+  return { nodes, edges, extra };
+}
+function serialize(canvas) {
+  return `${JSON.stringify({ ...canvas.extra, nodes: canvas.nodes, edges: canvas.edges }, null, 2)}
+`;
+}
+function kindLabel(kind) {
+  switch (kind) {
+    case "highlight":
+      return "Highlight";
+    case "remark":
+      return "Remark";
+    case "ask":
+      return "Ask";
+    default: {
+      const unreachable = kind;
+      return unreachable;
+    }
+  }
+}
+function kindColor(kind) {
+  switch (kind) {
+    case "highlight":
+    case "remark":
+      return "3";
+    case "ask":
+      return "5";
+    default: {
+      const unreachable = kind;
+      return unreachable;
+    }
+  }
+}
+function cardBody(card) {
+  const quote = card.quote.trim().slice(0, TEXT_CAP);
+  const body = card.body.trim().slice(0, TEXT_CAP);
+  switch (card.kind) {
+    case "highlight":
+      if (!quote) return null;
+      return `${kindLabel(card.kind)} \xB7 p. ${card.page}
+${quote}`;
+    case "remark":
+      if (!body) return null;
+      return [`${kindLabel(card.kind)} \xB7 p. ${card.page}`, quote, body].filter(Boolean).join("\n");
+    case "ask":
+      if (!body) return null;
+      return [`${kindLabel(card.kind)} \xB7 p. ${card.page}`, quote ? `Q: ${quote}` : "", body].filter(Boolean).join("\n");
+    default: {
+      const unreachable = card.kind;
+      return unreachable;
+    }
+  }
+}
+function nextId(ids, prefix) {
+  const id = ids().trim();
+  return id || `${prefix}-${fallbackSeq += 1}`;
+}
+function cardCount(canvas) {
+  return canvas.nodes.filter((node) => node.atomic?.role === "card").length;
+}
+function ensureBookNode(canvas, notePath, ids) {
+  const existing = canvas.nodes.find(
+    (node) => node.atomic?.role === "book" || node.type === "file" && node.file === notePath
+  );
+  if (existing) {
+    existing.atomic = { role: "book" };
+    if (existing.type === "file" && !existing.file) existing.file = notePath;
+    return existing.id;
+  }
+  const id = nextId(ids, "book");
+  canvas.nodes.push({
+    id,
+    type: "file",
+    file: notePath,
+    x: BOOK_X,
+    y: BOOK_Y,
+    width: BOOK_W,
+    height: BOOK_H,
+    atomic: { role: "book" }
+  });
+  return id;
+}
+function placeCard(canvas, index) {
+  const side = index % 2 === 0 ? "left" : "right";
+  const column = canvas.nodes.filter((node) => {
+    if (node.atomic?.role !== "card") return false;
+    return side === "left" ? node.x < BOOK_X : node.x >= BOOK_X;
+  });
+  const y = column.reduce((max, node) => Math.max(max, node.y + node.height + GAP), BOOK_Y);
+  const x = side === "left" ? BOOK_X - GAP - CARD_W : BOOK_X + BOOK_W + GAP;
+  return { x, y, side };
+}
+function ensureChapterGroup(canvas, chapter, card, ids) {
+  const pad = 28;
+  const existing = canvas.nodes.find(
+    (node) => node.type === "group" && node.atomic?.role === "chapter" && node.atomic.chapter === chapter
+  );
+  if (!existing) {
+    canvas.nodes.unshift({
+      id: nextId(ids, "chapter"),
+      type: "group",
+      x: card.x - pad,
+      y: card.y - 36,
+      width: card.width + pad * 2,
+      height: card.height + 56,
+      label: chapter,
+      atomic: { role: "chapter", chapter }
+    });
+    return;
+  }
+  const left = Math.min(existing.x, card.x - pad);
+  const top = Math.min(existing.y, card.y - 36);
+  const right = Math.max(existing.x + existing.width, card.x + card.width + pad);
+  const bottom = Math.max(existing.y + existing.height, card.y + card.height + pad);
+  existing.x = left;
+  existing.y = top;
+  existing.width = right - left;
+  existing.height = bottom - top;
+}
+function applyBookCard(input) {
+  const canvasPath = resolveCanvasPath(input.notePath, input.noteMarkdown);
+  if (!canvasPath || !isSafeVaultNotePath(normalizeSlashes(input.notePath.trim()))) {
+    return { ok: false, reason: "unsafe-path" };
+  }
+  if (!Number.isInteger(input.card.page) || input.card.page < 1) {
+    return { ok: false, reason: "bad-page" };
+  }
+  const text = cardBody(input.card);
+  if (!text) return { ok: false, reason: "empty-card" };
+  const canvas = parseBookCanvas(input.canvasJson);
+  if (!canvas) return { ok: false, reason: "bad-canvas" };
+  if (cardCount(canvas) >= MAX_CARDS) return { ok: false, reason: "canvas-full" };
+  const ids = input.ids ?? (() => `${input.card.kind}-${fallbackSeq += 1}`);
+  const bookId = ensureBookNode(canvas, normalizeSlashes(input.notePath.trim()), ids);
+  const spot = placeCard(canvas, cardCount(canvas));
+  const cardId = nextId(ids, input.card.kind);
+  const chapter = input.card.chapter?.trim() ?? "";
+  const node = {
+    id: cardId,
+    type: "text",
+    text,
+    x: spot.x,
+    y: spot.y,
+    width: CARD_W,
+    height: CARD_H,
+    color: kindColor(input.card.kind),
+    atomic: {
+      role: "card",
+      kind: input.card.kind,
+      page: input.card.page,
+      ...chapter ? { chapter } : {},
+      ...input.card.anchor?.trim() ? { anchor: input.card.anchor.trim() } : {},
+      ...input.card.quote.trim() ? { quote: input.card.quote.trim().slice(0, TEXT_CAP) } : {}
+    }
+  };
+  canvas.nodes.push(node);
+  if (chapter) ensureChapterGroup(canvas, chapter, node, ids);
+  canvas.edges.push({
+    id: `e-${cardId}`,
+    fromNode: bookId,
+    toNode: cardId,
+    fromSide: spot.side === "left" ? "left" : "right",
+    toSide: spot.side === "left" ? "right" : "left"
+  });
+  return {
+    ok: true,
+    canvasPath,
+    canvasJson: serialize(canvas),
+    noteMarkdown: ensureRelatedCanvas(input.noteMarkdown, canvasPath),
+    cardId
+  };
+}
+var LABEL_LINE = /^(Highlight|Remark|Ask) · p\. (\d+)\s*$/;
+function marginSourcesFromCanvas(json, page) {
+  const canvas = parseBookCanvas(json);
+  if (!canvas) return [];
+  const sources = [];
+  for (const node of canvas.nodes) {
+    if (node.atomic?.role !== "card") continue;
+    const kind = node.atomic.kind;
+    const cardPage = node.atomic.page;
+    if (kind !== "remark" && kind !== "ask" || cardPage !== page) continue;
+    const lines = (node.text ?? "").split("\n");
+    const bodyLines = lines[0] && LABEL_LINE.test(lines[0]) ? lines.slice(1) : lines;
+    sources.push({
+      id: node.id,
+      kind,
+      page,
+      quote: node.atomic.quote ?? "",
+      body: bodyLines.join("\n").trim()
+    });
+  }
+  return sources;
+}
+
+// src/reader/ask/settings-record.ts
+var SECRET_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var MAX_SECRET_ID = 64;
+var MAX_MODEL = 120;
+var LEAKED_FIELDS = [
+  "apiKey",
+  "api_key",
+  "secret",
+  "token",
+  "key",
+  "authorization",
+  "password"
+];
+function isAskProvider(value) {
+  return value === "openai" || value === "anthropic" || value === "openai-compatible";
+}
+function isSecretId(value) {
+  return value.length > 0 && value.length <= MAX_SECRET_ID && SECRET_ID.test(value);
+}
+function leakedValues(raw) {
+  const leaked = /* @__PURE__ */ new Set();
+  for (const field2 of LEAKED_FIELDS) {
+    const value = raw[field2];
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed) leaked.add(trimmed);
+    }
+  }
+  return leaked;
+}
+function cleanLine(value, max, leaked) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim().replace(/[\r\n\0]/g, "");
+  if (!trimmed || leaked.has(trimmed)) return "";
+  return trimmed.length > max ? trimmed.slice(0, max) : trimmed;
+}
+function isAllowedAskBase(value) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 300) return false;
+  let url;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return false;
+  }
+  if (url.username || url.password) return false;
+  if (url.protocol === "https:") return true;
+  if (url.protocol !== "http:") return false;
+  const host = url.hostname.toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "::1";
+}
+function normalizeAskBase(value) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  return isAllowedAskBase(trimmed) ? trimmed : "";
+}
+function normalizeAskSettings(raw) {
+  if (!isRecord(raw)) return { ...DEFAULT_ASK_SETTINGS };
+  const leaked = leakedValues(raw);
+  const secretName = cleanLine(raw.secretName, MAX_SECRET_ID, leaked);
+  return {
+    provider: isAskProvider(raw.provider) ? raw.provider : DEFAULT_ASK_SETTINGS.provider,
+    model: cleanLine(raw.model, MAX_MODEL, leaked),
+    secretName: isSecretId(secretName) ? secretName : "",
+    baseUrl: normalizeAskBase(cleanLine(raw.baseUrl, 300, leaked))
+  };
+}
+var SecretStore = class {
+  constructor(port) {
+    this.port = port;
+  }
+  read(id) {
+    if (!isSecretId(id)) return null;
+    const value = this.port.get(id);
+    return typeof value === "string" && value.length > 0 ? value : null;
+  }
+  save(id, secret) {
+    if (!isSecretId(id)) return { ok: false, reason: "bad-id" };
+    if (!secret.trim()) return { ok: false, reason: "empty" };
+    this.port.set(id, secret);
+    return { ok: true };
+  }
+  list() {
+    return this.port.list().filter((id) => isSecretId(id));
+  }
+};
+function redactSecret(text, secret) {
+  if (!secret) return text;
+  return text.split(secret).join("[redacted]");
+}
+
+// src/reader/ask/provider.ts
+var OPENAI_CHAT = "https://api.openai.com/v1/chat/completions";
+var OPENAI_MODELS = "https://api.openai.com/v1/models";
+var ANTHROPIC_MESSAGES = "https://api.anthropic.com/v1/messages";
+var ANTHROPIC_MODELS = "https://api.anthropic.com/v1/models";
+var ANTHROPIC_VERSION = "2023-06-01";
+var PASSAGE_CAP = 12e3;
+var BOOK_CAP = 24e3;
+var QUESTION_CAP = 2e3;
+var SYSTEM_PROMPT = "Answer from the passage the user supplies. Be brief. Do not ask for or repeat API keys.";
+function resolvedModel(settings) {
+  const custom = settings.model.trim();
+  if (custom) return custom;
+  switch (settings.provider) {
+    case "openai":
+    case "openai-compatible":
+      return "gpt-4.1";
+    case "anthropic":
+      return "claude-sonnet-4-5";
+    default: {
+      const unreachable = settings.provider;
+      return unreachable;
+    }
+  }
+}
+function chatUrl(settings) {
+  switch (settings.provider) {
+    case "openai":
+      return OPENAI_CHAT;
+    case "anthropic":
+      return ANTHROPIC_MESSAGES;
+    case "openai-compatible": {
+      const base = normalizeAskBase(settings.baseUrl);
+      if (!base) return null;
+      if (base.endsWith("/chat/completions")) return base;
+      return `${base}/chat/completions`;
+    }
+    default: {
+      const unreachable = settings.provider;
+      return unreachable;
+    }
+  }
+}
+function modelsUrl(settings) {
+  switch (settings.provider) {
+    case "openai":
+      return OPENAI_MODELS;
+    case "anthropic":
+      return ANTHROPIC_MODELS;
+    case "openai-compatible": {
+      const base = normalizeAskBase(settings.baseUrl);
+      if (!base) return null;
+      const root = base.endsWith("/chat/completions") ? base.slice(0, -"/chat/completions".length) : base;
+      return `${root}/models`;
+    }
+    default: {
+      const unreachable = settings.provider;
+      return unreachable;
+    }
+  }
+}
+function authHeaders(settings, secret) {
+  switch (settings.provider) {
+    case "openai":
+    case "openai-compatible":
+      return { Authorization: `Bearer ${secret}` };
+    case "anthropic":
+      return {
+        "x-api-key": secret,
+        "anthropic-version": ANTHROPIC_VERSION
+      };
+    default: {
+      const unreachable = settings.provider;
+      return unreachable;
+    }
+  }
+}
+function clip(text, max) {
+  const trimmed = text.trim();
+  if (trimmed.length <= max) return { text: trimmed, shortened: false };
+  return { text: trimmed.slice(0, max), shortened: true };
+}
+function passageForScope(input) {
+  switch (input.scope) {
+    case "page": {
+      const page = clip(input.pageText ?? "", PASSAGE_CAP);
+      if (!page.text) return null;
+      return { text: page.text, characters: page.text.length, shortened: page.shortened };
+    }
+    case "selection": {
+      const selection = clip(input.selection ?? "", PASSAGE_CAP);
+      if (!selection.text) return null;
+      return {
+        text: selection.text,
+        characters: selection.text.length,
+        shortened: selection.shortened
+      };
+    }
+    case "book": {
+      const book = clip(input.bookText ?? "", BOOK_CAP);
+      if (!book.text) return null;
+      return { text: book.text, characters: book.text.length, shortened: book.shortened };
+    }
+    default: {
+      const unreachable = input.scope;
+      return unreachable;
+    }
+  }
+}
+function userMessage(input) {
+  const label = input.shortened ? "Passage shortened." : "";
+  const scopeLine = (() => {
+    switch (input.scope) {
+      case "page":
+        return `Page ${input.page}`;
+      case "selection":
+        return `Selection on page ${input.page}`;
+      case "book":
+        return "Whole book";
+      default: {
+        const unreachable = input.scope;
+        return unreachable;
+      }
+    }
+  })();
+  return [scopeLine, label, input.passage, `Question:
+${input.question}`].filter((part) => part.trim()).join("\n\n");
+}
+function chatBody(settings, user) {
+  const model = resolvedModel(settings);
+  switch (settings.provider) {
+    case "openai":
+    case "openai-compatible":
+      return JSON.stringify({
+        model,
+        max_tokens: 800,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: user }
+        ]
+      });
+    case "anthropic":
+      return JSON.stringify({
+        model,
+        max_tokens: 800,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: user }]
+      });
+    default: {
+      const unreachable = settings.provider;
+      return unreachable;
+    }
+  }
+}
+function buildAskRequest(settings, secret, input) {
+  if (!isAskProvider(settings.provider) || !secret) return null;
+  const url = chatUrl(settings);
+  const passage = passageForScope(input);
+  const question = clip(input.question, QUESTION_CAP).text;
+  if (!url || !passage || !question) return null;
+  const body = chatBody(
+    settings,
+    userMessage({
+      scope: input.scope,
+      page: input.page,
+      passage: passage.text,
+      shortened: passage.shortened,
+      question
+    })
+  );
+  if (body.includes(secret)) return null;
+  return {
+    url,
+    method: "POST",
+    headers: authHeaders(settings, secret),
+    body,
+    secret
+  };
+}
+function buildProbeRequest(settings, secret) {
+  if (!secret) return null;
+  const url = modelsUrl(settings);
+  if (!url) return null;
+  return {
+    url,
+    method: "GET",
+    headers: authHeaders(settings, secret)
+  };
+}
+function textContent(value) {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (!Array.isArray(value)) return null;
+  const parts = [];
+  for (const part of value) {
+    if (typeof part === "string") parts.push(part);
+    else if (isRecord(part) && typeof part.text === "string") parts.push(part.text);
+  }
+  const joined = parts.join("").trim();
+  return joined || null;
+}
+function parseAskResponse(settings, status, body, secret) {
+  const fail = (message) => ({
+    ok: false,
+    message: redactSecret(message, secret).slice(0, 180)
+  });
+  if (status < 200 || status >= 300) {
+    let detail = "Provider did not answer";
+    try {
+      const parsed2 = JSON.parse(body);
+      if (isRecord(parsed2) && isRecord(parsed2.error) && typeof parsed2.error.message === "string") {
+        detail = parsed2.error.message;
+      }
+    } catch {
+      detail = body.trim() || detail;
+    }
+    return fail(detail);
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return fail("Provider did not answer");
+  }
+  if (!isRecord(parsed)) return fail("Provider did not answer");
+  let answer = null;
+  switch (settings.provider) {
+    case "openai":
+    case "openai-compatible": {
+      const choices = parsed.choices;
+      if (Array.isArray(choices) && isRecord(choices[0]) && isRecord(choices[0].message)) {
+        answer = textContent(choices[0].message.content);
+      }
+      break;
+    }
+    case "anthropic":
+      answer = textContent(parsed.content);
+      break;
+    default: {
+      const unreachable = settings.provider;
+      return unreachable;
+    }
+  }
+  if (!answer) return fail("Provider did not answer");
+  return { ok: true, answer: redactSecret(answer, secret) };
+}
+function bookSendCount(bookText) {
+  return clip(bookText ?? "", BOOK_CAP).text.length;
+}
+
+// src/reader/ask/ask.ts
+function questionOf(input) {
+  return input.question.trim();
+}
+async function runAsk(input) {
+  if (!input.askEnabled) return { status: "ask-off" };
+  const store = new SecretStore(input.secrets);
+  const secret = store.read(input.settings.secretName);
+  if (!secret) return { status: "need-secret" };
+  if (!questionOf(input.request)) return { status: "need-question" };
+  if (input.request.scope === "book" && input.request.bookConfirmed !== true) {
+    return { status: "confirm-book", characters: bookSendCount(input.request.bookText) };
+  }
+  const passage = passageForScope(input.request);
+  if (!passage) return { status: "need-passage" };
+  const built = buildAskRequest(input.settings, secret, input.request);
+  if (!built) return { status: "bad-url" };
+  let response;
+  try {
+    response = await input.http.send({
+      url: built.url,
+      method: built.method,
+      headers: built.headers,
+      body: built.body
+    });
+  } catch {
+    return { status: "provider-error" };
+  }
+  const parsed = parseAskResponse(input.settings, response.status, response.body, secret);
+  if (!parsed.ok) return { status: "provider-error" };
+  const card = {
+    kind: "ask",
+    page: input.request.page,
+    quote: input.request.quote?.trim() || questionOf(input.request),
+    body: parsed.answer,
+    chapter: input.request.chapter,
+    anchor: input.request.anchor
+  };
+  const written = applyBookCard({
+    notePath: input.notePath,
+    noteMarkdown: input.noteMarkdown,
+    canvasJson: input.canvasJson,
+    card,
+    ids: input.ids
+  });
+  if (!written.ok) return { status: "canvas-error", reason: written.reason };
+  return {
+    status: "ok",
+    answer: parsed.answer,
+    canvasPath: written.canvasPath,
+    canvasJson: written.canvasJson,
+    noteMarkdown: written.noteMarkdown,
+    cardId: written.cardId
+  };
+}
+async function probeAsk(settings, secrets, http) {
+  const secret = new SecretStore(secrets).read(settings.secretName);
+  if (!secret) return "need-secret";
+  const request = buildProbeRequest(settings, secret);
+  if (!request) return "bad-url";
+  try {
+    const response = await http.send(request);
+    return response.status >= 200 && response.status < 300 ? "ok" : "provider-error";
+  } catch {
+    return "provider-error";
+  }
+}
+
+// src/reader/ask/settings-section.ts
+var SECRET_API2 = "1.11.4";
+var replacingSecret = false;
+async function storeAsk(host, ask) {
+  host.settings.ask = normalizeAskSettings(ask);
+  await host.save();
+}
+function secretIsPresent(app, name) {
+  if (!(0, import_obsidian14.requireApiVersion)(SECRET_API2)) return false;
+  if (!name) return false;
+  const value = app.secretStorage.getSecret(name);
+  return typeof value === "string" && value.length > 0;
+}
+function paintStored(setting, host, language, name) {
+  const present = secretIsPresent(host.app, name);
+  setting.setName(t("settings.askKey", language));
+  setting.setDesc(
+    present ? `${t("settings.askStored", language)} ${t("settings.askNameHint", language, { name })}` : t("settings.askMissingOnDevice", language, { name })
+  );
+  setting.settingEl.setAttr("data-testid", "atomic-setting-ask-key");
+  setting.controlEl.createSpan({
+    cls: "atomic-secret-mask",
+    text: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+    attr: {
+      "data-testid": "atomic-setting-ask-mask",
+      "aria-label": t("settings.askMask", language)
+    }
+  });
+  setting.addButton((button2) => {
+    button2.setButtonText(t("settings.askReplace", language)).onClick(() => {
+      replacingSecret = true;
+      host.redisplay();
+    });
+  });
+  setting.addButton((button2) => {
+    button2.setButtonText(t("settings.askRemove", language)).onClick(() => {
+      replacingSecret = false;
+      void storeAsk(host, { ...host.settings.ask, secretName: "" }).then(() => {
+        new import_obsidian14.Notice(t("notice.askRemoved", language));
+        host.redisplay();
+      });
+    });
+  });
+  if (!present) return;
+  setting.addButton((button2) => {
+    button2.setButtonText(t("settings.askTest", language)).onClick(() => {
+      void testSecret(host, language);
+    });
+  });
+}
+function paintPicker(setting, host, language) {
+  if (!(0, import_obsidian14.requireApiVersion)(SECRET_API2)) return;
+  setting.setName(t("settings.askPick", language));
+  setting.setDesc(t("settings.askPickDesc", language));
+  setting.settingEl.setAttr("data-testid", "atomic-setting-ask-pick");
+  setting.addComponent((el) => {
+    return new import_obsidian14.SecretComponent(host.app, el).setValue(host.settings.ask.secretName).onChange((value) => {
+      const secretName = typeof value === "string" ? value : "";
+      replacingSecret = false;
+      void storeAsk(host, { ...host.settings.ask, secretName }).then(() => {
+        if (secretName) new import_obsidian14.Notice(t("notice.askSaved", language));
+        host.redisplay();
+      });
+    });
+  });
+}
+async function testSecret(host, language) {
+  const secrets = obsidianSecretPort(host.app);
+  if (!secrets) {
+    new import_obsidian14.Notice(t("settings.askUpdate", language));
+    return;
+  }
+  const result = await probeAsk(host.settings.ask, secrets, obsidianHttpPort());
+  switch (result) {
+    case "ok":
+      new import_obsidian14.Notice(t("notice.askAnswered", language));
+      return;
+    case "need-secret":
+      new import_obsidian14.Notice(t("notice.askNeedSecret", language));
+      return;
+    case "bad-url":
+      new import_obsidian14.Notice(t("notice.askInvalidUrl", language));
+      return;
+    case "provider-error":
+      new import_obsidian14.Notice(t("notice.askFailed", language));
+      return;
+    default: {
+      const unreachable = result;
+      return unreachable;
+    }
+  }
+}
+function providerRow(host, language, enabled) {
+  return {
+    kind: "custom",
+    name: t("settings.askProvider", language),
+    desc: t("settings.askProviderDesc", language),
+    paint: (setting) => {
+      setting.addDropdown((dropdown) => {
+        const options = ["openai", "anthropic", "openai-compatible"];
+        for (const option of options) {
+          dropdown.addOption(option, t(`settings.askProvider.${option}`, language));
+        }
+        dropdown.setValue(host.settings.ask.provider);
+        dropdown.setDisabled(!enabled);
+        if (!enabled) return;
+        dropdown.onChange((value) => {
+          if (!isAskProvider(value)) return;
+          void storeAsk(host, { ...host.settings.ask, provider: value }).then(() => {
+            host.redisplay();
+          });
+        });
+      });
+    }
+  };
+}
+function modelRow(host, language, enabled) {
+  return {
+    kind: "custom",
+    name: t("settings.askModel", language),
+    desc: t("settings.askModelDesc", language),
+    paint: (setting) => {
+      setting.addText((text) => {
+        text.setPlaceholder(host.settings.ask.provider === "anthropic" ? "claude-sonnet-4-5" : "gpt-4.1");
+        text.setValue(host.settings.ask.model);
+        text.setDisabled(!enabled);
+        if (!enabled) return;
+        text.onChange((value) => {
+          void storeAsk(host, { ...host.settings.ask, model: value });
+        });
+      });
+    }
+  };
+}
+function baseUrlRow(host, language) {
+  return {
+    kind: "custom",
+    name: t("settings.askBaseUrl", language),
+    desc: t("settings.askBaseUrlDesc", language),
+    paint: (setting) => {
+      setting.addText((text) => {
+        text.setPlaceholder("http://127.0.0.1:11434/v1");
+        text.setValue(host.settings.ask.baseUrl);
+        text.onChange((value) => {
+          const next = normalizeAskSettings({ ...host.settings.ask, baseUrl: value });
+          if (value.trim() && !next.baseUrl) {
+            new import_obsidian14.Notice(t("notice.askInvalidUrl", language));
+            return;
+          }
+          void storeAsk(host, next);
+        });
+      });
+    }
+  };
+}
+function askSettingRows(host) {
+  const language = host.settings.language;
+  const askOn = (0, import_obsidian14.requireApiVersion)(SECRET_API2);
+  if (!askOn) {
+    return [
+      {
+        kind: "custom",
+        name: t("settings.askUpdate", language),
+        desc: `${t("settings.askUpdateDesc", language)} ${t("settings.askStillWorks", language)}`,
+        aliases: ["ask"],
+        paint: (setting) => {
+          setting.settingEl.setAttr("data-testid", "atomic-setting-ask-update");
+          setting.settingEl.setAttr("data-ask", "off");
+        }
+      },
+      providerRow(host, language, false),
+      modelRow(host, language, false)
+    ];
+  }
+  const rows = [
+    {
+      kind: "custom",
+      name: t("settings.askHeading", language),
+      desc: t("settings.askHeadingDesc", language),
+      aliases: ["ask", "secret"],
+      paint: (setting) => {
+        setting.setHeading();
+        setting.settingEl.setAttr("data-testid", "atomic-setting-ask");
+      }
+    },
+    providerRow(host, language, true),
+    modelRow(host, language, true)
+  ];
+  if (host.settings.ask.provider === "openai-compatible") {
+    rows.push(baseUrlRow(host, language));
+  }
+  rows.push({
+    kind: "custom",
+    name: t("settings.askKey", language),
+    desc: t("settings.askKeyDesc", language),
+    paint: (setting) => {
+      const name = host.settings.ask.secretName;
+      if (name && !replacingSecret) {
+        paintStored(setting, host, language, name);
+        return;
+      }
+      paintPicker(setting, host, language);
+    }
+  });
+  return rows;
+}
 
 // src/util/merge-settings.ts
 function safeVaultPath(value, fallback) {
@@ -8059,7 +9160,8 @@ function mergeSettings(raw) {
   const base = {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
-    gymExercises: [...DEFAULT_SETTINGS.gymExercises]
+    gymExercises: [...DEFAULT_SETTINGS.gymExercises],
+    ask: normalizeAskSettings(DEFAULT_SETTINGS.ask)
   };
   if (!isRecord(raw)) return base;
   const golfCuesPath = safeVaultPath(
@@ -8092,13 +9194,14 @@ function mergeSettings(raw) {
     activityTypes,
     gymExercises: normalizeGymExercises(raw.gymExercises),
     gymLogSetup: isGymLogSetup(raw.gymLogSetup) ? raw.gymLogSetup : "pending",
-    lastSeenUpdateNoteVersion: storedLastSeenUpdateNoteVersion(raw)
+    lastSeenUpdateNoteVersion: storedLastSeenUpdateNoteVersion(raw),
+    ask: normalizeAskSettings(raw.ask)
   };
 }
 
 // src/settings.ts
-function styleDestructiveButton(button) {
-  button.buttonEl.addClass("mod-warning");
+function styleDestructiveButton(button2) {
+  button2.buttonEl.addClass("mod-warning");
 }
 function wrapLastSettingControl(setting, options) {
   const last = setting.controlEl.lastElementChild;
@@ -8124,7 +9227,7 @@ function callNamedMethod(target, name) {
   method.call(target);
   return true;
 }
-var ConfirmDeleteActivityModal = class extends import_obsidian13.Modal {
+var ConfirmDeleteActivityModal = class extends import_obsidian15.Modal {
   constructor(app, options) {
     super(app);
     this.message = options.message;
@@ -8136,19 +9239,19 @@ var ConfirmDeleteActivityModal = class extends import_obsidian13.Modal {
     this.modalEl.setAttr("data-testid", "atomic-confirm-delete-modal");
     this.contentEl.empty();
     this.contentEl.createEl("p", { text: this.message });
-    new import_obsidian13.Setting(this.contentEl).addButton(
-      (button) => button.setButtonText(this.cancelLabel).onClick(() => this.close())
-    ).addButton((button) => {
-      button.setButtonText(this.confirmLabel);
-      styleDestructiveButton(button);
-      button.onClick(() => {
+    new import_obsidian15.Setting(this.contentEl).addButton(
+      (button2) => button2.setButtonText(this.cancelLabel).onClick(() => this.close())
+    ).addButton((button2) => {
+      button2.setButtonText(this.confirmLabel);
+      styleDestructiveButton(button2);
+      button2.onClick(() => {
         this.onConfirm();
         this.close();
       });
     });
   }
 };
-var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
+var FitnessSettingTab = class extends import_obsidian15.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.pendingExerciseName = "";
@@ -8205,7 +9308,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
       await this.plugin.saveSettings();
       this.redrawSettings();
       await this.plugin.refreshAll();
-      new import_obsidian13.Notice(t("notice.reloadForCommands", value));
+      new import_obsidian15.Notice(t("notice.reloadForCommands", value));
       return;
     }
     if (key === "timezone") {
@@ -8219,7 +9322,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
       if (typeof value !== "string") return;
       const next = value.trim() || DEFAULT_SETTINGS.dashboardPath;
       if (!isSafeVaultFolder(next)) {
-        new import_obsidian13.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+        new import_obsidian15.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
         return;
       }
       this.plugin.settings.dashboardPath = next;
@@ -8297,6 +9400,16 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
         this.paintGymImport(setting);
       }
     });
+    rows.push(
+      ...askSettingRows({
+        app: this.app,
+        settings: this.plugin.settings,
+        save: () => this.plugin.saveSettings(),
+        redisplay: () => {
+          this.redrawSettings();
+        }
+      })
+    );
     return rows;
   }
   activityRows(activity, options) {
@@ -8392,7 +9505,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
   paintSettings(containerEl) {
     containerEl.empty();
     for (const row of this.settingsRows()) {
-      const setting = new import_obsidian13.Setting(containerEl).setName(row.name).setDesc(row.desc);
+      const setting = new import_obsidian15.Setting(containerEl).setName(row.name).setDesc(row.desc);
       switch (row.kind) {
         case "heading":
           setting.setHeading();
@@ -8457,7 +9570,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
       text.setPlaceholder(folderPlaceholder).setValue(activity.folder).onChange(async (value) => {
         const folder = value.trim();
         if (!isSafeVaultFolder(folder)) {
-          new import_obsidian13.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
+          new import_obsidian15.Notice(t("notice.folderUnsafe", this.plugin.settings.language));
           return;
         }
         activity.folder = folder;
@@ -8484,10 +9597,10 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
         testId: "atomic-setting-cues"
       });
     }
-    setting.addButton((button) => {
-      button.setButtonText(t("settings.delete", language));
-      styleDestructiveButton(button);
-      button.onClick(() => {
+    setting.addButton((button2) => {
+      button2.setButtonText(t("settings.delete", language));
+      styleDestructiveButton(button2);
+      button2.onClick(() => {
         this.confirmDeleteActivity(activity);
       });
     });
@@ -8525,10 +9638,10 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
         else this.pendingExerciseName = value;
       })
     ).addButton(
-      (button) => button.setButtonText(t("settings.add", language)).onClick(async () => {
+      (button2) => button2.setButtonText(t("settings.add", language)).onClick(async () => {
         const name = (isHobby ? this.pendingHobbyName : this.pendingExerciseName).trim();
         if (!name) {
-          new import_obsidian13.Notice(
+          new import_obsidian15.Notice(
             t(
               isHobby ? "notice.enterHobbyType" : "notice.enterExerciseType",
               this.plugin.settings.language
@@ -8558,10 +9671,10 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
     setting.setDesc(
       `${t("settings.gymImportDesc", language)} ${t("settings.gymExercisesCount", language, { count })}`
     );
-    setting.addButton((button) => {
-      button.setButtonText(t("settings.gymImport", language));
-      button.buttonEl.setAttr("data-testid", "atomic-setting-gym-import");
-      button.onClick(() => {
+    setting.addButton((button2) => {
+      button2.setButtonText(t("settings.gymImport", language));
+      button2.buttonEl.setAttr("data-testid", "atomic-setting-gym-import");
+      button2.onClick(() => {
         void runGymLogSetup(this.plugin).then(() => this.redrawSettings());
       });
     });
@@ -8606,7 +9719,7 @@ var FitnessSettingTab = class extends import_obsidian13.PluginSettingTab {
     );
     await this.saveAndRefresh();
     this.redrawSettings();
-    new import_obsidian13.Notice(
+    new import_obsidian15.Notice(
       t("notice.activityDeleted", this.plugin.settings.language, {
         label: labelForLanguage(activity.label, this.plugin.settings.language)
       })
@@ -8684,447 +9797,8 @@ function dedicatedCueHostPaths(settings) {
   return [...paths];
 }
 
-// src/reader/shell/open.ts
-var import_obsidian15 = require("obsidian");
-
-// src/reader/shell/model.ts
-var READER_PHONE_MAX_WIDTH = 780;
-var PAGE_PAD_TOP = 22;
-var PAGE_PAD_BOTTOM = 28;
-var HEADING_BLOCK = 27;
-var LINE_HEIGHT = 19;
-var CHAR_WIDTH = 6.25;
-var BOXES = {
-  s: { w: 230, h: 280 },
-  m: { w: 270, h: 340 },
-  l: { w: 305, h: 410 },
-  xl: { w: 340, h: 488 }
-};
-function readerSizeId(value) {
-  const text = String(value ?? "").trim().toLowerCase();
-  if (text === "s" || text === "m" || text === "l" || text === "xl") return text;
-  return "m";
-}
-function readerPageBox(size) {
-  const box = BOXES[size];
-  const textHeight = box.h - PAGE_PAD_TOP - PAGE_PAD_BOTTOM - HEADING_BLOCK;
-  return {
-    w: box.w,
-    h: box.h,
-    bodyLines: Math.max(1, Math.floor(textHeight / LINE_HEIGHT)),
-    charsPerLine: Math.max(8, Math.floor((box.w - 44) / CHAR_WIDTH))
-  };
-}
-function isPhoneReaderLayout(width) {
-  if (!Number.isFinite(width) || width <= 0) return false;
-  return width < READER_PHONE_MAX_WIDTH;
-}
-function clampReaderPage(page, total) {
-  if (total <= 0) return 1;
-  if (!Number.isFinite(page)) return 1;
-  const next = Math.trunc(page);
-  if (next < 1) return 1;
-  if (next > total) return total;
-  return next;
-}
-function readerProgress(page, total) {
-  const safeTotal = Number.isFinite(total) && total > 0 ? Math.trunc(total) : 0;
-  const safePage = safeTotal === 0 ? 0 : clampReaderPage(page, safeTotal);
-  const percent = safeTotal === 0 ? 0 : Math.round(safePage / safeTotal * 100);
-  return { page: safePage, total: safeTotal, percent };
-}
-function spreadPages(page, total) {
-  if (total <= 0) return { verso: null, recto: null };
-  const current = clampReaderPage(page, total);
-  if (current % 2 === 1) {
-    return { verso: current > 1 ? current - 1 : null, recto: current };
-  }
-  return { verso: current, recto: current < total ? current + 1 : null };
-}
-function visiblePage(spread, fallback) {
-  return spread.recto ?? spread.verso ?? fallback;
-}
-function pageAfterTurn(page, total, direction) {
-  if (total <= 0) return 1;
-  const current = clampReaderPage(page, total);
-  const spread = spreadPages(current, total);
-  if (direction > 0) {
-    const last = visiblePage(spread, current);
-    const nextStart = last + 1;
-    if (nextStart > total) return current;
-    return visiblePage(spreadPages(nextStart, total), nextStart);
-  }
-  const first = spread.verso ?? spread.recto ?? current;
-  const prevLast = first - 1;
-  if (prevLast < 1) return current;
-  return visiblePage(spreadPages(prevLast, total), prevLast);
-}
-function canTurnPage(page, total, direction) {
-  return pageAfterTurn(page, total, direction) !== clampReaderPage(page, Math.max(total, 0));
-}
-function readerOpenPlan(input) {
-  if (input.reducedMotion || !input.hasFlight) return "direct";
-  return "flight";
-}
-
-// src/reader/shell/frontmatter.ts
-var EMPTY = {
-  source: "",
-  page: 1,
-  size: "m",
-  pagesHint: null,
-  canvas: ""
-};
-function unquote(value) {
-  const text = value.trim();
-  if (text.startsWith('"') && text.endsWith('"') || text.startsWith("'") && text.endsWith("'")) {
-    return text.slice(1, -1);
-  }
-  return text;
-}
-function positiveInt(value) {
-  const number = typeof value === "number" ? value : Number(String(value ?? "").trim());
-  if (!Number.isFinite(number) || number < 1) return null;
-  return Math.trunc(number);
-}
-function splitFrontmatter2(markdown) {
-  const lines = String(markdown ?? "").split(/\r?\n/);
-  if (lines[0]?.trim() !== "---") return null;
-  for (let index = 1; index < lines.length; index += 1) {
-    if (lines[index].trim() === "---") return { lines, endIndex: index };
-  }
-  return null;
-}
-function finish(lines) {
-  const text = lines.join("\n");
-  return text.endsWith("\n") ? text : `${text}
-`;
-}
-function field(record, key) {
-  return record[key];
-}
-function nestedReader(value) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  return value;
-}
-function readerFieldsFromFrontmatter(frontmatter) {
-  if (!frontmatter) return { ...EMPTY };
-  const reader = nestedReader(field(frontmatter, "reader"));
-  const page = positiveInt(reader ? field(reader, "page") : void 0) ?? positiveInt(field(frontmatter, "reader.page")) ?? 1;
-  const size = readerSizeId(
-    (reader ? field(reader, "size") : void 0) ?? field(frontmatter, "reader.size")
-  );
-  const sourceValue = field(frontmatter, "source");
-  const canvasValue = field(frontmatter, "related_canvas");
-  return {
-    source: typeof sourceValue === "string" ? sourceValue.trim() : "",
-    page,
-    size,
-    pagesHint: positiveInt(field(frontmatter, "pages")),
-    canvas: typeof canvasValue === "string" ? canvasValue.trim() : ""
-  };
-}
-function readReaderNote(markdown) {
-  const parts = splitFrontmatter2(markdown);
-  if (!parts) return { ...EMPTY };
-  let source = "";
-  let page = null;
-  let size = null;
-  let pagesHint = null;
-  let canvas = "";
-  let inReader = false;
-  for (let index = 1; index < parts.endIndex; index += 1) {
-    const line = parts.lines[index];
-    if (inReader) {
-      if (!/^\s+/.test(line) || /^\s*$/.test(line)) {
-        inReader = false;
-      } else {
-        const nestedPage = line.match(/^\s+page\s*:\s*(.*)$/);
-        if (nestedPage) page = positiveInt(unquote(nestedPage[1])) ?? page;
-        const nestedSize = line.match(/^\s+size\s*:\s*(.*)$/);
-        if (nestedSize) size = readerSizeId(unquote(nestedSize[1]));
-        continue;
-      }
-    }
-    const reader = line.match(/^reader\s*:\s*(.*)$/);
-    if (reader) {
-      const rest = reader[1].trim();
-      if (!rest) {
-        inReader = true;
-        continue;
-      }
-      const inlinePage = rest.match(/page\s*:\s*(\d+)/);
-      if (inlinePage) page = positiveInt(inlinePage[1]);
-      const inlineSize = rest.match(/size\s*:\s*([A-Za-z]+)/);
-      if (inlineSize) size = readerSizeId(inlineSize[1]);
-      continue;
-    }
-    const flatPage = line.match(/^reader\.page\s*:\s*(.*)$/);
-    if (flatPage) page = positiveInt(unquote(flatPage[1])) ?? page;
-    const flatSize = line.match(/^reader\.size\s*:\s*(.*)$/);
-    if (flatSize) size = readerSizeId(unquote(flatSize[1]));
-    const sourceLine = line.match(/^source\s*:\s*(.*)$/);
-    if (sourceLine) source = unquote(sourceLine[1]);
-    const pagesLine = line.match(/^pages\s*:\s*(.*)$/);
-    if (pagesLine) pagesHint = positiveInt(unquote(pagesLine[1]));
-    const canvasLine = line.match(/^related_canvas\s*:\s*(.*)$/);
-    if (canvasLine) canvas = unquote(canvasLine[1]);
-  }
-  return {
-    source,
-    page: page ?? 1,
-    size: size ?? "m",
-    pagesHint,
-    canvas
-  };
-}
-function updateReaderPage(markdown, page) {
-  const safe = Math.max(1, Math.trunc(page));
-  const text = String(markdown ?? "");
-  const parts = splitFrontmatter2(text);
-  if (!parts) {
-    const body = text.replace(/^\n/, "");
-    return `---
-reader:
-  page: ${safe}
----
-
-${body}`;
-  }
-  const lines = parts.lines.slice();
-  const end = () => splitFrontmatter2(lines.join("\n"))?.endIndex ?? lines.length - 1;
-  let limit = end();
-  for (let index = 1; index < limit; index += 1) {
-    if (/^reader\.page\s*:/.test(lines[index])) {
-      lines[index] = `reader.page: ${safe}`;
-      return finish(lines);
-    }
-  }
-  limit = end();
-  for (let index = 1; index < limit; index += 1) {
-    const match = lines[index].match(/^reader\s*:\s*(.*)$/);
-    if (!match) continue;
-    const rest = match[1].trim();
-    if (rest.startsWith("{")) {
-      if (/page\s*:/.test(rest)) {
-        lines[index] = lines[index].replace(/page\s*:\s*\d+/, `page: ${safe}`);
-      } else {
-        lines[index] = lines[index].replace(/\{\s*/, `{ page: ${safe}, `);
-      }
-      return finish(lines);
-    }
-    if (rest && rest !== "|" && rest !== ">") continue;
-    let cursor = index + 1;
-    const blockEnd = end();
-    for (; cursor < blockEnd; cursor += 1) {
-      if (!/^\s+/.test(lines[cursor])) break;
-      if (/^\s+page\s*:/.test(lines[cursor])) {
-        const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
-        lines[cursor] = `${indent}page: ${safe}`;
-        return finish(lines);
-      }
-    }
-    lines.splice(index + 1, 0, `  page: ${safe}`);
-    return finish(lines);
-  }
-  const closing = end();
-  lines.splice(closing, 0, "reader:", `  page: ${safe}`);
-  return finish(lines);
-}
-
-// src/reader/shell/link.ts
-function normalizeVaultPath3(path) {
-  return String(path || "").replace(/\\/g, "/").replace(/^\.\//, "").replace(/\/+/g, "/").replace(/^\//, "").trim();
-}
-function bookFileKind(path) {
-  const ext = normalizeVaultPath3(path).split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "epub" || ext === "pdf") return ext;
-  return null;
-}
-function bookTitleKey(title) {
-  return String(title || "").trim().toLowerCase().replace(/\s+/g, " ");
-}
-function noteBasename(notePath) {
-  const file = normalizeVaultPath3(notePath).split("/").pop() ?? "";
-  return file.replace(/\.md$/i, "");
-}
-function vaultDirectory(path) {
-  const norm = normalizeVaultPath3(path);
-  const slash = norm.lastIndexOf("/");
-  return slash === -1 ? "" : norm.slice(0, slash);
-}
-function sourcePathFromFrontmatter(source) {
-  if (typeof source !== "string") return "";
-  let text = source.trim();
-  if (text.startsWith("!")) text = text.slice(1).trim();
-  const wiki = text.match(/^\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]$/);
-  if (wiki) text = wiki[1].trim();
-  return normalizeVaultPath3(text);
-}
-function fileKey(file) {
-  return bookTitleKey(file.basename);
-}
-function findByPath(files, path) {
-  const norm = normalizeVaultPath3(path).toLowerCase();
-  for (const file of files) {
-    if (normalizeVaultPath3(file.path).toLowerCase() === norm) return file;
-  }
-  return null;
-}
-function findByBasename(files, source) {
-  const base = source.split("/").pop() ?? source;
-  const dot = base.lastIndexOf(".");
-  const name = bookTitleKey(dot === -1 ? base : base.slice(0, dot));
-  const kind = bookFileKind(base);
-  if (!name || !kind) return null;
-  const matches = files.filter(
-    (file) => fileKey(file) === name && file.extension.toLowerCase() === kind
-  );
-  return matches.length === 1 ? matches[0] : null;
-}
-function resolveLinkedBookFile(input) {
-  const files = input.files.filter((file) => bookFileKind(file.path) != null);
-  const source = sourcePathFromFrontmatter(input.source);
-  const sourceKind = bookFileKind(source);
-  if (source && sourceKind) {
-    const exact = findByPath(files, source) ?? findByBasename(files, source);
-    if (exact) {
-      const kind2 = bookFileKind(exact.path);
-      if (kind2) return { kind: kind2, path: normalizeVaultPath3(exact.path) };
-    }
-  }
-  const keys = new Set(
-    [input.title, noteBasename(input.notePath)].map((value) => bookTitleKey(value)).filter(Boolean)
-  );
-  const noteDir = vaultDirectory(input.notePath);
-  const matches = files.filter((file) => keys.has(fileKey(file)));
-  if (!matches.length) return null;
-  matches.sort((left, right) => {
-    const leftDir = vaultDirectory(left.path) === noteDir ? 0 : 1;
-    const rightDir = vaultDirectory(right.path) === noteDir ? 0 : 1;
-    if (leftDir !== rightDir) return leftDir - rightDir;
-    const leftKind = bookFileKind(left.path) === "epub" ? 0 : 1;
-    const rightKind = bookFileKind(right.path) === "epub" ? 0 : 1;
-    if (leftKind !== rightKind) return leftKind - rightKind;
-    return left.path.localeCompare(right.path);
-  });
-  const best = matches[0];
-  const kind = bookFileKind(best.path);
-  if (!kind) return null;
-  return { kind, path: normalizeVaultPath3(best.path) };
-}
-
-// src/reader/shell/mount.ts
-var mounts = {};
-function readerMounts() {
-  return mounts;
-}
-function resetReaderMounts() {
-  delete mounts.flight;
-  delete mounts.theater;
-  delete mounts.size;
-  delete mounts.ask;
-}
-
-// src/reader/shell/chooser.ts
-var session2 = null;
-function overlayBody(owner) {
-  if (owner?.body && owner === activeDocument) return activeDocument.body;
-  if (owner?.body) return owner.body;
-  return activeDocument.body;
-}
-function elementTarget(target) {
-  if (!target || !("instanceOf" in target)) return null;
-  const node = target;
-  return node.instanceOf(HTMLElement) ? node : null;
-}
-function closeBookChooser() {
-  const current = session2;
-  if (!current) return;
-  session2 = null;
-  current.view.removeEventListener("keydown", current.onKey, true);
-  current.overlay.detach();
-}
-function openBookChooser(options) {
-  closeBookChooser();
-  let settled = false;
-  const body = overlayBody(options.ownerDocument);
-  const view = body.win;
-  const overlay = body.createDiv({
-    cls: "atomic-chooser-scrim",
-    attr: {
-      "data-testid": "atomic-chooser",
-      "data-overlay-host": "window",
-      role: "dialog",
-      "aria-modal": "true",
-      "aria-label": options.title
-    }
-  });
-  if (options.phone) overlay.addClass("is-phone");
-  const sheet = overlay.createDiv({
-    cls: options.phone ? "atomic-chooser fitness-plugin is-phone" : "atomic-chooser fitness-plugin"
-  });
-  if (options.phone) sheet.createDiv({ cls: "atomic-chooser-grab" });
-  const notes = sheet.createEl("button", {
-    cls: "atomic-chooser-row is-primary",
-    attr: { type: "button", "data-testid": "atomic-chooser-notes", "data-chooser-act": "notes" }
-  });
-  const notesLabel = notes.createSpan({ cls: "atomic-chooser-label" });
-  notesLabel.createEl("b", { text: t("view.reader.openNotes", options.language) });
-  notesLabel.createSpan({ text: t("view.reader.openNotesHint", options.language) });
-  notes.createSpan({ cls: "atomic-chooser-kbd", text: "\u21B5" });
-  if (options.file) {
-    const book = sheet.createEl("button", {
-      cls: "atomic-chooser-row",
-      attr: { type: "button", "data-testid": "atomic-chooser-book", "data-chooser-act": "book" }
-    });
-    const bookLabel = book.createSpan({ cls: "atomic-chooser-label" });
-    bookLabel.createEl("b", { text: t("view.reader.openBook", options.language) });
-    const fileName = options.file.path.split("/").pop() ?? options.file.path;
-    bookLabel.createSpan({ text: fileName });
-  }
-  const cancel = sheet.createEl("button", {
-    cls: "atomic-chooser-cancel",
-    attr: { type: "button", "data-testid": "atomic-chooser-cancel", "data-chooser-act": "cancel" }
-  });
-  cancel.setText(t("view.reader.cancel", options.language));
-  const choose = (choice) => {
-    if (settled) return;
-    settled = true;
-    closeBookChooser();
-    options.onChoose(choice);
-  };
-  const onKey = (event) => {
-    if (!session2 || session2.overlay !== overlay) return;
-    if (event.key === "Escape") {
-      event.preventDefault();
-      choose("cancel");
-      return;
-    }
-    if (event.key !== "Enter" || event.repeat) return;
-    const target = elementTarget(event.target);
-    const act = target?.getAttribute("data-chooser-act");
-    if (act === "book" || act === "cancel") return;
-    event.preventDefault();
-    choose("notes");
-  };
-  overlay.addEventListener("click", (event) => {
-    const target = elementTarget(event.target);
-    if (!target) return;
-    if (target === overlay) {
-      choose("cancel");
-      return;
-    }
-    const act = target.closest("[data-chooser-act]")?.getAttribute("data-chooser-act");
-    if (act === "notes" || act === "book" || act === "cancel") choose(act);
-  });
-  view.addEventListener("keydown", onKey, true);
-  session2 = { overlay, onKey, view };
-  notes.focus();
-}
-
-// src/reader/shell/view.ts
-var import_obsidian14 = require("obsidian");
+// src/reader/ask/mount.ts
+var import_obsidian16 = require("obsidian");
 
 // src/reader/shell/zip.ts
 var SIG_CENTRAL = 33639248;
@@ -9334,6 +10008,1144 @@ async function readEpub(bytes) {
   return { blocks };
 }
 
+// src/reader/shell/model.ts
+var READER_PHONE_MAX_WIDTH = 780;
+var PAGE_PAD_TOP = 22;
+var PAGE_PAD_BOTTOM = 28;
+var HEADING_BLOCK = 27;
+var LINE_HEIGHT = 19;
+var CHAR_WIDTH = 6.25;
+var BOXES = {
+  s: { w: 230, h: 280 },
+  m: { w: 270, h: 340 },
+  l: { w: 305, h: 410 },
+  xl: { w: 340, h: 488 }
+};
+function readerSizeId(value) {
+  const text = String(value ?? "").trim().toLowerCase();
+  if (text === "s" || text === "m" || text === "l" || text === "xl") return text;
+  return "m";
+}
+function readerPageBox(size) {
+  const box = BOXES[size];
+  const textHeight = box.h - PAGE_PAD_TOP - PAGE_PAD_BOTTOM - HEADING_BLOCK;
+  return {
+    w: box.w,
+    h: box.h,
+    bodyLines: Math.max(1, Math.floor(textHeight / LINE_HEIGHT)),
+    charsPerLine: Math.max(8, Math.floor((box.w - 44) / CHAR_WIDTH))
+  };
+}
+function isPhoneReaderLayout(width) {
+  if (!Number.isFinite(width) || width <= 0) return false;
+  return width < READER_PHONE_MAX_WIDTH;
+}
+function clampReaderPage(page, total) {
+  if (total <= 0) return 1;
+  if (!Number.isFinite(page)) return 1;
+  const next = Math.trunc(page);
+  if (next < 1) return 1;
+  if (next > total) return total;
+  return next;
+}
+function readerProgress(page, total) {
+  const safeTotal = Number.isFinite(total) && total > 0 ? Math.trunc(total) : 0;
+  const safePage = safeTotal === 0 ? 0 : clampReaderPage(page, safeTotal);
+  const percent = safeTotal === 0 ? 0 : Math.round(safePage / safeTotal * 100);
+  return { page: safePage, total: safeTotal, percent };
+}
+function spreadPages(page, total) {
+  if (total <= 0) return { verso: null, recto: null };
+  const current = clampReaderPage(page, total);
+  if (current % 2 === 1) {
+    return { verso: current > 1 ? current - 1 : null, recto: current };
+  }
+  return { verso: current, recto: current < total ? current + 1 : null };
+}
+function visiblePage(spread, fallback) {
+  return spread.recto ?? spread.verso ?? fallback;
+}
+function pageAfterTurn(page, total, direction) {
+  if (total <= 0) return 1;
+  const current = clampReaderPage(page, total);
+  const spread = spreadPages(current, total);
+  if (direction > 0) {
+    const last = visiblePage(spread, current);
+    const nextStart = last + 1;
+    if (nextStart > total) return current;
+    return visiblePage(spreadPages(nextStart, total), nextStart);
+  }
+  const first = spread.verso ?? spread.recto ?? current;
+  const prevLast = first - 1;
+  if (prevLast < 1) return current;
+  return visiblePage(spreadPages(prevLast, total), prevLast);
+}
+function canTurnPage(page, total, direction) {
+  return pageAfterTurn(page, total, direction) !== clampReaderPage(page, Math.max(total, 0));
+}
+function readerOpenPlan(input) {
+  if (input.reducedMotion || !input.hasFlight) return "direct";
+  return "flight";
+}
+
+// src/reader/shell/mount.ts
+var mounts = {};
+function registerReaderAsk(ask) {
+  mounts.ask = ask;
+}
+function readerMounts() {
+  return mounts;
+}
+function resetReaderMounts() {
+  delete mounts.flight;
+  delete mounts.theater;
+  delete mounts.size;
+  delete mounts.ask;
+}
+
+// src/reader/ask/remarks.ts
+var CARD_HEIGHT = 72;
+var DOT_SIZE = 9;
+var STACK_GAP = 8;
+function spreadSide(page, surface) {
+  if (surface === "phone") return "single";
+  return page % 2 === 0 ? "verso" : "recto";
+}
+function readerChrome(input) {
+  if (input.theater) {
+    return {
+      showHighlight: false,
+      showRemark: false,
+      showAsk: false,
+      showMargins: false,
+      showSelectionBar: false,
+      askPresentation: "hidden"
+    };
+  }
+  const showSelectionBar = input.hasSelection && !input.askOpen;
+  const askPresentation = !input.askOpen || !input.askEnabled ? "hidden" : input.surface === "phone" ? "sheet" : "panel";
+  return {
+    showHighlight: showSelectionBar,
+    showRemark: showSelectionBar,
+    showAsk: showSelectionBar && input.askEnabled,
+    showMargins: true,
+    showSelectionBar,
+    askPresentation
+  };
+}
+function gutterFor(side, surface) {
+  if (surface === "phone") return "phone";
+  return side === "verso" ? "left" : "right";
+}
+function clampTop(top, pageHeight, itemHeight) {
+  const max = Math.max(0, pageHeight - itemHeight);
+  if (top < 0) return 0;
+  if (top > max) return max;
+  return top;
+}
+function placeColumn(notes, pageHeight, presentation, gutter) {
+  const itemHeight = presentation === "dot" ? DOT_SIZE : CARD_HEIGHT;
+  const sorted = notes.slice().sort((a, b) => a.top - b.top || a.id.localeCompare(b.id));
+  let lastBottom = -STACK_GAP;
+  return sorted.map((note) => {
+    let top = clampTop(note.top, pageHeight, itemHeight);
+    if (top < lastBottom + STACK_GAP) top = lastBottom + STACK_GAP;
+    top = clampTop(top, pageHeight, itemHeight);
+    lastBottom = top + itemHeight;
+    return { ...note, top, gutter, presentation };
+  });
+}
+function placeMarginNotes(input) {
+  if (input.theater) return [];
+  const presentation = input.surface === "phone" ? "dot" : "card";
+  const columns = /* @__PURE__ */ new Map();
+  for (const note of input.notes) {
+    const gutter = gutterFor(note.side, input.surface);
+    const list = columns.get(gutter) ?? [];
+    list.push(note);
+    columns.set(gutter, list);
+  }
+  const placed = [];
+  for (const [gutter, notes] of columns) {
+    placed.push(...placeColumn(notes, input.pageHeight, presentation, gutter));
+  }
+  return placed;
+}
+function readerSlotForGutter(gutter) {
+  switch (gutter) {
+    case "left":
+      return "margin";
+    case "right":
+    case "phone":
+      return "ask";
+    default: {
+      const unreachable = gutter;
+      return unreachable;
+    }
+  }
+}
+
+// src/reader/ask/paint.ts
+function setVar(el, name, value) {
+  el.setCssProps({ [name]: value });
+}
+function clearRoot(host) {
+  const stale = [];
+  for (const child of Array.from(host.children)) {
+    if (child.getAttribute("data-atomic-ask-root") === "true") stale.push(child);
+  }
+  for (const child of stale) child.remove();
+}
+function button(doc, className, label, onClick) {
+  const el = doc.createElement("button");
+  el.type = "button";
+  el.className = className;
+  el.textContent = label;
+  if (onClick) el.addEventListener("click", onClick);
+  return el;
+}
+function sendIcon(doc) {
+  const svg = doc.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M5 12h14M13 6l6 6-6 6");
+  svg.append(path);
+  return svg;
+}
+function paintNote(doc, note, onNote) {
+  const dot = note.presentation === "dot";
+  const el = doc.createElement("button");
+  el.type = "button";
+  el.className = dot ? "atomic-mdot" : note.kind === "ask" ? "atomic-remark is-ai" : "atomic-remark";
+  el.setAttribute("data-testid", dot ? "atomic-mdot" : "atomic-remark");
+  el.setAttribute("data-note", note.id);
+  el.setAttribute("data-kind", note.kind);
+  setVar(el, "--atomic-remark-top", `${Math.round(note.top)}px`);
+  if (dot) {
+    el.setAttribute("aria-label", note.title);
+  } else {
+    const title = doc.createElement("strong");
+    title.textContent = note.title;
+    const body = doc.createElement("span");
+    body.textContent = note.body;
+    el.append(title, body);
+  }
+  if (onNote) el.addEventListener("click", () => onNote(note.id));
+  return el;
+}
+function isHtmlElement(node) {
+  if (!node || !("instanceOf" in node)) return false;
+  return node.instanceOf(HTMLElement);
+}
+function paintSlip(doc, root, note) {
+  const slip = doc.createElement("div");
+  slip.className = "atomic-slip";
+  slip.setAttribute("data-kind", note.kind === "ask" ? "ai" : "quote");
+  slip.setAttribute("data-testid", "atomic-slip");
+  setVar(slip, "--atomic-remark-top", `${Math.round(note.top)}px`);
+  const title = doc.createElement("strong");
+  title.className = "atomic-caption";
+  title.textContent = note.title;
+  const body = doc.createElement("p");
+  body.className = "atomic-hint";
+  body.textContent = note.body;
+  slip.append(title, body);
+  root.append(slip);
+}
+function paintSelection(doc, root, view, handlers) {
+  if (!view.selection || !view.chrome.showSelectionBar) return;
+  const bar = doc.createElement("div");
+  bar.className = "atomic-selbar";
+  bar.setAttribute("data-testid", "atomic-selbar");
+  setVar(bar, "--atomic-sel-left", `${Math.round(view.selection.left)}px`);
+  setVar(bar, "--atomic-sel-top", `${Math.round(view.selection.top)}px`);
+  const glass = doc.createElement("div");
+  glass.className = "atomic-glass";
+  if (view.chrome.showHighlight) {
+    glass.append(button(doc, "atomic-btn is-small", view.labels.highlight, handlers.onHighlight));
+  }
+  if (view.chrome.showRemark) {
+    glass.append(button(doc, "atomic-btn is-small", view.labels.remark, handlers.onRemark));
+  }
+  if (view.chrome.showAsk) {
+    glass.append(button(doc, "atomic-btn is-small is-primary", view.labels.ask, handlers.onAsk));
+  }
+  bar.append(glass);
+  root.append(bar);
+}
+function paintPanel(doc, root, view, handlers) {
+  const panel = view.panel;
+  if (!panel) return;
+  const el = doc.createElement("div");
+  el.className = panel.presentation === "sheet" ? "atomic-ask is-sheet" : "atomic-ask";
+  el.setAttribute("data-testid", "atomic-ask");
+  if (panel.presentation === "sheet") {
+    const grab = doc.createElement("div");
+    grab.className = "atomic-sheet-grab";
+    el.append(grab);
+  }
+  const title = doc.createElement("h4");
+  title.textContent = panel.title;
+  const subtitle = doc.createElement("span");
+  subtitle.className = "atomic-readout";
+  subtitle.textContent = panel.subtitle;
+  el.append(title, subtitle);
+  if (panel.saved) {
+    const saved = doc.createElement("div");
+    saved.className = "atomic-saved";
+    const dot = doc.createElement("i");
+    const label = doc.createElement("span");
+    label.className = "atomic-readout is-live";
+    label.textContent = panel.savedLabel;
+    saved.append(dot, label);
+    el.append(saved);
+  }
+  const seg = doc.createElement("div");
+  seg.className = "atomic-seg";
+  for (const scope of panel.scopes) {
+    const option = button(doc, scope.id === panel.scope ? "atomic-seg-option is-on" : "atomic-seg-option", scope.label, () => {
+      handlers.onScope?.(scope.id);
+    });
+    option.setAttribute("aria-pressed", scope.id === panel.scope ? "true" : "false");
+    seg.append(option);
+  }
+  el.append(seg);
+  if (panel.confirm) {
+    const confirm = doc.createElement("p");
+    confirm.className = "atomic-hint";
+    confirm.textContent = panel.confirm;
+    el.append(confirm, button(doc, "atomic-btn is-small", view.labels.send, handlers.onConfirmBook));
+  }
+  const thread = doc.createElement("div");
+  thread.className = "atomic-thread";
+  for (const turn of panel.turns) {
+    const bubble = doc.createElement("div");
+    bubble.className = turn.role === "user" ? "atomic-bubble is-user" : "atomic-bubble atomic-answer";
+    bubble.textContent = turn.text;
+    thread.append(bubble);
+  }
+  if (panel.saved) {
+    const open = button(doc, "atomic-link", view.labels.openCanvas, handlers.onOpenCanvas);
+    thread.append(open);
+  }
+  const compose = doc.createElement("div");
+  compose.className = "atomic-compose";
+  const field2 = doc.createElement("textarea");
+  field2.rows = 1;
+  field2.placeholder = panel.placeholder;
+  field2.setAttribute("aria-label", panel.title);
+  const send = doc.createElement("button");
+  send.type = "button";
+  send.className = "atomic-btn is-primary is-icon";
+  send.setAttribute("aria-label", view.labels.send);
+  send.append(sendIcon(doc));
+  send.addEventListener("click", () => {
+    const question = field2.value.trim();
+    if (question) handlers.onSend?.(question);
+  });
+  compose.append(field2, send);
+  const hint = doc.createElement("p");
+  hint.className = "atomic-hint";
+  hint.textContent = panel.secretHint;
+  el.append(thread, compose, hint);
+  root.append(el);
+}
+function paintSlot(host, view, handlers, slot) {
+  const doc = host.ownerDocument;
+  if (!doc) return;
+  host.setAttribute("data-atomic-ask-host", "true");
+  clearRoot(host);
+  const root = doc.createElement("div");
+  root.setAttribute("data-atomic-ask-root", "true");
+  root.setAttribute("data-testid", slot === "margin" ? "atomic-reader-margin" : "atomic-reader-ask");
+  root.setAttribute("data-theater", view.theater ? "on" : "off");
+  const phone = view.surface === "phone" ? " is-phone" : "";
+  const theater = view.theater ? " is-theater" : "";
+  root.className = `fitness-plugin atomic-reader-ask${phone}${theater}`;
+  if (view.chrome.showMargins) {
+    for (const note of view.margins) {
+      if (readerSlotForGutter(note.gutter) === slot) root.append(paintNote(doc, note, handlers.onNote));
+    }
+  }
+  if (slot === "ask") {
+    if (view.slip && readerSlotForGutter(view.slip.gutter) === "ask") paintSlip(doc, root, view.slip);
+    paintSelection(doc, root, view, handlers);
+    paintPanel(doc, root, view, handlers);
+    const panel = root.querySelector(".atomic-ask");
+    if (panel && isHtmlElement(panel) && view.panel?.presentation === "sheet") {
+      const reader = host.closest(".atomic-reader");
+      const width = reader ? Math.round(reader.getBoundingClientRect().width) : 0;
+      if (width > 0) panel.setCssProps({ "--atomic-ask-span": `${width}px` });
+    }
+  }
+  host.append(root);
+}
+function paintReaderAsk(host, view, handlers = {}) {
+  const slot = host.getAttribute("data-reader-slot") === "margin" ? "margin" : "ask";
+  paintSlot(host, view, handlers, slot);
+  if (slot !== "ask") return;
+  const margin = host.closest(".atomic-reader")?.querySelector("[data-reader-slot='margin']") ?? null;
+  if (isHtmlElement(margin)) paintSlot(margin, view, handlers, "margin");
+  const spread = host.closest(".atomic-reader-spread");
+  if (!spread) return;
+  const open = Boolean(view.panel || view.slip || view.selection);
+  spread.classList.toggle("is-ask-open", open);
+}
+
+// src/reader/ask/view.ts
+function marginNote(input) {
+  const title = input.kind === "ask" ? t("reader.askLabel", input.language, { page: input.page }) : t("reader.remarkLabel", input.language, { page: input.page });
+  return {
+    id: input.id,
+    kind: input.kind,
+    page: input.page,
+    side: input.side,
+    top: input.top,
+    title,
+    body: input.body
+  };
+}
+function marginNotesForPage(input) {
+  return marginSourcesFromCanvas(input.canvasJson, input.page).map(
+    (source) => marginNote({
+      language: input.language,
+      id: source.id,
+      kind: source.kind,
+      page: source.page,
+      side: input.sides?.[source.id] ?? spreadSide(source.page, input.surface),
+      top: input.tops?.[source.id] ?? 0,
+      body: source.body
+    })
+  );
+}
+function readerAskView(input) {
+  const language = input.language;
+  const chrome = readerChrome({
+    theater: input.theater,
+    surface: input.surface,
+    askEnabled: input.askEnabled,
+    hasSelection: input.hasSelection,
+    askOpen: input.askOpen
+  });
+  const margins = placeMarginNotes({
+    theater: input.theater,
+    surface: input.surface,
+    pageHeight: input.pageHeight,
+    notes: input.notes
+  });
+  const slip = input.surface === "phone" && !input.theater ? margins.find((note) => note.id === input.expandedId) ?? null : null;
+  const panel = chrome.askPresentation === "hidden" ? null : {
+    presentation: chrome.askPresentation,
+    title: t("reader.askTitle", language),
+    subtitle: t("reader.pageLabel", language, {
+      title: input.bookTitle,
+      page: input.page
+    }),
+    scope: input.scope,
+    turns: input.turns,
+    saved: input.savedToCanvas,
+    savedLabel: t("reader.savedCanvas", language),
+    secretHint: input.secretReady ? t("reader.secretReady", language) : t("reader.secretMissing", language),
+    confirm: input.scope === "book" && input.confirmCharacters != null ? t("reader.confirmBook", language, { chars: input.confirmCharacters }) : null,
+    placeholder: input.surface === "phone" ? t("reader.askPlaceholderPhone", language) : t("reader.askPlaceholder", language),
+    scopes: [
+      { id: "page", label: t("reader.scopePage", language) },
+      { id: "selection", label: t("reader.scopeSelection", language) },
+      { id: "book", label: t("reader.scopeBook", language) }
+    ]
+  };
+  return {
+    theater: input.theater,
+    surface: input.surface,
+    chrome,
+    margins,
+    slip,
+    selection: chrome.showSelectionBar ? input.selectionAnchor ?? { left: 16, top: 16 } : null,
+    panel,
+    labels: {
+      highlight: t("reader.highlight", language),
+      remark: t("reader.remark", language),
+      ask: t("reader.ask", language),
+      send: t("reader.send", language),
+      openCanvas: t("reader.openCanvas", language)
+    }
+  };
+}
+
+// src/reader/ask/mount.ts
+var SECRET_API3 = "1.11.4";
+var liveByNote = /* @__PURE__ */ new Map();
+var paintTokens = /* @__PURE__ */ new WeakMap();
+var EMPTY_SECRETS = {
+  get: () => null,
+  set: () => void 0,
+  list: () => []
+};
+function liveFor(path) {
+  const existing = liveByNote.get(path);
+  if (existing) return existing;
+  const created = {
+    scope: "page",
+    turns: [],
+    askOpen: false,
+    saved: false,
+    expandedId: null,
+    selection: null,
+    confirmCharacters: null,
+    pendingQuestion: ""
+  };
+  liveByNote.set(path, created);
+  return created;
+}
+function resetAskSession() {
+  liveByNote.clear();
+}
+function asElement(node) {
+  if (!node || !("instanceOf" in node)) return null;
+  const current = node;
+  if (current.instanceOf(HTMLElement)) return current;
+  const parent = current.parentElement;
+  if (parent?.instanceOf(HTMLElement)) return parent;
+  return null;
+}
+function readerOf(slot) {
+  return asElement(slot.closest(".atomic-reader"));
+}
+function surfaceOf(root) {
+  return root?.classList.contains("is-phone") ? "phone" : "desktop";
+}
+function theaterOn(root) {
+  if (!root) return false;
+  return root.classList.contains("is-theater") || root.getAttribute("data-theater") === "on";
+}
+function pagesOnScreen(session3) {
+  const pair = spreadPages(session3.page, session3.total);
+  const pages = [pair.verso, pair.recto].filter((page) => page != null);
+  if (pages.length > 0) return pages;
+  return session3.page >= 1 ? [session3.page] : [];
+}
+function textOfPage(root, page) {
+  const nodes = root.querySelectorAll(`[data-testid="atomic-reader-page"][data-page="${page}"] p`);
+  const parts = [];
+  nodes.forEach((node) => {
+    const text = node.textContent?.trim();
+    if (text) parts.push(text);
+  });
+  return parts.join("\n");
+}
+function syncSelection(root, notePath, target) {
+  if (target?.closest("[data-reader-slot]")) return false;
+  const selection = root.ownerDocument.defaultView?.getSelection();
+  const text = selection && !selection.isCollapsed ? selection.toString().replace(/\s+/g, " ").trim() : "";
+  const state = liveFor(notePath);
+  if (!text || !selection || selection.rangeCount === 0) {
+    if (!state.selection) return false;
+    state.selection = null;
+    return true;
+  }
+  const anchor = asElement(selection.anchorNode);
+  if (!anchor || !root.contains(anchor) || anchor.closest("[data-reader-slot]")) return false;
+  const pageNode = anchor.closest("[data-testid='atomic-reader-page']");
+  const page = Number(pageNode?.getAttribute("data-page") ?? "");
+  if (!Number.isInteger(page) || page < 1) return false;
+  const rect = selection.getRangeAt(0).getBoundingClientRect();
+  const next = {
+    text: text.slice(0, 4e3),
+    page,
+    left: rect.left + rect.width / 2,
+    top: rect.top
+  };
+  const prev = state.selection;
+  if (prev && prev.text === next.text && prev.page === next.page && Math.abs(prev.left - next.left) < 2) {
+    return false;
+  }
+  state.selection = next;
+  return true;
+}
+async function canvasJsonFor(plugin, notePath) {
+  if (!notePath) return null;
+  const note = await plugin.data.readBody(notePath);
+  const canvasPath = readRelatedCanvas(note);
+  if (!canvasPath) return null;
+  const body = await plugin.data.readBody(canvasPath);
+  return body.trim() ? body : null;
+}
+async function bookPassage(plugin, session3) {
+  if (session3.kind !== "epub" || !session3.filePath) return "";
+  const file = plugin.app.vault.getAbstractFileByPath(session3.filePath);
+  if (!(file instanceof import_obsidian16.TFile)) return "";
+  try {
+    const bytes = new Uint8Array(await plugin.app.vault.readBinary(file));
+    const book = await readEpub(bytes);
+    return book.blocks.map((block) => block.text).join("\n");
+  } catch {
+    return "";
+  }
+}
+async function writeCard(plugin, session3, card) {
+  const note = await plugin.data.readBody(session3.notePath);
+  const linked = readRelatedCanvas(note);
+  const existing = linked ? await plugin.data.readBody(linked) : "";
+  const written = applyBookCard({
+    notePath: session3.notePath,
+    noteMarkdown: note,
+    canvasJson: existing.trim() ? existing : null,
+    card
+  });
+  if (!written.ok) return false;
+  await plugin.data.writeNote(written.canvasPath, written.canvasJson);
+  if (!linked) {
+    await plugin.data.processNote(session3.notePath, (current) => ensureRelatedCanvas(current, written.canvasPath));
+  }
+  return true;
+}
+function noticeFor(result, language) {
+  switch (result.status) {
+    case "ok":
+      return t("notice.askAnswered", language);
+    case "confirm-book":
+    case "need-question":
+      return null;
+    case "ask-off":
+      return t("settings.askUpdate", language);
+    case "need-secret":
+      return t("notice.askNeedSecret", language);
+    case "bad-url":
+      return t("notice.askInvalidUrl", language);
+    case "need-passage":
+    case "provider-error":
+    case "canvas-error":
+      return t("notice.askFailed", language);
+    default: {
+      const unreachable = result;
+      return unreachable;
+    }
+  }
+}
+async function paintSession(plugin, slot, session3) {
+  const token = (paintTokens.get(slot) ?? 0) + 1;
+  paintTokens.set(slot, token);
+  let canvasJson = null;
+  try {
+    canvasJson = await canvasJsonFor(plugin, session3.notePath);
+  } catch {
+    canvasJson = null;
+  }
+  if (paintTokens.get(slot) !== token || !slot.isConnected) return;
+  const root = readerOf(slot);
+  const surface = surfaceOf(root);
+  const state = liveFor(session3.notePath);
+  const language = plugin.settings.language;
+  const notes = pagesOnScreen(session3).flatMap(
+    (page) => marginNotesForPage({ language, canvasJson, page, surface })
+  );
+  const secrets = obsidianSecretPort(plugin.app);
+  const secretReady = Boolean(secrets && plugin.settings.ask.secretName && secrets.get(plugin.settings.ask.secretName));
+  const view = readerAskView({
+    language,
+    theater: theaterOn(root),
+    surface,
+    askEnabled: (0, import_obsidian16.requireApiVersion)(SECRET_API3),
+    hasSelection: Boolean(state.selection),
+    askOpen: state.askOpen,
+    pageHeight: readerPageBox(session3.size).h,
+    notes,
+    expandedId: state.expandedId,
+    selectionAnchor: state.selection ? { left: state.selection.left, top: state.selection.top } : null,
+    bookTitle: session3.title,
+    page: state.selection?.page ?? session3.page,
+    scope: state.scope,
+    turns: state.turns,
+    savedToCanvas: state.saved,
+    secretReady,
+    confirmCharacters: state.confirmCharacters
+  });
+  paintReaderAsk(slot, view, handlersFor(plugin, slot, session3));
+}
+function handlersFor(plugin, slot, session3) {
+  return {
+    onHighlight: () => {
+      void saveMark(plugin, slot, session3, "highlight");
+    },
+    onRemark: () => {
+      void saveMark(plugin, slot, session3, "remark");
+    },
+    onAsk: () => {
+      const state = liveFor(session3.notePath);
+      state.askOpen = true;
+      if (state.selection) state.scope = "selection";
+      void paintSession(plugin, slot, session3);
+    },
+    onNote: (id) => {
+      const state = liveFor(session3.notePath);
+      state.expandedId = state.expandedId === id ? null : id;
+      void paintSession(plugin, slot, session3);
+    },
+    onScope: (scope) => {
+      const state = liveFor(session3.notePath);
+      state.scope = scope;
+      state.confirmCharacters = null;
+      void paintSession(plugin, slot, session3);
+    },
+    onSend: (question) => {
+      void sendQuestion(plugin, slot, session3, question, false);
+    },
+    onConfirmBook: () => {
+      const question = liveFor(session3.notePath).pendingQuestion;
+      void sendQuestion(plugin, slot, session3, question, true);
+    },
+    onOpenCanvas: () => {
+      void openCanvas(plugin, session3);
+    }
+  };
+}
+async function saveMark(plugin, slot, session3, kind) {
+  const state = liveFor(session3.notePath);
+  const quote = state.selection?.text ?? "";
+  if (!quote) return;
+  const ok = await writeCard(plugin, session3, {
+    kind,
+    page: state.selection?.page ?? session3.page,
+    quote,
+    body: quote
+  });
+  const language = plugin.settings.language;
+  if (!ok) {
+    new import_obsidian16.Notice(t("notice.askFailed", language));
+    return;
+  }
+  state.selection = null;
+  state.saved = true;
+  new import_obsidian16.Notice(t("reader.savedCanvas", language));
+  void paintSession(plugin, slot, session3);
+}
+async function sendQuestion(plugin, slot, session3, question, confirmed) {
+  const state = liveFor(session3.notePath);
+  state.pendingQuestion = question;
+  const language = plugin.settings.language;
+  const note = await plugin.data.readBody(session3.notePath);
+  const linked = readRelatedCanvas(note);
+  const existing = linked ? await plugin.data.readBody(linked) : "";
+  const root = readerOf(slot);
+  const page = state.selection?.page ?? session3.page;
+  const bookText = state.scope === "book" ? await bookPassage(plugin, session3) : "";
+  const result = await runAsk({
+    askEnabled: (0, import_obsidian16.requireApiVersion)(SECRET_API3),
+    settings: plugin.settings.ask,
+    secrets: obsidianSecretPort(plugin.app) ?? EMPTY_SECRETS,
+    http: obsidianHttpPort(),
+    notePath: session3.notePath,
+    noteMarkdown: note,
+    canvasJson: existing.trim() ? existing : null,
+    request: {
+      scope: state.scope,
+      page,
+      question,
+      pageText: root ? textOfPage(root, page) : "",
+      selection: state.selection?.text ?? "",
+      bookText,
+      bookConfirmed: confirmed,
+      quote: state.selection?.text || question
+    }
+  });
+  if (result.status === "ok") {
+    await plugin.data.writeNote(result.canvasPath, result.canvasJson);
+    if (readRelatedCanvas(note) !== result.canvasPath) {
+      await plugin.data.processNote(session3.notePath, (current) => ensureRelatedCanvas(current, result.canvasPath));
+    }
+    state.turns = [
+      ...state.turns,
+      { role: "user", text: question },
+      { role: "assistant", text: result.answer }
+    ];
+    state.saved = true;
+    state.askOpen = true;
+    state.confirmCharacters = null;
+    state.expandedId = result.cardId;
+  } else if (result.status === "confirm-book") {
+    state.confirmCharacters = result.characters;
+    state.askOpen = true;
+  }
+  const message = noticeFor(result, language);
+  if (message) new import_obsidian16.Notice(message);
+  void paintSession(plugin, slot, session3);
+}
+async function openCanvas(plugin, session3) {
+  const note = await plugin.data.readBody(session3.notePath);
+  const canvasPath = readRelatedCanvas(note);
+  if (canvasPath) await plugin.data.openPath(canvasPath);
+}
+function watchSelection(plugin, slot, session3) {
+  const root = readerOf(slot);
+  if (!root || root.getAttribute("data-ask-listen") === "on") return;
+  root.setAttribute("data-ask-listen", "on");
+  const onPointer = (event) => {
+    const changed = syncSelection(root, session3.notePath, asElement(event.target));
+    if (changed) void paintSession(plugin, slot, session3);
+  };
+  root.addEventListener("mouseup", onPointer);
+  root.addEventListener("keyup", onPointer);
+}
+function registerAskOnShell(plugin) {
+  registerReaderAsk({
+    attach(slot, session3) {
+      watchSelection(plugin, slot, session3);
+      void paintSession(plugin, slot, session3);
+    }
+  });
+}
+
+// src/reader/shell/open.ts
+var import_obsidian18 = require("obsidian");
+
+// src/reader/shell/frontmatter.ts
+var EMPTY = {
+  source: "",
+  page: 1,
+  size: "m",
+  pagesHint: null,
+  canvas: ""
+};
+function unquote2(value) {
+  const text = value.trim();
+  if (text.startsWith('"') && text.endsWith('"') || text.startsWith("'") && text.endsWith("'")) {
+    return text.slice(1, -1);
+  }
+  return text;
+}
+function positiveInt(value) {
+  const number = typeof value === "number" ? value : Number(String(value ?? "").trim());
+  if (!Number.isFinite(number) || number < 1) return null;
+  return Math.trunc(number);
+}
+function splitFrontmatter3(markdown) {
+  const lines = String(markdown ?? "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") return { lines, endIndex: index };
+  }
+  return null;
+}
+function finish(lines) {
+  const text = lines.join("\n");
+  return text.endsWith("\n") ? text : `${text}
+`;
+}
+function field(record, key) {
+  return record[key];
+}
+function nestedReader(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value;
+}
+function readerFieldsFromFrontmatter(frontmatter) {
+  if (!frontmatter) return { ...EMPTY };
+  const reader = nestedReader(field(frontmatter, "reader"));
+  const page = positiveInt(reader ? field(reader, "page") : void 0) ?? positiveInt(field(frontmatter, "reader.page")) ?? 1;
+  const size = readerSizeId(
+    (reader ? field(reader, "size") : void 0) ?? field(frontmatter, "reader.size")
+  );
+  const sourceValue = field(frontmatter, "source");
+  const canvasValue = field(frontmatter, "related_canvas");
+  return {
+    source: typeof sourceValue === "string" ? sourceValue.trim() : "",
+    page,
+    size,
+    pagesHint: positiveInt(field(frontmatter, "pages")),
+    canvas: typeof canvasValue === "string" ? canvasValue.trim() : ""
+  };
+}
+function readReaderNote(markdown) {
+  const parts = splitFrontmatter3(markdown);
+  if (!parts) return { ...EMPTY };
+  let source = "";
+  let page = null;
+  let size = null;
+  let pagesHint = null;
+  let canvas = "";
+  let inReader = false;
+  for (let index = 1; index < parts.endIndex; index += 1) {
+    const line = parts.lines[index];
+    if (inReader) {
+      if (!/^\s+/.test(line) || /^\s*$/.test(line)) {
+        inReader = false;
+      } else {
+        const nestedPage = line.match(/^\s+page\s*:\s*(.*)$/);
+        if (nestedPage) page = positiveInt(unquote2(nestedPage[1])) ?? page;
+        const nestedSize = line.match(/^\s+size\s*:\s*(.*)$/);
+        if (nestedSize) size = readerSizeId(unquote2(nestedSize[1]));
+        continue;
+      }
+    }
+    const reader = line.match(/^reader\s*:\s*(.*)$/);
+    if (reader) {
+      const rest = reader[1].trim();
+      if (!rest) {
+        inReader = true;
+        continue;
+      }
+      const inlinePage = rest.match(/page\s*:\s*(\d+)/);
+      if (inlinePage) page = positiveInt(inlinePage[1]);
+      const inlineSize = rest.match(/size\s*:\s*([A-Za-z]+)/);
+      if (inlineSize) size = readerSizeId(inlineSize[1]);
+      continue;
+    }
+    const flatPage = line.match(/^reader\.page\s*:\s*(.*)$/);
+    if (flatPage) page = positiveInt(unquote2(flatPage[1])) ?? page;
+    const flatSize = line.match(/^reader\.size\s*:\s*(.*)$/);
+    if (flatSize) size = readerSizeId(unquote2(flatSize[1]));
+    const sourceLine = line.match(/^source\s*:\s*(.*)$/);
+    if (sourceLine) source = unquote2(sourceLine[1]);
+    const pagesLine = line.match(/^pages\s*:\s*(.*)$/);
+    if (pagesLine) pagesHint = positiveInt(unquote2(pagesLine[1]));
+    const canvasLine = line.match(/^related_canvas\s*:\s*(.*)$/);
+    if (canvasLine) canvas = unquote2(canvasLine[1]);
+  }
+  return {
+    source,
+    page: page ?? 1,
+    size: size ?? "m",
+    pagesHint,
+    canvas
+  };
+}
+function updateReaderPage(markdown, page) {
+  const safe = Math.max(1, Math.trunc(page));
+  const text = String(markdown ?? "");
+  const parts = splitFrontmatter3(text);
+  if (!parts) {
+    const body = text.replace(/^\n/, "");
+    return `---
+reader:
+  page: ${safe}
+---
+
+${body}`;
+  }
+  const lines = parts.lines.slice();
+  const end = () => splitFrontmatter3(lines.join("\n"))?.endIndex ?? lines.length - 1;
+  let limit = end();
+  for (let index = 1; index < limit; index += 1) {
+    if (/^reader\.page\s*:/.test(lines[index])) {
+      lines[index] = `reader.page: ${safe}`;
+      return finish(lines);
+    }
+  }
+  limit = end();
+  for (let index = 1; index < limit; index += 1) {
+    const match = lines[index].match(/^reader\s*:\s*(.*)$/);
+    if (!match) continue;
+    const rest = match[1].trim();
+    if (rest.startsWith("{")) {
+      if (/page\s*:/.test(rest)) {
+        lines[index] = lines[index].replace(/page\s*:\s*\d+/, `page: ${safe}`);
+      } else {
+        lines[index] = lines[index].replace(/\{\s*/, `{ page: ${safe}, `);
+      }
+      return finish(lines);
+    }
+    if (rest && rest !== "|" && rest !== ">") continue;
+    let cursor = index + 1;
+    const blockEnd = end();
+    for (; cursor < blockEnd; cursor += 1) {
+      if (!/^\s+/.test(lines[cursor])) break;
+      if (/^\s+page\s*:/.test(lines[cursor])) {
+        const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
+        lines[cursor] = `${indent}page: ${safe}`;
+        return finish(lines);
+      }
+    }
+    lines.splice(index + 1, 0, `  page: ${safe}`);
+    return finish(lines);
+  }
+  const closing = end();
+  lines.splice(closing, 0, "reader:", `  page: ${safe}`);
+  return finish(lines);
+}
+
+// src/reader/shell/link.ts
+function normalizeVaultPath3(path) {
+  return String(path || "").replace(/\\/g, "/").replace(/^\.\//, "").replace(/\/+/g, "/").replace(/^\//, "").trim();
+}
+function bookFileKind(path) {
+  const ext = normalizeVaultPath3(path).split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "epub" || ext === "pdf") return ext;
+  return null;
+}
+function bookTitleKey(title) {
+  return String(title || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+function noteBasename(notePath) {
+  const file = normalizeVaultPath3(notePath).split("/").pop() ?? "";
+  return file.replace(/\.md$/i, "");
+}
+function vaultDirectory(path) {
+  const norm = normalizeVaultPath3(path);
+  const slash = norm.lastIndexOf("/");
+  return slash === -1 ? "" : norm.slice(0, slash);
+}
+function sourcePathFromFrontmatter(source) {
+  if (typeof source !== "string") return "";
+  let text = source.trim();
+  if (text.startsWith("!")) text = text.slice(1).trim();
+  const wiki = text.match(/^\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]$/);
+  if (wiki) text = wiki[1].trim();
+  return normalizeVaultPath3(text);
+}
+function fileKey(file) {
+  return bookTitleKey(file.basename);
+}
+function findByPath(files, path) {
+  const norm = normalizeVaultPath3(path).toLowerCase();
+  for (const file of files) {
+    if (normalizeVaultPath3(file.path).toLowerCase() === norm) return file;
+  }
+  return null;
+}
+function findByBasename(files, source) {
+  const base = source.split("/").pop() ?? source;
+  const dot = base.lastIndexOf(".");
+  const name = bookTitleKey(dot === -1 ? base : base.slice(0, dot));
+  const kind = bookFileKind(base);
+  if (!name || !kind) return null;
+  const matches = files.filter(
+    (file) => fileKey(file) === name && file.extension.toLowerCase() === kind
+  );
+  return matches.length === 1 ? matches[0] : null;
+}
+function resolveLinkedBookFile(input) {
+  const files = input.files.filter((file) => bookFileKind(file.path) != null);
+  const source = sourcePathFromFrontmatter(input.source);
+  const sourceKind = bookFileKind(source);
+  if (source && sourceKind) {
+    const exact = findByPath(files, source) ?? findByBasename(files, source);
+    if (exact) {
+      const kind2 = bookFileKind(exact.path);
+      if (kind2) return { kind: kind2, path: normalizeVaultPath3(exact.path) };
+    }
+  }
+  const keys = new Set(
+    [input.title, noteBasename(input.notePath)].map((value) => bookTitleKey(value)).filter(Boolean)
+  );
+  const noteDir = vaultDirectory(input.notePath);
+  const matches = files.filter((file) => keys.has(fileKey(file)));
+  if (!matches.length) return null;
+  matches.sort((left, right) => {
+    const leftDir = vaultDirectory(left.path) === noteDir ? 0 : 1;
+    const rightDir = vaultDirectory(right.path) === noteDir ? 0 : 1;
+    if (leftDir !== rightDir) return leftDir - rightDir;
+    const leftKind = bookFileKind(left.path) === "epub" ? 0 : 1;
+    const rightKind = bookFileKind(right.path) === "epub" ? 0 : 1;
+    if (leftKind !== rightKind) return leftKind - rightKind;
+    return left.path.localeCompare(right.path);
+  });
+  const best = matches[0];
+  const kind = bookFileKind(best.path);
+  if (!kind) return null;
+  return { kind, path: normalizeVaultPath3(best.path) };
+}
+
+// src/reader/shell/chooser.ts
+var session2 = null;
+function overlayBody(owner) {
+  if (owner?.body && owner === activeDocument) return activeDocument.body;
+  if (owner?.body) return owner.body;
+  return activeDocument.body;
+}
+function elementTarget(target) {
+  if (!target || !("instanceOf" in target)) return null;
+  const node = target;
+  return node.instanceOf(HTMLElement) ? node : null;
+}
+function closeBookChooser() {
+  const current = session2;
+  if (!current) return;
+  session2 = null;
+  current.view.removeEventListener("keydown", current.onKey, true);
+  current.overlay.detach();
+}
+function openBookChooser(options) {
+  closeBookChooser();
+  let settled = false;
+  const body = overlayBody(options.ownerDocument);
+  const view = body.win;
+  const overlay = body.createDiv({
+    cls: "atomic-chooser-scrim",
+    attr: {
+      "data-testid": "atomic-chooser",
+      "data-overlay-host": "window",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": options.title
+    }
+  });
+  if (options.phone) overlay.addClass("is-phone");
+  const sheet = overlay.createDiv({
+    cls: options.phone ? "atomic-chooser fitness-plugin is-phone" : "atomic-chooser fitness-plugin"
+  });
+  if (options.phone) sheet.createDiv({ cls: "atomic-chooser-grab" });
+  const notes = sheet.createEl("button", {
+    cls: "atomic-chooser-row is-primary",
+    attr: { type: "button", "data-testid": "atomic-chooser-notes", "data-chooser-act": "notes" }
+  });
+  const notesLabel = notes.createSpan({ cls: "atomic-chooser-label" });
+  notesLabel.createEl("b", { text: t("view.reader.openNotes", options.language) });
+  notesLabel.createSpan({ text: t("view.reader.openNotesHint", options.language) });
+  notes.createSpan({ cls: "atomic-chooser-kbd", text: "\u21B5" });
+  if (options.file) {
+    const book = sheet.createEl("button", {
+      cls: "atomic-chooser-row",
+      attr: { type: "button", "data-testid": "atomic-chooser-book", "data-chooser-act": "book" }
+    });
+    const bookLabel = book.createSpan({ cls: "atomic-chooser-label" });
+    bookLabel.createEl("b", { text: t("view.reader.openBook", options.language) });
+    const fileName = options.file.path.split("/").pop() ?? options.file.path;
+    bookLabel.createSpan({ text: fileName });
+  }
+  const cancel = sheet.createEl("button", {
+    cls: "atomic-chooser-cancel",
+    attr: { type: "button", "data-testid": "atomic-chooser-cancel", "data-chooser-act": "cancel" }
+  });
+  cancel.setText(t("view.reader.cancel", options.language));
+  const choose = (choice) => {
+    if (settled) return;
+    settled = true;
+    closeBookChooser();
+    options.onChoose(choice);
+  };
+  const onKey = (event) => {
+    if (!session2 || session2.overlay !== overlay) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      choose("cancel");
+      return;
+    }
+    if (event.key !== "Enter" || event.repeat) return;
+    const target = elementTarget(event.target);
+    const act = target?.getAttribute("data-chooser-act");
+    if (act === "book" || act === "cancel") return;
+    event.preventDefault();
+    choose("notes");
+  };
+  overlay.addEventListener("click", (event) => {
+    const target = elementTarget(event.target);
+    if (!target) return;
+    if (target === overlay) {
+      choose("cancel");
+      return;
+    }
+    const act = target.closest("[data-chooser-act]")?.getAttribute("data-chooser-act");
+    if (act === "notes" || act === "book" || act === "cancel") choose(act);
+  });
+  view.addEventListener("keydown", onKey, true);
+  session2 = { overlay, onKey, view };
+  notes.focus();
+}
+
+// src/reader/shell/view.ts
+var import_obsidian17 = require("obsidian");
+
 // src/reader/shell/paginate.ts
 function wordsOf(text) {
   return text.trim().split(/\s+/).filter(Boolean);
@@ -9486,7 +11298,7 @@ function readingAccent(plugin) {
   const color = reading?.baseColor ?? "";
   return /^#[0-9a-fA-F]{3,8}$/.test(color) ? color : "";
 }
-var AtomicReaderView = class extends import_obsidian14.ItemView {
+var AtomicReaderView = class extends import_obsidian17.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -9589,7 +11401,7 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
     this.total = 0;
     this.paint();
     const file = this.plugin.data.getFileByPath(this.filePath);
-    if (!(file instanceof import_obsidian14.TFile)) {
+    if (!(file instanceof import_obsidian17.TFile)) {
       this.failure = "unreadable";
       this.ready = true;
       this.paint();
@@ -9599,7 +11411,7 @@ var AtomicReaderView = class extends import_obsidian14.ItemView {
     if (file.extension === "epub") this.kind = "epub";
     const note = this.plugin.data.getFileByPath(this.notePath);
     let storedPage = 1;
-    if (note instanceof import_obsidian14.TFile) {
+    if (note instanceof import_obsidian17.TFile) {
       const cache = this.plugin.app.metadataCache.getFileCache(note);
       const fields = cache?.frontmatter ? readerFieldsFromFrontmatter(cache.frontmatter) : readReaderNote(await this.plugin.app.vault.cachedRead(note));
       if (token !== this.loadToken) return;
@@ -9960,8 +11772,8 @@ function titleFromFrontmatter(frontmatter, basename) {
 async function openActiveNoteBook(plugin) {
   const language = plugin.settings.language;
   const active = plugin.app.workspace.getActiveFile();
-  if (!(active instanceof import_obsidian15.TFile) || active.extension !== "md") {
-    new import_obsidian15.Notice(t("notice.readerNeedsNote", language));
+  if (!(active instanceof import_obsidian18.TFile) || active.extension !== "md") {
+    new import_obsidian18.Notice(t("notice.readerNeedsNote", language));
     return;
   }
   const frontmatter = frontmatterOf(plugin, active.path);
@@ -9977,7 +11789,7 @@ async function openActiveNoteBook(plugin) {
     files: bookFiles(plugin)
   });
   if (!file) {
-    new import_obsidian15.Notice(t("notice.readerNoFile", language));
+    new import_obsidian18.Notice(t("notice.readerNoFile", language));
     return;
   }
   await openLinkedBook(plugin, {
@@ -9995,7 +11807,7 @@ function closeReaderChrome() {
 
 // src/main.ts
 var REFRESH_DEBOUNCE_MS = 300;
-var FitnessPlugin = class extends import_obsidian16.Plugin {
+var FitnessPlugin = class extends import_obsidian19.Plugin {
   constructor() {
     super(...arguments);
     this.settings = DEFAULT_SETTINGS;
@@ -10008,6 +11820,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
+    registerAskOnShell(this);
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language
     });
@@ -10063,7 +11876,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
       name: t("command.createReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian16.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian19.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void createReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -10074,7 +11887,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
       name: t("command.openReadingBookshelf", this.settings.language),
       callback: () => {
         if (!this.hobbyActivityById("reading")) {
-          new import_obsidian16.Notice(t("notice.noReadingHobby", this.settings.language));
+          new import_obsidian19.Notice(t("notice.noReadingHobby", this.settings.language));
           return;
         }
         void openReadingBookshelfCommand(this.app, this.data, this.settings.language);
@@ -10159,6 +11972,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   onunload() {
     this.unloaded = true;
     closeReaderChrome();
+    resetAskSession();
     resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {
@@ -10269,7 +12083,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   }
   chooseActivity(activities, emptyNoticeKey, placeholderKey) {
     if (!activities.length) {
-      new import_obsidian16.Notice(t(emptyNoticeKey, this.settings.language));
+      new import_obsidian19.Notice(t(emptyNoticeKey, this.settings.language));
       return Promise.resolve(null);
     }
     return suggestItem(
@@ -10307,7 +12121,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   async createGymSession() {
     const activity = this.exerciseActivityById("gym");
     if (!activity) {
-      new import_obsidian16.Notice(t("notice.noGymActivity", this.settings.language));
+      new import_obsidian19.Notice(t("notice.noGymActivity", this.settings.language));
       return;
     }
     await createActivitySession(
@@ -10321,7 +12135,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   async createGolfSession() {
     const activity = this.exerciseActivityById("golf");
     if (!activity) {
-      new import_obsidian16.Notice(t("notice.noGolfActivity", this.settings.language));
+      new import_obsidian19.Notice(t("notice.noGolfActivity", this.settings.language));
       return;
     }
     await createActivitySession(
@@ -10335,7 +12149,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   async createReadingItem() {
     const activity = this.hobbyActivityById("reading");
     if (!activity) {
-      new import_obsidian16.Notice(t("notice.noReadingHobby", this.settings.language));
+      new import_obsidian19.Notice(t("notice.noReadingHobby", this.settings.language));
       return;
     }
     await createReadingItem(this.app, this.data, activity, this.settings.language);
@@ -10348,7 +12162,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   async openDashboard() {
     const path = this.settings.dashboardPath;
     if (!this.data.exists(path)) {
-      new import_obsidian16.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
+      new import_obsidian19.Notice(t("notice.dashboardNotFound", this.settings.language, { path }));
       return;
     }
     await this.data.openPath(path);
