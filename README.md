@@ -12,11 +12,11 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 1. Click or tap a cover on the shelf or on a book note.
 2. **Open Notes** is the default. It opens the book note.
-3. **Open Book** is shown only when that title has an EPUB or PDF. The cover lifts, the hinge opens, the pages turn, and the spread lands on the last page you read. It stays on that note.
-4. Theater matches the theme: light linen and a warm key on cream paper, or a dark museum. The book stays at XL. Exit fades after 2 seconds. Move the pointer or tap to bring it back. Exit or Esc leaves. On a phone the page is a card, and Exit sits under the Dynamic Island. Highlight, remark, Ask, and book size stay on the reader.
-5. Book size is S, M, L, or XL on the settled reader and on the phone reading sheet. Command-minus and Command-plus step it (Ctrl on Windows and Linux). The page grows. The type stays put. M is about 15 lines. XL is about 22 or 23. A new book starts at M. The size is saved on the book note as `reader.size`. It eases for about a fifth of a second, and it is instant with reduced motion.
-6. Ask uses a key you store in Obsidian secret storage. That needs Obsidian 1.11.4 or newer. The key is not written into `data.json`. On an older Obsidian, Ask is off and settings tell you to update.
-7. Each book has one canvas. Remarks sit in the page margin. Pages use Literata: 12.5px on 19px lines on a computer, and 15px on 23px lines on a phone.
+3. **Open Book** is shown only when that title has an EPUB or PDF. The flight overlay sits on the window body and lands on the last page you read. It stays on that note. Reduced motion opens the book directly.
+4. Theater matches the theme: light linen, or a dark museum. The book locks to XL, and the page is 500px tall. Exit fades after 2 seconds. Move the pointer or tap to bring it back. Exit or Esc leaves. On a phone the page is a card, and Exit sits at the top of the theater frame. Highlight, remark, Ask, and book size stay off in theater.
+5. The settled reader keeps a size bar. The phone uses the reading sheet. The sizes are S, M, L, and XL. Command-minus and Command-plus step it (Ctrl on Windows and Linux). The page grows. The type stays put. M is 15 lines. Settled XL is 22 lines. A new book starts at M. The book note saves `reader.size` as `s`, `m`, `l`, or `xl`. The change eases for about a fifth of a second, and it is instant with reduced motion.
+6. Ask uses a key you keep in Obsidian SecretStorage. Settings store the secret’s name only. The key is not written into `data.json`. That needs Obsidian 1.11.4 or newer. On an older Obsidian, Ask is off and settings tell you to update.
+7. Each book has one `.canvas`. The book note stores that path as `related_canvas`. Remarks sit in the page margin. Pages use Literata: 12.5px on 19px lines on a computer, and 15px on 23px lines on a phone.
 
 ![Reader on desktop and phone](docs/images/atomic-reader-hero.png)
 
@@ -55,10 +55,10 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Cue pages (`atomic-cues` with `activity:`): every cue of the year as an index card. Hover lifts the card. Click or tap enlarges it in the center. The card grows with the cue and scrolls if it is taller than the window. A narrow list shows four lines of each cue.
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
 - Reading items with timers, book shelf, and Bases
-- Reader for an EPUB or PDF already in the vault. Open Notes is the default. Open Book flies in place onto the last page, then theater. Theater matches light or dark, stays at XL, and hides Exit after 2 seconds
-- Book size S, M, L, XL on the reader and the phone sheet. The page grows, the type does not, and the choice is saved as `reader.size`
-- Ask uses a key in Obsidian secret storage (1.11.4 or newer). The key is not stored in `data.json`. Older Obsidian turns Ask off
-- One canvas per book. Remarks sit in the page margin. Page type is Literata at 12.5/19 on a computer and 15/23 on a phone
+- Reader for an EPUB or PDF already in the vault. Open Notes is the default. Open Book puts a flight overlay on the window body and lands on the last page, then theater. Reduced motion opens the book directly. Theater is linen or museum, locks to XL at 500px, and hides Exit after 2 seconds. Exit or Esc leaves
+- Book size S, M, L, XL. The settled reader keeps the size bar. The phone uses the reading sheet. M is 15 lines. Settled XL is 22. The page grows, the type does not, and the book note saves `reader.size` as `s`, `m`, `l`, or `xl`
+- Ask uses a key in Obsidian SecretStorage (1.11.4 or newer). Settings store the secret’s name only. The key is not stored in `data.json`. Older Obsidian turns Ask off
+- One `.canvas` per book, stored as `related_canvas`. Remarks sit in the page margin. Page type is Literata at 12.5/19 on a computer and 15/23 on a phone
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Yearly dashboard: one totals row, one row per habit with monthly hour bars, a monthly chart, and recent sessions. Last opens the latest session note, including reading
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…
@@ -88,7 +88,7 @@ atomics/
 
 ## Privacy
 
-Atomic Tracker runs locally in your vault. It does not collect telemetry, require an account, or show ads. It does not call home. Habit notes stay on this computer. Ask sends only the passage you choose to the provider you pick, with a key kept in Obsidian secret storage on this device. The key is not written into `data.json`, the book note, or the canvas. The only other network fetch is if you set a book `cover` to an `http(s):` URL, which Obsidian loads like any other remote image in a note. It reads and writes notes under `atomics/` and any other vault paths you configure (dashboard, activity folders, book covers).
+Atomic Tracker runs locally in your vault. It does not collect telemetry, require an account, or show ads. It does not call home. Habit notes stay on this computer. Ask sends only the passage you choose to the provider you pick, with a key kept in Obsidian SecretStorage on this device. The key is not written into `data.json`, the book note, or the canvas. The only other network fetch is if you set a book `cover` to an `http(s):` URL, which Obsidian loads like any other remote image in a note. It reads and writes notes under `atomics/` and any other vault paths you configure (dashboard, activity folders, book covers).
 
 ## License
 
