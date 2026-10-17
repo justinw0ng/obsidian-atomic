@@ -488,7 +488,11 @@ test("reader theater exposes stable Exit hooks", () => {
   assert.match(mount, /data-testid": "atomic-theater-exit"/);
   assert.doesNotMatch(mount, /innerHTML/);
   assert.doesNotMatch(mount, /\bglobalThis\b/);
+  const slot = src("src/reader/theater/slot.ts");
+  assert.match(slot, /atomic-theater-enter/);
+  assert.match(slot, /closest\("\.atomic-reader"\)/);
   const health = src("e2e/health-check.test.mjs");
   assert.match(health, /atomic-theater-exit/);
   assert.match(health, /atomic-theater-chrome/);
+  assert.match(health, /atomic-theater-enter/);
 });

@@ -114,6 +114,41 @@ class MiniNode {
     this.parentElement?.removeChild(this);
   }
 
+  closest(selector) {
+    const className = String(selector).startsWith(".") ? String(selector).slice(1) : "";
+    let node = this;
+    while (node) {
+      if (className && node.classList.contains(className)) return node;
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  get style() {
+    if (!this._styleDecl) {
+      const node = this;
+      const props = new Map();
+      const write = () => {
+        if (props.size === 0) node.attrs.delete("style");
+        else node.attrs.set("style", [...props].map(([key, value]) => `${key}: ${value}`).join("; "));
+      };
+      this._styleDecl = {
+        setProperty(name, value) {
+          props.set(String(name), String(value));
+          write();
+        },
+        getPropertyValue(name) {
+          return props.get(String(name)) ?? "";
+        },
+        removeProperty(name) {
+          props.delete(String(name));
+          write();
+        },
+      };
+    }
+    return this._styleDecl;
+  }
+
   contains(node) {
     let current = node;
     while (current) {
@@ -384,6 +419,51 @@ export function theaterHost(options = {}) {
     askSheet,
     size,
   };
+}
+
+/**
+ * Fixture shaped like the live shell reader: slot, spread, page, ask gutter.
+ * @param {{ surface?: "desk" | "phone", theme?: "light" | "dark" }} [options]
+ */
+export function shellReaderHost(options = {}) {
+  const phone = options.surface === "phone";
+  const view = new MiniWindow();
+  const doc = new MiniDoc(view);
+  if (options.theme === "dark") doc.body.classList.add("theme-dark");
+  const root = el(
+    doc,
+    "div",
+    phone ? "fitness-plugin atomic-reader is-phone" : "fitness-plugin atomic-reader",
+    { "data-testid": "atomic-reader" },
+  );
+  root.style.setProperty("--atomic-page-w", "270px");
+  root.style.setProperty("--atomic-page-h", "340px");
+  const bar = el(doc, "div", "atomic-reader-bar");
+  const slot = el(doc, "div", "atomic-reader-slot", {
+    "data-reader-slot": "theater",
+    "data-testid": "atomic-reader-slot-theater",
+  });
+  const size = el(doc, "div", "atomic-reader-slot", {
+    "data-reader-slot": "size",
+    "data-testid": "atomic-reader-slot-size",
+  });
+  bar.appendChild(slot);
+  bar.appendChild(size);
+  const spread = el(doc, "div", "atomic-reader-spread");
+  const page = el(doc, "div", "atomic-reader-page is-recto", { "data-testid": "atomic-reader-page" });
+  page.textContent = "Chapter I";
+  const ask = el(doc, "div", "atomic-reader-gutter is-ask", {
+    "data-testid": "atomic-reader-slot-ask",
+    "data-act": "ask",
+  });
+  spread.appendChild(page);
+  spread.appendChild(ask);
+  const foot = el(doc, "div", "atomic-reader-foot");
+  root.appendChild(bar);
+  root.appendChild(spread);
+  root.appendChild(foot);
+  doc.body.appendChild(root);
+  return { view, doc, root, bar, slot, size, page, ask, foot, spread };
 }
 
 export function collect(root, pred) {

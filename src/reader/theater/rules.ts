@@ -10,6 +10,7 @@ export const SUPPRESS_CLASSES: readonly string[] = [
   "atomic-reader-bar",
   "atomic-reader-foot",
   "atomic-gutter",
+  "atomic-reader-gutter",
   "atomic-remark",
   "atomic-selbar",
   "atomic-slip",
@@ -53,7 +54,7 @@ export function resolveTheaterSurface(
 ): TheaterSurface {
   if (dataSurface === "phone" || dataSurface === "desk") return dataSurface;
   const names = className.split(/\s+/);
-  if (names.includes("ob-phone-screen")) return "phone";
+  if (names.includes("ob-phone-screen") || names.includes("is-phone")) return "phone";
   return "desk";
 }
 
@@ -68,7 +69,12 @@ export function shouldSuppressControl(input: {
 }): boolean {
   if (input.testId && THEATER_OWN.has(input.testId)) return false;
   const names = input.className.split(/\s+/).filter((name) => name.length > 0);
-  if (names.includes("atomic-page")) return false;
+  if (
+    names.includes("atomic-page")
+    || names.includes("atomic-reader-page")
+    || names.includes("atomic-spread")
+    || names.includes("atomic-reader-spread")
+  ) return false;
   if (names.includes("th-exit") || names.includes("th-chrome") || names.includes("atomic-theater-layers")) {
     return false;
   }

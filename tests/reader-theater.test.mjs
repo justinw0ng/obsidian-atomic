@@ -8,12 +8,14 @@ import {
   THEATER_IDLE_MS,
   THEATER_PAGE_HEIGHT,
   THEATER_PAGE_WIDTH,
+  attachReaderTheater,
   isTheaterOn,
   mountTheater,
+  resetReaderTheater,
   resolveTheaterSurface,
   shouldSuppressControl,
 } from "../src/reader/theater/index.ts";
-import { collect, dispatch, manualClock, theaterHost } from "./reader-theater-host.mjs";
+import { collect, dispatch, manualClock, shellReaderHost, theaterHost } from "./reader-theater-host.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -35,6 +37,7 @@ test("theater rules lock XL and keep the page card", () => {
   assert.equal(THEATER_PAGE_HEIGHT, 500);
   assert.equal(resolveTheaterSurface("ob-window theme-light", null), "desk");
   assert.equal(resolveTheaterSurface("ob-phone-screen theme-dark", null), "phone");
+  assert.equal(resolveTheaterSurface("fitness-plugin atomic-reader is-phone", null), "phone");
   assert.equal(resolveTheaterSurface("workspace-leaf", "phone"), "phone");
   assert.equal(shouldSuppressControl({
     className: "atomic-page is-verso",
@@ -71,6 +74,16 @@ test("theater rules lock XL and keep the page card", () => {
     testId: null,
     act: null,
   }), false);
+  assert.equal(shouldSuppressControl({
+    className: "atomic-reader-page is-recto",
+    testId: "atomic-reader-page",
+    act: null,
+  }), false);
+  assert.equal(shouldSuppressControl({
+    className: "atomic-reader-gutter is-ask",
+    testId: "atomic-reader-slot-ask",
+    act: "ask",
+  }), true);
 });
 
 test("stylesheet is linen in light, museum in dark, and stays on 1.5.0 tokens", () => {
@@ -295,13 +308,98 @@ test("a shell stage on document.body receives the room", () => {
   assert.equal(handle.root.getAttribute("data-testid"), "atomic-theater");
 });
 
+test("the shell slot is the only way into theater and a repaint keeps it", () => {
+  resetReaderTheater();
+  try {
+    const first = shellReaderHost();
+    attachReaderTheater(first.slot, { notePath: "Books/A.md" }, {
+      enterLabel: "Theater",
+      exitLabel: "Exit",
+    });
+    assert.equal(first.root.classList.contains("is-theater"), false);
+    assert.equal(first.root.style.getPropertyValue("--atomic-page-w"), "270px");
+    assert.equal(first.root.style.getPropertyValue("--atomic-page-h"), "340px");
+    const enter = first.slot.children.find((node) => node.getAttribute("data-testid") === "atomic-theater-enter");
+    assert.ok(enter);
+    assert.equal(enter.textContent, "Theater");
+    assert.equal(enter.parentElement, first.slot);
+
+    dispatch(enter, "click");
+    assert.equal(first.root.classList.contains("is-theater"), true);
+    assert.equal(first.root.classList.contains("sz-xl"), true);
+    assert.equal(first.root.getAttribute("data-atomic-theater-size"), "xl");
+    assert.equal(first.root.getAttribute("data-atomic-theater-surface"), "desk");
+    assert.equal(first.root.style.getPropertyValue("--atomic-page-w"), "340px");
+    assert.equal(first.root.style.getPropertyValue("--atomic-page-h"), "500px");
+    assert.equal(first.page.hidden, false);
+    assert.equal(first.bar.hidden, true);
+    assert.equal(first.foot.hidden, true);
+    assert.equal(first.ask.hidden, true);
+    assert.equal(first.size.hidden, false);
+    assert.equal(first.size.parentElement.hidden, true);
+    const exit = collect(first.root, (node) => node.getAttribute("data-testid") === "atomic-theater-exit")[0];
+    assert.ok(exit);
+    assert.match(exit.textContent, /Exit/);
+    assert.match(exit.textContent, /Esc/);
+    assert.equal(first.bar.contains(exit), false);
+
+    const other = shellReaderHost();
+    attachReaderTheater(other.slot, { notePath: "Books/B.md" });
+    assert.equal(other.root.classList.contains("is-theater"), false);
+
+    const second = shellReaderHost();
+    attachReaderTheater(second.slot, { notePath: "Books/A.md" });
+    assert.equal(second.root.classList.contains("is-theater"), true);
+    assert.equal(second.root.style.getPropertyValue("--atomic-page-w"), "340px");
+    assert.equal(first.root.classList.contains("is-theater"), false);
+    assert.equal(second.page.hidden, false);
+    const secondExit = collect(second.root, (node) => node.getAttribute("data-testid") === "atomic-theater-exit")[0];
+    dispatch(secondExit, "click");
+    assert.equal(second.root.classList.contains("is-theater"), false);
+    assert.equal(second.root.style.getPropertyValue("--atomic-page-w"), "270px");
+    assert.equal(second.root.style.getPropertyValue("--atomic-page-h"), "340px");
+    assert.equal(second.bar.hidden, false);
+    assert.equal(second.ask.hidden, false);
+
+    const third = shellReaderHost();
+    attachReaderTheater(third.slot, { notePath: "Books/A.md" });
+    assert.equal(third.root.classList.contains("is-theater"), false);
+
+    const phone = shellReaderHost({ surface: "phone", theme: "dark" });
+    attachReaderTheater(phone.slot, { notePath: "Books/Phone.md" });
+    const phoneEnter = phone.slot.children.find((node) => node.getAttribute("data-testid") === "atomic-theater-enter");
+    dispatch(phoneEnter, "click");
+    assert.equal(phone.root.classList.contains("is-phone"), true);
+    assert.equal(phone.root.classList.contains("is-theater"), true);
+    assert.equal(phone.root.getAttribute("data-atomic-theater-surface"), "phone");
+    assert.equal(phone.root.getAttribute("data-atomic-theater-place"), "screen");
+    assert.equal(phone.root.getAttribute("data-atomic-theater-size"), "xl");
+    assert.equal(phone.page.hidden, false);
+    assert.match(phone.page.textContent, /Chapter I/);
+    assert.equal(phone.ask.hidden, true);
+    assert.equal(phone.bar.hidden, true);
+    assert.equal(phone.doc.body.classList.contains("theme-dark"), true);
+    assert.match(THEATER_CSS, /#0e0c0a/);
+    assert.match(THEATER_CSS, /is-phone \.atomic-reader-page/);
+    const phoneExit = collect(phone.root, (node) => node.getAttribute("data-testid") === "atomic-theater-exit")[0];
+    assert.equal(phone.page.contains(phoneExit), false);
+    dispatch(phone.view, "keydown", { key: "Escape" });
+    assert.equal(phone.root.classList.contains("is-theater"), false);
+    assert.equal(phone.page.hidden, false);
+    assert.equal(phone.ask.hidden, false);
+  } finally {
+    resetReaderTheater();
+  }
+});
+
 test("theater source does not reach for globalThis or a second shell", () => {
   const dir = join(root, "src/reader/theater");
-  for (const name of ["rules.ts", "styles.ts", "mount.ts", "index.ts"]) {
+  for (const name of ["rules.ts", "styles.ts", "mount.ts", "slot.ts", "index.ts"]) {
     const text = readFileSync(join(dir, name), "utf8");
     assert.doesNotMatch(text, /\bglobalThis\b/);
     assert.doesNotMatch(text, /innerHTML|outerHTML|insertAdjacentHTML/);
     assert.doesNotMatch(text, /requestFullscreen/);
+    assert.doesNotMatch(text, /src\/reader\/shell/);
     assert.doesNotMatch(text, /\.style\.setProperty\(\s*["'][^"']+["']\s*,\s*["']/);
   }
 });

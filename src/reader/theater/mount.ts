@@ -34,6 +34,8 @@ export interface MountTheaterOptions {
   surface?: TheaterSurface;
   /** User left via Exit or Esc. Not called from `destroy`. */
   onExit?: () => void;
+  /** Pill label. Default "Exit". The key mark stays Esc. */
+  exitLabel?: string;
   /** Milliseconds before the Exit pill hides. Default 2000. */
   idleMs?: number;
   /** Force reduced motion. Otherwise read `prefers-reduced-motion` on the frame's window. */
@@ -101,7 +103,7 @@ export function mountTheater(options: MountTheaterOptions): TheaterHandle {
   frame.setAttribute("data-atomic-theater-place", place);
   stage.classList.add("atomic-theater-stage");
 
-  const layers = buildLayers(doc, surface);
+  const layers = buildLayers(doc, surface, options.exitLabel);
   const first = stage.firstChild;
   if (first) stage.insertBefore(layers.root, first);
   else stage.appendChild(layers.root);
@@ -300,7 +302,7 @@ interface TheaterLayers {
   exitButton: HTMLElement;
 }
 
-function buildLayers(doc: Document, surface: TheaterSurface): TheaterLayers {
+function buildLayers(doc: Document, surface: TheaterSurface, exitLabel: string | undefined): TheaterLayers {
   const root = make(doc, "div", "atomic-theater-layers", {
     "data-testid": "atomic-theater",
   });
@@ -326,7 +328,7 @@ function buildLayers(doc: Document, surface: TheaterSurface): TheaterLayers {
     "aria-label": "Exit theater",
   });
   const label = make(doc, "span", "th-exit-label");
-  label.textContent = "Exit";
+  label.textContent = exitLabel && exitLabel.trim() ? exitLabel.trim() : "Exit";
   const kbd = make(doc, "span", "kbd");
   kbd.textContent = "Esc";
   exitButton.appendChild(label);

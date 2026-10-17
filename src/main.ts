@@ -37,8 +37,9 @@ import {
 } from "./util/rewrite-cue-fences";
 import { suggestItem } from "./util/suggest-item";
 import { closeReaderChrome, openActiveNoteBook, openBookChooser } from "./reader/shell/open";
-import { resetReaderMounts } from "./reader/shell/mount";
+import { registerReaderTheater, resetReaderMounts } from "./reader/shell/mount";
 import { registerBookChooser } from "./reader/shell/present";
+import { attachReaderTheater, resetReaderTheater } from "./reader/theater/slot";
 import { ATOMIC_READER_VIEW, AtomicReaderView } from "./reader/shell/view";
 
 const REFRESH_DEBOUNCE_MS = 300;
@@ -52,6 +53,14 @@ export default class FitnessPlugin extends Plugin {
 
   async onload() {
     this.unloaded = false;
+    registerReaderTheater({
+      attach: (slot, session) => {
+        attachReaderTheater(slot, session, {
+          enterLabel: t("view.reader.theater", this.settings.language),
+          exitLabel: t("view.reader.theaterExit", this.settings.language),
+        });
+      },
+    });
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
@@ -226,6 +235,7 @@ export default class FitnessPlugin extends Plugin {
   onunload() {
     this.unloaded = true;
     closeReaderChrome();
+    resetReaderTheater();
     resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {

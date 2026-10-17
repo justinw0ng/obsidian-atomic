@@ -482,6 +482,8 @@ var en = {
   "view.reader.encrypted": "This file is encrypted.",
   "view.reader.unreadable": "This file cannot be opened.",
   "view.reader.empty": "This book has no pages.",
+  "view.reader.theater": "Theater",
+  "view.reader.theaterExit": "Exit",
   "view.timer.needsSavedNote": "Timer can only run from a saved note.",
   "view.timer.caption": "Timer",
   "view.timer.minuteUnit": "min",
@@ -847,7 +849,9 @@ var zhHantEn = {
   "view.reader.opening": "\u6253\u958B\u7DCA\u2026",
   "view.reader.encrypted": "\u5462\u500B\u6A94\u6848\u6709\u52A0\u5BC6\u3002",
   "view.reader.unreadable": "\u5462\u500B\u6A94\u6848\u6253\u5514\u958B\u3002",
-  "view.reader.empty": "\u5462\u672C\u66F8\u5187\u9801\u3002"
+  "view.reader.empty": "\u5462\u672C\u66F8\u5187\u9801\u3002",
+  "view.reader.theater": "\u5287\u5834",
+  "view.reader.theaterExit": "\u96E2\u958B"
 };
 
 // src/i18n/index.ts
@@ -2793,8 +2797,8 @@ function cueLightboxLayoutWidth(contentWidth, view, scale, minWidth = CUE_CARD_F
   const safeScale = Math.max(0.01, scale);
   const maxLayout = visualMax / safeScale;
   const floor = Math.min(Math.max(1, minWidth), maxLayout);
-  const wanted = Number.isFinite(contentWidth) && contentWidth > 0 ? contentWidth : floor;
-  return Math.min(maxLayout, Math.max(floor, wanted));
+  const wanted2 = Number.isFinite(contentWidth) && contentWidth > 0 ? contentWidth : floor;
+  return Math.min(maxLayout, Math.max(floor, wanted2));
 }
 function isCueCardEventTarget(node) {
   return !!node && typeof node === "object";
@@ -3203,14 +3207,14 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
   bindCueCardFan(painted);
 }
 async function collectCues(data, activityType, year) {
-  const sessions = await Promise.all(
+  const sessions2 = await Promise.all(
     data.listSessions(activityType.folder, year).filter((session3) => !!session3.date).map(async (session3) => ({
       session: session3,
       reminders: await data.getSessionReminders(session3.path)
     }))
   );
   const cues = [];
-  for (const { session: session3, reminders } of sessions) {
+  for (const { session: session3, reminders } of sessions2) {
     const focus = session3.focus.join(", ");
     for (const text of reminders) {
       if (!text) continue;
@@ -3577,9 +3581,9 @@ function dashboardPaintState(input, language) {
   return {
     year: input.year,
     language,
-    exercise: input.exercise.map(({ activity, sessions }) => ({
+    exercise: input.exercise.map(({ activity, sessions: sessions2 }) => ({
       activityKey: activityPaintKey(activity),
-      sessions
+      sessions: sessions2
     })),
     hobbies: input.hobbies.map(({ activity, items }) => ({
       activityKey: activityPaintKey(activity),
@@ -3633,8 +3637,8 @@ function splitHoursMinutes(totalMinutes) {
   const safe = Math.max(0, Math.round(totalMinutes));
   return { hours: Math.floor(safe / 60), minutes: safe % 60 };
 }
-function averagePerSession(totalMinutes, sessions) {
-  return sessions > 0 ? Math.round(totalMinutes / sessions) : 0;
+function averagePerSession(totalMinutes, sessions2) {
+  return sessions2 > 0 ? Math.round(totalMinutes / sessions2) : 0;
 }
 function hoursFromMinutes(minutes) {
   return Math.round(minutes / 60 * 10) / 10;
@@ -3653,7 +3657,7 @@ function normalizeFelt(felt) {
   const value = String(felt || "").toLowerCase();
   return value === "good" || value === "ok" || value === "bad" ? value : null;
 }
-function summarizeExercise({ activity, sessions }) {
+function summarizeExercise({ activity, sessions: sessions2 }) {
   const monthly = emptyMonths();
   const monthlyMinutes = emptyMonths();
   const monthlyVolume = emptyMonths();
@@ -3666,7 +3670,7 @@ function summarizeExercise({ activity, sessions }) {
   let minutes = 0;
   let volumeKg = 0;
   let latest = null;
-  for (const { meta, setRows } of sessions) {
+  for (const { meta, setRows } of sessions2) {
     const mi = monthIndexFromDate(meta.date);
     minutes += meta.duration_min;
     if (mi >= 0) {
@@ -3709,7 +3713,7 @@ function summarizeExercise({ activity, sessions }) {
     card: {
       domain: "exercise",
       activity,
-      count: sessions.length,
+      count: sessions2.length,
       minutes,
       monthly,
       monthlyMinutes,
@@ -4469,11 +4473,11 @@ function appendFelt(parent, felt, ctx) {
 }
 function renderGolfFocus(parent, model, ctx) {
   if (!model.golfFocus) return;
-  const { activity, sessions, tags } = model.golfFocus;
+  const { activity, sessions: sessions2, tags } = model.golfFocus;
   const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.golfFocus", ctx.language),
-    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions) })
+    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions2) })
   );
   const card = section.createDiv({
     cls: "atomic-stack",
@@ -4710,13 +4714,13 @@ function resolveDashboardYear(opts, frontmatterYear2, timezone) {
 async function collectDashboardInput(data, activityTypes, year) {
   const exercise = await Promise.all(
     exerciseActivities(activityTypes).map(async (activity) => {
-      const sessions = await Promise.all(
+      const sessions2 = await Promise.all(
         data.listSessions(activity.folder, year).map(async (meta) => ({
           meta,
           setRows: activity.supportsSetTable ? await data.getSessionSetRows(meta.path) : EMPTY_SET_ROWS
         }))
       );
-      return { activity, sessions };
+      return { activity, sessions: sessions2 };
     })
   );
   const hobbies = await Promise.all(
@@ -4807,9 +4811,9 @@ function renderKpis(root, model, ctx) {
     (card) => card.domain === "hobby"
   );
   if (exercise.length) {
-    const sessions = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
-    appendRoll(sessions.value, formatCount(model.totalSessions));
-    appendCatalogLabel(sessions.hint, splitText(exercise, ctx.language, (card) => card.count));
+    const sessions2 = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
+    appendRoll(sessions2.value, formatCount(model.totalSessions));
+    appendCatalogLabel(sessions2.hint, splitText(exercise, ctx.language, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx, false);
     time.hint.createSpan({
@@ -7115,9 +7119,9 @@ function registerCodeblocks(plugin) {
 var import_obsidian10 = require("obsidian");
 
 // src/util/duration-map.ts
-function durationMapFromSessions(sessions) {
+function durationMapFromSessions(sessions2) {
   const map = /* @__PURE__ */ new Map();
-  for (const session3 of sessions) {
+  for (const session3 of sessions2) {
     if (!session3.date) continue;
     const entry = map.get(session3.date) || { minutes: 0, path: null };
     entry.minutes += session3.duration_min;
@@ -9016,6 +9020,9 @@ function resolveLinkedBookFile(input) {
 
 // src/reader/shell/mount.ts
 var mounts = {};
+function registerReaderTheater(theater) {
+  mounts.theater = theater;
+}
 function readerMounts() {
   return mounts;
 }
@@ -9993,6 +10000,896 @@ function closeReaderChrome() {
   closeBookChooser();
 }
 
+// src/reader/theater/rules.ts
+var THEATER_IDLE_MS = 2e3;
+var THEATER_PAGE_WIDTH = 340;
+var THEATER_PAGE_HEIGHT = 500;
+var SUPPRESS_CLASSES = [
+  "atomic-reader-bar",
+  "atomic-reader-foot",
+  "atomic-gutter",
+  "atomic-reader-gutter",
+  "atomic-remark",
+  "atomic-selbar",
+  "atomic-slip",
+  "atomic-mdot",
+  "atomic-phone-size",
+  "atomic-ask",
+  "atomic-sheet",
+  "atomic-reader-size",
+  "atomic-reader-size-sheet",
+  "bsize"
+];
+var SUPPRESS_ACTS = [
+  "highlight",
+  "remark",
+  "ask",
+  "book-size"
+];
+var SUPPRESS_TESTIDS = [
+  "atomic-reader-highlight",
+  "atomic-reader-remark",
+  "atomic-reader-ask",
+  "atomic-reader-size",
+  "atomic-reader-size-sheet"
+];
+var CLASS_OFF = new Set(SUPPRESS_CLASSES);
+var ACT_OFF = new Set(SUPPRESS_ACTS);
+var TESTID_OFF = new Set(SUPPRESS_TESTIDS);
+var THEATER_OWN = /* @__PURE__ */ new Set([
+  "atomic-theater",
+  "atomic-theater-chrome",
+  "atomic-theater-exit"
+]);
+function resolveTheaterSurface(className, dataSurface) {
+  if (dataSurface === "phone" || dataSurface === "desk") return dataSurface;
+  const names = className.split(/\s+/);
+  if (names.includes("ob-phone-screen") || names.includes("is-phone")) return "phone";
+  return "desk";
+}
+function shouldSuppressControl(input) {
+  if (input.testId && THEATER_OWN.has(input.testId)) return false;
+  const names = input.className.split(/\s+/).filter((name) => name.length > 0);
+  if (names.includes("atomic-page") || names.includes("atomic-reader-page") || names.includes("atomic-spread") || names.includes("atomic-reader-spread")) return false;
+  if (names.includes("th-exit") || names.includes("th-chrome") || names.includes("atomic-theater-layers")) {
+    return false;
+  }
+  for (const name of names) {
+    if (CLASS_OFF.has(name)) return true;
+  }
+  if (input.act && ACT_OFF.has(input.act)) return true;
+  if (input.testId && TESTID_OFF.has(input.testId)) return true;
+  return false;
+}
+
+// src/reader/theater/styles.ts
+function suppressCss() {
+  const selectors = [
+    ...SUPPRESS_CLASSES.map((name) => `.atomic-theater-root.is-theater .${name}`),
+    ...SUPPRESS_ACTS.map((act) => `.atomic-theater-root.is-theater [data-act="${act}"]`),
+    ...SUPPRESS_TESTIDS.map((id) => `.atomic-theater-root.is-theater [data-testid="${id}"]`)
+  ];
+  return `${selectors.join(",\n")} {
+  display: none;
+}
+`;
+}
+var THEATER_CSS = `
+.atomic-theater-root.is-theater {
+  --theater-void: #ebe8e2;
+  --theater-paper: #f0eee6;
+  --page-w: ${THEATER_PAGE_WIDTH}px;
+  --page-h: ${THEATER_PAGE_HEIGHT}px;
+  --atomic-page-w: ${THEATER_PAGE_WIDTH}px;
+  --atomic-page-h: ${THEATER_PAGE_HEIGHT}px;
+  --atomic-reader-page-w: ${THEATER_PAGE_WIDTH}px;
+  --atomic-reader-page-h: ${THEATER_PAGE_HEIGHT}px;
+  --atomic-r-object: 3px;
+  --atomic-r-control: 9px;
+  --atomic-r-well: 14px;
+}
+.theme-dark.atomic-theater-root.is-theater,
+.theme-dark .atomic-theater-root.is-theater,
+body.theme-dark .atomic-theater-root.is-theater {
+  --theater-void: #0e0c0a;
+  --theater-paper: #f0e8d2;
+}
+.atomic-theater-root.is-theater .atomic-theater-stage {
+  position: relative;
+  background: var(--theater-void);
+  overflow: hidden;
+}
+.atomic-theater-layers {
+  display: contents;
+  font-family: var(--font-interface), Inter, sans-serif;
+}
+.atomic-theater-root.is-theater .th-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%),
+    linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+}
+.theme-dark.atomic-theater-root.is-theater .th-ambient,
+.theme-dark .atomic-theater-root.is-theater .th-ambient,
+body.theme-dark .atomic-theater-root.is-theater .th-ambient {
+  background:
+    radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%),
+    radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%),
+    linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+}
+.atomic-theater-root.is-theater .th-key {
+  position: absolute;
+  left: 80px;
+  top: 40px;
+  width: 520px;
+  height: 420px;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+}
+.theme-dark.atomic-theater-root.is-theater .th-key,
+.theme-dark .atomic-theater-root.is-theater .th-key,
+body.theme-dark .atomic-theater-root.is-theater .th-key {
+  background: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+}
+.atomic-theater-root.is-theater .curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 108px;
+  z-index: 3;
+  pointer-events: none;
+}
+.atomic-theater-root.is-theater .curtain.is-l { left: 0; }
+.atomic-theater-root.is-theater .curtain.is-r { right: 0; }
+.atomic-theater-root.is-theater .curtain.is-l {
+  background: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  box-shadow: 6px 0 28px rgba(60, 50, 40, 0.1);
+}
+.atomic-theater-root.is-theater .curtain.is-r {
+  background: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  box-shadow: -6px 0 28px rgba(60, 50, 40, 0.1);
+}
+.theme-dark.atomic-theater-root.is-theater .curtain.is-l,
+.theme-dark .atomic-theater-root.is-theater .curtain.is-l,
+body.theme-dark .atomic-theater-root.is-theater .curtain.is-l {
+  background: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+}
+.theme-dark.atomic-theater-root.is-theater .curtain.is-r,
+.theme-dark .atomic-theater-root.is-theater .curtain.is-r,
+body.theme-dark .atomic-theater-root.is-theater .curtain.is-r {
+  background: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+}
+.atomic-theater-root.is-theater .lamp-pool {
+  position: absolute;
+  top: 170px;
+  width: 140px;
+  height: 340px;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+}
+.theme-dark.atomic-theater-root.is-theater .lamp-pool,
+.theme-dark .atomic-theater-root.is-theater .lamp-pool,
+body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
+  background: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+}
+.atomic-theater-root.is-theater .lamp-pool.is-l { left: 96px; }
+.atomic-theater-root.is-theater .lamp-pool.is-r { right: 96px; }
+.atomic-theater-root.is-theater .th-chrome {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: var(--atomic-r-well, 14px);
+  background: rgba(251, 250, 247, 0.92);
+  color: #3a3834;
+  box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+  white-space: nowrap;
+  font-family: var(--font-interface), Inter, sans-serif;
+}
+.theme-dark.atomic-theater-root.is-theater .th-chrome,
+.theme-dark .atomic-theater-root.is-theater .th-chrome,
+body.theme-dark .atomic-theater-root.is-theater .th-chrome {
+  background: rgba(38, 38, 38, 0.92);
+  color: #dadada;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+}
+.atomic-theater-root.is-theater.is-chrome .th-chrome {
+  opacity: 1;
+  pointer-events: auto;
+}
+.atomic-theater-root.is-theater .th-exit {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--atomic-r-control, 9px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(60, 50, 40, 0.06);
+  color: inherit;
+  font: inherit;
+}
+.theme-dark .atomic-theater-root.is-theater .th-exit,
+.theme-dark.atomic-theater-root.is-theater .th-exit,
+body.theme-dark .atomic-theater-root.is-theater .th-exit {
+  background: rgba(255, 255, 255, 0.06);
+}
+.atomic-theater-root.is-theater .th-exit .kbd {
+  font-family: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  opacity: 0.6;
+}
+.atomic-theater-root.is-theater .th-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  z-index: 6;
+  text-align: center;
+  pointer-events: none;
+  font-family: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(60, 55, 48, 0.45);
+}
+.theme-dark.atomic-theater-root.is-theater .th-hint,
+.theme-dark .atomic-theater-root.is-theater .th-hint,
+body.theme-dark .atomic-theater-root.is-theater .th-hint {
+  color: rgba(255, 230, 200, 0.32);
+}
+.atomic-theater-root.is-theater .atomic-pane,
+.atomic-theater-root.is-theater .atomic-spread,
+.atomic-theater-root.is-theater .atomic-reader-spread,
+.atomic-theater-root.is-theater .atomic-page,
+.atomic-theater-root.is-theater .atomic-reader-page {
+  position: relative;
+  z-index: 5;
+}
+.atomic-theater-root.is-theater .atomic-pane {
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+.atomic-theater-root.is-theater .atomic-reader {
+  background: transparent;
+  grid-template-rows: 1fr;
+}
+.atomic-theater-root.is-theater .atomic-spread {
+  grid-template-columns: var(--page-w) var(--page-w);
+  gap: 0;
+  background: transparent;
+  justify-content: center;
+  align-items: center;
+}
+.atomic-theater-root.is-theater .atomic-page,
+.atomic-theater-root.is-theater .atomic-reader-page {
+  margin: 0;
+  color: #2a2824;
+  width: var(--page-w);
+  height: var(--page-h);
+  overflow: hidden;
+}
+.atomic-theater-root.is-theater .atomic-page.is-verso,
+.atomic-theater-root.is-theater .atomic-reader-page.is-verso {
+  border-radius: var(--atomic-r-object, 3px) 0 0 var(--atomic-r-object, 3px);
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+}
+.atomic-theater-root.is-theater .atomic-page.is-recto,
+.atomic-theater-root.is-theater .atomic-reader-page.is-recto {
+  border-radius: 0 var(--atomic-r-object, 3px) var(--atomic-r-object, 3px) 0;
+  background: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+}
+.theme-dark.atomic-theater-root.is-theater .atomic-page.is-verso,
+.theme-dark.atomic-theater-root.is-theater .atomic-reader-page.is-verso,
+.theme-dark .atomic-theater-root.is-theater .atomic-page.is-verso,
+.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso,
+body.theme-dark .atomic-theater-root.is-theater .atomic-page.is-verso,
+body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+}
+.theme-dark.atomic-theater-root.is-theater .atomic-page.is-recto,
+.theme-dark.atomic-theater-root.is-theater .atomic-reader-page.is-recto,
+.theme-dark .atomic-theater-root.is-theater .atomic-page.is-recto,
+.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto,
+body.theme-dark .atomic-theater-root.is-theater .atomic-page.is-recto,
+body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
+  background: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+}
+.atomic-theater-root.is-theater .atomic-page p,
+.atomic-theater-root.is-theater .atomic-page h3,
+.atomic-theater-root.is-theater .atomic-reader-page p,
+.atomic-theater-root.is-theater .atomic-reader-page h3 {
+  color: #2a2824;
+  font-family: var(--font-text), Literata, Georgia, serif;
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .curtain,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .th-key,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .lamp-pool,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .th-hint {
+  display: none;
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .th-chrome {
+  top: 58px;
+  z-index: 9;
+  height: 36px;
+  max-width: calc(100% - 24px);
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"][data-atomic-theater-place="content"] .th-chrome {
+  top: 8px;
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-spread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 48px 16px 20px;
+  background: transparent;
+}
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
+.atomic-theater-root.is-theater.is-phone .atomic-reader-page,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-page {
+  width: min(${THEATER_PAGE_WIDTH}px, calc(100% - 32px));
+  height: var(--page-h, ${THEATER_PAGE_HEIGHT}px);
+  min-height: 280px;
+  flex: none;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: var(--atomic-r-object, 3px);
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  color: #2a2824;
+}
+.theme-dark.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
+.theme-dark.atomic-theater-root.is-theater.is-phone .atomic-reader-page,
+.theme-dark .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
+.theme-dark .atomic-theater-root.is-theater.is-phone .atomic-reader-page,
+body.theme-dark .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
+body.theme-dark .atomic-theater-root.is-theater.is-phone .atomic-reader-page {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+}
+html.atomic-theater-dim .titlebar,
+html.atomic-theater-dim .workspace-ribbon,
+html.atomic-theater-dim .workspace-tab-header-container,
+html.atomic-theater-dim .view-header,
+html.atomic-theater-dim .status-bar,
+html.atomic-theater-dim .ob-titlebar,
+html.atomic-theater-dim .ob-ribbon,
+html.atomic-theater-dim .ob-viewhead,
+html.atomic-theater-dim .ob-mhead,
+html.atomic-theater-dim .ob-status,
+.atomic-theater-root.is-theater .ob-titlebar,
+.atomic-theater-root.is-theater .ob-ribbon,
+.atomic-theater-root.is-theater .ob-viewhead,
+.atomic-theater-root.is-theater .ob-mhead,
+.atomic-theater-root.is-theater .ob-status {
+  opacity: 0.58;
+  transition: opacity 360ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1));
+}
+html.atomic-theater-dim body.theme-dark .titlebar,
+html.atomic-theater-dim body.theme-dark .workspace-ribbon,
+html.atomic-theater-dim body.theme-dark .workspace-tab-header-container,
+html.atomic-theater-dim body.theme-dark .view-header,
+html.atomic-theater-dim body.theme-dark .status-bar,
+.theme-dark.atomic-theater-root.is-theater .ob-titlebar,
+.theme-dark.atomic-theater-root.is-theater .ob-ribbon,
+.theme-dark.atomic-theater-root.is-theater .ob-viewhead,
+.theme-dark.atomic-theater-root.is-theater .ob-mhead,
+.theme-dark.atomic-theater-root.is-theater .ob-status,
+.theme-dark .atomic-theater-root.is-theater .ob-titlebar,
+.theme-dark .atomic-theater-root.is-theater .ob-ribbon,
+.theme-dark .atomic-theater-root.is-theater .ob-viewhead,
+.theme-dark .atomic-theater-root.is-theater .ob-mhead,
+body.theme-dark .atomic-theater-root.is-theater .ob-titlebar,
+body.theme-dark .atomic-theater-root.is-theater .ob-ribbon,
+body.theme-dark .atomic-theater-root.is-theater .ob-viewhead,
+body.theme-dark .atomic-theater-root.is-theater .ob-mhead {
+  opacity: 0.48;
+}
+html.atomic-theater-dim.atomic-theater-chrome body .titlebar,
+html.atomic-theater-dim.atomic-theater-chrome body .workspace-ribbon,
+html.atomic-theater-dim.atomic-theater-chrome body .workspace-tab-header-container,
+html.atomic-theater-dim.atomic-theater-chrome body .view-header,
+html.atomic-theater-dim.atomic-theater-chrome body .status-bar,
+html.atomic-theater-dim.atomic-theater-chrome body.theme-dark .titlebar,
+html.atomic-theater-dim.atomic-theater-chrome body.theme-dark .workspace-ribbon,
+html.atomic-theater-dim.atomic-theater-chrome body.theme-dark .workspace-tab-header-container,
+html.atomic-theater-dim.atomic-theater-chrome body.theme-dark .view-header,
+html.atomic-theater-dim.atomic-theater-chrome body.theme-dark .status-bar,
+html.atomic-theater-dim.atomic-theater-chrome .ob-titlebar,
+html.atomic-theater-dim.atomic-theater-chrome .ob-ribbon,
+html.atomic-theater-dim.atomic-theater-chrome .ob-viewhead,
+html.atomic-theater-dim.atomic-theater-chrome .ob-mhead,
+html.atomic-theater-dim.atomic-theater-chrome .ob-status,
+.atomic-theater-root.is-theater.is-chrome .ob-titlebar,
+.atomic-theater-root.is-theater.is-chrome .ob-ribbon,
+.atomic-theater-root.is-theater.is-chrome .ob-viewhead,
+.atomic-theater-root.is-theater.is-chrome .ob-mhead,
+.atomic-theater-root.is-theater.is-chrome .ob-status {
+  opacity: 1;
+}
+.atomic-theater-root.is-reduced.is-theater .th-chrome,
+.atomic-theater-root.is-reduced.is-theater .ob-titlebar,
+.atomic-theater-root.is-reduced.is-theater .ob-ribbon,
+.atomic-theater-root.is-reduced.is-theater .ob-viewhead,
+.atomic-theater-root.is-reduced.is-theater .ob-mhead,
+html.atomic-theater-dim.is-reduced .titlebar,
+html.atomic-theater-dim.is-reduced .workspace-ribbon,
+html.atomic-theater-dim.is-reduced .view-header,
+html.atomic-theater-dim.is-reduced .ob-titlebar,
+html.atomic-theater-dim.is-reduced .ob-mhead {
+  transition: none;
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .atomic-theater-root.is-theater .th-chrome,
+  .atomic-theater-root.is-theater .ob-titlebar,
+  .atomic-theater-root.is-theater .ob-ribbon,
+  .atomic-theater-root.is-theater .ob-viewhead,
+  .atomic-theater-root.is-theater .ob-mhead,
+  html.atomic-theater-dim .titlebar,
+  html.atomic-theater-dim .workspace-ribbon,
+  html.atomic-theater-dim .view-header {
+    transition: none;
+    animation: none;
+  }
+}
+.atomic-theater-root.is-theater.atomic-reader {
+  background: var(--theater-void);
+  grid-template-rows: minmax(0, 1fr);
+}
+.atomic-theater-root.is-theater .atomic-reader-spread {
+  grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+}
+.atomic-theater-root.is-theater.is-phone .atomic-reader-spread,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-spread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 48px 16px 20px;
+  background: transparent;
+}
+${suppressCss()}
+`.trim();
+
+// src/reader/theater/mount.ts
+var sessions = /* @__PURE__ */ new WeakMap();
+var live = /* @__PURE__ */ new WeakMap();
+function mountTheater(options) {
+  const frame = options.frame;
+  const stage = options.stage ?? frame;
+  const doc = frame.ownerDocument;
+  const surface = options.surface ?? resolveTheaterSurface(
+    frame.className,
+    frame.getAttribute("data-surface")
+  );
+  const reduced = motionReduced(doc.defaultView, options.reducedMotion);
+  const idleMs = resolveIdle(options.idleMs);
+  const clock = options.clock ?? clockFromView(doc.defaultView);
+  const place = theaterPlace(surface, frame, stage);
+  live.get(frame)?.destroy();
+  const docSession = ensureDoc(doc);
+  docSession.frames.add(frame);
+  let closed = false;
+  let chromeOn = true;
+  let timer = null;
+  const unlisten = [];
+  const saved = [];
+  const stageHadRoom = stage.classList.contains("atomic-theater-stage");
+  frame.classList.add("atomic-theater-root", "is-theater", "sz-xl", "is-chrome");
+  if (reduced) frame.classList.add("is-reduced");
+  frame.setAttribute("data-theater", "on");
+  frame.setAttribute("data-atomic-theater-surface", surface);
+  frame.setAttribute("data-atomic-theater-size", "xl");
+  frame.setAttribute("data-atomic-theater-place", place);
+  stage.classList.add("atomic-theater-stage");
+  const layers = buildLayers(doc, surface, options.exitLabel);
+  const first = stage.firstChild;
+  if (first) stage.insertBefore(layers.root, first);
+  else stage.appendChild(layers.root);
+  suppressControls(frame, layers.root, saved);
+  syncDocument(doc);
+  const arm = () => {
+    if (timer != null) clock.clear(timer);
+    timer = null;
+    if (closed || !chromeOn) return;
+    timer = clock.set(() => {
+      timer = null;
+      if (closed) return;
+      if (!frame.isConnected || !stage.isConnected) {
+        leave(false);
+        return;
+      }
+      setChrome(false);
+    }, idleMs);
+  };
+  const setChrome = (on) => {
+    chromeOn = on;
+    frame.classList.toggle("is-chrome", on);
+    if (on) {
+      layers.chrome.removeAttribute("aria-hidden");
+      layers.exitButton.removeAttribute("tabindex");
+    } else {
+      layers.chrome.setAttribute("aria-hidden", "true");
+      layers.exitButton.setAttribute("tabindex", "-1");
+    }
+    syncDocument(doc);
+  };
+  const reveal = () => {
+    if (closed) return;
+    setChrome(true);
+    arm();
+  };
+  const onActivity = () => {
+    reveal();
+  };
+  const onExitClick = (event) => {
+    event.preventDefault();
+    leave(true);
+  };
+  const onKey = (event) => {
+    if (closed) return;
+    if (event.key !== "Escape" && event.key !== "Esc") return;
+    event.preventDefault();
+    event.stopPropagation();
+    leave(true);
+  };
+  unlisten.push(listen(frame, "pointermove", onActivity));
+  unlisten.push(listen(frame, "pointerdown", onActivity));
+  unlisten.push(listen(doc, "pointermove", onActivity));
+  unlisten.push(listen(doc, "pointerdown", onActivity));
+  unlisten.push(listen(layers.exitButton, "click", onExitClick));
+  const view = doc.defaultView;
+  if (view) {
+    view.addEventListener("keydown", onKey, true);
+    unlisten.push(() => view.removeEventListener("keydown", onKey, true));
+  }
+  const handle = {
+    surface,
+    exitButton: layers.exitButton,
+    root: layers.root,
+    get active() {
+      return !closed;
+    },
+    exit() {
+      leave(true);
+    },
+    destroy() {
+      leave(false);
+    }
+  };
+  live.set(frame, handle);
+  arm();
+  function leave(user) {
+    if (closed) return;
+    closed = true;
+    if (timer != null) clock.clear(timer);
+    timer = null;
+    for (const off of unlisten) off();
+    unlisten.length = 0;
+    for (const item of saved) item.el.hidden = item.hidden;
+    saved.length = 0;
+    layers.root.remove();
+    frame.classList.remove("atomic-theater-root", "is-theater", "sz-xl", "is-chrome", "is-reduced");
+    frame.removeAttribute("data-theater");
+    frame.removeAttribute("data-atomic-theater-surface");
+    frame.removeAttribute("data-atomic-theater-size");
+    frame.removeAttribute("data-atomic-theater-place");
+    if (!stageHadRoom) stage.classList.remove("atomic-theater-stage");
+    docSession.frames.delete(frame);
+    if (live.get(frame) === handle) live.delete(frame);
+    if (docSession.frames.size === 0) {
+      docSession.style.remove();
+      sessions.delete(doc);
+    }
+    syncDocument(doc);
+    if (user) options.onExit?.();
+  }
+  return handle;
+}
+function theaterPlace(surface, frame, stage) {
+  switch (surface) {
+    case "desk":
+      return "desk";
+    case "phone":
+      if (stage === frame || stage.classList.contains("ob-phone-screen")) return "screen";
+      return "content";
+    default: {
+      const neverSurface = surface;
+      return neverSurface;
+    }
+  }
+}
+function resolveIdle(value) {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) return value;
+  return THEATER_IDLE_MS;
+}
+function motionReduced(view, forced) {
+  if (forced === true) return true;
+  if (forced === false) return false;
+  if (!view?.matchMedia) return false;
+  return view.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function clockFromView(view) {
+  if (!view) {
+    return {
+      set: () => 0,
+      clear: () => void 0
+    };
+  }
+  return {
+    set: (fn, ms) => view.setTimeout(fn, ms),
+    clear: (id) => {
+      view.clearTimeout(id);
+    }
+  };
+}
+function ensureDoc(doc) {
+  const existing = sessions.get(doc);
+  if (existing) return existing;
+  const style = doc.createElement("style");
+  style.setAttribute("data-atomic-theater-style", "on");
+  style.textContent = THEATER_CSS;
+  const head = doc.head ?? doc.documentElement;
+  head.appendChild(style);
+  const created = { style, frames: /* @__PURE__ */ new Set() };
+  sessions.set(doc, created);
+  return created;
+}
+function syncDocument(doc) {
+  const root = doc.documentElement;
+  const frames = sessions.get(doc)?.frames;
+  if (!frames || frames.size === 0) {
+    root.classList.remove("atomic-theater-dim", "atomic-theater-chrome", "is-reduced");
+    return;
+  }
+  root.classList.add("atomic-theater-dim");
+  let chrome = false;
+  let reduced = false;
+  for (const frame of frames) {
+    if (frame.classList.contains("is-chrome")) chrome = true;
+    if (frame.classList.contains("is-reduced")) reduced = true;
+  }
+  root.classList.toggle("atomic-theater-chrome", chrome);
+  root.classList.toggle("is-reduced", reduced);
+}
+function buildLayers(doc, surface, exitLabel) {
+  const root = make(doc, "div", "atomic-theater-layers", {
+    "data-testid": "atomic-theater"
+  });
+  root.appendChild(make(doc, "div", "th-ambient", { "aria-hidden": "true" }));
+  const key = make(doc, "div", "th-key", { "aria-hidden": "true" });
+  const curtainL = make(doc, "div", "curtain is-l", { "aria-hidden": "true" });
+  const curtainR = make(doc, "div", "curtain is-r", { "aria-hidden": "true" });
+  const poolL = make(doc, "div", "lamp-pool is-l", { "aria-hidden": "true" });
+  const poolR = make(doc, "div", "lamp-pool is-r", { "aria-hidden": "true" });
+  root.appendChild(key);
+  root.appendChild(curtainL);
+  root.appendChild(curtainR);
+  root.appendChild(poolL);
+  root.appendChild(poolR);
+  const chrome = make(doc, "div", "th-chrome", {
+    "data-testid": "atomic-theater-chrome"
+  });
+  const exitButton = make(doc, "button", "th-exit", {
+    type: "button",
+    "data-testid": "atomic-theater-exit",
+    "data-act": "theater-exit",
+    "aria-label": "Exit theater"
+  });
+  const label = make(doc, "span", "th-exit-label");
+  label.textContent = exitLabel && exitLabel.trim() ? exitLabel.trim() : "Exit";
+  const kbd = make(doc, "span", "kbd");
+  kbd.textContent = "Esc";
+  exitButton.appendChild(label);
+  exitButton.appendChild(kbd);
+  chrome.appendChild(exitButton);
+  root.appendChild(chrome);
+  const hint = make(doc, "div", "th-hint", { "aria-hidden": "true" });
+  hint.textContent = "Chrome hides after 2 s \xB7 move mouse to show";
+  root.appendChild(hint);
+  switch (surface) {
+    case "desk":
+      break;
+    case "phone":
+      hint.hidden = true;
+      key.hidden = true;
+      curtainL.hidden = true;
+      curtainR.hidden = true;
+      poolL.hidden = true;
+      poolR.hidden = true;
+      break;
+    default: {
+      const neverSurface = surface;
+      return neverSurface;
+    }
+  }
+  return { root, chrome, exitButton };
+}
+function suppressControls(frame, layers, saved) {
+  walk(frame, layers, (el) => {
+    if (!shouldSuppressControl({
+      className: el.className,
+      testId: el.getAttribute("data-testid"),
+      act: el.getAttribute("data-act")
+    })) return;
+    saved.push({ el, hidden: el.hidden });
+    el.hidden = true;
+  });
+}
+function walk(root, skip, visit) {
+  const kids = root.children;
+  for (let i = 0; i < kids.length; i++) {
+    const child = kids[i];
+    if (!child || !isHtmlElement(child) || child === skip) continue;
+    visit(child);
+    walk(child, skip, visit);
+  }
+}
+function isHtmlElement(node) {
+  const probed = node;
+  if (typeof probed.instanceOf === "function" && typeof HTMLElement === "function") {
+    return probed.instanceOf(HTMLElement);
+  }
+  return node.nodeType === 1;
+}
+function make(doc, tag, className, attrs) {
+  const el = doc.createElement(tag);
+  if (className) el.className = className;
+  if (attrs) {
+    for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+  }
+  return el;
+}
+function listen(target, type, fn) {
+  target.addEventListener(type, fn);
+  return () => target.removeEventListener(type, fn);
+}
+
+// src/reader/theater/slot.ts
+var wanted = /* @__PURE__ */ new Set();
+var live2 = /* @__PURE__ */ new Map();
+var ENTER_TESTID = "atomic-theater-enter";
+var PAGE_WIDTH_VAR = "--atomic-page-w";
+var PAGE_HEIGHT_VAR = "--atomic-page-h";
+function attachReaderTheater(slot, session3, copy) {
+  const root = readerRoot(slot);
+  if (!root) return;
+  const notePath = session3.notePath;
+  ensureEnter(slot, root, notePath, copy);
+  if (!wanted.has(notePath)) return;
+  openTheater(root, notePath, copy?.exitLabel);
+}
+function resetReaderTheater() {
+  for (const notePath of [...live2.keys()]) {
+    const current = live2.get(notePath);
+    current?.handle.destroy();
+    current?.unlock();
+    live2.delete(notePath);
+  }
+  wanted.clear();
+}
+function ensureEnter(slot, root, notePath, copy) {
+  if (findEnter(slot)) return;
+  const doc = slot.ownerDocument;
+  const button = doc.createElement("button");
+  button.className = "atomic-btn is-quiet is-small";
+  button.setAttribute("type", "button");
+  button.setAttribute("data-testid", ENTER_TESTID);
+  button.setAttribute("data-act", "theater-enter");
+  const label = copy?.enterLabel?.trim() || "Theater";
+  button.setAttribute("aria-label", label);
+  button.textContent = label;
+  button.addEventListener("click", () => {
+    wanted.add(notePath);
+    openTheater(root, notePath, copy?.exitLabel);
+  });
+  slot.appendChild(button);
+}
+function openTheater(root, notePath, exitLabel) {
+  const current = live2.get(notePath);
+  if (current?.handle.active && current.root === root) return;
+  if (current) {
+    current.handle.destroy();
+    current.unlock();
+    live2.delete(notePath);
+  }
+  const unlock = lockPageBox(root);
+  const handle = mountTheater({
+    frame: root,
+    stage: root,
+    surface: resolveTheaterSurface(root.className, root.getAttribute("data-surface")),
+    exitLabel,
+    onExit: () => {
+      wanted.delete(notePath);
+      unlock();
+      if (live2.get(notePath)?.handle === handle) live2.delete(notePath);
+    }
+  });
+  live2.set(notePath, { root, handle, unlock });
+}
+function lockPageBox(root) {
+  const previousWidth = root.style.getPropertyValue(PAGE_WIDTH_VAR);
+  const previousHeight = root.style.getPropertyValue(PAGE_HEIGHT_VAR);
+  const width = `${THEATER_PAGE_WIDTH}px`;
+  const height = `${THEATER_PAGE_HEIGHT}px`;
+  root.style.setProperty(PAGE_WIDTH_VAR, width);
+  root.style.setProperty(PAGE_HEIGHT_VAR, height);
+  return () => {
+    restoreProp(root, PAGE_WIDTH_VAR, previousWidth);
+    restoreProp(root, PAGE_HEIGHT_VAR, previousHeight);
+  };
+}
+function restoreProp(root, name, previous) {
+  if (previous) root.style.setProperty(name, previous);
+  else root.style.removeProperty(name);
+}
+function readerRoot(slot) {
+  const found = slot.closest(".atomic-reader");
+  if (!found || !isHtmlElement2(found)) return null;
+  return found;
+}
+function findEnter(slot) {
+  const kids = slot.children;
+  for (let i = 0; i < kids.length; i++) {
+    const child = kids[i];
+    if (!child || !isHtmlElement2(child)) continue;
+    if (child.getAttribute("data-testid") === ENTER_TESTID) return child;
+  }
+  return null;
+}
+function isHtmlElement2(node) {
+  const probed = node;
+  if (typeof probed.instanceOf === "function" && typeof HTMLElement === "function") {
+    return probed.instanceOf(HTMLElement);
+  }
+  return node.nodeType === 1;
+}
+
 // src/main.ts
 var REFRESH_DEBOUNCE_MS = 300;
 var FitnessPlugin = class extends import_obsidian16.Plugin {
@@ -10005,6 +10902,14 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   }
   async onload() {
     this.unloaded = false;
+    registerReaderTheater({
+      attach: (slot, session3) => {
+        attachReaderTheater(slot, session3, {
+          enterLabel: t("view.reader.theater", this.settings.language),
+          exitLabel: t("view.reader.theaterExit", this.settings.language)
+        });
+      }
+    });
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
@@ -10159,6 +11064,7 @@ var FitnessPlugin = class extends import_obsidian16.Plugin {
   onunload() {
     this.unloaded = true;
     closeReaderChrome();
+    resetReaderTheater();
     resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {
