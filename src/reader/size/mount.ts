@@ -32,8 +32,8 @@ export type MountReaderSizeOptions = {
   pageHost: HTMLElement | readonly HTMLElement[];
   surface?: ReaderSizeSurface;
   /**
-   * "sheet" is the phone reading sheet. "bar" fits `[data-reader-slot="size"]`.
-   * Desk is always a bar. Phone defaults to the sheet.
+   * "sheet" is the phone reading sheet. "bar" is the desktop settled reader.
+   * Phone passes "sheet". Desk passes "bar". Theater hides both.
    */
   chrome?: ReaderSizeChrome;
   /**
@@ -85,7 +85,7 @@ export function mountReaderSize(options: MountReaderSizeOptions): ReaderSizeCont
   let destroyed = false;
 
   controlEl.empty();
-  const slot = mountSlot(chrome, controlEl, surface);
+  const slot = mountSlot(chrome, controlEl);
   const buttons = new Map<ReaderSizeId, HTMLButtonElement>();
   for (const size of READER_SIZE_ORDER) {
     const button = slot.segment.createEl("button", {
@@ -206,14 +206,10 @@ function chromeFor(surface: ReaderSizeSurface, chrome: ReaderSizeChrome | undefi
   }
 }
 
-function mountSlot(
-  chrome: ReaderSizeChrome,
-  controlEl: HTMLElement,
-  surface: ReaderSizeSurface,
-): SizeSlot {
+function mountSlot(chrome: ReaderSizeChrome, controlEl: HTMLElement): SizeSlot {
   switch (chrome) {
     case "bar":
-      return mountBarSlot(controlEl, surface);
+      return mountBarSlot(controlEl);
     case "sheet":
       return mountPhoneSlot(controlEl);
     default: {
@@ -223,12 +219,9 @@ function mountSlot(
   }
 }
 
-function mountBarSlot(controlEl: HTMLElement, surface: ReaderSizeSurface): SizeSlot {
-  const phone = surface === "phone";
+function mountBarSlot(controlEl: HTMLElement): SizeSlot {
   const root = controlEl.createDiv({
-    cls: phone
-      ? `fitness-plugin ${READER_SIZE_CLASS} is-phone is-bar`
-      : `fitness-plugin ${READER_SIZE_CLASS}`,
+    cls: `fitness-plugin ${READER_SIZE_CLASS}`,
     attr: {
       "data-testid": "atomic-reader-size",
       "aria-label": "Book size",
@@ -238,13 +231,11 @@ function mountBarSlot(controlEl: HTMLElement, surface: ReaderSizeSurface): SizeS
     cls: "atomic-reader-size-seg",
     attr: { role: "group", "aria-label": "Book size" },
   });
-  if (!phone) {
-    root.createSpan({
-      cls: "atomic-reader-size-hint",
-      text: DESK_HINT,
-      attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" },
-    });
-  }
+  root.createSpan({
+    cls: "atomic-reader-size-hint",
+    text: DESK_HINT,
+    attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" },
+  });
   return { root, segment, value: null };
 }
 

@@ -8689,9 +8689,7 @@ var import_obsidian15 = require("obsidian");
 
 // src/reader/shell/model.ts
 var READER_PHONE_MAX_WIDTH = 780;
-var PAGE_PAD_TOP = 22;
-var PAGE_PAD_BOTTOM = 28;
-var HEADING_BLOCK = 27;
+var PAGE_PAD = 26;
 var LINE_HEIGHT = 19;
 var CHAR_WIDTH = 6.25;
 var BOXES = {
@@ -8705,12 +8703,13 @@ function readerSizeId(value) {
   if (text === "s" || text === "m" || text === "l" || text === "xl") return text;
   return "m";
 }
-function readerPageBox(size) {
+function readerPageBox(size, height) {
   const box = BOXES[size];
-  const textHeight = box.h - PAGE_PAD_TOP - PAGE_PAD_BOTTOM - HEADING_BLOCK;
+  const h = height ?? box.h;
+  const textHeight = h - PAGE_PAD - PAGE_PAD;
   return {
     w: box.w,
-    h: box.h,
+    h,
     bodyLines: Math.max(1, Math.floor(textHeight / LINE_HEIGHT)),
     charsPerLine: Math.max(8, Math.floor((box.w - 44) / CHAR_WIDTH))
   };
@@ -8930,6 +8929,67 @@ ${body}`;
   const closing = end();
   lines.splice(closing, 0, "reader:", `  page: ${safe}`);
   return finish(lines);
+}
+var SIZE_KEY_LINE = /^reader\.size\s*:(.*)$/;
+function writeReaderSize(markdown, size) {
+  const text = String(markdown ?? "");
+  const nl = text.includes("\r\n") ? "\r\n" : "\n";
+  const line = `reader.size: ${size}`;
+  const fence = splitSizeFrontmatter(text);
+  if (!fence) {
+    const body = text.replace(/^\uFEFF?/, "");
+    const spacer = body.length === 0 || body.startsWith(nl) ? "" : nl;
+    return `---${nl}${line}${nl}---${nl}${spacer}${body}`;
+  }
+  let replaced = false;
+  const next = [];
+  for (let index = 0; index < fence.lines.length; index += 1) {
+    if (index === fence.end && !replaced) next.push(line);
+    if (index > 0 && index < fence.end && SIZE_KEY_LINE.test(fence.lines[index])) {
+      if (!replaced) next.push(line);
+      replaced = true;
+      continue;
+    }
+    next.push(fence.lines[index]);
+  }
+  syncNestedReaderSize(next, size);
+  const joined = next.join(nl);
+  return joined.endsWith(nl) ? joined : `${joined}${nl}`;
+}
+function syncNestedReaderSize(lines, size) {
+  let end = lines.length;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") {
+      end = index;
+      break;
+    }
+  }
+  for (let index = 1; index < end; index += 1) {
+    const reader = lines[index].match(/^reader\s*:\s*(.*)$/);
+    if (!reader) continue;
+    const rest = reader[1].trim();
+    if (rest.startsWith("{")) {
+      if (/size\s*:/.test(rest)) {
+        lines[index] = lines[index].replace(/size\s*:\s*[^,}\s]+/, `size: ${size}`);
+      }
+      continue;
+    }
+    if (rest && rest !== "|" && rest !== ">") continue;
+    for (let cursor = index + 1; cursor < end; cursor += 1) {
+      if (!/^\s+/.test(lines[cursor])) break;
+      if (!/^\s+size\s*:/.test(lines[cursor])) continue;
+      const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
+      lines[cursor] = `${indent}size: ${size}`;
+    }
+  }
+}
+function splitSizeFrontmatter(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  if (lines[0]?.replace(/^\uFEFF/, "").trim() !== "---") return null;
+  for (let index = 1; index < lines.length; index += 1) {
+    if (lines[index].trim() === "---") return { lines, end: index };
+  }
+  return null;
 }
 
 // src/reader/shell/link.ts
@@ -9434,16 +9494,9 @@ function paginateReaderBlocks(blocks, box) {
 // src/reader/size/geometry.ts
 var READER_SIZE_ORDER = ["s", "m", "l", "xl"];
 var DEFAULT_READER_SIZE = "m";
-var READER_SIZE_FRONTMATTER_KEY = "reader.size";
 var READER_DESK_TYPE = { fontSizePx: 12.5, lineHeightPx: 19 };
 var READER_PHONE_TYPE = { fontSizePx: 15, lineHeightPx: 23 };
-var READER_PAGE_PAD_Y = { top: 26, bottom: 26 };
-var READER_PAGE_BOX = {
-  s: { width: 230, height: 280, theaterHeight: 280 },
-  m: { width: 270, height: 340, theaterHeight: 340 },
-  l: { width: 305, height: 410, theaterHeight: 420 },
-  xl: { width: 340, height: 488, theaterHeight: 500 }
-};
+var THEATER_XL_HEIGHT = 500;
 function isReaderSizeId(value) {
   return READER_SIZE_ORDER.some((size) => size === value);
 }
@@ -9480,37 +9533,31 @@ function readerPageGeometry(size, options) {
   const surface = options?.surface ?? "desk";
   const theater = options?.theater === true;
   const applied = effectiveReaderSize(size, theater);
-  const box = READER_PAGE_BOX[applied];
-  const height = theater ? box.theaterHeight : box.height;
+  const box = readerPageBox(applied, theater ? THEATER_XL_HEIGHT : void 0);
   const type = surface === "phone" ? READER_PHONE_TYPE : READER_DESK_TYPE;
-  const contentHeight = height - READER_PAGE_PAD_Y.top - READER_PAGE_PAD_Y.bottom;
-  const lines = Math.max(0, Math.floor(contentHeight / type.lineHeightPx));
   return {
     size: applied,
     surface,
     theater,
-    width: box.width,
-    height,
+    width: box.w,
+    height: box.h,
     fontSizePx: type.fontSizePx,
     lineHeightPx: type.lineHeightPx,
-    paddingTop: READER_PAGE_PAD_Y.top,
-    paddingBottom: READER_PAGE_PAD_Y.bottom,
-    contentHeight,
-    lines,
-    clipHeight: lines * type.lineHeightPx
+    lines: box.bodyLines,
+    clipHeight: box.bodyLines * type.lineHeightPx
   };
 }
 
 // src/reader/size/reflow.ts
 function readerReflowBox(size, theaterLocked2) {
-  const drawn = readerPageGeometry(size, { theater: theaterLocked2, surface: "desk" });
-  const shell = readerPageBox(drawn.size);
+  const drawn = effectiveReaderSize(size, theaterLocked2);
+  const box = readerPageBox(drawn, theaterLocked2 ? THEATER_XL_HEIGHT : void 0);
   return {
     size,
-    width: drawn.width,
-    height: drawn.height,
-    bodyLines: drawn.lines,
-    charsPerLine: shell.charsPerLine
+    width: box.w,
+    height: box.h,
+    bodyLines: box.bodyLines,
+    charsPerLine: box.charsPerLine
   };
 }
 
@@ -10146,72 +10193,6 @@ function closeReaderChrome() {
   closeBookChooser();
 }
 
-// src/reader/size/frontmatter.ts
-var KEY_LINE = /^reader\.size\s*:(.*)$/;
-function writeReaderSize(markdown, size) {
-  const text = String(markdown ?? "");
-  const nl = text.includes("\r\n") ? "\r\n" : "\n";
-  const line = `${READER_SIZE_FRONTMATTER_KEY}: ${size}`;
-  const fence = splitFrontmatter3(text);
-  if (!fence) {
-    const body = text.replace(/^\uFEFF?/, "");
-    const spacer = body.length === 0 || body.startsWith(nl) ? "" : nl;
-    return `---${nl}${line}${nl}---${nl}${spacer}${body}`;
-  }
-  let replaced = false;
-  const next = [];
-  for (let index = 0; index < fence.lines.length; index += 1) {
-    if (index === fence.end && !replaced) next.push(line);
-    if (index > 0 && index < fence.end && KEY_LINE.test(fence.lines[index])) {
-      if (!replaced) next.push(line);
-      replaced = true;
-      continue;
-    }
-    next.push(fence.lines[index]);
-  }
-  syncNestedReaderSize(next, size);
-  return ensureTrailingNewline2(next.join(nl), nl);
-}
-function syncNestedReaderSize(lines, size) {
-  let end = lines.length;
-  for (let index = 1; index < lines.length; index += 1) {
-    if (lines[index].trim() === "---") {
-      end = index;
-      break;
-    }
-  }
-  for (let index = 1; index < end; index += 1) {
-    const reader = lines[index].match(/^reader\s*:\s*(.*)$/);
-    if (!reader) continue;
-    const rest = reader[1].trim();
-    if (rest.startsWith("{")) {
-      if (/size\s*:/.test(rest)) {
-        lines[index] = lines[index].replace(/size\s*:\s*[^,}\s]+/, `size: ${size}`);
-      }
-      continue;
-    }
-    if (rest && rest !== "|" && rest !== ">") continue;
-    for (let cursor = index + 1; cursor < end; cursor += 1) {
-      if (!/^\s+/.test(lines[cursor])) break;
-      if (!/^\s+size\s*:/.test(lines[cursor])) continue;
-      const indent = lines[cursor].match(/^\s+/)?.[0] ?? "  ";
-      lines[cursor] = `${indent}size: ${size}`;
-    }
-  }
-}
-function splitFrontmatter3(markdown) {
-  const lines = markdown.split(/\r?\n/);
-  if (lines[0]?.replace(/^\uFEFF/, "").trim() !== "---") return null;
-  for (let index = 1; index < lines.length; index += 1) {
-    if (lines[index].trim() === "---") return { lines, end: index };
-  }
-  return null;
-}
-function ensureTrailingNewline2(markdown, nl) {
-  if (markdown.endsWith(nl)) return markdown;
-  return `${markdown}${nl}`;
-}
-
 // src/reader/size/shortcut.ts
 function readerSizeShortcutDirection(event) {
   if (!(event.metaKey || event.ctrlKey) || event.altKey) return null;
@@ -10245,7 +10226,7 @@ function mountReaderSize(options) {
   let theaterLocked2 = options.theaterLocked === true;
   let destroyed = false;
   controlEl.empty();
-  const slot = mountSlot(chrome, controlEl, surface);
+  const slot = mountSlot(chrome, controlEl);
   const buttons = /* @__PURE__ */ new Map();
   for (const size of READER_SIZE_ORDER) {
     const button = slot.segment.createEl("button", {
@@ -10352,10 +10333,10 @@ function chromeFor(surface, chrome) {
     }
   }
 }
-function mountSlot(chrome, controlEl, surface) {
+function mountSlot(chrome, controlEl) {
   switch (chrome) {
     case "bar":
-      return mountBarSlot(controlEl, surface);
+      return mountBarSlot(controlEl);
     case "sheet":
       return mountPhoneSlot(controlEl);
     default: {
@@ -10364,10 +10345,9 @@ function mountSlot(chrome, controlEl, surface) {
     }
   }
 }
-function mountBarSlot(controlEl, surface) {
-  const phone = surface === "phone";
+function mountBarSlot(controlEl) {
   const root = controlEl.createDiv({
-    cls: phone ? `fitness-plugin ${READER_SIZE_CLASS} is-phone is-bar` : `fitness-plugin ${READER_SIZE_CLASS}`,
+    cls: `fitness-plugin ${READER_SIZE_CLASS}`,
     attr: {
       "data-testid": "atomic-reader-size",
       "aria-label": "Book size"
@@ -10377,13 +10357,11 @@ function mountBarSlot(controlEl, surface) {
     cls: "atomic-reader-size-seg",
     attr: { role: "group", "aria-label": "Book size" }
   });
-  if (!phone) {
-    root.createSpan({
-      cls: "atomic-reader-size-hint",
-      text: DESK_HINT,
-      attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" }
-    });
-  }
+  root.createSpan({
+    cls: "atomic-reader-size-hint",
+    text: DESK_HINT,
+    attr: { "data-testid": "atomic-reader-size-hint", "aria-hidden": "true" }
+  });
   return { root, segment, value: null };
 }
 function mountPhoneSlot(controlEl) {
@@ -10515,7 +10493,7 @@ function attachBookSize(slot, session3) {
     controlEl: slot,
     pageHost: pages.length > 0 ? pages : [root],
     surface,
-    chrome: "bar",
+    chrome: surface === "phone" ? "sheet" : "bar",
     paint: "shell",
     boxEl: root,
     theaterLocked,

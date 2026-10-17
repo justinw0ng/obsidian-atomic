@@ -1,10 +1,11 @@
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { readerPageBox } from "../shell/model.ts";
+
 /**
  * Book size scales the page. Type stays put.
  *
- * Page boxes are `BOOK_SIZES` in `design/reader-mockup/reader-mock.html`.
- * Line counts use the journey board clip: 26px padding top and bottom, then
- * whole lines only (Literata 12.5/19 on the desk). That is M = 15 lines,
- * settled XL = 22, theater XL = 23 (`design/reader-journey/journey.source.html`).
+ * Width, height, and line count come from `readerPageBox`.
+ * The only box number that stays here is the theater page height.
  */
 
 export const READER_SIZE_ORDER = ["s", "m", "l", "xl"] as const;
@@ -24,26 +25,12 @@ export const READER_DESK_TYPE = { fontSizePx: 12.5, lineHeightPx: 19 } as const;
 /** Phone type. Same at every page size. */
 export const READER_PHONE_TYPE = { fontSizePx: 15, lineHeightPx: 23 } as const;
 
-/** Journey board page padding. Content height is the box minus this pair. */
-export const READER_PAGE_PAD_Y = { top: 26, bottom: 26 } as const;
+/** Theater draws a taller XL page. Settled heights stay on `readerPageBox`. */
+export const THEATER_XL_HEIGHT = 500;
 
 export const READER_SIZE_MOTION_MS = 200;
 
 export const READER_SIZE_EASING = "cubic-bezier(0.2, 0, 0, 1)";
-
-type PageBox = {
-  width: number;
-  height: number;
-  /** Theater is locked to XL, so only the XL theater height is drawn. */
-  theaterHeight: number;
-};
-
-export const READER_PAGE_BOX: Record<ReaderSizeId, PageBox> = {
-  s: { width: 230, height: 280, theaterHeight: 280 },
-  m: { width: 270, height: 340, theaterHeight: 340 },
-  l: { width: 305, height: 410, theaterHeight: 420 },
-  xl: { width: 340, height: 488, theaterHeight: 500 },
-};
 
 export type ReaderPageGeometry = {
   /** Size actually drawn. Theater is always XL. */
@@ -54,11 +41,9 @@ export type ReaderPageGeometry = {
   height: number;
   fontSizePx: number;
   lineHeightPx: number;
-  paddingTop: number;
-  paddingBottom: number;
-  contentHeight: number;
+  /** Whole lines from `readerPageBox`. M is 15. Settled XL is 22. */
   lines: number;
-  /** Whole-line clip. Matches `.lc` on the journey board. */
+  /** Whole-line clip. Desk clip matches the journey board. */
   clipHeight: number;
 };
 
@@ -110,23 +95,17 @@ export function readerPageGeometry(
   const surface = options?.surface ?? "desk";
   const theater = options?.theater === true;
   const applied = effectiveReaderSize(size, theater);
-  const box = READER_PAGE_BOX[applied];
-  const height = theater ? box.theaterHeight : box.height;
+  const box = readerPageBox(applied, theater ? THEATER_XL_HEIGHT : undefined);
   const type = surface === "phone" ? READER_PHONE_TYPE : READER_DESK_TYPE;
-  const contentHeight = height - READER_PAGE_PAD_Y.top - READER_PAGE_PAD_Y.bottom;
-  const lines = Math.max(0, Math.floor(contentHeight / type.lineHeightPx));
   return {
     size: applied,
     surface,
     theater,
-    width: box.width,
-    height,
+    width: box.w,
+    height: box.h,
     fontSizePx: type.fontSizePx,
     lineHeightPx: type.lineHeightPx,
-    paddingTop: READER_PAGE_PAD_Y.top,
-    paddingBottom: READER_PAGE_PAD_Y.bottom,
-    contentHeight,
-    lines,
-    clipHeight: lines * type.lineHeightPx,
+    lines: box.bodyLines,
+    clipHeight: box.bodyLines * type.lineHeightPx,
   };
 }

@@ -3457,23 +3457,6 @@
   white-space: nowrap;
 }
 
-.fitness-plugin .atomic-reader-size.is-phone.is-bar {
-  width: auto;
-  max-width: 100%;
-}
-
-.fitness-plugin .atomic-reader-size.is-phone.is-bar .atomic-reader-size-seg {
-  width: auto;
-  height: 28px;
-  padding: 2px;
-}
-
-.fitness-plugin .atomic-reader-size.is-phone.is-bar .atomic-reader-size-opt {
-  flex: none;
-  height: 22px;
-  font-size: 11.5px;
-}
-
 .fitness-plugin .atomic-reader-size.is-phone {
   width: 100%;
 }

@@ -6,51 +6,56 @@ import { fileURLToPath } from "node:url";
 import {
   DEFAULT_READER_SIZE,
   READER_DESK_TYPE,
-  READER_PAGE_BOX,
   READER_PHONE_TYPE,
   READER_SIZE_EASING,
   READER_SIZE_FRONTMATTER_KEY,
   READER_SIZE_MOTION_MS,
   READER_SIZE_ORDER,
+  THEATER_XL_HEIGHT,
   effectiveReaderSize,
   parseReaderSize,
-  readReaderSize,
-  readReaderSizeFromRecord,
   readerPageGeometry,
   readerSizeShortcutDirection,
   stepReaderSize,
   readerReflowBox,
   settleReaderSize,
-  writeReaderSize,
 } from "../src/reader/size/index.ts";
-import { readReaderNote } from "../src/reader/shell/frontmatter.ts";
+import { readerFieldsFromFrontmatter, readReaderNote, writeReaderSize } from "../src/reader/shell/frontmatter.ts";
+import { readerPageBox } from "../src/reader/shell/model.ts";
 import { paginateReaderBlocks } from "../src/reader/shell/paginate.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const fixture = readFileSync(join(root, "tests/fixtures/reader-size-note.md"), "utf8");
 
 test("desk page boxes match the reader mock and the journey line clip", () => {
-  assert.deepEqual(READER_PAGE_BOX.s, { width: 230, height: 280, theaterHeight: 280 });
-  assert.deepEqual(READER_PAGE_BOX.m, { width: 270, height: 340, theaterHeight: 340 });
-  assert.deepEqual(READER_PAGE_BOX.l, { width: 305, height: 410, theaterHeight: 420 });
-  assert.deepEqual(READER_PAGE_BOX.xl, { width: 340, height: 488, theaterHeight: 500 });
+  assert.equal(THEATER_XL_HEIGHT, 500);
+  assert.deepEqual(readerPageBox("m"), { w: 270, h: 340, bodyLines: 15, charsPerLine: 36 });
+  assert.equal(readerPageBox("xl").bodyLines, 22);
+  assert.equal(readerPageBox("xl", THEATER_XL_HEIGHT).h, 500);
+  assert.equal(readerPageBox("xl", THEATER_XL_HEIGHT).bodyLines, 23);
 
   const medium = readerPageGeometry("m");
-  assert.equal(medium.width, 270);
-  assert.equal(medium.height, 340);
+  const mediumBox = readerPageBox("m");
+  assert.equal(medium.width, mediumBox.w);
+  assert.equal(medium.height, mediumBox.h);
+  assert.equal(medium.lines, mediumBox.bodyLines);
   assert.equal(medium.fontSizePx, 12.5);
   assert.equal(medium.lineHeightPx, 19);
   assert.equal(medium.lines, 15);
   assert.equal(medium.clipHeight, 285);
 
   const extra = readerPageGeometry("xl");
-  assert.equal(extra.width, 340);
-  assert.equal(extra.height, 488);
+  const extraBox = readerPageBox("xl");
+  assert.equal(extra.width, extraBox.w);
+  assert.equal(extra.height, extraBox.h);
+  assert.equal(extra.lines, extraBox.bodyLines);
   assert.equal(extra.lines, 22);
   assert.equal(extra.clipHeight, 418);
 
   const small = readerPageGeometry("s");
   const large = readerPageGeometry("l");
+  assert.equal(small.lines, readerPageBox("s").bodyLines);
+  assert.equal(large.lines, readerPageBox("l").bodyLines);
   assert.equal(small.lines, 12);
   assert.equal(large.lines, 18);
   assert.ok(small.width < medium.width && medium.width < large.width && large.width < extra.width);
@@ -67,7 +72,7 @@ test("type stays fixed while the page grows", () => {
     assert.equal(phone.lineHeightPx, READER_PHONE_TYPE.lineHeightPx);
     assert.equal(phone.width, desk.width);
     assert.equal(phone.height, desk.height);
-    assert.notEqual(phone.lines, desk.lines);
+    assert.equal(phone.lines, desk.lines);
   }
 });
 
@@ -83,7 +88,7 @@ test("theater locks XL at 340×500 and about 23 lines without changing the settl
   assert.equal(theater.fontSizePx, 12.5);
   assert.equal(theater.lineHeightPx, 19);
   const settled = writeReaderSize(fixture, "m");
-  assert.equal(readReaderSize(settled), "m");
+  assert.equal(readReaderNote(settled).size, "m");
   assert.match(settled, /reader\.size: m\n/);
 });
 
@@ -102,15 +107,15 @@ test("resize motion is 200ms and instant under reduced motion in styles.css", ()
 
 test("a new book note has no reader.size and starts at M", () => {
   assert.equal(DEFAULT_READER_SIZE, "m");
-  assert.equal(readReaderSize(fixture), "m");
-  assert.equal(readReaderSizeFromRecord({ type: "atomic-item", pages: 432 }), "m");
+  assert.equal(readReaderNote(fixture).size, "m");
+  assert.equal(readerFieldsFromFrontmatter({ type: "atomic-item", pages: 432 }).size, "m");
   assert.equal(parseReaderSize("huge"), "m");
   assert.equal(parseReaderSize(""), "m");
 });
 
 test("reader.size persists on the book note and leaves the rest of the note alone", () => {
   const saved = writeReaderSize(fixture, "xl");
-  assert.equal(readReaderSize(saved), "xl");
+  assert.equal(readReaderNote(saved).size, "xl");
   assert.match(saved, /reader\.size: xl\n/);
   assert.match(saved, /pages: 432\n/);
   assert.match(saved, /related_canvas: "\[\[Pride and Prejudice\.canvas\]\]"\n/);
@@ -121,23 +126,23 @@ test("reader.size persists on the book note and leaves the rest of the note alon
   assert.equal(saved.split("reader.size").length, 2);
 
   const again = writeReaderSize(saved, "l");
-  assert.equal(readReaderSize(again), "l");
+  assert.equal(readReaderNote(again).size, "l");
   assert.equal(again.split("reader.size").length, 2);
   assert.equal(writeReaderSize(again, "l"), again);
 
   const quoted = saved.replace("reader.size: xl", 'reader.size: "XL"');
-  assert.equal(readReaderSize(quoted), "xl");
+  assert.equal(readReaderNote(quoted).size, "xl");
   assert.equal(
-    readReaderSizeFromRecord({ [READER_SIZE_FRONTMATTER_KEY]: "s" }),
+    readerFieldsFromFrontmatter({ [READER_SIZE_FRONTMATTER_KEY]: "s" }).size,
     "s",
   );
 });
 
 test("reader.size in the note body is not the saved size", () => {
   const withBody = `${fixture}\nreader.size: xl\n`;
-  assert.equal(readReaderSize(withBody), "m");
+  assert.equal(readReaderNote(withBody).size, "m");
   const saved = writeReaderSize(withBody, "s");
-  assert.equal(readReaderSize(saved), "s");
+  assert.equal(readReaderNote(saved).size, "s");
   assert.match(saved, /# Pride and Prejudice[\s\S]*reader\.size: xl/);
 });
 
@@ -203,7 +208,7 @@ test("a chosen size survives shell repaints until the note is read again", () =>
 test("a note without frontmatter gains a reader.size fence", () => {
   const markdown = "# Loose page\n\nNo fence yet.\n";
   const saved = writeReaderSize(markdown, "l");
-  assert.equal(readReaderSize(saved), "l");
+  assert.equal(readReaderNote(saved).size, "l");
   assert.match(saved, /^---\nreader\.size: l\n---\n\n# Loose page/);
 });
 

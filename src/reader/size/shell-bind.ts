@@ -1,9 +1,9 @@
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { registerReaderSize, type ReaderSession } from "../shell/mount.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { parseReaderSize, type ReaderSizeId, type ReaderSizeSurface } from "./geometry.ts";
+import { writeReaderSize } from "../shell/frontmatter.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
-import { writeReaderSize } from "./frontmatter.ts";
+import { parseReaderSize, type ReaderSizeId, type ReaderSizeSurface } from "./geometry.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { mountReaderSize, type ReaderSizeControl } from "./mount.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
@@ -92,7 +92,7 @@ function attachBookSize(slot: HTMLElement, session: ReaderSession): void {
     controlEl: slot,
     pageHost: pages.length > 0 ? pages : [root],
     surface,
-    chrome: "bar",
+    chrome: surface === "phone" ? "sheet" : "bar",
     paint: "shell",
     boxEl: root,
     theaterLocked,

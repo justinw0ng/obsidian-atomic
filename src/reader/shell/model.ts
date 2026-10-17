@@ -1,4 +1,4 @@
-/** Settled-reader geometry. Sizes match the 1.6.0 mock; type stays 12.5/19. */
+/** Settled-reader geometry. Sizes match the 1.6.0 mock. Lines use 26px padding and a 19px line. */
 
 export const READER_SIZES = ["s", "m", "l", "xl"] as const;
 
@@ -14,9 +14,7 @@ export type ReaderPageBox = {
 /** Narrower than a desktop M spread (112 + 270 + 270 + 112). */
 export const READER_PHONE_MAX_WIDTH = 780;
 
-const PAGE_PAD_TOP = 22;
-const PAGE_PAD_BOTTOM = 28;
-const HEADING_BLOCK = 27;
+const PAGE_PAD = 26;
 const LINE_HEIGHT = 19;
 const CHAR_WIDTH = 6.25;
 
@@ -33,12 +31,17 @@ export function readerSizeId(value: unknown): ReaderSizeId {
   return "m";
 }
 
-export function readerPageBox(size: ReaderSizeId): ReaderPageBox {
+/**
+ * One page box. Padding is 26 and 26, then whole lines.
+ * M is 15 lines. Settled XL is 22. Pass `height` for the theater page.
+ */
+export function readerPageBox(size: ReaderSizeId, height?: number): ReaderPageBox {
   const box = BOXES[size];
-  const textHeight = box.h - PAGE_PAD_TOP - PAGE_PAD_BOTTOM - HEADING_BLOCK;
+  const h = height ?? box.h;
+  const textHeight = h - PAGE_PAD - PAGE_PAD;
   return {
     w: box.w,
-    h: box.h,
+    h,
     bodyLines: Math.max(1, Math.floor(textHeight / LINE_HEIGHT)),
     charsPerLine: Math.max(8, Math.floor((box.w - 44) / CHAR_WIDTH)),
   };

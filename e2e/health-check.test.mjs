@@ -2911,8 +2911,8 @@ ${E2E_CUE_LOG_FENCE}
         assert.equal(phone.lineHeight, "23px");
         assert.equal(phone.inSlot, true);
         assert.equal(phone.controlPhone, true);
-        assert.equal(phone.bar, true);
-        assert.equal(phone.sheet, false);
+        assert.equal(phone.bar, false);
+        assert.equal(phone.sheet, true);
         await shot(driver, "reader-book-size-phone");
       } finally {
         await restoreDesktopPointer(driver, desktopViewport);
