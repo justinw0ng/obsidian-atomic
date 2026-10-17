@@ -348,7 +348,7 @@ async function check(driver, name, fn) {
   }
 }
 
-async function assertHiddenScrollports(driver, selector, minCount) {
+async function assertHiddenScrollports(driver, selector, minCount, options = {}) {
   const reports = await driver.executeScript(
     `
     const selector = arguments[0];
@@ -356,6 +356,7 @@ async function assertHiddenScrollports(driver, selector, minCount) {
       const style = getComputedStyle(el);
       return {
         overflowX: style.overflowX,
+        scrollbarWidth: style.scrollbarWidth,
         thumb: style.getPropertyValue("--scrollbar-thumb-bg").trim(),
         size: style.getPropertyValue("--scrollbar-size").trim(),
         gutter: el.offsetHeight - el.clientHeight,
@@ -373,6 +374,9 @@ async function assertHiddenScrollports(driver, selector, minCount) {
     assert.equal(report.thumb, "transparent");
     assert.equal(report.size, "0px");
     assert.equal(report.gutter, 0);
+    if (options.scrollbarWidthNone) {
+      assert.equal(report.scrollbarWidth, "none");
+    }
   }
 }
 
@@ -942,7 +946,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     await check(driver, "heatmap-scrollbars", async () => {
       await openVaultFile(driver, E2E_FILES.heatmapAll);
       await waitCss(driver, '[data-testid="atomic-heatmap-scroll"]');
-      await assertHiddenScrollports(driver, '[data-testid="atomic-heatmap-scroll"]', 3);
+      await assertHiddenScrollports(driver, '[data-testid="atomic-heatmap-scroll"]', 3, {
+        scrollbarWidthNone: true,
+      });
 
       await openVaultFile(driver, E2E_FILES.heatmapGrid);
       await waitCss(driver, ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]");
@@ -957,6 +963,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         driver,
         ".fitness-heatmap-grid [data-testid=\"atomic-heatmap-scroll\"]",
         3,
+        { scrollbarWidthNone: true },
       );
 
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
