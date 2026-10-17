@@ -1,6 +1,19 @@
+"""One-shot patcher that added book-size / theater chrome to journey.source.html.
+
+Already applied in-tree. Safe to re-run: exits if `.bsize` is present.
+Paths are relative to this tools/ folder.
+"""
+from pathlib import Path
 import re
-P='/workspace/reader-openpencil/journey.source.html'
-s=open('/tmp/rx/journey.source.bak.html').read()
+import sys
+
+ROOT = Path(__file__).resolve().parent.parent
+P = ROOT / "journey.source.html"
+s = P.read_text()
+if ".bsize{" in s or '.bsize{' in s:
+    print("already patched:", P)
+    sys.exit(0)
+
 
 CSS='''
 /* ---- Book size control (S/M/L/XL) ---- */

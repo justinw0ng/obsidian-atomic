@@ -1,49 +1,62 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT=/workspace/reader-openpencil
-WORK=/tmp/rx
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+WORK="${ATOMIC_JOURNEY_WORK:-${TMPDIR:-/tmp}/atomic-reader-journey}"
 mkdir -p "$WORK"
 cp "$ROOT/journey.source.html" "$WORK/styled2.html"
 cp "$ROOT/tools/flatten.js" "$WORK/flatten.js"
 
-python3 - <<'PY'
-s=open('/tmp/rx/styled2.html').read()
-open('/tmp/rx/flat_m.html','w').write(s.replace('</body>','<script>'+open('/tmp/rx/flatten.js').read()+'</script></body>'))
+python3 - "$WORK" <<'PY'
+from pathlib import Path
+import sys
+work = Path(sys.argv[1])
+html = (work / "styled2.html").read_text()
+script = (work / "flatten.js").read_text()
+(work / "flat_m.html").write_text(html.replace("</body>", "<script>" + script + "</script></body>"))
 PY
 
 timeout 180 google-chrome --headless=new --no-sandbox --disable-gpu \
   --window-size=6400,1200 --virtual-time-budget=8000 \
-  --dump-dom "file:///tmp/rx/flat_m.html" 2>/dev/null > /tmp/rx/flat_d.html
+  --dump-dom "file://${WORK}/flat_m.html" 2>/dev/null > "${WORK}/flat_d.html"
 
-python3 - <<'PY'
-import re
-s=open('/tmp/rx/flat_d.html').read()
-s=re.sub(r'<script>\(function\(\)\{.*?</script>','',s,flags=re.S)
-# also strip any leftover script tags from flatten
-s=re.sub(r'<script>[\s\S]*?</script>','',s)
-open('/tmp/rx/journey.flat.html','w').write('<!DOCTYPE html>\n'+s)
+python3 - "$WORK" <<'PY'
+from pathlib import Path
+import re, sys
+work = Path(sys.argv[1])
+s = (work / "flat_d.html").read_text()
+s = re.sub(r"<script>\(function\(\)\{.*?</script>", "", s, flags=re.S)
+s = re.sub(r"<script>[\s\S]*?</script>", "", s)
+(work / "journey.flat.html").write_text("<!DOCTYPE html>\n" + s)
 PY
 
-python3 - <<'PY'
-import re
-p='/tmp/rx/journey.flat.html'; s=open(p).read()
+python3 - "$WORK" <<'PY'
+from pathlib import Path
+import re, sys
+p = Path(sys.argv[1]) / "journey.flat.html"
+s = p.read_text()
 def f(m):
-    v=m.group(1).split()
-    while len(v)<4: v=v+[v[len(v)-2] if len(v)>=2 else v[0]]
-    t,r,b,l=v; out=f'top: {t}; left: {l};'
-    if r!='auto': out+=f' right: {r};'
-    if b!='auto': out+=f' bottom: {b};'
+    v = m.group(1).split()
+    while len(v) < 4:
+        v = v + [v[len(v) - 2] if len(v) >= 2 else v[0]]
+    t, r, b, l = v
+    out = f"top: {t}; left: {l};"
+    if r != "auto":
+        out += f" right: {r};"
+    if b != "auto":
+        out += f" bottom: {b};"
     return out
-s,n=re.subn(r'inset:\s*([^;"]+);',f,s); print('inset fixed',n)
-open(p,'w').write(s)
+s, n = re.subn(r"inset:\s*([^;\"]+);", f, s)
+print("inset fixed", n)
+p.write_text(s)
 PY
 
-cp /tmp/rx/journey.flat.html "$ROOT/journey.html"
-echo "Wrote $ROOT/journey.html ($(wc -c < "$ROOT/journey.html") bytes)"
+# Generated import board. Do not commit journey.html.
+cp "${WORK}/journey.flat.html" "${WORK}/journey.html"
+echo "Wrote ${WORK}/journey.html ($(wc -c < "${WORK}/journey.html") bytes)"
+echo "Import with: openpencil import ${WORK}/journey.html -o ${ROOT}/atomic-reader-journey.fig"
 
-# quick visual of step-06 region via screenshot of source (styled) for QA
 timeout 120 google-chrome --headless=new --no-sandbox --disable-gpu \
   --window-size=2200,1100 \
-  --screenshot=/tmp/rx/theater-styled-preview.png \
-  "file:///tmp/rx/styled2.html#step-06" 2>/dev/null || true
+  --screenshot="${WORK}/theater-styled-preview.png" \
+  "file://${WORK}/styled2.html#step-06" 2>/dev/null || true
 echo "build done"

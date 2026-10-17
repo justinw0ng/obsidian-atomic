@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atomic Tracker — reader mock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
 <style>
 /*
   Mock-only. Tokens, chrome, hairlines, and book objects follow the 1.5.0
@@ -20,13 +21,13 @@
   --text-normal: #222222;
   --text-muted: #5c5c5c;
   --text-faint: #ababab;
-  --text-accent: #6c4ee3;
+  --text-accent: #5b7cfa;
   --text-error: #e03140;
-  --interactive-accent: #7c5cf0;
+  --interactive-accent: #5b7cfa;
   --icon-color: #6b6b6b;
   --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-  --font-text: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
-  --font-monospace: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, monospace;
+  --font-text: "Literata", "Source Serif 4", Georgia, serif;
+  --font-monospace: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: light;
 }
 
@@ -40,13 +41,13 @@
   --text-normal: #dadada;
   --text-muted: #a3a3a3;
   --text-faint: #666666;
-  --text-accent: #a68af9;
+  --text-accent: #8aa0ff;
   --text-error: #fb5560;
-  --interactive-accent: #8b6cf5;
+  --interactive-accent: #5b7cfa;
   --icon-color: #9a9a9a;
   --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-  --font-text: "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
-  --font-monospace: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, monospace;
+  --font-text: "Literata", "Source Serif 4", Georgia, serif;
+  --font-monospace: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   color-scheme: dark;
 }
 
@@ -312,7 +313,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   --atomic-t-press: 120ms;
   --atomic-t-hover: 240ms;
   --atomic-t-move: 560ms;
-  --atomic-c: #4369c2;
+  --atomic-c: #5b7cfa;
   font-family: var(--atomic-font);
   font-size: 13px;
   line-height: 1.45;
@@ -571,7 +572,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-spread {
   position: relative;
   display: grid;
-  grid-template-columns: 150px 1fr 1fr 150px;
+  grid-template-columns: 112px var(--page-w, 270px) var(--page-w, 270px) 112px;
+  justify-content: center;
+  align-items: center;
   min-height: 0;
   background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
 }
@@ -587,11 +590,20 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   box-shadow: 0 0 0 1px var(--atomic-rule);
   overflow: auto;
 }
-.ob-window .atomic-page { border-radius: 1px; }
+.ob-window .atomic-page {
+  border-radius: 1px;
+  width: var(--page-w, 270px);
+  height: var(--page-h, 340px);
+  flex: none;
+  overflow: hidden;
+  transition: width 200ms cubic-bezier(0.2, 0, 0, 1), height 200ms cubic-bezier(0.2, 0, 0, 1);
+}
 .ob-phone-screen .atomic-page {
   margin: 0; padding: 22px 22px 28px 22px;
   box-shadow: none; overflow: auto;
+  width: auto; height: auto;
 }
+.mock-reduced .ob-window .atomic-page { transition: none; }
 .atomic-page h3 {
   margin: 0 0 14px; font-family: var(--font-text);
   font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
@@ -599,9 +611,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 .atomic-page p {
   margin: 0 0 11px; font-family: var(--font-text);
-  font-size: 15.5px; line-height: 1.58; color: var(--atomic-ink);
+  font-size: 12.5px; line-height: 19px; color: var(--atomic-ink);
 }
-.ob-phone-screen .atomic-page p { font-size: 17px; line-height: 1.58; }
+.ob-phone-screen .atomic-page p { font-size: 15px; line-height: 23px; }
 .atomic-hl {
   background: color-mix(in srgb, #c9a227 28%, transparent);
   box-decoration-break: clone;
@@ -688,25 +700,100 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   background: var(--atomic-fill-3);
 }
 
+/* ------------------------------------------------------------ chooser */
+
+.atomic-chooser-scrim {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(34, 34, 34, 0.28);
+}
+.ob-phone-screen .atomic-chooser-scrim { align-items: flex-end; background: rgba(34, 34, 34, 0.4); }
+.atomic-chooser {
+  width: 360px; padding: 8px;
+  border-radius: 14px;
+  background: var(--background-primary);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0,0,0,0.4);
+}
+.ob-phone-screen .atomic-chooser {
+  width: 100%; border-radius: 18px 18px 0 0; padding: 10px 12px 18px;
+}
+.atomic-chooser .grab {
+  width: 40px; height: 4px; border-radius: 99px; margin: 4px auto 10px;
+  background: var(--atomic-fill-3);
+}
+.atomic-chooser-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  padding: 12px 12px; border-radius: 9px;
+}
+.atomic-chooser-row:hover { background: var(--atomic-fill-1); }
+.atomic-chooser-row.is-primary { background: var(--atomic-fill-1); }
+.atomic-chooser-row .ico {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: grid; place-items: center;
+  background: var(--atomic-fill-2); font-size: 14px;
+}
+.atomic-chooser-row .label { flex: 1; min-width: 0; }
+.atomic-chooser-row .label b { display: block; font-size: 14px; font-weight: 600; }
+.atomic-chooser-row .label span { display: block; font-size: 12px; color: var(--atomic-ink-2); margin-top: 2px; }
+.atomic-chooser-row .kbd {
+  font-family: var(--atomic-mono); font-size: 11px; color: var(--text-faint);
+}
+.atomic-chooser-cancel {
+  width: 100%; margin-top: 4px; padding: 10px;
+  text-align: center; color: var(--atomic-ink-2); font-size: 13px;
+}
+
+/* ----------------------------------------------------------- book size */
+
+.bsize { display: inline-flex; align-items: center; gap: 8px; }
+.bsize .seg {
+  display: inline-flex; align-items: center; height: 28px; padding: 2px;
+  border-radius: 9px; border: 1px solid var(--atomic-rule); background: var(--atomic-fill-1);
+}
+.bsize .opt {
+  height: 22px; min-width: 34px; padding: 0 7px; border-radius: 7px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  font-size: 11.5px; font-weight: 500; color: var(--atomic-ink-2);
+}
+.bsize .opt.on {
+  background: var(--background-primary); color: var(--atomic-ink);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 1px 2px rgba(0,0,0,0.08);
+}
+.bsize .bk {
+  display: inline-block; border: 1.25px solid currentColor; border-left-width: 2.5px;
+  border-radius: 1.5px; opacity: 0.85;
+}
+.bsize .b1 { width: 6px; height: 8px; }
+.bsize .b2 { width: 7px; height: 10px; }
+.bsize .b3 { width: 8px; height: 12px; }
+.bsize .b4 { width: 9px; height: 14px; }
+.bsize .kbd { font-family: var(--atomic-mono); font-size: 11px; color: var(--text-faint); white-space: nowrap; }
+.bsize.is-phone { width: 100%; }
+.bsize.is-phone .seg { width: 100%; height: 36px; padding: 3px; }
+.bsize.is-phone .opt { flex: 1; height: 28px; font-size: 13px; }
+.atomic-phone-size {
+  padding: 8px 10px 10px; border-top: 1px solid var(--atomic-rule);
+}
+.atomic-phone-size .rs-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+
 /* ------------------------------------------------------------ theater */
 
 .ob-window.is-theater,
 .ob-window.is-entering-theater,
 .ob-phone-screen.is-theater,
 .ob-phone-screen.is-entering-theater {
-  --theater-void: #1a1612;
-  --theater-glow: rgba(255, 206, 142, 0.42);
-  --theater-ink: rgba(4, 3, 2, 0.82);
-  --theater-paper: #f3ead8;
+  --theater-void: #ebe8e2;
+  --theater-glow: rgba(255, 220, 160, 0.38);
+  --theater-paper: #f0eee6;
 }
 .theme-dark.ob-window.is-theater,
 .theme-dark.ob-window.is-entering-theater,
 .theme-dark.ob-phone-screen.is-theater,
 .theme-dark.ob-phone-screen.is-entering-theater {
-  --theater-void: #080706;
-  --theater-glow: rgba(255, 188, 120, 0.2);
-  --theater-ink: rgba(0, 0, 0, 0.84);
-  --theater-paper: #1d1914;
+  --theater-void: #0e0c0a;
+  --theater-glow: rgba(255, 186, 110, 0.28);
+  --theater-paper: #f0e8d2;
 }
 .ob-window.is-entering-theater .ob-titlebar,
 .ob-window.is-entering-theater .ob-ribbon,
@@ -725,6 +812,95 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-phone-screen.is-theater {
   background: var(--theater-void);
 }
+.ob-window.is-theater .th-ambient,
+.ob-phone-screen.is-theater .th-ambient {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%),
+    linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+}
+.theme-dark.ob-window.is-theater .th-ambient,
+.theme-dark.ob-phone-screen.is-theater .th-ambient {
+  background:
+    radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%),
+    linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+}
+.ob-window.is-theater .th-key {
+  position: absolute; left: 80px; top: 40px; width: 520px; height: 420px;
+  z-index: 4; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+}
+.theme-dark.ob-window.is-theater .th-key {
+  background: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+}
+.ob-window.is-theater .curtain {
+  position: absolute; top: 38px; bottom: 0; width: 168px; z-index: 5; pointer-events: none;
+}
+.ob-window.is-theater.sz-xl .curtain { width: 108px; }
+.ob-window.is-theater .curtain.is-l { left: 44px; }
+.ob-window.is-theater .curtain.is-r { right: 0; }
+.ob-window.is-theater .curtain.is-l {
+  background: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+}
+.ob-window.is-theater .curtain.is-r {
+  background: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+}
+.theme-dark.ob-window.is-theater .curtain.is-l {
+  background: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+}
+.theme-dark.ob-window.is-theater .curtain.is-r {
+  background: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+}
+.ob-window.is-theater .lamp-pool {
+  position: absolute; top: 150px; width: 140px; height: 260px; z-index: 6;
+  pointer-events: none; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+}
+.theme-dark.ob-window.is-theater .lamp-pool {
+  background: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+}
+.ob-window.is-theater .lamp-pool.is-l { left: 188px; }
+.ob-window.is-theater .lamp-pool.is-r { right: 24px; }
+.ob-window.is-theater .th-chrome,
+.ob-phone-screen.is-theater .th-chrome {
+  position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
+  z-index: 12; display: flex; align-items: center; gap: 12px;
+  height: 40px; padding: 0 6px 0 12px; border-radius: 14px;
+  background: rgba(251, 250, 247, 0.92); color: #3a3834;
+  box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  opacity: 0.78; transition: opacity 240ms ease;
+}
+.theme-dark.ob-window.is-theater .th-chrome,
+.theme-dark.ob-phone-screen.is-theater .th-chrome {
+  background: rgba(38, 38, 38, 0.92); color: #dadada;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+}
+.ob-window.is-theater.is-chrome .th-chrome,
+.ob-phone-screen.is-theater.is-chrome .th-chrome { opacity: 1; }
+.th-chrome .th-sep { width: 1px; height: 18px; background: currentColor; opacity: 0.16; }
+.th-chrome .th-exit {
+  height: 28px; padding: 0 10px; border-radius: 9px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(60, 50, 40, 0.06);
+}
+.theme-dark .th-chrome .th-exit { background: rgba(255, 255, 255, 0.06); }
+.th-chrome .th-exit .kbd { font-family: var(--atomic-mono, ui-monospace, monospace); font-size: 11px; opacity: 0.6; }
+.ob-window.is-theater .atomic-reader { background: transparent; }
+.ob-window.is-theater .atomic-spread {
+  background: transparent;
+  z-index: 7;
+}
+.ob-window.is-theater .atomic-page {
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+}
+.theme-dark.ob-window.is-theater .atomic-page {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  color: #2a2824;
+}
+.theme-dark.ob-window.is-theater .atomic-page p,
+.theme-dark.ob-window.is-theater .atomic-page h3 { color: #2a2824; }
 .ob-window.is-theater .ob-titlebar,
 .ob-window.is-theater .ob-ribbon,
 .ob-window.is-theater .ob-viewhead,
@@ -737,17 +913,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .ob-window.is-theater.is-chrome .ob-ribbon,
 .ob-window.is-theater.is-chrome .ob-viewhead,
 .ob-window.is-theater.is-chrome .ob-status {
-  opacity: 1;
+  opacity: 0.58;
   pointer-events: auto;
 }
-.atomic-theater-esc {
-  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
-  z-index: 10;
-  opacity: 0.45;
-  color: var(--atomic-ink-2);
-}
-.ob-window.is-theater.is-chrome .atomic-theater-esc,
-.ob-phone-screen.is-theater.is-chrome .atomic-theater-esc { opacity: 0; pointer-events: none; }
 .ob-phone-screen.is-theater .ob-mhead {
   opacity: 0;
   pointer-events: none;
@@ -757,6 +925,10 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   opacity: 1;
   pointer-events: auto;
 }
+.ob-phone-screen.is-theater .curtain,
+.ob-phone-screen.is-theater .th-key,
+.ob-phone-screen.is-theater .lamp-pool { display: none; }
+.ob-phone-screen.is-theater .atomic-phone-size { display: none; }
 .ob-edge {
   position: absolute; z-index: 11;
   background: transparent;
@@ -1085,8 +1257,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 @keyframes open-blur-theater {
   0%   { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); background: transparent; }
-  40%  { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: color-mix(in srgb, var(--theater-void, #1a1612) 38%, transparent); }
-  80%  { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: color-mix(in srgb, var(--theater-void, #1a1612) 12%, transparent); }
+  40%  { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: color-mix(in srgb, var(--theater-void, #ebe8e2) 38%, transparent); }
+  80%  { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: color-mix(in srgb, var(--theater-void, #ebe8e2) 12%, transparent); }
   100% { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); background: transparent; }
 }
 
@@ -1117,11 +1289,11 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     <div>
       <div class="board-kicker">Atomic Tracker · design</div>
       <h1 class="board-title">Reader, Ask, and the book canvas</h1>
-      <p class="board-sub">EPUB and PDF live in the vault. Reading is a new surface, linked to the book note you already have. Every highlight, remark, and answer lands on one canvas. Desktop and phone are the same product.</p>
+      <p class="board-sub">Matches the approved OpenPencil journey. Tap a cover → chooser (Open Notes default; Open Book only with a file). Open Book flies in place onto p. 47. Theater follows the theme. Book size S·M·L·XL enlarges the page, not the type.</p>
     </div>
     <div class="board-meta">
       Mock only · do not merge<br>
-      1.5.0 language<br>
+      Inter + Literata · 1.5.0 tokens<br>
       Pride and Prejudice · public domain
     </div>
   </header>
@@ -1130,6 +1302,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     <div class="board-seg" data-tool="scene" role="tablist" aria-label="Screen">
       <button type="button" data-scene="library" class="is-on">Library</button>
       <button type="button" data-scene="reading">Reading view</button>
+      <button type="button" data-scene="chooser">Chooser</button>
+      <button type="button" data-scene="note">Open Notes</button>
       <button type="button" data-scene="reader">Reader</button>
       <button type="button" data-scene="select">Select</button>
       <button type="button" data-scene="ask">Ask</button>
@@ -1155,7 +1329,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       <button type="button" data-appver="current" class="is-on">1.11.4+</button>
       <button type="button" data-appver="older">Older</button>
     </div>
-    <p class="board-note" id="scene-note">Click Pride and Prejudice. The book comes toward you and opens on the last page you read. Tap to skip.</p>
+    <p class="board-note" id="scene-note">Tap a cover. Chooser first: Open Notes is the default. Open Book only if an EPUB or PDF exists.</p>
   </div>
 
   <div class="pair">
@@ -1172,7 +1346,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   <div class="why">
     <div>
       <h2>One file, three places</h2>
-      <p>The EPUB or PDF stays in the vault. The book note stays the ledger. The canvas is the map. The reader is a theater: chrome fades, the page holds the light.</p>
+      <p>The EPUB or PDF stays in the vault. The book note stays the ledger. The canvas is the map. Open Notes stays on the note. Open Book flies onto the reader, then a theme-matched theater.</p>
     </div>
     <div>
       <h2>Ask never stands alone</h2>
@@ -1245,7 +1419,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     { id: "fr", title: "Frankenstein", author: "Mary Shelley", status: "Finished", kind: "epub", pages: 280, last: 280, cover: "#3a1c22", ink: "#f3dce0" },
     { id: "wa", title: "Walden", author: "Henry David Thoreau", status: "To read", kind: "pdf", pages: 216, last: 1, cover: "#2a3328", ink: "#e4eedc" },
     { id: "mi", title: "Middlemarch", author: "George Eliot", status: "Reading", kind: "epub", pages: 880, last: 112, cover: "#4a3420", ink: "#f3e6c8" },
-    { id: "lg", title: "Leaves of Grass", author: "Walt Whitman", status: "To read", kind: "epub", pages: 168, last: 1, cover: "#1e2e28", ink: "#dceee4" },
+    { id: "lg", title: "Leaves of Grass", author: "Walt Whitman", status: "To read", kind: "none", pages: 0, last: 1, cover: "#1e2e28", ink: "#dceee4" },
     { id: "re", title: "The Republic", author: "Plato", status: "Finished", kind: "pdf", pages: 320, last: 320, cover: "#2a2438", ink: "#e6dff3" },
     { id: "scan", title: "Unreadable scan", author: "Unknown", status: "To read", kind: "bad", pages: 0, last: 0, cover: "#5c5c5c", ink: "#ececec" },
     { id: "em", title: "Emma", author: "Jane Austen", status: "Reading", kind: "epub", pages: 474, last: 20, cover: "#3a2430", ink: "#f6dfea" },
@@ -1266,11 +1440,13 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   ];
 
   const NOTES = {
-    library: "Click Pride and Prejudice. The book comes toward you and opens on the last page you read. Tap to skip.",
-    reading: "A note in reading mode. The shelf is a post-processed block. Tap a cover. The open starts from that rect, on the window, not inside the note.",
-    reader: "The open lands on this reader: spread, remarks, progress. Theater only dims the Obsidian chrome around it.",
+    library: "Tap a cover. Chooser first: Open Notes is the default. Open Book only if an EPUB or PDF exists.",
+    reading: "A note in reading mode. The shelf is a post-processed block. Tap a cover. Chooser, then Open Book flies from that rect on the window.",
+    chooser: "Open Notes is primary. Open Book is hidden when there is no EPUB or PDF. Pride and Prejudice has a file.",
+    note: "Open Notes stays on the book note. No theater.",
+    reader: "Settled reader. Book size S·M·L·XL enlarges the page, not the type. Theater follows the theme after Open Book.",
     select: "Select a line. Highlight, remark, or ask. Each one saves to the canvas.",
-    ask: "Read this page, this selection, or the whole book. The answer is already on the canvas.",
+    ask: "Read this page, this selection, or the whole book. The key is in Obsidian secrets. The answer is already on the canvas.",
     canvas: "One canvas per book. The book is in the middle. Click a card to jump to that page.",
     settings: "The key lives in Obsidian secrets. Replace picks another. Remove unlinks the name.",
     empty: "No secret linked, or a file we cannot open. Say so in one line.",
@@ -1293,10 +1469,67 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     playing: false,
     theater: false,
     chromeReveal: false,
+    chooserOpen: false,
   };
 
   function reduceMotion() {
     return state.motion === "reduced" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  const BOOK_SIZES = {
+    s: { w: 230, h: 280, theaterH: 280 },
+    m: { w: 270, h: 340, theaterH: 340 },
+    l: { w: 305, h: 410, theaterH: 420 },
+    xl: { w: 340, h: 488, theaterH: 500 },
+  };
+  const SIZE_ORDER = ["s", "m", "l", "xl"];
+
+  function bookSize() {
+    return state.book.size || "m";
+  }
+
+  function hasBookFile(b) {
+    return b && (b.kind === "epub" || b.kind === "pdf");
+  }
+
+  function fileLabel(b) {
+    if (!hasBookFile(b)) return "";
+    return b.title.replace(/ /g, "-") + "." + b.kind;
+  }
+
+  function applyPageSize(node, theater) {
+    const dim = BOOK_SIZES[bookSize()] || BOOK_SIZES.m;
+    node.style.setProperty("--page-w", dim.w + "px");
+    node.style.setProperty("--page-h", (theater ? dim.theaterH : dim.h) + "px");
+  }
+
+  function bookSizeControl(phone) {
+    const current = bookSize();
+    return el("div", { class: "bsize" + (phone ? " is-phone" : ""), "aria-label": "Book size" }, [
+      el("div", { class: "seg", role: "group" },
+        SIZE_ORDER.map((sz, i) => el("button", {
+          type: "button",
+          class: "opt" + (current === sz ? " on" : ""),
+          "data-act": "book-size",
+          "data-size": sz,
+          "aria-pressed": current === sz ? "true" : "false",
+        }, [el("span", { class: "bk b" + (i + 1) }), sz.toUpperCase()])),
+      ),
+      phone ? null : el("span", { class: "kbd" }, "⌘− / ⌘+"),
+    ]);
+  }
+
+  function setBookSize(sz) {
+    if (!SIZE_ORDER.includes(sz)) return;
+    state.book.size = sz;
+    const rec = BOOKS.find((b) => b.id === state.book.id);
+    if (rec) rec.size = sz;
+    render();
+  }
+
+  function stepBookSize(dir) {
+    const i = SIZE_ORDER.indexOf(bookSize());
+    setBookSize(SIZE_ORDER[Math.max(0, Math.min(SIZE_ORDER.length - 1, i + dir))]);
   }
 
   function pageText(lines, mark) {
@@ -1355,7 +1588,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       el("div", { class: "atomic-shelf-readout" }, [
         el("span", { class: "atomic-shelf-readout-title", "data-read-title": "" }, "10 books"),
         el("span", { class: "atomic-shelf-readout-meta", "data-read-meta": "" }, "3 reading · 3 finished · EPUB and PDF"),
-        el("span", { class: "atomic-readout", "data-read-hint": "" }, "Click a book to open"),
+        el("span", { class: "atomic-readout", "data-read-hint": "" }, "Tap a cover for Open Notes or Open Book"),
       ]),
       el("div", { class: "atomic-heat-mini" }, [
         el("div", { class: "atomic-section-head", style: { display: "flex", justifyContent: "space-between" } }, [
@@ -1398,9 +1631,67 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("div", { class: "ob-prop" }, [el("span", null, "Hobby"), el("span", null, "Reading")]),
         el("div", { class: "ob-prop" }, [el("span", null, "Kind"), el("span", null, "Note · reading mode")]),
       ]),
-      el("p", { class: "ob-reading-p" }, "This is the note in reading mode. The shelf below is a post-processed block, not a custom view. Tap a cover. The book opens from that rectangle."),
+      el("p", { class: "ob-reading-p" }, "This is the note in reading mode. The shelf below is a post-processed block, not a custom view. Tap a cover. Chooser first, then Open Book flies from that rectangle."),
       readingBlock(),
     ]);
+  }
+
+  function itemNoteView() {
+    const b = state.book;
+    const file = hasBookFile(b) ? fileLabel(b) : "None — Open Book hidden";
+    return el("div", { class: "ob-reading" }, [
+      el("h2", { class: "ob-inline-title" }, b.title),
+      el("div", { class: "ob-props" }, [
+        el("div", { class: "ob-prop" }, [el("span", null, "Hobby"), el("span", null, "Reading")]),
+        el("div", { class: "ob-prop" }, [el("span", null, "Status"), el("span", null, b.status)]),
+        el("div", { class: "ob-prop" }, [el("span", null, "File"), el("span", null, file)]),
+        el("div", { class: "ob-prop" }, [el("span", null, "reader.size"), el("span", null, bookSize())]),
+      ]),
+      el("p", { class: "ob-reading-p" }, "Opened via Open Notes. Stay in this leaf. No theater. The canvas and the reader stay linked from this note."),
+    ]);
+  }
+
+  function chooserSheet(phone) {
+    const b = state.book;
+    const rows = [
+      el("button", { type: "button", class: "atomic-chooser-row is-primary", "data-act": "open-notes" }, [
+        el("span", { class: "ico" }, "✎"),
+        el("span", { class: "label" }, [el("b", null, "Open Notes"), el("span", null, "Continue the book note · default")]),
+        el("span", { class: "kbd" }, "↵"),
+      ]),
+    ];
+    if (hasBookFile(b)) {
+      rows.push(el("button", { type: "button", class: "atomic-chooser-row", "data-act": "open-book" }, [
+        el("span", { class: "ico" }, "📖"),
+        el("span", { class: "label" }, [el("b", null, "Open Book"), el("span", null, fileLabel(b))]),
+      ]));
+    }
+    return el("div", { class: "atomic-chooser-scrim", "data-chooser": "" },
+      el("div", { class: "atomic-chooser fitness-plugin" }, [
+        phone ? el("div", { class: "grab" }) : null,
+        ...rows,
+        el("button", { type: "button", class: "atomic-chooser-cancel", "data-act": "chooser-cancel" }, "Cancel"),
+      ]),
+    );
+  }
+
+  function theaterLayers() {
+    return [
+      el("div", { class: "th-ambient", "aria-hidden": "true" }),
+      el("div", { class: "th-key", "aria-hidden": "true" }),
+      el("div", { class: "curtain is-l", "aria-hidden": "true" }),
+      el("div", { class: "curtain is-r", "aria-hidden": "true" }),
+      el("div", { class: "lamp-pool is-l", "aria-hidden": "true" }),
+      el("div", { class: "lamp-pool is-r", "aria-hidden": "true" }),
+      el("div", { class: "th-chrome" }, [
+        bookSizeControl(false),
+        el("span", { class: "th-sep" }),
+        el("button", { type: "button", class: "th-exit", "data-act": "theater-exit" }, [
+          "Exit",
+          el("span", { class: "kbd" }, "Esc"),
+        ]),
+      ]),
+    ];
   }
 
   function openScene() {
@@ -1493,8 +1784,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("span", { class: "grow atomic-name" }, [el("span", { class: "atomic-dot" }), "Pride and Prejudice"]),
         el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, "Canvas"),
         el("button", { type: "button", class: "atomic-link", "data-act": "note" }, "Note"),
+        phone ? null : (state.theater ? null : bookSizeControl(false)),
         state.theater
-          ? el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-act": "theater-exit" }, "Exit")
+          ? null
           : el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-act": "theater-enter" }, "Theater"),
       ]),
       el("div", { class: "atomic-spread" }, pages.concat([selbar, ask])),
@@ -1503,9 +1795,10 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("span", { class: "atomic-prog" }, el("i")),
         el("span", null, "47 / 432 · 11%"),
       ]),
-      state.theater
-        ? el("button", { type: "button", class: "atomic-btn is-quiet is-small atomic-theater-esc", "data-act": "theater-exit" }, phone ? "Tap an edge" : "Esc")
-        : null,
+      phone ? el("div", { class: "atomic-phone-size" }, [
+        el("div", { class: "rs-title" }, "Book size"),
+        bookSizeControl(true),
+      ]) : null,
     ]);
   }
 
@@ -1673,6 +1966,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     if (scene === "canvas") return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
     if (scene === "empty" && state.emptyKind === "key") return ["Settings", "Atomic Tracker", "Ask"];
     if (scene === "library" || scene === "reading" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
+    if (scene === "chooser" || scene === "note") return ["atomics", "hobbies", "Reading", state.book.title];
     return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
   }
 
@@ -1681,6 +1975,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     if (scene === "canvas") return "Pride and Prejudice.canvas";
     if (scene === "library" || scene === "reading" || (scene === "empty" && state.emptyKind === "file")) return "Book shelf";
     if (scene === "empty") return "Ask";
+    if (scene === "chooser" || scene === "note") return state.book.title;
     return "Pride and Prejudice";
   }
 
@@ -1690,12 +1985,15 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     if (scene === "canvas") return "1 canvas";
     if (scene === "settings") return state.hasSecretApi ? "" : "Needs 1.11.4";
     if (scene === "empty") return state.emptyKind === "file" ? "Unsupported" : "No secret";
+    if (scene === "chooser") return "Chooser";
+    if (scene === "note") return "Open Notes";
     return "p. 47 · 11%";
   }
 
   function contentFor(scene, phone) {
     if (scene === "library") return shelf();
     if (scene === "reading") return readingView();
+    if (scene === "chooser" || scene === "note") return itemNoteView();
     if (scene === "canvas") return canvasView(phone);
     if (scene === "settings") return settingsView();
     if (scene === "empty") return emptyView();
@@ -1735,7 +2033,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 
   function theaterClass(base, scene) {
     return base + " theme-" + state.theme
-      + (theaterOn(scene) ? " is-theater" : "")
+      + (theaterOn(scene) ? " is-theater sz-" + bookSize() : "")
       + (theaterOn(scene) && state.chromeReveal ? " is-chrome" : "");
   }
 
@@ -1765,28 +2063,33 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         statusFor(scene) ? el("div", { class: "ob-status" }, statusFor(scene)) : null,
       ]),
       ...(theaterOn(scene) ? edgeZones() : []),
+      ...(theaterOn(scene) ? theaterLayers() : []),
+      scene === "chooser" ? chooserSheet(false) : null,
       openScene(),
     ]);
+    applyPageSize(win, theaterOn(scene));
     return win;
   }
 
   function phoneFrame(scene) {
-    return el("div", { class: "ob-phone" },
-      el("div", { class: theaterClass("ob-phone-screen", scene), "data-theater": theaterOn(scene) ? "on" : "off" }, [
-        el("div", { class: "ob-island" }),
-        el("div", { class: "ob-statusbar" }, [el("span", null, "9:41"), statusIcons()]),
-        el("div", { class: "ob-mhead" }, [
-          svg(ICONS.sidebar),
-          el("div", { class: "ob-mhead-title" }, titleFor(scene)),
-          svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
-        ]),
-        el("div", { class: "ob-mcontent", "data-host": "phone" }, pane(scene, true)),
-        el("div", { class: "ob-mnav" }, [svg(ICONS.left), svg(ICONS.right), svg(ICONS.plus), svg(ICONS.search), svg(ICONS.menu)]),
-        el("div", { class: "ob-home" }),
-        ...(theaterOn(scene) ? edgeZones() : []),
-        openScene(),
+    const screen = el("div", { class: theaterClass("ob-phone-screen", scene), "data-theater": theaterOn(scene) ? "on" : "off" }, [
+      el("div", { class: "ob-island" }),
+      el("div", { class: "ob-statusbar" }, [el("span", null, "9:41"), statusIcons()]),
+      el("div", { class: "ob-mhead" }, [
+        svg(ICONS.sidebar),
+        el("div", { class: "ob-mhead-title" }, titleFor(scene)),
+        svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
       ]),
-    );
+      el("div", { class: "ob-mcontent", "data-host": "phone" }, pane(scene, true)),
+      el("div", { class: "ob-mnav" }, [svg(ICONS.left), svg(ICONS.right), svg(ICONS.plus), svg(ICONS.search), svg(ICONS.menu)]),
+      el("div", { class: "ob-home" }),
+      ...(theaterOn(scene) ? edgeZones() : []),
+      ...(theaterOn(scene) ? theaterLayers() : []),
+      scene === "chooser" ? chooserSheet(true) : null,
+      openScene(),
+    ]);
+    applyPageSize(screen, theaterOn(scene));
+    return el("div", { class: "ob-phone" }, screen);
   }
 
   function setSceneButtons() {
@@ -1898,7 +2201,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   function bumpIdle() {
     if (idleTid) clearTimeout(idleTid);
     if (!state.theater || !state.chromeReveal) return;
-    idleTid = setTimeout(hideChrome, 2200);
+    idleTid = setTimeout(hideChrome, 2000);
   }
 
   function enterTheater() {
@@ -1982,6 +2285,17 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     overlay.addEventListener("click", skip);
   }
 
+  function promptChooser(book, origin) {
+    abortOpens();
+    state.book = book;
+    if (!state.book.size) state.book.size = "m";
+    state.from = origin;
+    state.scene = "chooser";
+    state.chooserOpen = true;
+    exitTheater();
+    render();
+  }
+
   function openBook(book, origin) {
     if (book.kind === "bad") {
       abortOpens();
@@ -2042,6 +2356,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         state.scene = sceneBtn.getAttribute("data-scene");
         if (state.scene === "empty") state.emptyKind = "key";
         if (state.scene !== "reader" && state.scene !== "select" && state.scene !== "ask") exitTheater();
+        if (state.scene === "chooser") state.book = BOOKS[0];
         render();
         return;
       }
@@ -2059,14 +2374,17 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       const book = e.target.closest("[data-book]");
       if (book) {
         const rec = BOOKS.find((b) => b.id === book.getAttribute("data-book"));
-        if (rec) openBook(rec, book.closest("[data-block-host]") ? "reading" : "shelf");
+        if (rec) {
+          if (rec.kind === "bad") openBook(rec, book.closest("[data-block-host]") ? "reading" : "shelf");
+          else promptChooser(rec, book.closest("[data-block-host]") ? "reading" : "shelf");
+        }
         return;
       }
       const jump = e.target.closest("[data-jump]");
       if (jump) {
         state.page = Number(jump.getAttribute("data-jump")) || 47;
         state.from = "canvas";
-        enterTheater();
+        exitTheater();
         state.scene = "reader";
         render();
         return;
@@ -2093,7 +2411,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         return;
       }
       if (name === "note") {
-        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Opens Pride and Prejudice.md");
+        exitTheater();
+        state.scene = "note";
+        render();
         return;
       }
       if (name === "theater-enter") {
@@ -2104,6 +2424,28 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       if (name === "theater-exit") {
         exitTheater();
         render();
+        return;
+      }
+      if (name === "open-notes") {
+        state.scene = "note";
+        state.chooserOpen = false;
+        exitTheater();
+        render();
+        return;
+      }
+      if (name === "open-book") {
+        state.chooserOpen = false;
+        openBook(state.book, state.from || "shelf");
+        return;
+      }
+      if (name === "chooser-cancel") {
+        state.chooserOpen = false;
+        state.scene = state.from === "reading" ? "reading" : "library";
+        render();
+        return;
+      }
+      if (name === "book-size") {
+        setBookSize(act.getAttribute("data-size") || "m");
         return;
       }
       if (name === "replace-secret") {
@@ -2177,7 +2519,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         const h = shelfEl.querySelector("[data-read-hint]");
         if (t) t.textContent = rec.title;
         if (m) m.textContent = [rec.author, rec.status, rec.kind === "bad" ? "unsupported" : rec.kind.toUpperCase(), rec.pages ? rec.pages + " pp" : ""].filter(Boolean).join(" · ");
-        if (h) h.textContent = rec.kind === "bad" ? "Cannot open this file" : rec.status === "Reading" ? "Resume p. " + rec.last : "Click to open";
+        if (h) h.textContent = rec.kind === "bad" ? "Cannot open this file" : hasBookFile(rec) ? (rec.status === "Reading" ? "Chooser · resume p. " + rec.last : "Chooser · Open Notes or Open Book") : "Open Notes only — no EPUB/PDF";
       });
     });
   }
@@ -2208,6 +2550,26 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   }
 
   document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === "-" || e.key === "=" || e.key === "+")) {
+      e.preventDefault();
+      stepBookSize(e.key === "-" ? -1 : 1);
+      return;
+    }
+    if (e.key === "Enter" && state.scene === "chooser") {
+      e.preventDefault();
+      state.scene = "note";
+      state.chooserOpen = false;
+      exitTheater();
+      render();
+      return;
+    }
+    if (e.key === "Escape" && state.scene === "chooser") {
+      e.preventDefault();
+      state.chooserOpen = false;
+      state.scene = state.from === "reading" ? "reading" : "library";
+      render();
+      return;
+    }
     if (e.key !== "Escape" || !state.theater) return;
     e.preventDefault();
     exitTheater();
@@ -2221,10 +2583,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     if (state.scene === "empty") state.emptyKind = "key";
     if (state.scene === "reader" || state.scene === "select" || state.scene === "ask") {
       state.from = "shelf";
-      enterTheater();
-    } else {
-      exitTheater();
     }
+    if (state.scene === "chooser") state.book = BOOKS[0];
+    exitTheater();
     render();
   });
   document.querySelector("[data-tool=theme]").addEventListener("click", (e) => {

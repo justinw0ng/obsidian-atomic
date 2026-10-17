@@ -2,19 +2,22 @@
 
 This folder is a **design review only**. `reader-mock.html` is not plugin code. Do not merge it as a feature.
 
-The live mock sits desktop and phone side by side. Theme and motion toggles match the 1.5.0 revamp board. Copy is short and plain.
+The approved design is the OpenPencil journey in `design/reader-journey/` (`JOURNEY.md`, `journey.source.html`, `atomic-reader-journey.fig`, PNGs in `export/`). This HTML mock is kept in sync with that journey so reviewers can click through chooser, flight, theme-matched theater, and book size. Theme and motion toggles match the 1.5.0 revamp board. Copy is short and plain.
 
 ## What this proposes
 
 A new **reader** for EPUB and PDF files that already live in the vault. It is separate from the existing book note, and linked to it.
 
-- Open a file from the book shelf, including a shelf **block inside a note in reading mode**. The book comes toward you and opens on the last page you read (p. 47). The flying pages land on the **same reader spread** (bar, remarks, highlights, selection toolbar, progress). Theater only dims the Obsidian chrome around that reader.
+- Tap a cover on the shelf or on a shelf **block inside a note in reading mode**. A **chooser** appears: **Open Notes** is the default (always there). **Open Book** shows only when an EPUB/PDF is linked; otherwise that row is hidden.
+- Open Notes stays on the book note. No theater.
+- Open Book is a **continuous in-place flight** on the same leaf: cover lifts → hinge opens → pages flip → spread forms → lands on last-read p. 47. No second layout jump. Overlay on `activeDocument.body` so a reading-view re-render cannot kill it.
+- **Theater follows the theme.** Light theme → light theater (linen curtains, soft warm key on cream paper, contact shadow). Dark theme → dark theater. No black stage, no orange side bars. Chrome auto-hides after 2s; mouse or tap restores it. **Exit** and **Esc** leave theater.
+- **Book size S · M · L · XL** (`⌘−` / `⌘+`) lives in the reader toolbar, the theater chrome pill, and the phone sheet. It enlarges the **page**, not the type (M 15 lines, XL 22–23). Saved per book as `reader.size` frontmatter. 200ms resize; instant under reduced motion.
 - Open from a canvas card. You land on that card’s page.
-- Highlight, remark, or ask. Each one writes a card on **one canvas per book**.
-- Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
-- Ask uses a key the user keeps in **Obsidian secret storage**. Scope is this page, this selection, or the whole book.
+- Highlight, remark, or ask. Each one writes a card on **one canvas per book**. Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
+- Ask uses a key the user keeps in **Obsidian secret storage** (`requireApiVersion("1.11.4")`). Older Obsidian: Ask off. Scope is this page, this selection, or the whole book.
 - Minutes spent reading feed the existing Reading sessions and heatmap.
-- Desktop and phone have the same actions. The layout changes; the product does not.
+- Desktop and phone have the same actions. The layout changes; the product does not. Typography is Literata 12.5/19 desktop, 15/23 phone. 1.5.0 tokens (hairlines, radii 3 / 9 / 14, Inter + Literata). No purple.
 
 The book note stays the ledger (`atomics/hobbies/Reading/Items/<Book>.md`). Frontmatter already has `related_canvas`. The canvas is the map. The reader is the place you read.
 
@@ -64,26 +67,49 @@ The open-book motion must run when the user taps a cover in **Obsidian reading m
 
 **Reduced motion.** No 3D, no page storm. Instant reader. Same on phone.
 
-The mock **Reading view** scene is a note in reading mode with an `atomic-bookshelf` block. Tap Pride and Prejudice. The open starts from that cover’s on-screen rect on desktop and on the phone.
+The mock **Reading view** scene is a note in reading mode with an `atomic-bookshelf` block. Tap Pride and Prejudice. The chooser opens from that cover. Open Book then flies from that cover’s on-screen rect, on the window, not inside the note.
+
+## Chooser (decided)
+
+Tap a cover → chooser sheet, not an instant open.
+
+- **Open Notes** — primary, default (`↵`), always available. Stays on the existing book note. No theater.
+- **Open Book** — only when an EPUB or PDF is linked. Hidden in the no-file state.
+- **Cancel** dismisses the sheet.
+
+The mock **Chooser** scene is Pride and Prejudice with a file. Leaves of Grass on the shelf has no file, so Open Book is hidden.
 
 ## Theater mode (decided)
 
-Reading should feel like a cinema **around** the reader you already have. The reader content stays the screen_reader / Select layout: desktop two-page spread, Shelf / title / Canvas / Note bar, remark on the left, Ask note on the right, highlight colours, selection toolbar, last-read progress; phone one column, marginal dots, bottom nav. Theater only dims the surrounding Obsidian chrome (ribbon, tabs, view header, status). It does **not** restyle the pages, hide the reader bar, or take chrome out of flow — page positions stay put. Chrome comes back on mouse-to-edge (desktop) or an edge tap (phone), then auto-hides after idle. **Esc** or Exit leaves theater. Light and dark each have their own void. `prefers-reduced-motion` is an instant fade.
+Theater is the Open Book landing, not a black void around an unchanged reader. **Theme follows the app chrome.** Do not put light theater in a dark shell or the reverse.
 
-**Open lands on this reader.** Snapshot the cover rect, then paint the reader under the overlay. Measure `.atomic-page` (desktop: both leaves; phone: the column). The flying book’s `--to-x` / `--to-y` / `--to-s` map the opened spread onto those rects (p. 47, same text). Overlay lifts with no second layout and no crossfade. Replay (library or reading view) ends on that same reader.
+**Light.** Obsidian / Atomic 1.5.0 light chrome stays light (cream / `#F5F5F5`). Room is warm linen / taupe. Curtains are soft fabric folds in warm neutrals — **not** black velvet and **not** neon orange bars. The book is the lit hero: cream paper (`#f0eee6` / `#f0e8d2`), soft warm key from upper-left, soft fill on the shaded page, contact shadow under the spread, warm rim on paper edges. Side lighting is soft radial **pools**, not vertical orange strips.
 
-**Mount in Obsidian.** Same window rule as the open overlay. Do **not** `requestFullscreen` as the only path (popouts, iOS WKWebView). Do **not** clip the workspace with `clip-path` or CSS masks (directory review). Two honest shapes:
+**Dark.** Full dark Obsidian desk (`#1e1e1e` / `#262626`). Room is deep warm dark (`#0e0c0a`). Same curtain metaphor in charcoal / taupe. Cream paper still, with a museum key, contact shadow, and warm side pools.
 
-1. **Preferred.** Keep the reader leaf. Fade ribbon / tabs / view header / status in place on `activeDocument` (read `activeWindow` / `activeDocument`, not `globalThis`). Popout-friendly. The reader bar, pages, remarks, toolbar, and progress do not move.
-2. **Fallback.** Dim other splits the same way. Still do not rebuild the reader into a different measure.
+**Chrome.** Obsidian chrome (ribbon, tabs, view header, status) dims, then auto-hides after **2s**. Mouse move or tap restores it. A theater pill at top center holds **Book size** and **Exit Esc**. **Esc** or Exit leaves theater. Phone keeps island, status, home indicator, and bottom nav. `prefers-reduced-motion` is an instant fade, no 3D.
 
-The mock’s `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is (1): chrome opacity only; reader layout unchanged. `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
+**Open lands on the reader.** Snapshot the cover rect, then paint the reader under the overlay. Measure `.atomic-page` (desktop: both leaves; phone: the column). The flying book’s `--to-x` / `--to-y` / `--to-s` map the opened spread onto those rects (p. 47, same text). Overlay lifts with no second layout and no crossfade. Replay Open Book (library or reading view) flies onto that spread, then theater.
 
-**Phone.** Island, status, home indicator, and bottom nav stay (they are the phone frame / reader chrome). The Obsidian view header can fade. Safe-area insets stay as they are on the reader.
+**Mount in Obsidian.** Same window rule as the open overlay. Do **not** `requestFullscreen` as the only path (popouts, iOS WKWebView). Do **not** clip the workspace with `clip-path` or CSS masks (directory review). Keep the reader leaf. Fade ribbon / tabs / view header / status in place on `activeDocument` (read `activeWindow` / `activeDocument`, not `globalThis`).
 
-**Idle and restore.** Pointer in a 32px edge, or a tap that is not on the page / a remark / Ask, reveals Obsidian chrome for ~2.2s. Esc exits theater. A command “Toggle theater” matches the in-reader control.
+The mock `.ob-window.is-theater` / `.ob-phone-screen.is-theater` is theme-matched linen or museum, with curtains, key light, and the size/Exit pill. `[data-overlay-host=window]` shares that frame, so the flight can target the live page rects.
 
-The mock **Replay open** (library or reading view) lands on Select — the reader with toolbar — chrome still on. Reduced motion skips the 3D and still lands there.
+## Book size (decided)
+
+Segmented **S · M · L · XL**. Each segment has a book glyph that grows with the size. `⌘ −` / `⌘ +` (Ctrl on Windows/Linux) steps it.
+
+- **Reader:** right end of the toolbar, same row as Shelf / Canvas / Note.
+- **Theater:** in the auto-hiding chrome pill (`Book size · Exit Esc`).
+- **Phone:** a "Book size" row with a full-width segmented control.
+
+**What size does.** It scales the **book**, not the type. Type stays Literata 12.5/19 desktop, 15/23 phone. M page 270×340, 15 lines. XL page 340×488 (theater 340×500), 22–23 lines. In theater, XL parts the curtains wider.
+
+**Persistence.** Saved per book in the book note frontmatter (`reader.size: xl`), next to last-read page. New books start at M.
+
+**Motion.** 200ms `cubic-bezier(0.2, 0, 0, 1)`, anchored on the first visible line. Reduced motion is instant.
+
+The mock **Replay open** (library or reading view) skips the chooser and plays Open Book onto p. 47, then theater. Reduced motion skips the 3D and still lands there.
 
 ## Open questions
 
@@ -147,9 +173,9 @@ Create `related_canvas` on first save. Book in the centre. Chapter groups. Highl
 
 Settings: provider, model, and a `SecretComponent` that picks or creates a Keychain secret. Gate the whole Ask surface with `requireApiVersion("1.11.4")`. Ask on **this page** and **this selection**. Each answer is a canvas card. Phone uses the same Ask as a bottom sheet. No whole-book yet. No plaintext key field on any version.
 
-### Phase 6 — Motion and theater
+### Phase 6 — Motion, chooser, theater, and book size
 
-Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight targets the live reader page rects and lands on that same spread (no jump). Theater dims Obsidian chrome around it. 2D fallback on phone if Phase 2 frames are not stable.
+Chooser first (Open Notes default; Open Book only with a file). Open-book animation 1.2–1.6s from a shelf cover **and** from a reading-view block, tap to skip, reduced-motion cut. Overlay on `activeDocument.body`. The flight targets the live reader page rects and lands on that same spread (no jump), then theme-matched theater (linen in light, museum in dark; Exit + Esc; chrome hides after 2s). Book size S·M·L·XL in reader, theater, and phone sheet. 2D fallback on phone if Phase 2 frames are not stable.
 
 ### Phase 7 — Whole-book Ask
 
@@ -164,6 +190,6 @@ Confirm + size warning. Retrieval over a full paste. Stay optional forever.
 - Continuous scroll as the only PDF mode (page mode first)
 - Translating the whole book
 
-## Superseded
+## Source of truth
 
-The approved OpenPencil reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`) supersedes the HTML open/theater mock in this folder. `reader-mock.html` is kept for reference only.
+The approved OpenPencil reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`, `JOURNEY.md`) is the spec. This HTML mock matches that spec (chooser, flight, theme-matched theater, book size). Older HTML stills that showed a dark stage around an unchanged reader are superseded.

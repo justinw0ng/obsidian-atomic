@@ -1,6 +1,6 @@
 # Atomic Tracker — EPUB/PDF reader journey (1.5.0)
 
-Design board for Carmy’s Atomic Tracker reader. Visual language follows the **1.5.0 revamp**: hairlines, object/control/well radii (3 / 9 / 14), Timeless Type, liquid glass, plank bookshelf. No purple gradients or mismatched radii.
+Design board for Carmy’s Atomic Tracker reader. Visual language follows the **1.5.0 revamp**: hairlines, object/control/well radii (3 / 9 / 14), Inter + Literata, plank bookshelf. No purple gradients or mismatched radii.
 
 ## Flow
 
@@ -28,7 +28,9 @@ Settings: secret storage saved / empty / error
 | 04 | Open Notes → book note | ✓ | ✓ |
 | 05a–e | Open Book flight keyframes | 5 continuous frames | — |
 | 06 | Theater · light + dark | ✓ pair (light desk + dark Obsidian desk) | — |
-| 07 | Settled reader | two-page + margins + toolbar | single column + expand dots |
+| 06c/d | Theater · book size XL | ✓ pair | — |
+| 07 | Settled reader | two-page + margins + toolbar + S·M·L·XL | single column + expand dots |
+| 07b | Book size · M vs XL | ✓ pair + phone sheet | ✓ sheet |
 | 08 | Ask AI panel | ✓ | ✓ |
 | 09 | Canvas book notes | ✓ | ✓ |
 | 10 | Settings secret storage | saved / empty / error | ✓ |
@@ -55,10 +57,10 @@ Premium cues: spring-like ease in the staging, soft contact shadows, paper tooth
 
 | Path | Role |
 |------|------|
-| `journey.html` | Journey board (import source) |
+| `journey.source.html` | Editable journey board |
 | `atomic-reader-journey.fig` | OpenPencil document |
 | `export/01-library.png` … | PNG per major step |
-| `covers/` | Shelf cover art |
+| `tools/` | Flatten, export, crop. Generated `journey.html` is not committed |
 
 ## Tokens (light)
 
@@ -84,7 +86,11 @@ Premium cues: spring-like ease in the staging, soft contact shadows, paper tooth
 | `06-theater.png` | Theater · light + dark pair |
 | `06-theater-light.png` | Theater · light theme (linen curtains, soft key) |
 | `06-theater-dark.png` | Theater · dark Obsidian (museum key on paper) |
+| `06c-theater-size-light.png` | Theater XL · light |
+| `06d-theater-size-dark.png` | Theater XL · dark |
+| `06cd-theater-size.png` | Theater XL pair |
 | `07-reader.png` | Settled reader |
+| `07b-book-size.png` | Book size M vs XL + phone sheet |
 | `08-ask.png` | Ask AI panel |
 | `09-canvas.png` | Canvas book notes |
 | `10-settings.png` | Settings · secret storage states |
@@ -114,7 +120,7 @@ Design fixes made along the way:
 - The Ask send button no longer stretches.
 - The violet highlight is now the blue accent tint.
 
-To rebuild: edit `journey.source.html`, run `bash tools/build.sh`, copy `/tmp/rx/journey.flat.html` to `journey.html`, then run `openpencil import journey.html -o atomic-reader-journey.fig`. After that, `openpencil tree … > /tmp/rx/tree.txt`, `bash tools/export.sh` and `python3 tools/crop.py`. Exports are 2× and cropped to content on the board background.
+To rebuild: edit `journey.source.html`, run `bash tools/build.sh`. That writes a generated board to `${ATOMIC_JOURNEY_WORK:-/tmp/atomic-reader-journey}/journey.html` (not committed). Then `openpencil import` that file onto `atomic-reader-journey.fig`, `openpencil tree atomic-reader-journey.fig > "$ATOMIC_JOURNEY_WORK/tree.txt"`, `bash tools/export.sh`, and `python3 tools/crop.py`. Exports are 2× and cropped to content on the board background.
 
 Caveat: because the text is flattened, editing copy in OpenPencil means editing individual line nodes. Re-flow from the source instead. `openpencil fonts` reports Literata and IBM Plex Mono as "substituted" for the app, but the PNG export renders both correctly.
 
@@ -131,7 +137,7 @@ Theme follows the app chrome. **Do not** put light theater into a dark shell or 
 
 ### Dark (`06-theater-dark.png`)
 - Full **dark Obsidian** desk chrome (`#1e1e1e` / `#262626`).
-- Museum-grade room: deep warm dark (`#0e0c0a`), one soft warm key on cream paper (tokengremlin lighting craft), contact shadow, warm side pools.
+- Museum-grade room: deep warm dark (`#0e0c0a`), one soft warm key on cream paper, contact shadow, warm side pools.
 - Same curtain metaphor in charcoal / taupe folds — still no fake orange bars.
 
 ### What changed vs old `06-theater.png`
@@ -143,7 +149,7 @@ Theme follows the app chrome. **Do not** put light theater into a dark shell or 
 | Toy lamp props + heavy velvet curtains | Linen/taupe fabric folds; no hard lamp fixtures |
 | Rough “AI stage” feel | Theme-matched museum craft |
 
-Pipeline: edit `journey.source.html` → `bash tools/build.sh` → `openpencil import journey.html -o atomic-reader-journey.fig` → `bash tools/export.sh` → `python3 tools/crop.py`.
+Pipeline: edit `journey.source.html` → `bash tools/build.sh` → `openpencil import` the generated board onto `atomic-reader-journey.fig` → `bash tools/export.sh` → `python3 tools/crop.py`.
 
 ## Book size (07, 07b, 06, 06c/06d) — added 2026-10-17
 
