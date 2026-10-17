@@ -193,4 +193,4 @@ Confirm + size warning. Retrieval over a full paste. Stay optional forever.
 
 ## Source of truth
 
-The approved OpenPencil reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`, `JOURNEY.md`) is the spec. This HTML mock matches that spec (chooser, flight, theme-matched theater, book size). Older HTML stills that showed a dark stage around an unchanged reader are superseded.
+The approved OpenPencil reader journey in `design/reader-journey/` (`atomic-reader-journey.fig`, PNG exports in `export/`, `JOURNEY.md`) is the spec. This HTML mock matches that spec (chooser, flight, theme-matched theater locked to XL with Exit Esc only, book size on the settled reader). Theater PNGs are `export/06-theater*.png`; size compare is `export/07b-book-size.png`; HTML mock refs live in `export/refs/`. Frames `06c` / `06d` / `06cd` are removed. Older HTML stills that showed a dark stage around an unchanged reader are superseded.

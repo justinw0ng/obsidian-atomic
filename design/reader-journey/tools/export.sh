@@ -19,7 +19,4 @@ e $(id '"step-06"') 06-theater
 e $(id '"desk-theater-light"') 06-theater-light
 e $(id '"desk-theater-dark"') 06-theater-dark
 e $(id '"step-07"') 07-reader; e $(id '"step-08"') 08-ask; e $(id '"step-09"') 09-canvas; e $(id '"step-10"') 10-settings
-e $(id '"step-06cd"') 06cd-theater-size
-e $(id '"desk-theater-size-light"') 06c-theater-size-light
-e $(id '"desk-theater-size-dark"') 06d-theater-size-dark
 e $(id '"step-07b"') 07b-book-size

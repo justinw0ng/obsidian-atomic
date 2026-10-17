@@ -1,6 +1,6 @@
 # Atomic Tracker — EPUB/PDF reader journey (1.5.0)
 
-Design board for Carmy’s Atomic Tracker reader. Visual language follows the **1.5.0 revamp**: hairlines, object/control/well radii (3 / 9 / 14), Inter + Literata, plank bookshelf. No purple gradients or mismatched radii.
+Design board for Carmy’s Atomic Tracker reader. Visual language follows the **1.5.0 revamp**: hairlines, object/control/well radii (3 / 9 / 14), Timeless Type, liquid glass, plank bookshelf. No purple gradients or mismatched radii.
 
 ## Flow
 
@@ -28,9 +28,8 @@ Settings: secret storage saved / empty / error
 | 04 | Open Notes → book note | ✓ | ✓ |
 | 05a–e | Open Book flight keyframes | 5 continuous frames | — |
 | 06 | Theater · light + dark | ✓ pair (light desk + dark Obsidian desk) | — |
-| 06c/d | Theater · book size XL | ✓ pair | — |
-| 07 | Settled reader | two-page + margins + toolbar + S·M·L·XL | single column + expand dots |
-| 07b | Book size · M vs XL | ✓ pair + phone sheet | ✓ sheet |
+| 07 | Settled reader | two-page + margins + toolbar | single column + expand dots |
+| 07b | Book size · M vs XL | ✓ pair | phone reading sheet |
 | 08 | Ask AI panel | ✓ | ✓ |
 | 09 | Canvas book notes | ✓ | ✓ |
 | 10 | Settings secret storage | saved / empty / error | ✓ |
@@ -57,10 +56,10 @@ Premium cues: spring-like ease in the staging, soft contact shadows, paper tooth
 
 | Path | Role |
 |------|------|
-| `journey.source.html` | Editable journey board |
+| `journey.html` | Journey board (import source) |
 | `atomic-reader-journey.fig` | OpenPencil document |
 | `export/01-library.png` … | PNG per major step |
-| `tools/` | Flatten, export, crop. Generated `journey.html` is not committed |
+| `covers/` | Shelf cover art |
 
 ## Tokens (light)
 
@@ -86,11 +85,10 @@ Premium cues: spring-like ease in the staging, soft contact shadows, paper tooth
 | `06-theater.png` | Theater · light + dark pair |
 | `06-theater-light.png` | Theater · light theme (linen curtains, soft key) |
 | `06-theater-dark.png` | Theater · dark Obsidian (museum key on paper) |
-| `06c-theater-size-light.png` | Theater XL · light |
-| `06d-theater-size-dark.png` | Theater XL · dark |
-| `06cd-theater-size.png` | Theater XL pair |
 | `07-reader.png` | Settled reader |
-| `07b-book-size.png` | Book size M vs XL + phone sheet |
+| `07b-book-size.png` | Book size · M vs XL + phone sheet |
+| `refs/theater_desk_xl_exit.png` | HTML mock ref · desktop XL, Exit Esc |
+| `refs/theater_phone_xl_exit.png` | HTML mock ref · phone XL, Exit Esc |
 | `08-ask.png` | Ask AI panel |
 | `09-canvas.png` | Canvas book notes |
 | `10-settings.png` | Settings · secret storage states |
@@ -120,13 +118,14 @@ Design fixes made along the way:
 - The Ask send button no longer stretches.
 - The violet highlight is now the blue accent tint.
 
-To rebuild: edit `journey.source.html`, run `bash tools/build.sh`. That writes a generated board to `${ATOMIC_JOURNEY_WORK:-/tmp/atomic-reader-journey}/journey.html` (not committed). Then `openpencil import` that file onto `atomic-reader-journey.fig`, `openpencil tree atomic-reader-journey.fig > "$ATOMIC_JOURNEY_WORK/tree.txt"`, `bash tools/export.sh`, and `python3 tools/crop.py`. Exports are 2× and cropped to content on the board background.
+To rebuild: edit `journey.source.html`, run `bash tools/build.sh`, copy `/tmp/rx/journey.flat.html` to `journey.html`, then run `openpencil import journey.html -o atomic-reader-journey.fig`. After that, `openpencil tree … > /tmp/rx/tree.txt`, `bash tools/export.sh` and `python3 tools/crop.py`. Exports are 2× and cropped to content on the board background.
 
 Caveat: because the text is flattened, editing copy in OpenPencil means editing individual line nodes. Re-flow from the source instead. `openpencil fonts` reports Literata and IBM Plex Mono as "substituted" for the app, but the PNG export renders both correctly.
 
-## Theater (06) — light + dark (redesigned 2026-10-17)
+## Theater (06) — light + dark (redesigned 2026-10-17; size lock approved same day)
 
 Theme follows the app chrome. **Do not** put light theater into a dark shell or vice versa.
+Book is locked to **XL**; chrome pill is **Exit Esc only** (see Theater chrome below).
 
 ### Light (`06-theater-light.png`)
 - Obsidian / Atomic 1.5.0 **light** chrome stays light (cream / `#F5F5F5` family); chrome dims slightly (opacity) while theater is on — mouse restores, Esc exits.
@@ -137,7 +136,7 @@ Theme follows the app chrome. **Do not** put light theater into a dark shell or 
 
 ### Dark (`06-theater-dark.png`)
 - Full **dark Obsidian** desk chrome (`#1e1e1e` / `#262626`).
-- Museum-grade room: deep warm dark (`#0e0c0a`), one soft warm key on cream paper, contact shadow, warm side pools.
+- Museum-grade room: deep warm dark (`#0e0c0a`), one soft warm key on cream paper (tokengremlin lighting craft), contact shadow, warm side pools.
 - Same curtain metaphor in charcoal / taupe folds — still no fake orange bars.
 
 ### What changed vs old `06-theater.png`
@@ -149,25 +148,37 @@ Theme follows the app chrome. **Do not** put light theater into a dark shell or 
 | Toy lamp props + heavy velvet curtains | Linen/taupe fabric folds; no hard lamp fixtures |
 | Rough “AI stage” feel | Theme-matched museum craft |
 
-Pipeline: edit `journey.source.html` → `bash tools/build.sh` → `openpencil import` the generated board onto `atomic-reader-journey.fig` → `bash tools/export.sh` → `python3 tools/crop.py`.
+Pipeline: edit `journey.source.html` → `bash tools/build.sh` → `openpencil import journey.html -o atomic-reader-journey.fig` → `bash tools/export.sh` → `python3 tools/crop.py`.
 
-## Book size (07, 07b, 06, 06c/06d) — added 2026-10-17
+## Theater chrome (06) — locked XL · Exit Esc only (approved 2026-10-17)
+
+Theater is **not** a place to change book size. Product rule:
+
+- Locked to **XL**: page 340×500, ~22–23 lines, Literata 12.5/19 (same type as the settled reader).
+- Chrome pill is **Exit Esc only** — no `S · M · L · XL`, no `⌘ − / +`.
+- Light theater = light linen; dark theater = dark museum. No purple. No fake orange bars.
+- Curtains part wider for XL (168 → 108px) so the locked book fits.
+- Chrome auto-hides after 2 s idle; mouse move / tap restores it; Esc exits.
+
+Supersedes older notes that put Book size in the theater pill or that used frames `06c` / `06d` / `06cd` to demonstrate theater resizing. Those frames are **removed** from the board and from `export/`.
+
+## Book size (07, 07b) — settled reader + phone sheet only
 
 **Control.** Segmented `S · M · L · XL`. Each segment has a book glyph that grows with the size, plus a letter. It's 28px tall with a hairline border, a 9px outer radius, and the active segment raised on paper. `⌘ −` / `⌘ +` (Ctrl on Windows/Linux) steps the size, shown as a mono hint.
 - **Reader (07):** right end of the reader toolbar, on the same row as the Shelf/Book/Canvas/Note pills.
-- **Theater (06):** sits in the auto-hiding chrome pill at the top center (`Book size · Exit Esc`). The chrome shows on mouse move or tap and fades after 2 s of idle. 06 shows it idle at M.
-- **Phone:** the reader sheet has a "Book size" row with a full-width segmented control (36px tall, 13px labels).
+- **Theater (06):** **none** — size is locked to XL; pill is Exit Esc only (see above).
+- **Phone:** the reading sheet has a "Book size" row with a full-width segmented control (36px tall, 13px labels). Not shown in phone theater if that mode is entered.
 
 **What size does.** It scales the **book**, not the type. Type stays Literata 12.5/19 on desktop. A bigger page holds more lines and more words per line:
-| Size | Normal reader page | Lines/page | Theater page | Lines/page |
-|---|---|---|---|---|
-| M | 270×340 | 15 | 270×340 | 15 |
-| XL | 340×488 | 22 | 340×500 | 23 |
-S and L sit between these steps. In theater, XL parts the curtains wider (168 → 108px) to make room for the book.
+| Size | Normal reader page | Lines/page | Theater (locked) |
+|---|---|---|---|
+| M | 270×340 | 15 | — |
+| XL | 340×488 | 22 | 340×500 · ~23 lines (only size in theater) |
+S and L sit between the reader steps.
 
-**Persistence.** Saved per book in the book note frontmatter (`reader.size: xl`), next to the last-read page. A new book starts at the vault default (M).
+**Persistence.** Saved per book in the book note frontmatter (`reader.size: xl`), next to the last-read page. A new book starts at the vault default (M). Entering theater uses XL regardless of the settled size control shown in 07 / 07b.
 
-**Motion.** Resizing animates page width/height and re-flows the text over 200 ms `cubic-bezier(0.2, 0, 0, 1)`, anchored on the first visible line so you keep your place. With `prefers-reduced-motion: reduce` the change is instant.
+**Motion.** On the settled reader, resizing animates page width/height and re-flows the text over 200 ms `cubic-bezier(0.2, 0, 0, 1)`, anchored on the first visible line so you keep your place. With `prefers-reduced-motion: reduce` the change is instant.
 
-Frames: `export/07b-book-size.png` (M vs XL side by side + phone sheet), `export/06c-theater-size-light.png`, `export/06d-theater-size-dark.png`, combined `export/06cd-theater-size.png`. Changed: `07-reader.png`, `06-theater-light.png`, `06-theater-dark.png`, `06-theater.png` (control added to toolbar/chrome).
-Build note: `tools/flatten.js` now also clips line nodes at `.lc` containers, so pages show whole lines only.
+Frames: `export/07b-book-size.png` (M vs XL side by side + phone sheet). Theater PNGs (`06-theater-light.png`, `06-theater-dark.png`, `06-theater.png`) show Exit-only chrome + XL book — not a size control.
+Build note: `tools/flatten.js` also clips line nodes at `.lc` containers, so pages show whole lines only.
