@@ -58,16 +58,23 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-cover,
 .atomic-flight-flips {
   position: absolute;
+  pointer-events: none;
+}
+.atomic-flight-cover {
   left: var(--flight-cover-x, 18%);
   top: var(--flight-cover-y, 12%);
   width: var(--flight-cover-w, 64%);
   height: var(--flight-cover-h, 70%);
-  pointer-events: none;
-}
-.atomic-flight-cover {
   z-index: 4;
   transform-origin: left center;
   transform-style: preserve-3d;
+}
+.atomic-flight-flips {
+  left: var(--flight-recto-x, 50%);
+  top: var(--flight-recto-y, 12%);
+  width: var(--flight-recto-w, 32%);
+  height: var(--flight-recto-h, 70%);
+  z-index: 3;
 }
 .atomic-open-flight.is-playing .atomic-flight-cover {
   animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms var(--atomic-ease) forwards;
@@ -112,23 +119,27 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   opacity: 0.7;
 }
 .atomic-flight-cover-in {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 20%), #f3ead8;
+  background: var(--atomic-paper, var(--background-primary, #ffffff));
   transform: rotateY(180deg);
-}
-.atomic-flight-flips {
-  z-index: 3;
 }
 .atomic-flight-flip {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 50%;
+  inset: 0;
+  overflow: hidden;
   border-radius: 0 var(--atomic-r-object) var(--atomic-r-object) 0;
-  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
+  background: var(--atomic-paper, var(--background-primary, #ffffff));
   box-shadow: -8px 0 16px -12px rgba(0, 0, 0, 0.35);
   transform-origin: left center;
   backface-visibility: hidden;
+}
+.atomic-flight-flip .atomic-reader-page,
+.atomic-flight-flip .atomic-page {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-shadow: none;
 }
 ${flipRules()}
 .atomic-open-flight.is-flat.is-playing .atomic-flight-flip {

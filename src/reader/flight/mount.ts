@@ -182,7 +182,7 @@ export function mountOpenBookFlight(
       timer = view.setTimeout(() => finish("reduced"), REDUCED_FADE_MS);
       return;
     }
-    applyZoom(built.camera, zoomFor(request.destination, spread));
+    applyZoom(built.camera, zoomFor(request.destination, spread), request.destination);
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
@@ -240,15 +240,19 @@ function spreadBox(root: ParentNode): FlightBox | null {
   return unionBoxes(pageBoxes(root));
 }
 
+function livePages(root: ParentNode): HTMLElement[] {
+  return elements(root, OPEN_BOOK_PAGE_SELECTOR).filter((el) => !belongsToFlight(el));
+}
+
 function pageBoxes(root: ParentNode): FlightBox[] {
-  return elements(root, OPEN_BOOK_PAGE_SELECTOR).map((el) => {
+  return livePages(root).map((el) => {
     const rect = el.getBoundingClientRect();
     return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
   });
 }
 
 function paintedPages(root: ParentNode): PaintedPage[] {
-  return elements(root, OPEN_BOOK_PAGE_SELECTOR).map((el) => ({
+  return livePages(root).map((el) => ({
     page: readPageNumber(el.getAttribute("data-page")),
     lines: paragraphLines(el),
   }));
@@ -283,7 +287,7 @@ function isHtmlElement(node: Node): node is HTMLElement {
   return node.nodeType === 1;
 }
 
-function applyZoom(camera: HTMLElement, zoom: FlightZoom): void {
+function applyZoom(camera: HTMLElement, zoom: FlightZoom, destination: HTMLElement): void {
   camera.style.setProperty("--flight-ox", zoom.originX);
   camera.style.setProperty("--flight-oy", zoom.originY);
   camera.style.setProperty("--flight-from", zoom.fromScale);
@@ -291,6 +295,26 @@ function applyZoom(camera: HTMLElement, zoom: FlightZoom): void {
   camera.style.setProperty("--flight-cover-y", zoom.coverY);
   camera.style.setProperty("--flight-cover-w", zoom.coverW);
   camera.style.setProperty("--flight-cover-h", zoom.coverH);
+  const host = destination.getBoundingClientRect();
+  const recto = rectoBox(destination);
+  if (!recto || host.width <= 0) return;
+  camera.style.setProperty("--flight-recto-x", px(recto.x - host.left));
+  camera.style.setProperty("--flight-recto-y", px(recto.y - host.top));
+  camera.style.setProperty("--flight-recto-w", px(recto.width));
+  camera.style.setProperty("--flight-recto-h", px(recto.height));
+}
+
+function px(value: number): string {
+  return `${Math.round(value)}px`;
+}
+
+function rectoBox(root: ParentNode): FlightBox | null {
+  const pages = livePages(root);
+  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
+  if (!recto) return null;
+  const rect = recto.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return null;
+  return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
 }
 
 function zoomFor(destination: HTMLElement, spread: FlightBox | null): FlightZoom {
@@ -341,9 +365,12 @@ function buildOverlay(
   const flips = doc.createElement("div");
   flips.className = "atomic-flight-flips";
   flips.setAttribute("aria-hidden", "true");
+  const turning = turningPage(doc, request.destination);
   for (let index = 0; index < FLIP_LEAVES.length; index++) {
     const flip = doc.createElement("div");
     flip.className = "atomic-flight-flip";
+    const face = turning ? clonePage(doc, turning) : null;
+    if (face) flip.appendChild(face);
     flips.appendChild(flip);
   }
 
@@ -373,6 +400,20 @@ function buildOverlay(
   camera.append(flips, cover);
   overlay.append(camera, hint);
   return { overlay, camera };
+}
+
+function turningPage(doc: Document, destination: HTMLElement): HTMLElement | null {
+  const pages = livePages(destination);
+  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
+  return recto ? clonePage(doc, recto) : null;
+}
+
+function clonePage(doc: Document, source: HTMLElement): HTMLElement | null {
+  if (typeof source.cloneNode === "function") {
+    const cloned = source.cloneNode(true);
+    if (isHtmlElement(cloned)) return cloned;
+  }
+  return copyElement(doc, source);
 }
 
 function snapshotReader(doc: Document, source: HTMLElement): HTMLElement {

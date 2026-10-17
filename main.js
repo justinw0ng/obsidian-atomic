@@ -5473,9 +5473,9 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     if (!hoverFinePointer(hoverFineMedia())) return;
     const rect = button2.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
-    const px2 = (event.clientX - rect.left) / rect.width - 0.5;
+    const px3 = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    button2.style.setProperty("--px", px2.toFixed(3));
+    button2.style.setProperty("--px", px3.toFixed(3));
     button2.style.setProperty("--py", py.toFixed(3));
     button2.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
     button2.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
@@ -11382,16 +11382,23 @@ var OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-cover,
 .atomic-flight-flips {
   position: absolute;
+  pointer-events: none;
+}
+.atomic-flight-cover {
   left: var(--flight-cover-x, 18%);
   top: var(--flight-cover-y, 12%);
   width: var(--flight-cover-w, 64%);
   height: var(--flight-cover-h, 70%);
-  pointer-events: none;
-}
-.atomic-flight-cover {
   z-index: 4;
   transform-origin: left center;
   transform-style: preserve-3d;
+}
+.atomic-flight-flips {
+  left: var(--flight-recto-x, 50%);
+  top: var(--flight-recto-y, 12%);
+  width: var(--flight-recto-w, 32%);
+  height: var(--flight-recto-h, 70%);
+  z-index: 3;
 }
 .atomic-open-flight.is-playing .atomic-flight-cover {
   animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms var(--atomic-ease) forwards;
@@ -11436,23 +11443,27 @@ var OPEN_BOOK_FLIGHT_CSS = `
   opacity: 0.7;
 }
 .atomic-flight-cover-in {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 20%), #f3ead8;
+  background: var(--atomic-paper, var(--background-primary, #ffffff));
   transform: rotateY(180deg);
-}
-.atomic-flight-flips {
-  z-index: 3;
 }
 .atomic-flight-flip {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 50%;
+  inset: 0;
+  overflow: hidden;
   border-radius: 0 var(--atomic-r-object) var(--atomic-r-object) 0;
-  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
+  background: var(--atomic-paper, var(--background-primary, #ffffff));
   box-shadow: -8px 0 16px -12px rgba(0, 0, 0, 0.35);
   transform-origin: left center;
   backface-visibility: hidden;
+}
+.atomic-flight-flip .atomic-reader-page,
+.atomic-flight-flip .atomic-page {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-shadow: none;
 }
 ${flipRules()}
 .atomic-open-flight.is-flat.is-playing .atomic-flight-flip {
@@ -11615,7 +11626,7 @@ function mountOpenBookFlight(request, onLand) {
       timer = view.setTimeout(() => finish2("reduced"), REDUCED_FADE_MS);
       return;
     }
-    applyZoom(built.camera, zoomFor(request.destination, spread2));
+    applyZoom(built.camera, zoomFor(request.destination, spread2), request.destination);
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
@@ -11657,14 +11668,17 @@ function ensureFlightStyles(doc) {
 function spreadBox(root) {
   return unionBoxes(pageBoxes(root));
 }
+function livePages(root) {
+  return elements(root, OPEN_BOOK_PAGE_SELECTOR).filter((el) => !belongsToFlight(el));
+}
 function pageBoxes(root) {
-  return elements(root, OPEN_BOOK_PAGE_SELECTOR).map((el) => {
+  return livePages(root).map((el) => {
     const rect = el.getBoundingClientRect();
     return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
   });
 }
 function paintedPages(root) {
-  return elements(root, OPEN_BOOK_PAGE_SELECTOR).map((el) => ({
+  return livePages(root).map((el) => ({
     page: readPageNumber(el.getAttribute("data-page")),
     lines: paragraphLines(el)
   }));
@@ -11692,7 +11706,7 @@ function isHtmlElement2(node) {
   if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
   return node.nodeType === 1;
 }
-function applyZoom(camera, zoom) {
+function applyZoom(camera, zoom, destination) {
   camera.style.setProperty("--flight-ox", zoom.originX);
   camera.style.setProperty("--flight-oy", zoom.originY);
   camera.style.setProperty("--flight-from", zoom.fromScale);
@@ -11700,6 +11714,24 @@ function applyZoom(camera, zoom) {
   camera.style.setProperty("--flight-cover-y", zoom.coverY);
   camera.style.setProperty("--flight-cover-w", zoom.coverW);
   camera.style.setProperty("--flight-cover-h", zoom.coverH);
+  const host = destination.getBoundingClientRect();
+  const recto = rectoBox(destination);
+  if (!recto || host.width <= 0) return;
+  camera.style.setProperty("--flight-recto-x", px2(recto.x - host.left));
+  camera.style.setProperty("--flight-recto-y", px2(recto.y - host.top));
+  camera.style.setProperty("--flight-recto-w", px2(recto.width));
+  camera.style.setProperty("--flight-recto-h", px2(recto.height));
+}
+function px2(value) {
+  return `${Math.round(value)}px`;
+}
+function rectoBox(root) {
+  const pages = livePages(root);
+  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
+  if (!recto) return null;
+  const rect = recto.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return null;
+  return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
 }
 function zoomFor(destination, spread) {
   const host = destination.getBoundingClientRect();
@@ -11734,9 +11766,12 @@ function buildOverlay(doc, request, layout, motion) {
   const flips = doc.createElement("div");
   flips.className = "atomic-flight-flips";
   flips.setAttribute("aria-hidden", "true");
+  const turning = turningPage(doc, request.destination);
   for (let index = 0; index < FLIP_LEAVES.length; index++) {
     const flip = doc.createElement("div");
     flip.className = "atomic-flight-flip";
+    const face2 = turning ? clonePage(doc, turning) : null;
+    if (face2) flip.appendChild(face2);
     flips.appendChild(flip);
   }
   const cover = doc.createElement("div");
@@ -11763,6 +11798,18 @@ function buildOverlay(doc, request, layout, motion) {
   camera.append(flips, cover);
   overlay.append(camera, hint);
   return { overlay, camera };
+}
+function turningPage(doc, destination) {
+  const pages = livePages(destination);
+  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
+  return recto ? clonePage(doc, recto) : null;
+}
+function clonePage(doc, source) {
+  if (typeof source.cloneNode === "function") {
+    const cloned = source.cloneNode(true);
+    if (isHtmlElement2(cloned)) return cloned;
+  }
+  return copyElement(doc, source);
 }
 function snapshotReader(doc, source) {
   if (typeof source.cloneNode === "function") {
@@ -11817,6 +11864,14 @@ function copyAttributes(from, to) {
   bag.forEach((value, key) => {
     if (key !== "class") to.setAttribute(key, value);
   });
+}
+function belongsToFlight(node) {
+  let current = node;
+  while (current) {
+    if (current.classList.contains("atomic-open-flight")) return true;
+    current = current.parentElement;
+  }
+  return false;
 }
 
 // src/reader/flight/register.ts

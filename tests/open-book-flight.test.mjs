@@ -314,6 +314,13 @@ test("registered flight lands on the live reader page", async () => {
     const camera = overlay.querySelector("[data-testid='atomic-flight-camera']");
     assert.equal(camera.style.getPropertyValue("--flight-from"), "1.889");
     assert.equal(camera.style.getPropertyValue("--flight-ox"), "46.08%");
+    assert.equal(camera.style.getPropertyValue("--flight-recto-x"), "470px");
+    assert.equal(camera.style.getPropertyValue("--flight-recto-y"), "100px");
+    assert.equal(camera.style.getPropertyValue("--flight-recto-w"), "270px");
+    assert.equal(camera.style.getPropertyValue("--flight-recto-h"), "340px");
+    const flips = overlay.querySelectorAll(".atomic-flight-flip");
+    assert.equal(flips.length, FLIP_LEAVES.length);
+    assert.equal(flips.filter((flip) => flip.querySelector(".is-recto")).length, FLIP_LEAVES.length);
     assert.equal(overlay.getAttribute("data-page"), "1");
     const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
     assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
@@ -957,6 +964,20 @@ class FakeEl {
       right: x + width,
       bottom: y + height,
     };
+  }
+
+  cloneNode(deep) {
+    const copy = this.ownerDocument.createElement(this.tagName.toLowerCase());
+    copy.className = this.className;
+    for (const [key, value] of this.attrs) copy.setAttribute(key, value);
+    copy._text = this._text;
+    const width = this.rect.width > 0 ? this.rect.width : 1800;
+    const height = this.rect.height > 0 ? this.rect.height : 900;
+    copy.setRect(this.rect.x + 4000, this.rect.y + 4000, width, height);
+    if (deep !== false) {
+      for (const child of [...this.children]) copy.appendChild(child.cloneNode(true));
+    }
+    return copy;
   }
 
   closest(selector) {
