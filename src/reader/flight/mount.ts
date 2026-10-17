@@ -19,8 +19,11 @@ import { spreadFromPainted, type OpenBookPage, type PaintedPage } from "./page.t
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { OPEN_BOOK_FLIGHT_CSS } from "./styles.ts";
 
-/** Shell pages. Desktop measures both leaves; phone measures the column. */
-export const OPEN_BOOK_PAGE_SELECTOR = ".atomic-page";
+/**
+ * Pages the flight measures. `.atomic-page` is the fixture host.
+ * `.atomic-reader-page` is the live shell page.
+ */
+export const OPEN_BOOK_PAGE_SELECTOR = ".atomic-page, .atomic-reader-page";
 
 export const OPEN_BOOK_HINT = "Tap to skip";
 
@@ -50,7 +53,7 @@ export type OpenBookFlightRequest = {
   /** Page the shell would show if the destination has no text yet. */
   page: OpenBookPage;
   /**
-   * Reader root that already contains `.atomic-page`. The flight measures
+   * Reader root that already contains the live page. The flight measures
    * those rects and copies their lines. It is not a parent of the overlay.
    */
   destination: HTMLElement;

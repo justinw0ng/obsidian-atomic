@@ -2759,6 +2759,179 @@ ${E2E_CUE_LOG_FENCE}
       await waitForNotice(driver, "Enable the Bases core plugin");
     });
   });
+
+  it("flies Open Book onto the live reader page", async () => {
+    await check(driver, "open-book-flight", async () => {
+      const clickTitledBook = (title) => driver.executeScript(`
+        document.querySelector(
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
+        ).click();
+      `, title);
+      const chooserTitle = () => driver.executeScript(`
+        return document.querySelector('[data-testid="atomic-chooser"]')?.getAttribute("aria-label") || "";
+      `);
+      const openChooser = async (title) => {
+        await clickTitledBook(title);
+        try {
+          await driver.wait(async () => (await chooserTitle()) === title, 700);
+        } catch {
+          await clickTitledBook(title);
+          await driver.wait(async () => (await chooserTitle()) === title, 8000);
+        }
+      };
+      const flightReport = () => driver.executeScript(`
+        const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+        const reader = document.querySelector('[data-testid="atomic-reader"]');
+        if (!overlay || !reader) return null;
+        const book = overlay.querySelector('[data-testid="atomic-open-book"]');
+        const toS = book?.style.getPropertyValue("--to-s") || "";
+        const toX = book?.style.getPropertyValue("--to-x") || "";
+        const toY = book?.style.getPropertyValue("--to-y") || "";
+        if (!toS) return null;
+        const pages = [...reader.querySelectorAll(".atomic-reader-page")].filter((el) => {
+          const rect = el.getBoundingClientRect();
+          return rect.width > 0 && rect.height > 0;
+        });
+        if (pages.length === 0) return null;
+        let left = Infinity;
+        let top = Infinity;
+        let right = -Infinity;
+        let bottom = -Infinity;
+        for (const el of pages) {
+          const rect = el.getBoundingClientRect();
+          left = Math.min(left, rect.left);
+          top = Math.min(top, rect.top);
+          right = Math.max(right, rect.right);
+          bottom = Math.max(bottom, rect.bottom);
+        }
+        const destW = right - left;
+        const destH = bottom - top;
+        const host = overlay.getBoundingClientRect();
+        const phone = overlay.classList.contains("is-phone");
+        const bookW = phone ? 120 : 168;
+        const bookH = phone ? 178 : 248;
+        const line = reader.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
+        return {
+          host: overlay.getAttribute("data-overlay-host") || "",
+          onBody: overlay.parentElement === document.body,
+          insideReader: reader.contains(overlay),
+          toS,
+          toX,
+          toY,
+          expectS: Math.min(destW / (bookW * 0.92), destH / (bookH * 0.9)).toFixed(3),
+          expectX: (left + destW / 2) - host.width / 2,
+          expectY: (top + destH / 2) - host.height / 2,
+          page: overlay.getAttribute("data-page") || "",
+          line,
+          leaf: overlay.textContent || "",
+        };
+      `);
+
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(
+        driver,
+        '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+      );
+      await openChooser("Currently Reading");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-book"]').click();
+      `);
+
+      let flight = null;
+      try {
+        await driver.wait(async () => {
+          flight = await flightReport();
+          return Boolean(flight?.toS);
+        }, 8000);
+      } catch (error) {
+        throw new Error(`${error.message} last=${JSON.stringify(flight)}`);
+      }
+      assert.equal(flight.host, "window");
+      assert.equal(flight.onBody, true);
+      assert.equal(flight.insideReader, false);
+      assert.equal(flight.page, "1");
+      assert.notEqual(flight.toS, "3.150");
+      assert.notEqual(flight.toS, "2.350");
+      const toX = Number(String(flight.toX).replace(/px$/, ""));
+      const toY = Number(String(flight.toY).replace(/px$/, ""));
+      assert.ok(Math.abs(toX - flight.expectX) < 1.5, `to-x ${flight.toX} vs ${flight.expectX}`);
+      assert.ok(Math.abs(toY - flight.expectY) < 1.5, `to-y ${flight.toY} vs ${flight.expectY}`);
+      assert.ok(
+        Math.abs(Number(flight.toS) - Number(flight.expectS)) < 0.02,
+        `to-s ${flight.toS} vs ${flight.expectS}`,
+      );
+      assert.match(flight.line, /Harbor light kept the first page/);
+      assert.match(flight.leaf, /Harbor light kept the first page/);
+
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-open-flight"]').click();
+      `);
+      await driver.wait(async () => {
+        const settled = await driver.executeScript(`
+          const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+          const line = document.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
+          return { overlay: Boolean(overlay), line };
+        `);
+        return settled.overlay === false && /Harbor light kept the first page/.test(settled.line);
+      }, 4000);
+
+      let emulated = false;
+      try {
+        await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
+          features: [
+            { name: "hover", value: "hover" },
+            { name: "pointer", value: "fine" },
+            { name: "prefers-reduced-motion", value: "reduce" },
+          ],
+        });
+        emulated = true;
+      } catch {
+        emulated = false;
+      }
+      if (!emulated) return;
+
+      try {
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-reader-shelf"]').click();
+        `);
+        await driver.wait(async () => {
+          const path = await driver.executeScript(
+            `return app.workspace.getActiveFile()?.path || ""`,
+          );
+          return path === E2E_FILES.bookshelfAll;
+        }, 8000);
+        await openChooser("Currently Reading");
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        `);
+        await driver.wait(async () => {
+          const state = await driver.executeScript(`
+            const reader = document.querySelector('[data-testid="atomic-reader"]');
+            const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+            return {
+              total: reader?.getAttribute("data-total") || "",
+              mount: reader?.getAttribute("data-reader-mount") || "",
+              overlay: Boolean(overlay),
+            };
+          `);
+          if (state.overlay) throw new Error("reduced motion built an Open Book overlay");
+          return state.total === "3" && state.mount === "shell";
+        }, 8000);
+      } finally {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
+            features: [
+              { name: "hover", value: "hover" },
+              { name: "pointer", value: "fine" },
+              { name: "prefers-reduced-motion", value: "no-preference" },
+            ],
+          });
+        } catch {
+          // Older DevTools builds omit emulated media features.
+        }
+      }
+    });
+  });
 });
 
 if (skipReason) {

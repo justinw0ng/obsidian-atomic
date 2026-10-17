@@ -1,12 +1,10 @@
 /**
  * Open Book flight for the reader shell.
  *
- * Paint `.atomic-page` inside `destination` first (the page the reader will
- * show). Copy the cover rect, then call `mountOpenBookFlight` with
- * `openBookFlightView()` so the overlay is on `activeDocument.body`.
- * The flight plays cover lift → hinge → page flips → spread and removes
- * itself on that same page. `prefers-reduced-motion` resolves `"reduced"`
- * immediately and does not build a second layout.
+ * The shell calls the registered flight from Open Book. Full motion opens
+ * the live reader, then plays the overlay on `activeDocument.body` onto
+ * `.atomic-reader-page`. Reduced motion returns false so the shell opens
+ * directly and does not build a second layout.
  */
 
 export {
@@ -54,3 +52,9 @@ export {
   type OpenBookLandReason,
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 } from "./mount.ts";
+export {
+  playOpenBookFlight,
+  registerOpenBookFlight,
+  type OpenBookDirectOpen,
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+} from "./register.ts";

@@ -36,7 +36,8 @@ import {
   rewriteDedicatedCueFences,
 } from "./util/rewrite-cue-fences";
 import { suggestItem } from "./util/suggest-item";
-import { closeReaderChrome, openActiveNoteBook, openBookChooser } from "./reader/shell/open";
+import { registerOpenBookFlight } from "./reader/flight/register";
+import { closeReaderChrome, openActiveNoteBook, openBookChooser, openReaderDirect } from "./reader/shell/open";
 import { resetReaderMounts } from "./reader/shell/mount";
 import { registerBookChooser } from "./reader/shell/present";
 import { ATOMIC_READER_VIEW, AtomicReaderView } from "./reader/shell/view";
@@ -194,6 +195,7 @@ export default class FitnessPlugin extends Plugin {
       },
     });
 
+    registerOpenBookFlight((request) => openReaderDirect(this, request));
     registerBookChooser((request) => {
       void openBookChooser(this, request);
     });

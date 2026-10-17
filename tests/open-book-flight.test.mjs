@@ -17,6 +17,8 @@ import {
   flightVars,
   mountOpenBookFlight,
   openBookFlightView,
+  playOpenBookFlight,
+  registerOpenBookFlight,
   resolveFlightLayout,
   resolveFlightMotion,
   safeCoverColor,
@@ -24,6 +26,7 @@ import {
   unionBoxes,
 } from "../src/reader/flight/index.ts";
 import { OPEN_BOOK_FLIGHT_CSS } from "../src/reader/flight/styles.ts";
+import { readerMounts, resetReaderMounts } from "../src/reader/shell/mount.ts";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const flightDir = join(root, "src/reader/flight");
@@ -168,19 +171,97 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
 });
 
 test("flight source stays in its folder and off other readers", () => {
-  assert.deepEqual(readdirSync(join(root, "src/reader")).sort(), ["flight"]);
+  assert.deepEqual(readdirSync(join(root, "src/reader")).sort(), ["flight", "shell"]);
   const names = readdirSync(flightDir).sort();
-  assert.deepEqual(names, ["geometry.ts", "index.ts", "mount.ts", "page.ts", "styles.ts"]);
+  assert.deepEqual(names, [
+    "geometry.ts",
+    "index.ts",
+    "mount.ts",
+    "page.ts",
+    "register.ts",
+    "styles.ts",
+  ]);
   for (const name of names) {
     const text = readFileSync(join(flightDir, name), "utf8");
     assert.doesNotMatch(text, /\bglobalThis\b/);
     assert.doesNotMatch(text, /readest|epub\.js|foliate|AGPL|GPL-3/i);
     assert.doesNotMatch(text, /\.style\.setProperty\(\s*["'][^"']+["']\s*,\s*["']/);
+    assert.doesNotMatch(text, /openReaderDirect/);
   }
   const mount = readFileSync(join(flightDir, "mount.ts"), "utf8");
   assert.match(mount, /activeDocument/);
   assert.match(mount, /activeWindow/);
+  assert.match(mount, /\.atomic-reader-page/);
+  const register = readFileSync(join(flightDir, "register.ts"), "utf8");
+  assert.match(register, /registerReaderFlight/);
+  const main = readFileSync(join(root, "src/main.ts"), "utf8");
+  assert.match(main, /registerOpenBookFlight/);
   assert.equal(openBookFlightView(), null);
+});
+
+test("registered flight lands on the live reader page", async () => {
+  resetReaderMounts();
+  const tap = makeHost();
+  tap.verso.className = "atomic-reader-page is-verso";
+  tap.verso.setAttribute("data-blank", "true");
+  tap.recto.className = "atomic-reader-page is-recto";
+  tap.destination.setAttribute("data-testid", "atomic-reader");
+  paint(tap.recto, ["Harbor light kept the first page."], 1);
+  const opened = [];
+  const request = {
+    notePath: "notes/book.md",
+    filePath: "notes/book.epub",
+    title: "Harbor Notes",
+    kind: "epub",
+    returnPath: "notes/shelf.md",
+    coverRect: { x: 100, y: 400, width: 64, height: 96, color: "#3d2a1c" },
+  };
+
+  const missing = await playOpenBookFlight(() => {
+    opened.push("missing");
+  }, request);
+  assert.equal(missing, false);
+  assert.deepEqual(opened, []);
+
+  globalThis.activeWindow = tap.view;
+  globalThis.activeDocument = tap.doc;
+  try {
+    tap.media["(prefers-reduced-motion: reduce)"] = true;
+    const reduced = await playOpenBookFlight(() => {
+      opened.push("reduced");
+    }, request);
+    assert.equal(reduced, false);
+    assert.deepEqual(opened, []);
+    assert.equal(tap.doc.querySelector("[data-testid='atomic-open-flight']"), null);
+    assert.equal(tap.doc.getElementById("atomic-open-flight-style"), null);
+
+    tap.media["(prefers-reduced-motion: reduce)"] = false;
+    registerOpenBookFlight(async () => {
+      opened.push("direct");
+    });
+    const flight = readerMounts().flight;
+    assert.ok(flight);
+    const handled = await flight.open(request);
+    assert.equal(handled, true);
+    assert.deepEqual(opened, ["direct"]);
+    const overlay = tap.body.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(overlay.parentElement, tap.body);
+    assert.equal(overlay.getAttribute("data-overlay-host"), "window");
+    assert.equal(tap.reading.contains(overlay), false);
+    const book = overlay.querySelector("[data-testid='atomic-open-book']");
+    assert.equal(book.style.getPropertyValue("--from-x"), "-378px");
+    assert.equal(book.style.getPropertyValue("--from-y"), "88px");
+    assert.equal(book.style.getPropertyValue("--from-s"), "0.381");
+    assert.equal(book.style.getPropertyValue("--to-x"), "-40px");
+    assert.equal(book.style.getPropertyValue("--to-y"), "-90px");
+    assert.equal(book.style.getPropertyValue("--to-s"), "1.523");
+    assert.equal(overlay.getAttribute("data-page"), "1");
+    assert.deepEqual(leafLines(overlay, "left"), ["Harbor light kept the first page."]);
+  } finally {
+    delete globalThis.activeWindow;
+    delete globalThis.activeDocument;
+    resetReaderMounts();
+  }
 });
 
 test("overlay body is activeDocument.body for the tap window", () => {
