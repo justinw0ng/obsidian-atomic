@@ -4,6 +4,10 @@
  * Keep this suite in sync with plugin UI. After any UI or breaking change,
  * update these tests and the data-testid hooks they use. Do not replace this
  * suite with computer-use; that is only for troubleshooting a failure.
+ *
+ * Reader theater hooks, covered by tests/reader-theater.test.mjs until the
+ * reader shell is mounted in this vault: atomic-theater,
+ * atomic-theater-chrome, atomic-theater-exit.
  */
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";

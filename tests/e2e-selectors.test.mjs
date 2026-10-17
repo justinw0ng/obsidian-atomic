@@ -480,3 +480,15 @@ test("plugin source bans globalThis, unguarded Notice DOM, and static style lite
     );
   }
 });
+
+test("reader theater exposes stable Exit hooks", () => {
+  const mount = src("src/reader/theater/mount.ts");
+  assert.match(mount, /data-testid": "atomic-theater"/);
+  assert.match(mount, /data-testid": "atomic-theater-chrome"/);
+  assert.match(mount, /data-testid": "atomic-theater-exit"/);
+  assert.doesNotMatch(mount, /innerHTML/);
+  assert.doesNotMatch(mount, /\bglobalThis\b/);
+  const health = src("e2e/health-check.test.mjs");
+  assert.match(health, /atomic-theater-exit/);
+  assert.match(health, /atomic-theater-chrome/);
+});
