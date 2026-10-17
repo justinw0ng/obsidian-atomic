@@ -12,11 +12,11 @@ Habit tracking in Obsidian. Sessions, reading, heatmaps, one daily note.
 
 1. Click or tap a cover on the shelf or on a book note.
 2. **Open Notes** is the default. It opens the book note.
-3. **Open Book** is shown only when that title has an EPUB or PDF. The flight overlay sits on the window body and lands on the last page you read. It stays on that note. Reduced motion opens the book directly.
-4. Theater matches the theme: light linen, or a dark museum. The book locks to XL, and the page is 500px tall. Exit fades after 2 seconds. Move the pointer or tap to bring it back. Exit or Esc leaves. On a phone the page is a card, and Exit sits at the top of the theater frame. Highlight, remark, Ask, and book size stay off in theater.
-5. The settled reader keeps a size bar. The phone uses the reading sheet. The sizes are S, M, L, and XL. Command-minus and Command-plus step it (Ctrl on Windows and Linux). The page grows. The type stays put. M is 15 lines. Settled XL is 22 lines. A new book starts at M. The book note saves `reader.size` as `s`, `m`, `l`, or `xl`. The change eases for about a fifth of a second, and it is instant with reduced motion.
-6. Ask uses a key you keep in Obsidian SecretStorage. Settings store the secret’s name only. The key is not written into `data.json`. That needs Obsidian 1.11.4 or newer. On an older Obsidian, Ask is off and settings tell you to update.
-7. Each book has one `.canvas`. The book note stores that path as `related_canvas`. Remarks sit in the page margin. Pages use Literata: 12.5px on 19px lines on a computer, and 15px on 23px lines on a phone.
+3. **Open Book** is shown only when that title has an EPUB or PDF. The cover opens in place on the note. The pages turn, then the view zooms out onto the settled reader. The last frame is that reader. Reduced motion is a crossfade.
+4. Theater matches the theme: light linen, or a dark museum. The page stays XL, and it is 500px tall. Exit fades after 2 seconds. Move the pointer or tap to bring it back. Exit or Esc leaves. On a phone the page is a card, and Exit sits at the top of the theater frame.
+5. The page is fixed at XL (22 lines). There is no size control and no shortcut. There is no S·M·L·XL choice. The type stays Literata.
+6. Ask is titled **Ask · BYO key**. The key stays in Obsidian SecretStorage. Settings store the secret’s name only. The key is not written into `data.json`. That needs Obsidian 1.11.4 or newer. On an older Obsidian, Ask is off and settings tell you to update.
+7. Each book has one `.canvas`, opened in Obsidian’s canvas view. The board is Opening, Quote, Ask thread, Characters, and Themes. The book note stores that path as `related_canvas`. Pages use Literata: 12.5px on 19px lines on a computer, and 15px on 23px lines on a phone.
 
 ![Reader on desktop and phone](docs/images/atomic-reader-hero.png)
 
@@ -55,10 +55,10 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Cue pages (`atomic-cues` with `activity:`): every cue of the year as an index card. Hover lifts the card. Click or tap enlarges it in the center. The card grows with the cue and scrolls if it is taller than the window. A narrow list shows four lines of each cue.
 - Exercise date notes (gym, golf, and peers) include a start/stop timer that writes `duration_min`
 - Reading items with timers, book shelf, and Bases
-- Reader for an EPUB or PDF already in the vault. Open Notes is the default. Open Book puts a flight overlay on the window body and lands on the last page, then theater. Reduced motion opens the book directly. Theater is linen or museum, locks to XL at 500px, and hides Exit after 2 seconds. Exit or Esc leaves
-- Book size S, M, L, XL. The settled reader keeps the size bar. The phone uses the reading sheet. M is 15 lines. Settled XL is 22. The page grows, the type does not, and the book note saves `reader.size` as `s`, `m`, `l`, or `xl`
-- Ask uses a key in Obsidian SecretStorage (1.11.4 or newer). Settings store the secret’s name only. The key is not stored in `data.json`. Older Obsidian turns Ask off
-- One `.canvas` per book, stored as `related_canvas`. Remarks sit in the page margin. Page type is Literata at 12.5/19 on a computer and 15/23 on a phone
+- Reader for an EPUB or PDF already in the vault. Open Notes is the default. Open Book opens the cover in place, turns the pages, then zooms out onto the settled reader. Reduced motion is a crossfade. Theater is linen or museum, stays XL at 500px, and hides Exit after 2 seconds. Exit or Esc leaves
+- The page is fixed at XL (22 lines). There is no size control and no shortcut. There is no S·M·L·XL choice
+- Ask is titled Ask · BYO key. The key is in Obsidian SecretStorage (1.11.4 or newer). Settings store the secret’s name only. The key is not stored in `data.json`. Older Obsidian turns Ask off
+- One `.canvas` per book, opened in the native canvas view. The board is Opening, Quote, Ask thread, Characters, and Themes. The book note stores the path as `related_canvas`. Page type is Literata at 12.5/19 on a computer and 15/23 on a phone
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Yearly dashboard: one totals row, one row per habit with monthly hour bars, a monthly chart, and recent sessions. Last opens the latest session note, including reading
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…

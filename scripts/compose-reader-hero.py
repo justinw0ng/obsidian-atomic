@@ -3,8 +3,7 @@
 
 Frames are habit tracking, the Open Book flight, the settled reader, Ask,
 and the book canvas. Desktop and phone use the same chrome as the daily hero.
-The settled reader frame carries the size bar; the phone frame carries the
-reading sheet. There is no separate size-step frame.
+The page is fixed at XL. There is no size control.
 
 Run after scripts/capture-reader-hero.mjs.
 """

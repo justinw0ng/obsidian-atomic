@@ -2,12 +2,11 @@
  * Live shots for the reader hero.
  *
  * Habit frames use the daily-note capture. Flight, the settled reader, Ask,
- * canvas, and theater come from the running plugin. The settled reader keeps
- * the size bar, and the phone uses the reading sheet. There is no separate
- * size-step frame.
+ * canvas, and theater come from the running plugin. The page is fixed at XL
+ * (22 lines). There is no size control and no shortcut.
  *
- * The reader is not on main. Point ATOMIC_PLUGIN_ROOT at a local combine of
- * the reader drafts. This script does not push that combine.
+ * Point ATOMIC_PLUGIN_ROOT at the finished reader build. This script does not
+ * push that build, and it does not write a video into the repo.
  *
  * Run: ATOMIC_PLUGIN_ROOT=/tmp/reader-live node scripts/capture-reader-hero.mjs
  */
@@ -158,8 +157,7 @@ function epubBytes() {
 <p>The margin keeps the sentence I want to find again. It sits beside the line, the way a bookmark sits in a pocket, and it does not change the type on the page.</p>
 <p>Ask is a question aimed at this page, this selection, or the whole book. The key stays in secret storage on this computer. The note keeps the name of the secret, never the secret itself.</p>
 <p>One canvas belongs to the book. The first remark draws the card, and the book note points at that file so the next question lands in the same place.</p>
-<p>Theater is the room around the page. Light mode hangs linen. Dark mode keeps the museum. The page locks to the largest size, and the only control is the way out.</p>
-<p>Size changes the page, not the letters. Small, medium, large, and extra large are the four boxes. Medium is where a new book starts.</p>
+<p>Theater is the room around the page. Light mode hangs linen. Dark mode keeps the museum. The page stays at one size, and the only control is the way out.</p>
 <p>When the hour was up she closed the cover and the minutes stayed on the note. Tomorrow the same page would be waiting, with the margin card still beside it.</p>
 </body></html>`);
   const opf = encoder.encode(`<?xml version="1.0"?>
@@ -178,59 +176,6 @@ function epubBytes() {
     { name: "OEBPS/content.opf", data: opf },
     { name: "OEBPS/chapter.xhtml", data: chapter },
   ]);
-}
-
-function canvasFile() {
-  return {
-    nodes: [
-      {
-        id: "book",
-        type: "file",
-        file: NOTE,
-        x: 480,
-        y: 320,
-        width: 280,
-        height: 160,
-        atomic: { role: "book" },
-      },
-      {
-        id: "remark-2",
-        type: "text",
-        text: "Remark · p. 2\nThe margin keeps the sentence I want to find again.\nKept beside the line.",
-        x: 182,
-        y: 320,
-        width: 250,
-        height: 120,
-        color: "3",
-        atomic: {
-          role: "card",
-          kind: "remark",
-          page: 2,
-          quote: "The margin keeps the sentence I want to find again.",
-        },
-      },
-      {
-        id: "ask-3",
-        type: "text",
-        text: "Ask · p. 3\nQ: Where does the key live?\nThe key stays in secret storage. The note only keeps the name.",
-        x: 808,
-        y: 320,
-        width: 250,
-        height: 140,
-        color: "5",
-        atomic: {
-          role: "card",
-          kind: "ask",
-          page: 3,
-          quote: "Where does the key live?",
-        },
-      },
-    ],
-    edges: [
-      { id: "e-remark", fromNode: "book", fromSide: "left", toNode: "remark-2", toSide: "right" },
-      { id: "e-ask", fromNode: "book", fromSide: "right", toNode: "ask-3", toSide: "left" },
-    ],
-  };
 }
 
 function seedVault(bookLimit) {
@@ -271,6 +216,11 @@ function installPlugin() {
     model: "gpt-4.1-mini",
     secretName: SECRET_NAME,
     baseUrl: "",
+  };
+  data.reader = {
+    defaultOpen: "chooser",
+    theater: false,
+    enabled: true,
   };
   writeJson(dataPath, data);
 }
@@ -317,13 +267,15 @@ function attachBook() {
   const note = readFileSync(notePath, "utf8");
   const next = note
     .replace(/^related_canvas:\s*$/m, `related_canvas: "${CANVAS}"`)
-    .replace(/^spine_color:\s*$/m, `spine_color:\nsource: "${EPUB}"\nreader.page: 2\nreader.size: m`);
+    .replace(/^spine_color:\s*$/m, `spine_color:\nsource: "${EPUB}"\nreader.page: 2`);
   if (!next.includes(`related_canvas: "${CANVAS}"`) || !next.includes(`source: "${EPUB}"`)) {
     throw new Error("book note frontmatter was not patched");
   }
+  if (next.includes("reader.size")) {
+    throw new Error("book note still writes a page size");
+  }
   writeFileSync(notePath, next);
   writeFileSync(join(VAULT, EPUB), epubBytes());
-  writeJson(join(VAULT, CANVAS), canvasFile());
 }
 
 function prepareVault(bookLimit) {
@@ -413,7 +365,7 @@ async function openFlight(driver) {
       done({
         ok: true,
         host: overlay.getAttribute("data-overlay-host") || "",
-        title: overlay.querySelector(".atomic-open-title")?.textContent || "",
+        title: overlay.querySelector(".atomic-flight-title")?.textContent || "",
         text: (overlay.innerText || "").slice(0, 400),
         parent: overlay.parentElement?.tagName || "",
       });
@@ -421,7 +373,7 @@ async function openFlight(driver) {
     const watch = () => {
       const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
       if (overlay) {
-        window.setTimeout(() => finish(overlay), 380);
+        window.setTimeout(() => finish(overlay), 220);
         return;
       }
       if (Date.now() - started > 8000) {
@@ -460,8 +412,8 @@ async function openFlight(driver) {
     }, 180);
   `, BOOK_TITLE);
   if (!flight?.ok) throw new Error(`Open Book flight did not start: ${JSON.stringify(flight)}`);
-  if (flight.host !== "window" || flight.parent !== "BODY") {
-    throw new Error(`flight overlay was not on the window body: ${JSON.stringify(flight)}`);
+  if (flight.host !== "leaf" || flight.parent === "BODY") {
+    throw new Error(`flight overlay was not on the reader leaf: ${JSON.stringify(flight)}`);
   }
   if (/pride and prejudice|netherfield|bennet/i.test(flight.text)) {
     throw new Error(`flight still painted the Pride and Prejudice fixture: ${flight.text}`);
@@ -533,30 +485,27 @@ async function readerState(driver) {
   `);
 }
 
-async function waitForReader(driver) {
+async function waitForReader(driver, phone) {
   const start = Date.now();
   let state = null;
   while (Date.now() - start < 20000) {
     state = await readerState(driver);
-    const sized = state?.sizeBar || state?.sizeSheet;
-    if (state?.text && !state.status && sized) break;
+    const sized = state?.sizeBar || state?.sizeSheet || state?.sizeCount;
+    if (state?.text && !state.status && !sized && state.size === "xl" && state.bodyLines === "22") break;
     await sleep(300);
   }
-  if (!state?.text || state.status) {
+  const sized = state?.sizeBar || state?.sizeSheet || state?.sizeCount;
+  if (!state?.text || state.status || sized) {
     throw new Error(`reader was not ready: ${JSON.stringify(state)}`);
   }
   if (/pride and prejudice/i.test(state.text)) {
     throw new Error("reader painted the Pride and Prejudice fixture");
   }
-  if (state.size !== "m" || state.bodyLines !== "15") {
-    throw new Error(`settled M page box was ${state.size} / ${state.bodyLines} lines`);
+  if (state.size !== "xl" || state.bodyLines !== "22") {
+    throw new Error(`settled page box was ${state.size} / ${state.bodyLines} lines`);
   }
-  if (state.phone) {
-    if (!state.sizeSheet || state.sizeBar) {
-      throw new Error(`phone reader did not use the size sheet: ${JSON.stringify(state)}`);
-    }
-  } else if (!state.sizeBar || state.sizeSheet) {
-    throw new Error(`desktop reader did not keep the size bar: ${JSON.stringify(state)}`);
+  if (Boolean(phone) !== Boolean(state.phone)) {
+    throw new Error(`reader phone layout was ${state.phone}, expected ${Boolean(phone)}`);
   }
   console.log(`reader ${JSON.stringify(state)}`);
   return state;
@@ -581,85 +530,81 @@ async function openAsk(driver) {
   if (!box?.text) throw new Error(`could not find reader text (${JSON.stringify(box)})`);
   const selected = await driver.executeScript(`
     const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
-    const page = [...(root?.querySelectorAll('[data-testid="atomic-reader-page"] p') || [])]
-      .find((node) => (node.textContent || "").trim());
-    const textNode = page?.firstChild;
-    if (!page || !textNode || textNode.nodeType !== Node.TEXT_NODE) {
-      return { ok: false, reason: "no-text-node", children: page?.childNodes.length || 0 };
-    }
+    const page = root?.querySelector(".atomic-reader-page.is-recto p")
+      || root?.querySelector('[data-testid="atomic-reader-page"] p');
+    if (!page) return { ok: false, reason: "no-paragraph" };
     const range = page.ownerDocument.createRange();
-    range.setStart(textNode, 0);
-    range.setEnd(textNode, Math.min(48, textNode.textContent.length));
+    range.selectNodeContents(page);
     const view = page.ownerDocument.defaultView;
-    view.focus();
-    root.focus();
     const selection = view.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-    if (!selection.toString().trim() && selection.rangeCount > 0) {
-      const proto = Object.getPrototypeOf(selection);
-      const original = proto.toString;
-      proto.toString = function selectionText() {
-        const value = original.call(this);
-        if (value) return value;
-        return this.rangeCount > 0 ? this.getRangeAt(0).toString() : "";
-      };
-    }
-    page.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 20, clientY: 20 }));
+    page.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
     return {
       ok: selection.toString().trim().length > 0,
-      range: range.toString().slice(0, 60),
       text: selection.toString().trim().slice(0, 60),
-      collapsed: selection.isCollapsed,
-      ranges: selection.rangeCount,
-      anchor: selection.anchorNode?.nodeName || "",
     };
   `);
   if (!selected?.ok) throw new Error(`could not select reader text (${JSON.stringify({ box, selected })})`);
   await sleep(500);
   const bar = await driver.executeScript(`
     const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
-    const primary = root?.querySelector('[data-testid="atomic-selbar"] .is-primary');
-    const selbar = root?.querySelector('[data-testid="atomic-selbar"]');
+    const buttons = [...(root?.querySelectorAll('[data-testid="atomic-selbar"] button') || [])];
+    const ask = buttons.find((button) => (button.textContent || "").trim() === "Ask");
     return {
-      bar: Boolean(selbar),
-      ask: Boolean(primary),
-      label: primary?.textContent || selbar?.textContent || "",
+      bar: buttons.length > 0,
+      ask: Boolean(ask),
+      label: ask?.textContent || "",
     };
   `);
   if (!bar?.ask) throw new Error(`Ask selection bar did not open (${JSON.stringify({ selected, bar })})`);
   await driver.executeScript(`
-    document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-selbar"] .is-primary').click();
+    const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+    const ask = [...(root?.querySelectorAll('[data-testid="atomic-selbar"] button') || [])]
+      .find((button) => (button.textContent || "").trim() === "Ask");
+    ask?.click();
   `);
   await waitCss(driver, '[data-testid="atomic-ask"]');
+  const title = await driver.executeScript(`
+    return document.querySelector('[data-testid="atomic-ask"] h4')?.textContent || "";
+  `);
+  if (title !== "Ask · BYO key") throw new Error(`ask title was ${title || "empty"}`);
   await sleep(250);
 }
 
 async function openCanvas(driver) {
-  const opened = await driver.executeAsyncScript(
-    `
+  const opened = await driver.executeAsyncScript(`
     const done = arguments[arguments.length - 1];
-    const path = arguments[0];
-    const file = app.vault.getAbstractFileByPath(path);
-    if (!file) {
-      done("missing");
+    const plugin = app.internalPlugins.getPluginById("canvas");
+    if (plugin && !plugin.enabled) plugin.enable();
+    const button = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader-canvas"]');
+    if (!button) {
+      done("missing-button");
       return;
     }
-    app.workspace.getLeaf(false).openFile(file).then(() => done("ok"), (error) => done(String(error)));
-    `,
-    CANVAS,
-  );
+    button.click();
+    const started = Date.now();
+    const watch = () => {
+      const nodes = document.querySelectorAll(".canvas-node").length;
+      const labels = [...document.querySelectorAll(".canvas-node")].map((node) => (node.textContent || "").replace(/\\s+/g, " ").trim()).join(" | ");
+      if (nodes > 3 && /Opening/.test(labels) && /Ask thread/.test(labels)) {
+        done("ok");
+        return;
+      }
+      if (Date.now() - started > 8000) {
+        done("timeout:" + nodes + ":" + labels.slice(0, 240));
+        return;
+      }
+      window.setTimeout(watch, 200);
+    };
+    window.setTimeout(watch, 400);
+  `);
   if (opened !== "ok") throw new Error(`canvas did not open: ${opened}`);
-  await sleep(800);
   await driver.executeScript(`
     const canvas = app.workspace.activeLeaf?.view?.canvas;
     if (canvas?.zoomToFit) canvas.zoomToFit();
   `);
   await sleep(400);
-  const nodes = await driver.executeScript(`
-    return document.querySelectorAll(".canvas-node").length;
-  `);
-  if (!nodes) throw new Error("canvas opened with no cards");
 }
 
 async function openTheater(driver) {
@@ -763,7 +708,7 @@ async function capturePass(kind) {
     await dismissFlight(driver);
 
     await openReader(driver);
-    await waitForReader(driver);
+    await waitForReader(driver, phone);
     await captureScene(driver, "reader", join(SHOT_DIR, `reader-${kind}.png`));
     console.log(`saved reader-${kind}`);
 
@@ -777,7 +722,7 @@ async function capturePass(kind) {
 
     if (!phone) {
       await openReader(driver);
-      await waitForReader(driver);
+      await waitForReader(driver, phone);
       await openTheater(driver);
       await captureScene(driver, "theater", join(SHOT_DIR, "theater-desktop.png"));
       console.log("saved theater-desktop");

@@ -179,25 +179,23 @@ A cover you add fills the book. If the picture is wider or narrower than the boo
 
 ## Read a book
 
-Open Book stays on the same note. The flight overlay sits on the window body and lands on the last page you read. Reduced motion opens the book directly, with no flight.
+Open Book stays on the same note. The cover opens in place. The pages turn, then the view zooms out onto the settled reader. The last frame is that reader. Reduced motion is a crossfade.
 
 ![Open book](./images/atomic-reader.gif)
 
-Theater follows the app theme. Light mode uses a linen room. Dark mode uses a museum room. The book is locked to XL, and the page is 500px tall. The only control is **Exit**. It fades after 2 seconds. Move the pointer, or tap, and it comes back. **Exit** or Esc leaves theater.
+Theater follows the app theme. Light mode uses a linen room. Dark mode uses a museum room. The page stays XL, and it is 500px tall. The control is **Exit**. It fades after 2 seconds. Move the pointer, or tap, and it comes back. **Exit** or Esc leaves theater.
 
-On a phone the page is a card, and Exit sits at the top of the theater frame. Highlight, remark, Ask, and book size stay off in theater.
+On a phone the page is a card, and Exit sits at the top of the theater frame.
 
 ![Theater](./images/atomic-reader-theater.gif)
 
-The settled reader keeps a size bar. The phone uses the reading sheet. The sizes are S, M, L, and XL. Command-minus and Command-plus step the size. On Windows and Linux, use Ctrl. The page gets bigger. The type does not. M is 15 lines. Settled XL is 22 lines. Theater keeps the page 500px tall. A new book starts at M. The book note saves `reader.size` as `s`, `m`, `l`, or `xl`. The page eases for about a fifth of a second, anchored on the first line you can see. With reduced motion the change is instant.
+The page is fixed at XL (22 lines). There is no size control and no shortcut. There is no S·M·L·XL choice. The type stays Literata.
 
-Ask uses a key you keep in Obsidian SecretStorage. That needs Obsidian 1.11.4 or newer. The key is not written into `data.json`. Settings store the provider, the model, and the secret’s name only. The key stays on this device, so a synced vault does not bring the key with it. On an older Obsidian, Ask is off and settings tell you to update. Read, highlight, and remark still work.
-
-Ask can use this page, this selection, or the whole book. A whole-book question asks you to confirm first.
+Ask is titled **Ask · BYO key**. The key stays in Obsidian SecretStorage. That needs Obsidian 1.11.4 or newer. The key is not written into `data.json`. Settings store the provider, the model, and the secret’s name only. The key stays on this device, so a synced vault does not bring the key with it. On an older Obsidian, Ask is off and settings tell you to update. Read, highlight, and remark still work. On a phone the thread fills the screen.
 
 ![Ask](./images/atomic-reader-ask.gif)
 
-Each book has one `.canvas`. The book note stores that path as `related_canvas`. The first highlight, remark, or Ask creates it. A book note with no canvas is still valid. Open Notes shows the canvas when the note already has one. Remarks sit in the margin, in line with the highlight. On a phone they start as dots.
+Each book has one `.canvas`, opened in Obsidian’s canvas view. The book note stores that path as `related_canvas`. The board is Opening, Quote, Ask thread, Characters, and Themes. The first highlight, remark, or Ask adds a card on that board. A book note with no canvas is still valid.
 
 ![Book canvas](./images/atomic-reader-canvas.gif)
 
