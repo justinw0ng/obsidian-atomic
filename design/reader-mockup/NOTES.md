@@ -9,13 +9,14 @@ The approved design is the OpenPencil journey in `design/reader-journey/` (`JOUR
 A new **reader** for EPUB and PDF files that already live in the vault. It is separate from the existing book note, and linked to it.
 
 - Tap a cover on the shelf or on a shelf **block inside a note in reading mode**. A **chooser** appears: **Open Notes** is the default (always there). **Open Book** shows only when an EPUB/PDF is linked; otherwise that row is hidden.
-- Open Notes stays on the book note. No theater.
+- Open Notes stays on the existing book note. No theater. The note still holds the **timer** (`atomic-timer`) and **related_canvas**. If a past note already has a canvas, it shows as an embed on that note. If it does not, the note stays valid and a canvas is created on first highlight, remark, or Ask.
+- **Timer.** Same 1.5.0 well as today. **Open Book starts it.** It stops when the book is not frontmost, or you close it. Start on the note still works for time spent writing. Minutes write a Reading session and the heatmap.
 - Open Book is a **continuous in-place flight** on the same leaf: cover lifts → hinge opens → pages flip → spread forms → lands on last-read p. 47. No second layout jump. Overlay on `activeDocument.body` so a reading-view re-render cannot kill it.
 - **Theater follows the theme.** Light theme → light theater (linen curtains, soft warm key on cream paper, contact shadow). Dark theme → dark theater. No black stage, no orange side bars. Chrome auto-hides after 2s; mouse or tap restores it. **Exit** and **Esc** leave theater.
 - **Book size S · M · L · XL** (`⌘−` / `⌘+`) lives in the reader toolbar, the theater chrome pill, and the phone sheet. It enlarges the **page**, not the type (M 15 lines, XL 22–23). Saved per book as `reader.size` frontmatter. 200ms resize; instant under reduced motion.
 - Open from a canvas card. You land on that card’s page.
 - Highlight, remark, or ask. Each one writes a card on **one canvas per book**. Remarks sit in the page margin, lined up with the highlight. On a phone they start as dots.
-- Ask uses a key the user keeps in **Obsidian secret storage** (`requireApiVersion("1.11.4")`). Older Obsidian: Ask off. Scope is this page, this selection, or the whole book.
+- Ask uses a key the user keeps in **Obsidian secret storage** (`requireApiVersion("1.11.4")`). Older Obsidian: Ask off. Scope is this page, this selection, or the whole book. The composer is a 1.5.0 control (fill well, radius 9, circular send) — not a native textarea.
 - Minutes spent reading feed the existing Reading sessions and heatmap.
 - Desktop and phone have the same actions. The layout changes; the product does not. Typography is Literata 12.5/19 desktop, 15/23 phone. 1.5.0 tokens (hairlines, radii 3 / 9 / 14, Inter + Literata). No purple.
 
@@ -115,13 +116,13 @@ The mock **Replay open** (library or reading view) skips the chooser and plays O
 
 1. **Where does the file live?** Frontmatter on the book note (`source: …epub`), a sibling file in `Items/`, or any vault path the user picks?
 2. **What is the reader in Obsidian?** A custom view, a leaf in the current tab, or a markdown host note with a codeblock?
-3. **One canvas path.** Confirm `related_canvas` points at `Items/<Book>.canvas`. Who creates it — first highlight, first remark, or first open?
+3. **One canvas path. (decided)** `related_canvas` on the existing book note. Show that canvas on Open Notes (embed). Create the `.canvas` on first highlight, remark, or Ask. Notes with no canvas stay valid.
 4. **Highlights: canvas only, or also the book note?** The note already has a Remarks heading. Duplicate, migrate, or leave the heading for free text?
 5. **PDF vs EPUB selection.** PDF pages are fixed. EPUB text reflows. Do remarks store page + quad (PDF) and CFI / chapter + offset (EPUB)?
 6. **Two-page spread.** Desktop mock shows a spread. Phone is one column. Does a narrow desktop pane also drop to one page?
 7. **Which providers first?** OpenAI-compatible HTTP only, or a short list (OpenAI, Anthropic, local)? Model field: free text or a menu per provider?
 8. **Whole-book ask.** Hard cap (tokens or pages), extractive map-reduce, or refuse with a line of copy? Who pays is the user — we still owe a cost warning.
-9. **Progress.** One session per open (start / stop like the timer), or a quiet heartbeat while the reader is frontmost?
+9. **Progress. (decided)** Keep the existing `atomic-timer` on the book note. Open Book starts it. Stop when the reader is not frontmost, or the book is closed. Manual Start remains for time on the note. Same session log / heatmap as today.
 10. **DRM and copyright.** User-owned files only. No store, no fetch of books. Do we refuse encrypted EPUB?
 11. **Offline.** Reader and canvas work with no network. Ask does not. Is that the rule to print in settings?
 12. **Jump target.** Canvas card opens the reader in this leaf, or splits a new one?

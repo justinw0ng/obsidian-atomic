@@ -366,6 +366,14 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .fitness-plugin .atomic-btn.is-quiet { background: transparent; color: var(--atomic-ink-2); }
 .fitness-plugin .atomic-btn.is-quiet:hover { background: var(--atomic-fill-1); color: var(--atomic-ink); }
 .fitness-plugin .atomic-btn.is-small { height: 28px; padding: 0 10px; }
+.fitness-plugin .atomic-btn.is-icon {
+  width: 32px; padding: 0; border-radius: 50%;
+}
+.fitness-plugin .atomic-btn svg {
+  width: 16px; height: 16px;
+  stroke: currentColor; stroke-width: 1.6; fill: none;
+  stroke-linecap: round; stroke-linejoin: round;
+}
 .fitness-plugin .atomic-well,
 .fitness-plugin.atomic-well {
   background: var(--atomic-fill-1); border-radius: var(--atomic-r-well);
@@ -707,17 +715,45 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-ask .atomic-saved i {
   width: 6px; height: 6px; border-radius: 50%; background: var(--atomic-c);
 }
-.atomic-ask textarea {
-  width: 100%; min-height: 64px; resize: none;
-  border: 0; border-radius: var(--atomic-r-control);
-  background: var(--atomic-fill-1); padding: 10px 12px; outline: none;
+.atomic-ask .atomic-thread {
+  display: flex; flex-direction: column; gap: 10px;
+  flex: 1; min-height: 0; overflow: auto;
+  margin: 12px 0 14px;
 }
+.atomic-bubble {
+  padding: 10px 12px; border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+  font-size: 13px; line-height: 1.45;
+  max-width: 92%;
+}
+.atomic-bubble.is-user {
+  background: var(--atomic-ink); color: var(--atomic-paper);
+  align-self: flex-end; margin-left: auto;
+}
+.atomic-compose {
+  display: flex; align-items: flex-end; gap: 8px;
+  margin-top: auto;
+  padding: 8px 10px 8px 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+.atomic-compose:focus-within {
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
+}
+.atomic-compose textarea {
+  flex: 1; min-width: 0; width: auto;
+  min-height: 22px; max-height: 88px; height: 22px;
+  resize: none; border: 0; outline: none; background: transparent;
+  padding: 2px 0; font-size: 13px; line-height: 1.45;
+  color: var(--atomic-ink);
+}
+.atomic-compose textarea::placeholder { color: var(--atomic-ink-2); }
 .atomic-ask .atomic-answer {
-  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--atomic-rule);
   font-size: 13px; line-height: 1.5;
 }
 .atomic-sheet {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 8;
+  display: flex; flex-direction: column;
   padding: 10px 16px 18px;
   border-radius: 18px 18px 0 0;
   background: var(--background-primary);
@@ -727,6 +763,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   width: 40px; height: 4px; border-radius: 99px; margin: 0 auto 12px;
   background: var(--atomic-fill-3);
 }
+.atomic-sheet .atomic-thread { flex: none; max-height: 220px; }
+.atomic-sheet .atomic-compose { margin-top: 12px; }
 
 /* ------------------------------------------------------------ chooser */
 
@@ -1116,6 +1154,23 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-canvas-note {
   position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
 }
+.atomic-canvas.is-embed {
+  height: 280px;
+  margin-top: 8px;
+  border-radius: var(--atomic-r-object);
+  box-shadow: 0 0 0 1px var(--atomic-rule);
+}
+.ob-phone-screen .atomic-canvas.is-embed { height: 220px; }
+.atomic-canvas.is-embed .atomic-cnode.is-book { width: 72px; }
+.atomic-canvas.is-embed .atomic-cnode.is-book .atomic-book {
+  --atomic-book-w: 56px; --atomic-book-h: 86px;
+  width: 56px; height: 86px;
+}
+.atomic-canvas.is-embed .atomic-ccard { width: 132px; padding: 8px 10px; }
+.atomic-canvas-empty {
+  margin-top: 8px; padding: 18px 16px;
+  text-align: center;
+}
 
 /* ------------------------------------------------------ reading view note */
 
@@ -1159,6 +1214,71 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   color: var(--text-muted);
 }
 .ob-reading .atomic-shelf-readout { margin-top: 10px; }
+.ob-h2 {
+  margin: 22px 0 8px;
+  font-size: 16px; font-weight: 650; letter-spacing: -0.01em;
+}
+.ob-phone-screen .ob-h2 { font-size: 15px; margin-top: 18px; }
+
+/* ----------------------------------------------------------------- timer */
+
+.fitness-plugin.atomic-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "head head" "clock actions";
+  align-items: end;
+  gap: 6px 16px;
+  padding: 14px 14px 14px 18px;
+  margin: 8px 0 10px;
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+.fitness-plugin .atomic-timer-head {
+  grid-area: head;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+}
+.fitness-plugin .atomic-timer-caption {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+}
+.fitness-plugin .atomic-timer-head .atomic-readout { text-align: right; }
+.fitness-plugin .atomic-timer-clock {
+  grid-area: clock;
+  font-size: 34px; line-height: 1.15; font-weight: 400; letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums; white-space: nowrap;
+}
+.fitness-plugin .atomic-timer-clock .atomic-unit {
+  margin-left: 0.2em; font-size: 15px; letter-spacing: 0;
+}
+.fitness-plugin .atomic-timer-actions {
+  grid-area: actions; display: flex; gap: 6px; padding-bottom: 2px;
+}
+.fitness-plugin .atomic-pulse {
+  position: relative; flex: none;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--atomic-c);
+}
+.fitness-plugin .atomic-pulse::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1.5px solid var(--atomic-c); opacity: 0;
+  animation: atomic-pulse 1.8s var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) infinite;
+}
+@keyframes atomic-pulse {
+  0% { transform: scale(0.6); opacity: 0.55; }
+  70% { transform: scale(1); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fitness-plugin .atomic-pulse::after { animation: none; opacity: 0.35; }
+}
+.mock-reduced .fitness-plugin .atomic-pulse::after { animation: none; opacity: 0.35; }
+.ob-phone-screen .fitness-plugin.atomic-timer {
+  grid-template-columns: 1fr;
+  grid-template-areas: "head" "clock" "actions";
+  max-width: none;
+}
+.ob-phone-screen .fitness-plugin .atomic-timer-clock { font-size: 28px; }
+.ob-phone-screen .fitness-plugin .atomic-timer-actions { justify-content: flex-end; }
 
 /* -------------------------------------------------------------- settings */
 
@@ -1482,6 +1602,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     menu: "M4 6h12M4 10h12M4 14h8",
     chev: "M5 7.5 10 12 5 16.5",
     down: "M5 7.5 10 12.5 15 7.5",
+    send: "M10 15V5M5 10l5-5 5 5",
   };
 
   function svg(d, cls) {
@@ -1549,7 +1670,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     library: "Tap a cover. Chooser first: Open Notes is the default. Open Book only if an EPUB or PDF exists.",
     reading: "A note in reading mode. The shelf is a post-processed block. Tap a cover. Chooser, then Open Book flies from that rect on the window.",
     chooser: "Open Notes is primary. Open Book is hidden when there is no EPUB or PDF. Pride and Prejudice has a file.",
-    note: "Open Notes stays on the book note. No theater.",
+    note: "Same item note as today: timer and related_canvas stay here. Open Book starts the timer; leaving or closing the book stops it.",
     reader: "Settled reader. Book size S·M·L·XL enlarges the page, not the type. Theater follows the theme after Open Book.",
     select: "Select a line. Highlight, remark, or ask. Each one saves to the canvas.",
     ask: "Read this page, this selection, or the whole book. The key is in Obsidian secrets. The answer is already on the canvas.",
@@ -1576,6 +1697,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     theater: false,
     chromeReveal: false,
     chooserOpen: false,
+    timer: { mode: "idle", total: 21, lastAdded: 0, lastLabel: "Last · today · 21 min" },
   };
 
   function reduceMotion() {
@@ -1790,9 +1912,87 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     ]);
   }
 
-  function itemNoteView() {
+  function hasCanvas(b) {
+    return !!(b && b.id && b.kind !== "none" && b.kind !== "bad");
+  }
+
+  function startReadingTimer() {
+    if (state.timer.mode === "auto") return;
+    state.timer.mode = "auto";
+  }
+
+  function stopAutoTimer() {
+    if (state.timer.mode !== "auto") return;
+    state.timer.total += 12;
+    state.timer.lastAdded = 12;
+    state.timer.lastLabel = "Just now · +12 min";
+    state.timer.mode = "idle";
+  }
+
+  function stopReadingTimer() {
+    if (state.timer.mode === "auto") {
+      stopAutoTimer();
+      return;
+    }
+    if (state.timer.mode !== "manual") return;
+    state.timer.total += 8;
+    state.timer.lastAdded = 8;
+    state.timer.lastLabel = "Just now · +8 min";
+    state.timer.mode = "idle";
+  }
+
+  function syncTimerToScene(scene) {
+    if (scene === "reader" || scene === "select" || scene === "ask") startReadingTimer();
+    else stopAutoTimer();
+  }
+
+  function itemTimer() {
+    const running = state.timer.mode === "manual" || state.timer.mode === "auto";
+    const caption = running
+      ? [el("span", { class: "atomic-pulse" }), el("span", { class: "atomic-caption" }, state.timer.mode === "auto" ? "Reading · since 09:41" : "Running · since 09:41")]
+      : [el("span", { class: "atomic-caption" }, "Reads with the book")];
+    const readout = running
+      ? el("span", { class: "atomic-readout" }, "Total " + state.timer.total + " min")
+      : el("span", { class: "atomic-readout" + (state.timer.lastAdded ? " is-live" : "") }, state.timer.lastLabel);
+    const clock = running
+      ? el("div", { class: "atomic-timer-clock" }, "12:04")
+      : el("div", { class: "atomic-timer-clock" }, [String(state.timer.total), el("span", { class: "atomic-unit" }, "min")]);
+    const actions = running
+      ? [
+          el("button", { type: "button", class: "atomic-btn is-quiet", "data-act": "timer-discard" }, "Discard"),
+          el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "timer-stop" }, "Stop"),
+        ]
+      : [el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "timer-start" }, "Start")];
+    return el("div", {
+      class: "fitness-plugin atomic-timer atomic-well" + (running ? " is-running" : ""),
+      "data-testid": "atomic-timer",
+      style: { "--atomic-c": "#5b7cfa" },
+    }, [
+      el("div", { class: "atomic-timer-head" }, [
+        el("div", { class: "atomic-timer-caption" }, caption),
+        readout,
+      ]),
+      clock,
+      el("div", { class: "atomic-timer-actions" }, actions),
+    ]);
+  }
+
+  function itemNoteView(phone) {
     const b = state.book;
     const file = hasBookFile(b) ? fileLabel(b) : "None — Open Book hidden";
+    const canvasPath = b.title + ".canvas";
+    const canvasBlock = hasCanvas(b)
+      ? el("div", { class: "ob-block" }, [
+          el("div", { class: "ob-block-bar" }, [
+            el("span", null, "related_canvas"),
+            el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, [canvasPath, el("span", null, "↗")]),
+          ]),
+          canvasView(phone, { embed: true }),
+        ])
+      : el("div", { class: "fitness-plugin atomic-well atomic-canvas-empty" }, [
+          el("p", { class: "atomic-hint", style: { margin: "0 0 6px" } }, "No canvas on this note yet."),
+          el("p", { class: "atomic-hint", style: { margin: "0" } }, "First highlight, remark, or Ask writes " + canvasPath + " and sets related_canvas. Past notes keep working without one."),
+        ]);
     return el("div", { class: "ob-reading" }, [
       el("h2", { class: "ob-inline-title" }, b.title),
       el("div", { class: "ob-props" }, [
@@ -1800,8 +2000,16 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("div", { class: "ob-prop" }, [el("span", null, "Status"), el("span", null, b.status)]),
         el("div", { class: "ob-prop" }, [el("span", null, "File"), el("span", null, file)]),
         el("div", { class: "ob-prop" }, [el("span", null, "reader.size"), el("span", null, bookSize())]),
+        el("div", { class: "ob-prop" }, [el("span", null, "related_canvas"), el("span", null, hasCanvas(b) ? canvasPath : "—")]),
       ]),
-      el("p", { class: "ob-reading-p" }, "Opened via Open Notes. Stay in this leaf. No theater. The canvas and the reader stay linked from this note."),
+      el("p", { class: "ob-reading-p" }, "Opened via Open Notes. Stay in this leaf. No theater. The timer and canvas already on this note stay here."),
+      el("h3", { class: "ob-h2" }, "Time log"),
+      itemTimer(),
+      el("p", { class: "atomic-hint" }, "Open Book starts this timer. It stops when the book is not frontmost, or you close it. Start still works for time on this note."),
+      el("h3", { class: "ob-h2" }, "Remarks"),
+      el("p", { class: "ob-reading-p" }, "“It is a truth universally acknowledged…” — p. 47"),
+      el("h3", { class: "ob-h2" }, "Canvas"),
+      canvasBlock,
     ]);
   }
 
@@ -1918,16 +2126,23 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       el("h4", null, "Ask about this book"),
       el("span", { class: "atomic-readout" }, "Pride and Prejudice · p. 47"),
       el("div", { class: "atomic-saved" }, [el("i"), el("span", { class: "atomic-readout is-live" }, "Saved to canvas")]),
-      el("div", { class: "atomic-seg", style: { marginBottom: "10px" } }, [
+      el("div", { class: "atomic-seg", style: { margin: "10px 0 0" } }, [
         el("button", { type: "button", class: "atomic-seg-option is-on" }, "This page"),
         el("button", { type: "button", class: "atomic-seg-option" }, "Selection"),
         el("button", { type: "button", class: "atomic-seg-option", "data-act": "whole" }, "Whole book"),
       ]),
-      el("textarea", { readonly: true }, "Why start with a universal truth?"),
-      el("div", { class: "atomic-answer" }, [
-        el("p", { style: { margin: "0 0 8px" } }, "The first sentence is a joke that the neighbourhood treats as a rule. The book then watches what that rule does to people."),
-        el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, ["Open canvas card", el("span", null, "↗")]),
+      el("div", { class: "atomic-thread" }, [
+        el("div", { class: "atomic-bubble is-user" }, "Why start with a universal truth?"),
+        el("div", { class: "atomic-bubble atomic-answer" }, [
+          el("p", { style: { margin: "0 0 8px" } }, "The first sentence is a joke that the neighbourhood treats as a rule. The book then watches what that rule does to people."),
+          el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, ["Open canvas card", el("span", null, "↗")]),
+        ]),
       ]),
+      el("div", { class: "atomic-compose" }, [
+        el("textarea", { readonly: true, rows: "1", placeholder: phone ? "Ask…" : "Ask about this passage…" }, ""),
+        el("button", { type: "button", class: "atomic-btn is-primary is-icon", "data-act": "ask-send", "aria-label": "Send" }, svg(ICONS.send)),
+      ]),
+      phone ? el("p", { class: "atomic-hint", style: { margin: "8px 2px 0" } }, "Secret storage · configured") : null,
     ];
 
     const ask = phone
@@ -1967,7 +2182,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     ]);
   }
 
-  function canvasView(phone) {
+  function canvasView(phone, opts) {
+    const embed = !!(opts && opts.embed);
     const cards = [
       { x: phone ? 22 : 16, y: phone ? 22 : 20, k: "Highlight", ai: false, t: "“a truth universally acknowledged”", page: 47 },
       { x: phone ? 78 : 84, y: phone ? 24 : 22, k: "Remark", ai: false, t: "The line everyone quotes. Keep it.", page: 47 },
@@ -1984,13 +2200,13 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       l.setAttribute("x2", x2); l.setAttribute("y2", y2);
       wires.appendChild(l);
     });
-    return el("div", { class: "fitness-plugin atomic-canvas" }, [
+    return el("div", { class: "fitness-plugin atomic-canvas" + (embed ? " is-embed" : "") }, [
       wires,
       el("div", { class: "atomic-cnode is-group", style: { left: "22%", top: "12%" } }, "Chapter I"),
       el("div", { class: "atomic-cnode is-group", style: { left: "80%", top: "12%" } }, "Chapter I"),
       el("div", { class: "atomic-cnode is-book", style: { left: "50%", top: "48%" } }, [
         el("div", { class: "atomic-cbook-plate" }, bookButton(BOOKS[0])),
-        el("div", { class: "atomic-caption", style: { textAlign: "center", marginTop: "8px" } }, "Pride and Prejudice"),
+        embed ? null : el("div", { class: "atomic-caption", style: { textAlign: "center", marginTop: "8px" } }, "Pride and Prejudice"),
       ]),
       ...cards.map((c) => el("button", {
         type: "button",
@@ -2001,7 +2217,9 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         el("div", { class: "k" + (c.ai ? " is-ai" : "") }, c.k + " · p. " + c.page),
         el("div", { class: "b" }, c.t),
       ])),
-      el("button", { type: "button", class: "atomic-canvas-note atomic-link", "data-act": "note" }, "Pride and Prejudice.md ↗"),
+      embed
+        ? null
+        : el("button", { type: "button", class: "atomic-canvas-note atomic-link", "data-act": "note" }, "Pride and Prejudice.md ↗"),
     ]);
   }
 
@@ -2158,7 +2376,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   function contentFor(scene, phone) {
     if (scene === "library") return shelf();
     if (scene === "reading") return readingView();
-    if (scene === "chooser" || scene === "note") return itemNoteView();
+    if (scene === "chooser" || scene === "note") return itemNoteView(phone);
     if (scene === "canvas") return canvasView(phone);
     if (scene === "settings") return settingsView();
     if (scene === "empty") return emptyView();
@@ -2341,6 +2559,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     state.scene = "select";
     state.theater = true;
     state.chromeReveal = true;
+    startReadingTimer();
     render();
   });
   document.addEventListener("reader-mock-reveal-chrome", () => {
@@ -2489,6 +2708,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     state.scene = "select";
     state.theater = true;
     state.chromeReveal = true;
+    startReadingTimer();
     if (origin === "canvas" || reduceMotion()) {
       abortOpens();
       state.playing = false;
@@ -2528,6 +2748,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         if (state.scene === "empty") state.emptyKind = "key";
         if (state.scene !== "reader" && state.scene !== "select" && state.scene !== "ask") exitTheater();
         if (state.scene === "chooser") state.book = BOOKS[0];
+        syncTimerToScene(state.scene);
         render();
         return;
       }
@@ -2557,6 +2778,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         state.from = "canvas";
         exitTheater();
         state.scene = "reader";
+        startReadingTimer();
         render();
         return;
       }
@@ -2583,12 +2805,14 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       }
       if (name === "note") {
         exitTheater();
+        stopAutoTimer();
         state.scene = "note";
         render();
         return;
       }
       if (name === "theater-enter") {
         enterTheater();
+        startReadingTimer();
         render();
         return;
       }
@@ -2601,7 +2825,28 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
         state.scene = "note";
         state.chooserOpen = false;
         exitTheater();
+        stopAutoTimer();
         render();
+        return;
+      }
+      if (name === "timer-start") {
+        state.timer.mode = "manual";
+        render();
+        return;
+      }
+      if (name === "timer-stop") {
+        stopReadingTimer();
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Logged " + state.timer.lastAdded + " min");
+        render();
+        return;
+      }
+      if (name === "timer-discard") {
+        state.timer.mode = "idle";
+        render();
+        return;
+      }
+      if (name === "ask-send") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Saved to canvas");
         return;
       }
       if (name === "open-book") {
@@ -2759,6 +3004,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     }
     if (state.scene === "chooser") state.book = BOOKS[0];
     exitTheater();
+    syncTimerToScene(state.scene);
     render();
   });
   document.querySelector("[data-tool=theme]").addEventListener("click", (e) => {
