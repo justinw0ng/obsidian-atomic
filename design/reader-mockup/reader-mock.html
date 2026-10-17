@@ -579,7 +579,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
 }
 .ob-phone-screen .atomic-spread {
-  grid-template-columns: 1fr 22px;
+  grid-template-columns: 1fr;
   background: var(--background-primary);
 }
 .atomic-page {
@@ -620,16 +620,41 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 }
 .theme-dark .atomic-hl { background: color-mix(in srgb, #c9a227 34%, transparent); }
 .atomic-hl.is-sel { background: color-mix(in srgb, var(--interactive-accent) 22%, transparent); }
-.atomic-gutter { position: relative; min-width: 0; }
+.atomic-gutter {
+  position: relative;
+  width: 112px;
+  min-width: 112px;
+  height: var(--page-h, 340px);
+  margin: 18px 0;
+  align-self: center;
+}
+.ob-phone-screen .atomic-page .atomic-gutter.is-phone {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 22px;
+  min-width: 22px;
+  height: auto;
+  margin: 0;
+  pointer-events: none;
+}
+.ob-phone-screen .atomic-mdot { pointer-events: auto; }
 .atomic-remark {
-  position: absolute; left: 12px; right: 10px;
-  padding: 8px 0 0;
-  border-top: 1px solid var(--atomic-rule);
-  font-size: 11.5px; line-height: 1.4; color: var(--atomic-ink-2);
+  position: absolute; left: 0; right: 0; z-index: 2;
+  width: 112px; box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid #e0b430;
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+  font-size: 12px; line-height: 16px; color: var(--atomic-ink-2);
   cursor: pointer; text-align: left;
 }
-.atomic-gutter.is-right .atomic-remark { left: 10px; right: 12px; }
-.atomic-remark strong { display: block; color: var(--atomic-ink); font-weight: 600; font-size: 11px; margin-bottom: 2px; }
+.atomic-gutter.is-right .atomic-remark { border-left-color: var(--atomic-c); }
+.atomic-remark strong {
+  display: block; color: var(--atomic-ink); font-weight: 600;
+  font-size: 11px; letter-spacing: 0.05em; margin-bottom: 4px;
+  white-space: nowrap;
+}
 .atomic-remark.is-ai strong { color: var(--atomic-c); }
 .atomic-mdot {
   position: absolute; right: 6px;
@@ -638,12 +663,15 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--atomic-c) 18%, transparent);
 }
 .atomic-slip {
-  position: absolute; left: 16px; right: 28px; z-index: 4;
-  padding: 12px 14px;
-  border-radius: var(--atomic-r-well);
+  position: absolute; right: 8px; left: auto; z-index: 4;
+  width: 168px; max-width: calc(100% - 28px);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid var(--atomic-c);
   background: var(--atomic-paper);
-  box-shadow: 0 0 0 1px var(--atomic-rule), 0 18px 32px -16px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
 }
+.atomic-slip[data-kind="quote"] { border-left-color: #e0b430; }
 .atomic-slip[hidden], .atomic-selbar[hidden], .atomic-ask[hidden], .atomic-sheet[hidden] { display: none; }
 .atomic-reader-foot {
   display: flex; align-items: center; gap: 12px;
@@ -1497,6 +1525,52 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     return b.title.replace(/ /g, "-") + "." + b.kind;
   }
 
+  function highlightFor(page, which) {
+    if (!page) return null;
+    const marks = [...page.querySelectorAll(".atomic-hl")];
+    if (!marks.length) return null;
+    if (which === "ai") return marks[marks.length - 1];
+    return marks[0];
+  }
+
+  function placeBesideHighlight(el, page, hl, gutter) {
+    if (!el || !hl) return;
+    const host = gutter || page;
+    const hostBox = host.getBoundingClientRect();
+    const hlBox = hl.getBoundingClientRect();
+    let top = hlBox.top - hostBox.top;
+    const max = Math.max(0, host.clientHeight - el.offsetHeight);
+    if (top > max) top = max;
+    if (top < 0) top = 0;
+    el.style.top = Math.round(top) + "px";
+  }
+
+  function alignReaderNotes(root) {
+    const phone = !!root.querySelector(".ob-phone-screen, .ob-mcontent");
+    const pages = [...root.querySelectorAll(".atomic-page")];
+    if (!pages.length) return;
+    if (phone || pages.length === 1) {
+      const page = pages[0];
+      const quote = highlightFor(page, "quote");
+      const ask = highlightFor(page, "ai");
+      const dots = root.querySelectorAll(".atomic-mdot");
+      if (dots[0] && quote) placeBesideHighlight(dots[0], page, quote, dots[0].parentElement);
+      if (dots[1] && ask) placeBesideHighlight(dots[1], page, ask, dots[1].parentElement);
+      const slip = page.querySelector(".atomic-slip");
+      if (slip && !slip.hidden) {
+        const hl = state.slip === "ai" ? ask : quote;
+        placeBesideHighlight(slip, page, hl, page);
+      }
+      return;
+    }
+    const left = root.querySelector(".atomic-gutter:not(.is-right) .atomic-remark");
+    const right = root.querySelector(".atomic-gutter.is-right .atomic-remark");
+    const quote = highlightFor(pages[0], "quote");
+    const ask = highlightFor(pages[1], "ai") || highlightFor(pages[1], "quote");
+    if (left && quote) placeBesideHighlight(left, pages[0], quote, left.parentElement);
+    if (right && ask) placeBesideHighlight(right, pages[1], ask, right.parentElement);
+  }
+
   function applyPageSize(node, theater) {
     const dim = BOOK_SIZES[bookSize()] || BOOK_SIZES.m;
     node.style.setProperty("--page-w", dim.w + "px");
@@ -1722,29 +1796,32 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     const showSel = kind === "select" || kind === "ask";
     const showAsk = kind === "ask";
     const leftGutter = el("div", { class: "atomic-gutter" },
-      el("button", { type: "button", class: "atomic-remark", style: { top: "118px" }, "data-jump": "47" }, [
+      el("button", { type: "button", class: "atomic-remark", "data-jump": "47", "data-note": "quote" }, [
         el("strong", null, "Remark · p. 47"),
         "The line everyone quotes. Keep it.",
       ]),
     );
     const rightGutter = el("div", { class: "atomic-gutter is-right" }, [
-      el("button", { type: "button", class: "atomic-remark is-ai", style: { top: "210px" }, "data-jump": "47" }, [
+      el("button", { type: "button", class: "atomic-remark is-ai", "data-jump": "47", "data-note": "ai" }, [
         el("strong", null, "Ask · p. 47"),
         "Austen opens on social pressure, not character.",
       ]),
     ]);
     const dots = el("div", { class: "atomic-gutter is-phone" }, [
-      el("button", { type: "button", class: "atomic-mdot", style: { top: "132px" }, "data-slip": "quote", "aria-label": "Open remark" }),
-      el("button", { type: "button", class: "atomic-mdot", style: { top: "268px" }, "data-slip": "ai", "aria-label": "Open answer" }),
+      el("button", { type: "button", class: "atomic-mdot", "data-slip": "quote", "aria-label": "Open remark" }),
+      el("button", { type: "button", class: "atomic-mdot", "data-slip": "ai", "aria-label": "Open answer" }),
     ]);
-    const slip = el("div", { class: "atomic-slip", hidden: !state.slip, "data-slip-card": "" }, [
-      el("strong", { class: "atomic-caption", style: { display: "block", marginBottom: "4px" } }, state.slip === "ai" ? "Ask · p. 47" : "Remark · p. 47"),
+    const slip = el("div", {
+      class: "atomic-slip",
+      hidden: !state.slip,
+      "data-slip-card": "",
+      "data-kind": state.slip === "ai" ? "ai" : "quote",
+    }, [
+      el("strong", { class: "atomic-caption", style: { display: "block", marginBottom: "4px", whiteSpace: "nowrap" } }, state.slip === "ai" ? "Ask · p. 47" : "Remark · p. 47"),
       el("p", { class: "atomic-hint", style: { margin: "0" } }, state.slip === "ai"
         ? "Austen opens on social pressure, not character."
         : "The line everyone quotes. Keep it."),
     ]);
-    if (state.slip === "ai") slip.style.top = "248px";
-    else slip.style.top = "118px";
 
     const selbar = el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel || showAsk, style: phone ? { left: "50%", top: "300px" } : { left: "68%", top: "248px" } },
       el("div", { class: "atomic-glass" }, [
@@ -1775,7 +1852,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
       : el("div", { class: "atomic-ask fitness-plugin", hidden: !showAsk }, askBody);
 
     const pages = phone
-      ? [el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I · p. 47"), ...pageText(LEFT.concat(RIGHT), showSel ? "sel" : ""), slip]), dots]
+      ? [el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I · p. 47"), ...pageText(LEFT.concat(RIGHT), showSel ? "sel" : ""), slip, dots])]
       : [leftGutter, el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I"), ...pageText(LEFT, showSel ? "sel" : "")]), el("div", { class: "atomic-page" }, [el("h3", null, "p. 47"), ...pageText(RIGHT, showSel ? "sel" : "")]), rightGutter];
 
     return el("div", { class: "fitness-plugin atomic-reader" }, [
@@ -2547,6 +2624,8 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     wireHovers(phone);
     bindTheaterChrome(desk.querySelector(".ob-window"));
     bindTheaterChrome(phone.querySelector(".ob-phone-screen"));
+    alignReaderNotes(desk);
+    alignReaderNotes(phone);
   }
 
   document.addEventListener("keydown", (e) => {
