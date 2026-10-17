@@ -21,7 +21,7 @@
     "@types/node": "^26.6.5",
     "esbuild": "^0.28.2",
     "obsidian": "^1.14.4",
-    "selenium-webdriver": "^4.50.0",
+    "selenium-webdriver": "^4.51.0",
     "typescript": "^5.3.3"
   }
 }
