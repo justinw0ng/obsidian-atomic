@@ -1,0 +1,3100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atomic Tracker — 1.6.0 reader mock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap">
+<style>
+/*
+  1.6.0 design mock. Tokens, chrome, hairlines, and book objects follow the
+  1.5.0 revamp language. Nothing here ships.
+*/
+
+.theme-light {
+  --background-primary: #ffffff;
+  --background-primary-alt: #fafafa;
+  --background-secondary: #f6f6f6;
+  --background-secondary-alt: #ededed;
+  --background-modifier-border: #e0e0e0;
+  --background-modifier-hover: rgba(0, 0, 0, 0.05);
+  --text-normal: #222222;
+  --text-muted: #5c5c5c;
+  --text-faint: #ababab;
+  --text-accent: #5b7cfa;
+  --text-error: #e03140;
+  --interactive-accent: #5b7cfa;
+  --icon-color: #6b6b6b;
+  --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-text: "Literata", "Source Serif 4", Georgia, serif;
+  --font-monospace: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+
+.theme-dark {
+  --background-primary: #1e1e1e;
+  --background-primary-alt: #242424;
+  --background-secondary: #262626;
+  --background-secondary-alt: #2e2e2e;
+  --background-modifier-border: #363636;
+  --background-modifier-hover: rgba(255, 255, 255, 0.06);
+  --text-normal: #dadada;
+  --text-muted: #a3a3a3;
+  --text-faint: #666666;
+  --text-accent: #8aa0ff;
+  --text-error: #fb5560;
+  --interactive-accent: #5b7cfa;
+  --icon-color: #9a9a9a;
+  --font-interface: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  --font-text: "Literata", "Source Serif 4", Georgia, serif;
+  --font-monospace: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11" 1, "ss01" 0;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { appearance: none; background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* ------------------------------------------------------------ desktop */
+
+.ob-window {
+  --ob-w: 1020px;
+  position: relative;
+  width: var(--ob-w);
+  height: 720px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    0 40px 80px -30px rgba(0, 0, 0, 0.35);
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: 38px auto;
+  transform: translateZ(0);
+}
+.theme-dark.ob-window {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 40px 80px -30px rgba(0, 0, 0, 0.8);
+}
+.ob-titlebar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 10px 0 14px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.ob-lights { display: flex; gap: 8px; align-self: center; margin-right: 14px; }
+.ob-lights > span {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.15);
+}
+.ob-lights > span:nth-child(2) { background: #febc2e; }
+.ob-lights > span:nth-child(3) { background: #28c840; }
+.ob-tab {
+  display: flex; align-items: center; gap: 10px;
+  height: 30px; min-width: 180px; padding: 0 10px 0 12px;
+  margin-bottom: -1px;
+  border-radius: 8px 8px 0 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-bottom-color: var(--background-primary);
+  font-size: 12.5px;
+}
+.ob-tab .ob-x { margin-left: auto; color: var(--text-muted); font-size: 13px; }
+.ob-plus { align-self: center; color: var(--icon-color); font-size: 16px; padding: 0 6px; }
+.ob-title-actions { margin-left: auto; align-self: center; display: flex; gap: 14px; color: var(--icon-color); }
+.ob-ribbon {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding-top: 14px;
+  background: var(--background-secondary);
+  border-right: 1px solid var(--background-modifier-border);
+  color: var(--icon-color);
+}
+.ob-icon { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.ob-icon.is-mode-on { color: var(--text-normal); }
+.ob-main { position: relative; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.ob-viewhead {
+  display: flex; align-items: center; height: 40px; padding: 0 14px;
+  color: var(--icon-color); gap: 14px; flex: none;
+}
+.ob-crumbs { flex: 1; text-align: center; font-size: 12.5px; color: var(--text-muted); }
+.ob-crumbs b { font-weight: 500; color: var(--text-normal); }
+.ob-content { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.ob-status {
+  position: absolute; right: 0; bottom: 0; padding: 3px 12px;
+  border-top-left-radius: 8px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-right: 0; border-bottom: 0;
+  font-size: 12px; color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------- phone */
+
+.ob-phone {
+  position: relative;
+  width: 412px;
+  height: 866px;
+  padding: 11px;
+  margin: 0 36px;
+  border-radius: 64px;
+  background: #0d0d0e;
+  box-shadow:
+    inset 0 0 0 1.5px #3a3a3c,
+    0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 50px 90px -40px rgba(0, 0, 0, 0.55);
+  flex: none;
+}
+.ob-phone-screen {
+  position: relative;
+  width: 390px;
+  height: 844px;
+  border-radius: 53px;
+  overflow: hidden;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-interface);
+  display: flex;
+  flex-direction: column;
+  transform: translateZ(0);
+}
+.ob-island {
+  position: absolute; top: 11px; left: 50%;
+  width: 124px; height: 36px; margin-left: -62px;
+  border-radius: 20px; background: #000; z-index: 100;
+}
+.ob-statusbar {
+  flex: none; display: flex; justify-content: space-between; align-items: center;
+  height: 54px; padding: 6px 34px 0 46px;
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+}
+.ob-statusbar-icons { display: flex; gap: 6px; align-items: center; }
+.ob-mhead {
+  flex: none; display: flex; align-items: center; gap: 12px;
+  height: 44px; padding: 0 16px; color: var(--icon-color);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+.ob-mhead-title {
+  flex: 1; text-align: center; font-size: 15px; font-weight: 600;
+  color: var(--text-normal); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ob-mcontent { position: relative; flex: 1; overflow: hidden; min-height: 0; }
+.ob-mnav {
+  flex: none; display: flex; justify-content: space-around; align-items: center;
+  height: 50px; padding: 0 12px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary); color: var(--icon-color);
+}
+.ob-home { flex: none; height: 30px; background: var(--background-secondary); position: relative; }
+.ob-home::after {
+  content: ""; position: absolute; left: 50%; bottom: 9px;
+  width: 136px; height: 5px; margin-left: -68px;
+  border-radius: 3px; background: var(--text-normal);
+}
+
+/* -------------------------------------------------------------- board */
+
+.board {
+  --board-bg: #ebeae6;
+  --board-ink: #1d1d1b;
+  --board-muted: #6b6a66;
+  --board-rule: rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+  padding: 52px 56px 80px;
+  background: var(--board-bg);
+  color: var(--board-ink);
+}
+.board.is-dark {
+  --board-bg: #111111;
+  --board-ink: #ededed;
+  --board-muted: #8f8f8f;
+  --board-rule: rgba(255, 255, 255, 0.1);
+}
+.board-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 40px;
+  align-items: end;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--board-rule);
+}
+.board-kicker {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--board-muted); margin-bottom: 10px;
+}
+.board-title {
+  margin: 0; font-size: 34px; line-height: 1.15; font-weight: 650; letter-spacing: -0.025em;
+}
+.board-sub {
+  margin: 10px 0 0; max-width: 780px;
+  font-size: 16px; line-height: 1.5; color: var(--board-muted);
+}
+.board-meta {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; line-height: 1.7; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--board-muted); text-align: right;
+}
+.board-tools {
+  display: flex; flex-wrap: wrap; gap: 10px 18px;
+  align-items: center; margin: 0 0 22px;
+}
+.board-seg {
+  display: inline-flex; padding: 3px; border-radius: 10px;
+  background: color-mix(in srgb, var(--board-ink) 7%, transparent);
+}
+.board-seg button {
+  height: 30px; padding: 0 12px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--board-muted);
+}
+.board-seg button.is-on { background: var(--board-ink); color: var(--board-bg); }
+.board-note {
+  margin: 0; font-size: 14px; line-height: 1.45; color: var(--board-muted);
+}
+.pair {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 8px 0 28px;
+}
+.pair-desk, .pair-phone { margin: 0; }
+.pair-cap {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--board-muted); margin: 0 0 12px;
+}
+.pair-cap b { color: var(--board-ink); font-weight: 600; }
+.why {
+  max-width: 1320px; margin: 8px auto 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px 36px;
+  padding-top: 28px; border-top: 1px solid var(--board-rule);
+}
+.why h2 {
+  margin: 0 0 6px; font-size: 14px; font-weight: 650; letter-spacing: -0.01em;
+}
+.why p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--board-muted); }
+
+/* ------------------------------------------------------------------ tokens */
+
+.fitness-plugin {
+  --atomic-font: var(--font-interface);
+  --atomic-mono: var(--font-monospace);
+  --atomic-ink: var(--text-normal);
+  --atomic-ink-2: var(--text-muted);
+  --atomic-paper: var(--background-primary);
+  --atomic-rule: color-mix(in srgb, var(--text-normal) 11%, transparent);
+  --atomic-rule-strong: color-mix(in srgb, var(--text-normal) 22%, transparent);
+  --atomic-fill-1: color-mix(in srgb, var(--text-normal) 4.5%, transparent);
+  --atomic-fill-2: color-mix(in srgb, var(--text-normal) 8%, transparent);
+  --atomic-fill-3: color-mix(in srgb, var(--text-normal) 13%, transparent);
+  --atomic-focus: var(--interactive-accent);
+  --atomic-link-hover: var(--text-accent);
+  --atomic-r-object: 3px;
+  --atomic-r-control: 9px;
+  --atomic-r-well: 14px;
+  --atomic-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --atomic-t-press: 120ms;
+  --atomic-t-hover: 240ms;
+  --atomic-t-move: 560ms;
+  --atomic-c: #5b7cfa;
+  font-family: var(--atomic-font);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--atomic-ink);
+}
+
+.fitness-plugin .atomic-caption {
+  font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.01em;
+  color: var(--atomic-ink-2);
+}
+.fitness-plugin .atomic-readout {
+  font-family: var(--atomic-mono); font-size: 11px; line-height: 16px;
+  color: var(--atomic-ink-2); font-variant-numeric: lining-nums tabular-nums;
+}
+.fitness-plugin .atomic-readout.is-live { color: var(--atomic-ink); }
+.fitness-plugin .atomic-hint { font-size: 12px; line-height: 16px; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-dot {
+  display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--atomic-c);
+}
+.fitness-plugin .atomic-name {
+  display: inline-flex; align-items: center; gap: 8px; font-weight: 600;
+}
+.fitness-plugin .atomic-link {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  color: var(--atomic-ink-2); text-decoration: none; border-radius: 4px;
+  transition: color var(--atomic-t-hover) var(--atomic-ease);
+  cursor: pointer;
+}
+.fitness-plugin .atomic-link:hover { color: var(--atomic-link-hover); }
+.fitness-plugin .atomic-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 32px; padding: 0 14px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-2); color: var(--atomic-ink);
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+  transition:
+    transform var(--atomic-t-press) var(--atomic-ease),
+    background-color var(--atomic-t-hover) var(--atomic-ease);
+}
+.fitness-plugin .atomic-btn:hover { background: var(--atomic-fill-3); }
+.fitness-plugin .atomic-btn:active { transform: scale(0.97); }
+.fitness-plugin .atomic-btn:focus-visible,
+.fitness-plugin .atomic-field:focus-within,
+.fitness-plugin .atomic-seg-option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
+}
+.fitness-plugin .atomic-btn.is-primary { background: var(--atomic-ink); color: var(--atomic-paper); }
+.fitness-plugin .atomic-btn.is-quiet { background: transparent; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-btn.is-quiet:hover { background: var(--atomic-fill-1); color: var(--atomic-ink); }
+.fitness-plugin .atomic-btn.is-small { height: 28px; padding: 0 10px; }
+.fitness-plugin .atomic-btn.is-icon {
+  width: 32px; padding: 0; border-radius: 50%;
+}
+.fitness-plugin .atomic-btn svg {
+  width: 16px; height: 16px;
+  stroke: currentColor; stroke-width: 1.6; fill: none;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.fitness-plugin .atomic-well,
+.fitness-plugin.atomic-well {
+  background: var(--atomic-fill-1); border-radius: var(--atomic-r-well);
+}
+.fitness-plugin .atomic-field {
+  display: flex; align-items: center; gap: 8px;
+  height: 36px; min-width: 0; padding: 0 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+.fitness-plugin .atomic-well .atomic-field,
+.fitness-plugin.atomic-well .atomic-field { background: var(--atomic-paper); }
+.fitness-plugin .atomic-field-label { flex: none; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-field-value { flex: 1; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fitness-plugin .atomic-field-value.is-placeholder { font-weight: 400; color: var(--atomic-ink-2); }
+.fitness-plugin .atomic-field input,
+.fitness-plugin .atomic-field select {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  font-weight: 500;
+}
+.fitness-plugin .atomic-seg {
+  display: inline-flex; padding: 2px; border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+.fitness-plugin .atomic-seg-option {
+  height: 28px; padding: 0 12px; border-radius: 7px;
+  background: transparent; color: var(--atomic-ink-2);
+  font: 500 13px/1 var(--atomic-font);
+  transition: background-color var(--atomic-t-hover) var(--atomic-ease), color var(--atomic-t-hover) var(--atomic-ease);
+}
+.fitness-plugin .atomic-seg-option.is-on { background: var(--atomic-paper); color: var(--atomic-ink); }
+.fitness-plugin .atomic-glass {
+  display: inline-flex; align-items: center; gap: 2px;
+  height: 34px; padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background-primary) 58%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 0 0 1px color-mix(in srgb, var(--text-normal) 9%, transparent),
+    0 10px 28px -10px rgba(0, 0, 0, 0.28);
+}
+.theme-dark .fitness-plugin .atomic-glass {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 10px 28px -10px rgba(0, 0, 0, 0.7);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fitness-plugin .atomic-glass { background: var(--background-primary); }
+}
+.fitness-plugin .atomic-glass .atomic-btn {
+  height: 28px; border-radius: 999px; background: transparent;
+}
+.fitness-plugin .atomic-glass .atomic-btn.is-primary {
+  background: var(--atomic-ink); color: var(--atomic-paper);
+}
+
+/* ----------------------------------------------------------- book shelf */
+
+.fitness-plugin.atomic-shelf {
+  --atomic-book-w: 88px;
+  --atomic-book-h: 138px;
+  --atomic-shelf-gap: 12px;
+  --atomic-plank-top: color-mix(in srgb, var(--text-normal) 8%, var(--background-primary));
+  --atomic-plank-face: color-mix(in srgb, var(--text-normal) 17%, var(--background-primary));
+}
+.atomic-pane { height: 100%; overflow: auto; padding: 18px 28px 48px; }
+.ob-phone-screen .atomic-pane { padding: 16px 16px 28px; }
+.atomic-pane-title {
+  margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.015em;
+}
+.ob-phone-screen .atomic-pane-title { font-size: 22px; }
+.atomic-shelf-scroll { overflow-x: auto; overflow-y: visible; padding: 28px 0 8px; }
+.atomic-shelf-scroll::-webkit-scrollbar { display: none; }
+.atomic-shelf-row {
+  position: relative; display: flex; align-items: flex-end;
+  gap: var(--atomic-shelf-gap); width: max-content; min-width: 100%;
+  padding: 0 8px;
+}
+.atomic-plank {
+  position: relative; height: 15px;
+  border-radius: 1px 1px 3px 3px;
+  background:
+    linear-gradient(180deg,
+      var(--atomic-plank-top) 0,
+      var(--atomic-plank-top) 5px,
+      color-mix(in srgb, var(--atomic-plank-face), white 10%) 5px,
+      var(--atomic-plank-face) 7px,
+      color-mix(in srgb, var(--atomic-plank-face), black 6%) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--background-primary) 55%, transparent),
+    0 14px 18px -12px rgba(0, 0, 0, 0.4);
+  width: max-content; min-width: 100%;
+}
+.atomic-book {
+  --atomic-book-w: 88px;
+  --atomic-book-h: 138px;
+  --px: 0; --py: 0; --sx: 30%; --sy: 18%;
+  position: relative; flex: none;
+  width: var(--atomic-book-w); height: var(--atomic-book-h);
+  margin-bottom: -4px;
+  border-radius: 2px 3px 3px 2px;
+  background: var(--cover, #3d2a1c);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08), 0 7px 6px -6px rgba(0, 0, 0, 0.45);
+  transform-origin: 50% 100%;
+  transition: transform var(--atomic-t-move) var(--atomic-ease), box-shadow var(--atomic-t-move) var(--atomic-ease);
+  overflow: visible; color: var(--ink, #f4ecdf);
+  text-align: left;
+}
+.atomic-book-cover {
+  position: absolute; inset: 0;
+  padding: 12px 10px 10px 14px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), transparent 28%),
+    radial-gradient(circle at 80% 12%, rgba(255,255,255,0.14), transparent 36%),
+    var(--cover, #3d2a1c);
+}
+.atomic-book-cover .rule {
+  width: 22px; height: 1px; margin-bottom: 8px;
+  background: color-mix(in srgb, var(--ink, #f4ecdf) 55%, transparent);
+}
+.atomic-book-cover .t {
+  font-size: 11px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+}
+.atomic-book-cover .a {
+  margin-top: 6px; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.72;
+}
+.atomic-book::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background:
+    linear-gradient(90deg,
+      rgba(0, 0, 0, 0.22) 0,
+      rgba(255, 255, 255, 0.14) 2.5%,
+      rgba(0, 0, 0, 0) 5%,
+      rgba(0, 0, 0, 0.18) 7%,
+      rgba(255, 255, 255, 0.16) 8.5%,
+      rgba(255, 255, 255, 0) 12%,
+      rgba(255, 255, 255, 0) 94%,
+      rgba(0, 0, 0, 0.1) 98%,
+      rgba(0, 0, 0, 0.26) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 26%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.1));
+}
+.atomic-book::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 3;
+  background: radial-gradient(circle at var(--sx) var(--sy), rgba(255,255,255,0.62) 0, rgba(255,255,255,0.18) 28%, rgba(255,255,255,0) 58%);
+  mix-blend-mode: soft-light; opacity: 0;
+  transition: opacity var(--atomic-t-hover) var(--atomic-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .atomic-book:hover {
+    z-index: 3;
+    transform: perspective(700px) translateY(-8px) rotateX(calc(var(--py) * -12deg)) rotateY(calc(var(--px) * 20deg));
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 22px 22px -14px rgba(0, 0, 0, 0.5);
+  }
+  .atomic-book:hover::after { opacity: 1; }
+}
+.atomic-book-ribbon {
+  position: absolute; right: 16%; bottom: -20px; width: 8px; height: 24px; z-index: -1;
+  filter: drop-shadow(0 1px 0.5px rgba(0, 0, 0, 0.3));
+}
+.atomic-book-ribbon::before {
+  content: ""; position: absolute; inset: 0; background: var(--atomic-c);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+}
+.atomic-shelf-readout {
+  display: flex; align-items: baseline; gap: 10px; min-height: 20px;
+  margin-top: 14px; padding: 0 8px; white-space: nowrap; overflow: hidden;
+}
+.atomic-shelf-readout-title { font-size: 13px; font-weight: 600; }
+.atomic-shelf-readout-meta { color: var(--atomic-ink-2); }
+.atomic-heat-mini { margin-top: 28px; }
+.atomic-heat-row { display: flex; gap: 3px; margin-top: 8px; flex-wrap: wrap; }
+.atomic-heat-cell {
+  width: 10px; height: 10px; border-radius: 2px;
+  background: color-mix(in srgb, var(--atomic-c) var(--l, 0%), var(--atomic-paper));
+}
+.atomic-heat-cell.is-empty { background: color-mix(in srgb, var(--text-normal) 7%, transparent); }
+.atomic-heat-cell.is-today {
+  box-shadow: 0 0 0 1.25px var(--atomic-ink);
+  background: var(--atomic-paper);
+}
+
+/* ---------------------------------------------------------------- reader */
+
+.atomic-reader {
+  position: relative; height: 100%;
+  display: grid;
+  grid-template-rows: 40px 1fr 28px;
+  background: var(--background-primary);
+}
+.atomic-reader-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--atomic-rule);
+}
+.ob-phone-screen .atomic-reader-bar { padding: 0 10px; gap: 6px; }
+.ob-phone-screen .atomic-reader-bar .grow { font-size: 12px; min-width: 0; overflow: hidden; }
+.atomic-reader-bar .grow { flex: 1; }
+.atomic-spread {
+  position: relative;
+  display: grid;
+  grid-template-columns: 112px var(--page-w, 270px) var(--page-w, 270px) 112px;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
+}
+.ob-phone-screen .atomic-spread {
+  grid-template-columns: 1fr;
+  background: var(--background-primary);
+}
+.atomic-page {
+  position: relative;
+  margin: 18px 8px;
+  padding: 22px 22px 28px;
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px var(--atomic-rule);
+  overflow: auto;
+}
+.ob-window .atomic-page {
+  border-radius: 1px;
+  width: var(--page-w, 270px);
+  height: var(--page-h, 340px);
+  flex: none;
+  overflow: hidden;
+  transition: width 200ms cubic-bezier(0.2, 0, 0, 1), height 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.ob-phone-screen .atomic-page {
+  margin: 0; padding: 22px 22px 28px 22px;
+  box-shadow: none; overflow: auto;
+  width: auto; height: auto;
+}
+.mock-reduced .ob-window .atomic-page { transition: none; }
+.atomic-page h3 {
+  margin: 0 0 14px; font-family: var(--font-text);
+  font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--atomic-ink-2);
+}
+.atomic-page p {
+  margin: 0 0 11px; font-family: var(--font-text);
+  font-size: 12.5px; line-height: 19px; color: var(--atomic-ink);
+}
+.ob-phone-screen .atomic-page p { font-size: 15px; line-height: 23px; }
+.atomic-hl {
+  background: color-mix(in srgb, #c9a227 28%, transparent);
+  box-decoration-break: clone;
+}
+.theme-dark .atomic-hl { background: color-mix(in srgb, #c9a227 34%, transparent); }
+.atomic-hl.is-sel { background: color-mix(in srgb, var(--interactive-accent) 22%, transparent); }
+.atomic-gutter {
+  position: relative;
+  width: 112px;
+  min-width: 112px;
+  height: var(--page-h, 340px);
+  margin: 18px 0;
+  align-self: center;
+}
+.ob-phone-screen .atomic-page .atomic-gutter.is-phone {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 22px;
+  min-width: 22px;
+  height: auto;
+  margin: 0;
+  pointer-events: none;
+}
+.ob-phone-screen .atomic-mdot { pointer-events: auto; }
+.atomic-remark {
+  position: absolute; left: 0; right: 0; z-index: 2;
+  width: 112px; box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid #e0b430;
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+  font-size: 12px; line-height: 16px; color: var(--atomic-ink-2);
+  cursor: pointer; text-align: left;
+}
+.atomic-gutter.is-right .atomic-remark { border-left-color: var(--atomic-c); }
+.atomic-remark strong {
+  display: block; color: var(--atomic-ink); font-weight: 600;
+  font-size: 11px; letter-spacing: 0.05em; margin-bottom: 4px;
+  white-space: nowrap;
+}
+.atomic-remark.is-ai strong { color: var(--atomic-c); }
+.atomic-mdot {
+  position: absolute; right: 6px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--atomic-c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--atomic-c) 18%, transparent);
+}
+.atomic-slip {
+  position: absolute; right: 8px; left: auto; z-index: 4;
+  width: 168px; max-width: calc(100% - 28px);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid var(--atomic-c);
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+}
+.atomic-slip[data-kind="quote"] { border-left-color: #e0b430; }
+.atomic-slip[hidden], .atomic-selbar[hidden], .atomic-ask[hidden], .atomic-sheet[hidden] { display: none; }
+.atomic-reader-foot {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px;
+  border-top: 1px solid var(--atomic-rule);
+  color: var(--atomic-ink-2); font-size: 11px;
+  font-family: var(--atomic-mono);
+}
+.atomic-prog {
+  flex: 1; height: 3px; border-radius: 99px;
+  background: var(--atomic-fill-2);
+}
+.atomic-prog > i {
+  display: block; height: 100%; width: 11%; border-radius: inherit;
+  background: var(--atomic-c);
+}
+
+/* selection + ask */
+
+.atomic-selbar { position: absolute; z-index: 6; transform: translate(-50%, -120%); }
+.atomic-ask {
+  position: absolute; top: 40px; right: 0; bottom: 28px; width: 300px; z-index: 7;
+  display: flex; flex-direction: column;
+  background: var(--background-primary);
+  border-left: 1px solid var(--atomic-rule);
+  padding: 16px 16px 18px;
+}
+.atomic-ask h4 { margin: 0 0 4px; font-size: 14px; font-weight: 650; }
+.atomic-ask .atomic-saved {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 8px 0 12px; color: var(--atomic-ink);
+}
+.atomic-ask .atomic-saved i {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--atomic-c);
+}
+.atomic-ask .atomic-thread {
+  display: flex; flex-direction: column; gap: 10px;
+  flex: 1; min-height: 0; overflow: auto;
+  margin: 12px 0 14px;
+}
+.atomic-bubble {
+  padding: 10px 12px; border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+  font-size: 13px; line-height: 1.45;
+  max-width: 92%;
+}
+.atomic-bubble.is-user {
+  background: var(--atomic-ink); color: var(--atomic-paper);
+  align-self: flex-end; margin-left: auto;
+}
+.atomic-compose {
+  display: flex; align-items: flex-end; gap: 8px;
+  margin-top: auto;
+  padding: 8px 10px 8px 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-fill-1);
+}
+.atomic-compose:focus-within {
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-focus);
+}
+.atomic-compose textarea {
+  flex: 1; min-width: 0; width: auto;
+  min-height: 22px; max-height: 88px; height: 22px;
+  resize: none; border: 0; outline: none; background: transparent;
+  padding: 2px 0; font-size: 13px; line-height: 1.45;
+  color: var(--atomic-ink);
+}
+.atomic-compose textarea::placeholder { color: var(--atomic-ink-2); }
+.atomic-ask .atomic-answer {
+  font-size: 13px; line-height: 1.5;
+}
+.atomic-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 8;
+  display: flex; flex-direction: column;
+  padding: 10px 16px 18px;
+  border-radius: 18px 18px 0 0;
+  background: var(--background-primary);
+  box-shadow: 0 -1px 0 var(--atomic-rule), 0 -18px 40px -24px rgba(0,0,0,0.45);
+}
+.atomic-sheet .grab {
+  width: 40px; height: 4px; border-radius: 99px; margin: 0 auto 12px;
+  background: var(--atomic-fill-3);
+}
+.atomic-sheet .atomic-thread { flex: none; max-height: 220px; }
+.atomic-sheet .atomic-compose { margin-top: 12px; }
+
+/* ------------------------------------------------------------ chooser */
+
+.atomic-chooser-scrim {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(34, 34, 34, 0.28);
+}
+.ob-phone-screen .atomic-chooser-scrim { align-items: flex-end; background: rgba(34, 34, 34, 0.4); }
+.atomic-chooser {
+  width: 360px; padding: 8px;
+  border-radius: 14px;
+  background: var(--background-primary);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0,0,0,0.4);
+}
+.ob-phone-screen .atomic-chooser {
+  width: 100%; border-radius: 18px 18px 0 0; padding: 10px 12px 18px;
+}
+.atomic-chooser .grab {
+  width: 40px; height: 4px; border-radius: 99px; margin: 4px auto 10px;
+  background: var(--atomic-fill-3);
+}
+.atomic-chooser-row {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; text-align: left;
+  padding: 12px 12px; border-radius: 9px;
+}
+.atomic-chooser-row:hover { background: var(--atomic-fill-1); }
+.atomic-chooser-row.is-primary { background: var(--atomic-fill-1); }
+.atomic-chooser-row .ico {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: grid; place-items: center;
+  background: var(--atomic-fill-2); font-size: 14px;
+}
+.atomic-chooser-row .label { flex: 1; min-width: 0; }
+.atomic-chooser-row .label b { display: block; font-size: 14px; font-weight: 600; }
+.atomic-chooser-row .label span { display: block; font-size: 12px; color: var(--atomic-ink-2); margin-top: 2px; }
+.atomic-chooser-row .kbd {
+  font-family: var(--atomic-mono); font-size: 11px; color: var(--text-faint);
+}
+.atomic-chooser-cancel {
+  width: 100%; margin-top: 4px; padding: 10px;
+  text-align: center; color: var(--atomic-ink-2); font-size: 13px;
+}
+
+/* ----------------------------------------------------------- book size */
+
+.bsize { display: inline-flex; align-items: center; gap: 8px; }
+.bsize .seg {
+  display: inline-flex; align-items: center; height: 28px; padding: 2px;
+  border-radius: 9px; border: 1px solid var(--atomic-rule); background: var(--atomic-fill-1);
+}
+.bsize .opt {
+  height: 22px; min-width: 34px; padding: 0 7px; border-radius: 7px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  font-size: 11.5px; font-weight: 500; color: var(--atomic-ink-2);
+}
+.bsize .opt.on {
+  background: var(--background-primary); color: var(--atomic-ink);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 1px 2px rgba(0,0,0,0.08);
+}
+.bsize .bk {
+  display: inline-block; border: 1.25px solid currentColor; border-left-width: 2.5px;
+  border-radius: 1.5px; opacity: 0.85;
+}
+.bsize .b1 { width: 6px; height: 8px; }
+.bsize .b2 { width: 7px; height: 10px; }
+.bsize .b3 { width: 8px; height: 12px; }
+.bsize .b4 { width: 9px; height: 14px; }
+.bsize .kbd { font-family: var(--atomic-mono); font-size: 11px; color: var(--text-faint); white-space: nowrap; }
+.bsize.is-phone { width: 100%; }
+.bsize.is-phone .seg { width: 100%; height: 36px; padding: 3px; }
+.bsize.is-phone .opt { flex: 1; height: 28px; font-size: 13px; }
+.atomic-phone-size {
+  padding: 8px 10px 10px; border-top: 1px solid var(--atomic-rule);
+}
+.atomic-phone-size .rs-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+
+/* ------------------------------------------------------------ theater */
+
+.ob-window.is-theater,
+.ob-window.is-entering-theater,
+.ob-phone-screen.is-theater,
+.ob-phone-screen.is-entering-theater {
+  --theater-void: #ebe8e2;
+  --theater-glow: rgba(255, 220, 160, 0.38);
+  --theater-paper: #f0eee6;
+}
+.theme-dark.ob-window.is-theater,
+.theme-dark.ob-window.is-entering-theater,
+.theme-dark.ob-phone-screen.is-theater,
+.theme-dark.ob-phone-screen.is-entering-theater {
+  --theater-void: #0e0c0a;
+  --theater-glow: rgba(255, 186, 110, 0.28);
+  --theater-paper: #f0e8d2;
+}
+.ob-window.is-entering-theater .ob-titlebar,
+.ob-window.is-entering-theater .ob-ribbon,
+.ob-window.is-entering-theater .ob-viewhead,
+.ob-phone-screen.is-entering-theater .ob-mhead {
+  animation: theater-chrome-dim 1100ms 80ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) forwards;
+}
+@keyframes theater-chrome-dim {
+  from { opacity: 1; }
+  to { opacity: 0.58; }
+}
+.ob-window.is-theater .ob-content,
+.ob-phone-screen.is-theater .ob-mcontent {
+  background: var(--theater-void);
+}
+.ob-window.is-theater .th-ambient,
+.ob-phone-screen.is-theater .th-ambient {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%),
+    linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+}
+.theme-dark.ob-window.is-theater .th-ambient,
+.theme-dark.ob-phone-screen.is-theater .th-ambient {
+  background:
+    radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%),
+    radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%),
+    linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+}
+.ob-window.is-theater .th-key {
+  position: absolute; left: 80px; top: 40px; width: 520px; height: 420px;
+  z-index: 2; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+}
+.theme-dark.ob-window.is-theater .th-key {
+  background: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+}
+.ob-window.is-theater .curtain {
+  position: absolute; top: 0; bottom: 0; width: 168px; z-index: 3; pointer-events: none;
+}
+.ob-window.is-theater.sz-xl .curtain { width: 108px; }
+.ob-window.is-theater .curtain.is-l { left: 0; }
+.ob-window.is-theater .curtain.is-r { right: 0; }
+.ob-window.is-theater .curtain.is-l {
+  background: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  box-shadow: 6px 0 28px rgba(60, 50, 40, 0.1);
+}
+.ob-window.is-theater .curtain.is-r {
+  background: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  box-shadow: -6px 0 28px rgba(60, 50, 40, 0.1);
+}
+.theme-dark.ob-window.is-theater .curtain.is-l {
+  background: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+}
+.theme-dark.ob-window.is-theater .curtain.is-r {
+  background: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+}
+.ob-window.is-theater .lamp-pool {
+  position: absolute; top: 150px; width: 140px; height: 260px; z-index: 4;
+  pointer-events: none; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+}
+.theme-dark.ob-window.is-theater .lamp-pool {
+  background: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+}
+.ob-window.is-theater .lamp-pool.is-l { left: 188px; }
+.ob-window.is-theater .lamp-pool.is-r { right: 188px; }
+.ob-window.is-theater.sz-xl .lamp-pool { top: 170px; height: 340px; }
+.ob-window.is-theater.sz-xl .lamp-pool.is-l { left: 96px; }
+.ob-window.is-theater.sz-xl .lamp-pool.is-r { right: 96px; }
+.ob-window.is-theater .th-chrome,
+.ob-phone-screen.is-theater .th-chrome {
+  position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
+  z-index: 8; display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 6px; border-radius: 14px;
+  background: rgba(251, 250, 247, 0.92); color: #3a3834;
+  box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  opacity: 0.78; transition: opacity 240ms ease;
+  white-space: nowrap;
+}
+.theme-dark.ob-window.is-theater .th-chrome,
+.theme-dark.ob-phone-screen.is-theater .th-chrome {
+  background: rgba(38, 38, 38, 0.92); color: #dadada;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+}
+.ob-window.is-theater.is-chrome .th-chrome,
+.ob-phone-screen.is-theater.is-chrome .th-chrome { opacity: 1; }
+.th-chrome .th-sep { width: 1px; height: 18px; background: currentColor; opacity: 0.16; }
+.th-chrome .th-exit {
+  height: 28px; padding: 0 10px; border-radius: 9px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(60, 50, 40, 0.06);
+}
+.theme-dark .th-chrome .th-exit { background: rgba(255, 255, 255, 0.06); }
+.th-chrome .th-exit .kbd { font-family: var(--atomic-mono, ui-monospace, monospace); font-size: 11px; opacity: 0.6; }
+.th-hint {
+  position: absolute; left: 0; right: 0; bottom: 18px;
+  z-index: 6; text-align: center; pointer-events: none;
+  font-family: var(--atomic-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: rgba(60, 55, 48, 0.45);
+}
+.theme-dark .th-hint { color: rgba(255, 230, 200, 0.32); }
+.ob-window.is-theater .atomic-pane,
+.ob-phone-screen.is-theater .atomic-pane {
+  position: relative; z-index: 5;
+  padding: 0; overflow: hidden; background: transparent;
+}
+.ob-window.is-theater .atomic-reader,
+.ob-phone-screen.is-theater .atomic-reader {
+  background: transparent;
+  grid-template-rows: 1fr;
+}
+.ob-window.is-theater .atomic-reader-bar,
+.ob-window.is-theater .atomic-reader-foot,
+.ob-window.is-theater .atomic-gutter,
+.ob-window.is-theater .atomic-remark,
+.ob-window.is-theater .atomic-selbar,
+.ob-window.is-theater .ob-status,
+.ob-phone-screen.is-theater .atomic-reader-bar,
+.ob-phone-screen.is-theater .atomic-reader-foot,
+.ob-phone-screen.is-theater .atomic-gutter,
+.ob-phone-screen.is-theater .atomic-slip,
+.ob-phone-screen.is-theater .atomic-mdot,
+.ob-phone-screen.is-theater .atomic-selbar,
+.ob-phone-screen.is-theater .atomic-phone-size {
+  display: none;
+}
+.ob-window.is-theater .atomic-spread {
+  grid-template-columns: var(--page-w, 270px) var(--page-w, 270px);
+  gap: 0;
+  background: transparent;
+  z-index: 5;
+}
+.ob-window.is-theater .atomic-page {
+  margin: 0;
+  color: #2a2824;
+}
+.ob-window.is-theater .atomic-page.is-verso {
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+}
+.ob-window.is-theater .atomic-page.is-recto {
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+}
+.theme-dark.ob-window.is-theater .atomic-page.is-verso {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+}
+.theme-dark.ob-window.is-theater .atomic-page.is-recto {
+  background: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+}
+.ob-window.is-theater .atomic-page p,
+.ob-window.is-theater .atomic-page h3,
+.ob-phone-screen.is-theater .atomic-page p,
+.ob-phone-screen.is-theater .atomic-page h3 { color: #2a2824; }
+.ob-window.is-theater .atomic-ask {
+  top: 12px; right: 12px; bottom: 12px;
+  border-radius: 9px;
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 18px 40px -24px rgba(0, 0, 0, 0.45);
+}
+.ob-window.is-theater .ob-titlebar,
+.ob-window.is-theater .ob-ribbon,
+.ob-window.is-theater .ob-viewhead {
+  opacity: 0.58;
+  transition: opacity 360ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1));
+}
+.theme-dark.ob-window.is-theater .ob-titlebar,
+.theme-dark.ob-window.is-theater .ob-ribbon,
+.theme-dark.ob-window.is-theater .ob-viewhead { opacity: 0.48; }
+.ob-window.is-theater.is-chrome .ob-titlebar,
+.ob-window.is-theater.is-chrome .ob-ribbon,
+.ob-window.is-theater.is-chrome .ob-viewhead { opacity: 1; }
+.ob-phone-screen.is-theater .ob-mhead {
+  opacity: 0.58;
+  transition: opacity 360ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1));
+}
+.theme-dark.ob-phone-screen.is-theater .ob-mhead { opacity: 0.48; }
+.ob-phone-screen.is-theater.is-chrome .ob-mhead { opacity: 1; }
+.ob-phone-screen.is-theater .curtain,
+.ob-phone-screen.is-theater .th-key,
+.ob-phone-screen.is-theater .lamp-pool { display: none; }
+.ob-phone-screen.is-theater .ob-mcontent {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.ob-phone-screen.is-theater .th-chrome {
+  top: 8px;
+  z-index: 9;
+  height: 36px;
+  max-width: calc(100% - 24px);
+}
+.ob-phone-screen.is-theater > .th-chrome {
+  top: 58px;
+}
+.ob-phone-screen.is-theater .th-hint { display: none; }
+.ob-phone-screen.is-theater .atomic-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ob-phone-screen.is-theater .atomic-reader {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.ob-phone-screen.is-theater .atomic-spread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 48px 16px 20px;
+  background: transparent;
+}
+.ob-phone-screen.is-theater .atomic-page {
+  width: min(340px, calc(100% - 32px));
+  height: var(--page-h, 500px);
+  min-height: 280px;
+  flex: none;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 2px;
+  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  color: #2a2824;
+}
+.theme-dark.ob-phone-screen.is-theater .atomic-page {
+  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+}
+.ob-edge {
+  position: absolute; z-index: 11;
+  background: transparent;
+}
+.ob-edge.is-n { left: 0; right: 0; top: 0; height: 32px; }
+.ob-edge.is-s { left: 0; right: 0; bottom: 0; height: 32px; }
+.ob-edge.is-w { left: 0; top: 0; bottom: 0; width: 32px; }
+.ob-edge.is-e { right: 0; top: 0; bottom: 0; width: 32px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-window.is-entering-theater .ob-titlebar,
+  .ob-window.is-entering-theater .ob-ribbon,
+  .ob-window.is-entering-theater .ob-viewhead,
+  .ob-phone-screen.is-entering-theater .ob-mhead,
+  .ob-window.is-theater .ob-titlebar,
+  .ob-window.is-theater .ob-ribbon,
+  .ob-window.is-theater .ob-viewhead,
+  .ob-phone-screen.is-theater .ob-mhead { animation: none !important; transition: none !important; }
+}
+.mock-reduced .ob-window.is-entering-theater .ob-titlebar,
+.mock-reduced .ob-window.is-entering-theater .ob-ribbon,
+.mock-reduced .ob-window.is-entering-theater .ob-viewhead,
+.mock-reduced .ob-phone-screen.is-entering-theater .ob-mhead,
+.mock-reduced .ob-window.is-theater .ob-titlebar,
+.mock-reduced .ob-window.is-theater .ob-ribbon,
+.mock-reduced .ob-window.is-theater .ob-viewhead,
+.mock-reduced .ob-phone-screen.is-theater .ob-mhead { animation: none !important; transition: none !important; }
+
+/* ---------------------------------------------------------------- canvas */
+
+.atomic-canvas {
+  position: relative; height: 100%; overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--text-normal) 4%, transparent), transparent 46%),
+    var(--background-primary);
+}
+.atomic-canvas svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.atomic-canvas svg.wires line {
+  stroke: color-mix(in srgb, var(--text-normal) 18%, transparent);
+  stroke-width: 1;
+}
+.atomic-cnode {
+  position: absolute; transform: translate(-50%, -50%);
+}
+.atomic-cnode.is-book { width: 120px; z-index: 2; }
+.atomic-cnode.is-book .atomic-cbook-plate {
+  padding: 14px 16px 10px;
+  background: var(--background-primary);
+}
+.atomic-cnode.is-book .atomic-book {
+  --atomic-book-w: 84px;
+  --atomic-book-h: 128px;
+  width: 84px;
+  height: 128px;
+}
+.atomic-cnode.is-group {
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--atomic-ink-2); font-weight: 600;
+}
+.atomic-ccard {
+  width: 168px; padding: 10px 12px;
+  border-radius: 3px;
+  background: var(--atomic-paper);
+  box-shadow: 0 0 0 1px var(--atomic-rule), 0 10px 18px -14px rgba(0,0,0,0.35);
+  text-align: left; cursor: pointer;
+  z-index: 2;
+}
+.ob-phone-screen .atomic-ccard { width: 148px; padding: 8px 10px; }
+.atomic-ccard .k {
+  font-family: var(--atomic-mono); font-size: 10px; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--atomic-ink-2); margin-bottom: 4px;
+}
+.atomic-ccard .k.is-ai { color: var(--atomic-c); }
+.atomic-ccard .b { font-size: 12.5px; line-height: 1.4; }
+.atomic-canvas-note {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+}
+.atomic-canvas.is-embed {
+  height: 280px;
+  margin-top: 8px;
+  border-radius: var(--atomic-r-object);
+  box-shadow: 0 0 0 1px var(--atomic-rule);
+}
+.ob-phone-screen .atomic-canvas.is-embed { height: 220px; }
+.atomic-canvas.is-embed .atomic-cnode.is-book { width: 72px; }
+.atomic-canvas.is-embed .atomic-cnode.is-book .atomic-book {
+  --atomic-book-w: 56px; --atomic-book-h: 86px;
+  width: 56px; height: 86px;
+}
+.atomic-canvas.is-embed .atomic-ccard { width: 132px; padding: 8px 10px; }
+.atomic-canvas-empty {
+  margin-top: 8px; padding: 18px 16px;
+  text-align: center;
+}
+
+/* ------------------------------------------------------ reading view note */
+
+.ob-reading {
+  max-width: 720px;
+  padding-bottom: 8px;
+}
+.ob-inline-title {
+  margin: 0 0 14px;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.ob-phone-screen .ob-inline-title { font-size: 22px; margin-bottom: 12px; }
+.ob-props { margin: 0 0 16px; font-size: 13px; }
+.ob-prop {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 8px;
+  padding: 3px 0;
+}
+.ob-prop span:first-child { color: var(--text-muted); }
+.ob-reading-p {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+.ob-phone-screen .ob-reading-p { font-size: 15px; }
+.ob-block {
+  margin: 8px 0 0;
+}
+.ob-block-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-family: var(--font-monospace);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.ob-reading .atomic-shelf-readout { margin-top: 10px; }
+.ob-h2 {
+  margin: 22px 0 8px;
+  font-size: 16px; font-weight: 650; letter-spacing: -0.01em;
+}
+.ob-phone-screen .ob-h2 { font-size: 15px; margin-top: 18px; }
+
+/* ----------------------------------------------------------------- timer */
+
+.fitness-plugin.atomic-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "head head" "clock actions";
+  align-items: end;
+  gap: 6px 16px;
+  padding: 14px 14px 14px 18px;
+  margin: 8px 0 10px;
+  width: 100%;
+  max-width: 560px;
+  box-sizing: border-box;
+}
+.fitness-plugin .atomic-timer-head {
+  grid-area: head;
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+}
+.fitness-plugin .atomic-timer-caption {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+}
+.fitness-plugin .atomic-timer-head .atomic-readout { text-align: right; }
+.fitness-plugin .atomic-timer-clock {
+  grid-area: clock;
+  font-size: 34px; line-height: 1.15; font-weight: 400; letter-spacing: -0.02em;
+  font-variant-numeric: lining-nums tabular-nums; white-space: nowrap;
+}
+.fitness-plugin .atomic-timer-clock .atomic-unit {
+  margin-left: 0.2em; font-size: 15px; letter-spacing: 0;
+}
+.fitness-plugin .atomic-timer-actions {
+  grid-area: actions; display: flex; gap: 6px; padding-bottom: 2px;
+}
+.fitness-plugin .atomic-pulse {
+  position: relative; flex: none;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--atomic-c);
+}
+.fitness-plugin .atomic-pulse::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1.5px solid var(--atomic-c); opacity: 0;
+  animation: atomic-pulse 1.8s var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) infinite;
+}
+@keyframes atomic-pulse {
+  0% { transform: scale(0.6); opacity: 0.55; }
+  70% { transform: scale(1); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fitness-plugin .atomic-pulse::after { animation: none; opacity: 0.35; }
+}
+.mock-reduced .fitness-plugin .atomic-pulse::after { animation: none; opacity: 0.35; }
+.ob-phone-screen .fitness-plugin.atomic-timer {
+  grid-template-columns: 1fr;
+  grid-template-areas: "head" "clock" "actions";
+  max-width: none;
+}
+.ob-phone-screen .fitness-plugin .atomic-timer-clock { font-size: 28px; }
+.ob-phone-screen .fitness-plugin .atomic-timer-actions { justify-content: flex-end; }
+
+/* -------------------------------------------------------------- settings */
+
+.atomic-settings { padding: 8px 4px 24px; max-width: 560px; }
+.atomic-settings h3 { margin: 22px 0 8px; font-size: 13px; font-weight: 650; }
+.atomic-settings .atomic-well { padding: 10px; display: grid; gap: 8px; }
+.atomic-settings .atomic-well.is-disabled { opacity: 0.45; pointer-events: none; }
+.atomic-notice {
+  padding: 14px 16px;
+  border-radius: var(--atomic-r-well);
+  background: var(--atomic-fill-1);
+  display: grid;
+  gap: 8px;
+}
+.atomic-notice h3 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -0.02em; }
+.atomic-secret-mask {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--atomic-mono);
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--atomic-ink-2);
+}
+.atomic-secret-status {
+  margin: 2px 4px 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--atomic-ink);
+}
+.atomic-secret-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.atomic-secret-picker { position: relative; }
+.atomic-secret-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; height: 36px; padding: 0 12px;
+  border-radius: var(--atomic-r-control);
+  background: var(--atomic-paper);
+  font-weight: 500; text-align: left;
+}
+.atomic-secret-trigger .is-placeholder { font-weight: 400; color: var(--atomic-ink-2); }
+.atomic-secret-trigger .ob-icon { width: 14px; height: 14px; color: var(--atomic-ink-2); flex: none; }
+.atomic-secret-menu {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px);
+  padding: 4px;
+  border-radius: var(--atomic-r-well);
+  background: var(--atomic-paper);
+  box-shadow:
+    0 0 0 1px var(--atomic-rule),
+    0 14px 28px -16px rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+.atomic-secret-menu button {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; height: 32px; padding: 0 10px;
+  border-radius: 8px;
+  font-weight: 500; text-align: left;
+}
+.atomic-secret-menu button:hover { background: var(--atomic-fill-1); }
+.atomic-secret-menu button.is-on { background: var(--atomic-fill-2); }
+.atomic-secret-menu .is-create { font-weight: 650; color: var(--atomic-ink); }
+.atomic-empty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  margin-top: 36px; max-width: 360px;
+}
+.atomic-empty h3 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -0.02em; }
+.atomic-toast {
+  position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%);
+  z-index: 9; pointer-events: none;
+}
+
+/* -------------------------------------------------------------- open book */
+
+.open-scene {
+  position: absolute; inset: 0; z-index: 20; pointer-events: none; opacity: 0;
+}
+.open-scene.is-on { pointer-events: auto; opacity: 1; }
+.open-blur {
+  position: absolute; inset: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  background: transparent;
+}
+.open-scene.is-playing .open-blur {
+  animation: open-blur 1400ms var(--atomic-ease, cubic-bezier(0.32, 0.72, 0, 1)) forwards;
+}
+.open-stage {
+  position: absolute; inset: 0;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  display: grid; place-items: center;
+}
+.open-book {
+  --from-x: 0px; --from-y: 0px; --from-s: 0.38;
+  --to-x: 0px; --to-y: 0px; --to-s: 3.15;
+  position: relative;
+  width: 168px;
+  height: 248px;
+  transform-style: preserve-3d;
+  transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s));
+  transform-origin: 50% 50%;
+}
+.open-scene.is-playing .open-book {
+  animation: open-pop 1400ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+.open-back {
+  position: absolute; inset: 0;
+  border-radius: 2px 3px 3px 2px;
+  background: #efe7d6;
+  box-shadow: 0 18px 40px -16px rgba(0,0,0,0.45);
+  transform: translateZ(-2px);
+}
+.open-leaf {
+  position: absolute; top: 5%; bottom: 5%;
+  width: 46%;
+  background: #fffdf8;
+  box-shadow: 0 0 0 1px rgba(40, 30, 10, 0.08);
+  overflow: hidden;
+  padding: 8% 6%;
+  font-family: "Iowan Old Style", Palatino, serif;
+  font-size: 9px; line-height: 1.4; color: #2b2925;
+}
+.open-leaf.is-left { left: 4%; }
+.open-leaf.is-right { right: 4%; }
+.open-flip {
+  position: absolute; top: 5%; bottom: 5%; left: 50%;
+  width: 46%;
+  background: linear-gradient(90deg, #f3ead8, #fffdf8 22%);
+  transform-origin: left center;
+  transform: rotateY(0deg);
+  box-shadow: -8px 0 16px -12px rgba(0,0,0,0.35);
+  backface-visibility: hidden;
+}
+.open-scene.is-playing .open-flip:nth-child(1) { animation: flip 220ms 420ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(2) { animation: flip 200ms 560ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(3) { animation: flip 180ms 690ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(4) { animation: flip 180ms 810ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-scene.is-playing .open-flip:nth-child(5) { animation: flip 200ms 930ms cubic-bezier(0.32, 0.72, 0, 1) forwards; }
+.open-cover {
+  position: absolute; inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+.open-scene.is-playing .open-cover {
+  animation: cover-open 900ms 180ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+.open-cover-face, .open-cover-in {
+  position: absolute; inset: 0; border-radius: 2px 3px 3px 2px;
+  backface-visibility: hidden;
+}
+.open-cover-face {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.28) 0, rgba(255,255,255,0.12) 8%, transparent 14%),
+    linear-gradient(180deg, rgba(255,255,255,0.1), transparent 30%),
+    #3d2a1c;
+  color: #f4ecdf;
+  padding: 10% 10% 8% 14%;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.open-cover-face .t { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.open-cover-face .a { margin-top: 8px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.open-cover-in {
+  background: linear-gradient(90deg, rgba(0,0,0,0.08), transparent 20%), #f3ead8;
+  transform: rotateY(180deg);
+}
+.open-hint {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  opacity: 0;
+}
+.open-scene.is-on .open-hint { opacity: 1; }
+
+@keyframes open-pop {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  22%  { transform: translate3d(calc(var(--from-x) * 0.45 + var(--to-x) * 0.12), calc(var(--from-y) * 0.4 + var(--to-y) * 0.1 - 18px), 40px) scale(1.15) rotateX(10deg); }
+  48%  { transform: translate3d(calc(var(--to-x) * 0.55), calc(var(--to-y) * 0.45 - 8px), 90px) scale(1.85) rotateX(4deg); }
+  78%  { transform: translate3d(var(--to-x), var(--to-y), 28px) scale(calc(var(--to-s) * 0.94)); }
+  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+}
+.ob-phone-screen .open-book { width: 120px; height: 178px; --to-s: 2.35; }
+.ob-phone-screen .open-scene.is-playing .open-book { animation-name: open-pop-phone; }
+@keyframes open-pop-phone {
+  0%   { transform: translate3d(var(--from-x), var(--from-y), 0) scale(var(--from-s)); }
+  22%  { transform: translate3d(calc(var(--from-x) * 0.4 + var(--to-x) * 0.12), calc(var(--from-y) * 0.35 + var(--to-y) * 0.1 - 10px), 30px) scale(1.2) rotateX(8deg); }
+  50%  { transform: translate3d(calc(var(--to-x) * 0.55), calc(var(--to-y) * 0.4 - 6px), 70px) scale(1.7); }
+  100% { transform: translate3d(var(--to-x), var(--to-y), 0) scale(var(--to-s)); }
+}
+@keyframes cover-open {
+  0%   { transform: rotateY(0); }
+  100% { transform: rotateY(-168deg); }
+}
+@keyframes flip {
+  0%   { transform: rotateY(0); }
+  100% { transform: rotateY(-178deg); }
+}
+@keyframes open-blur {
+  0%   { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); background: transparent; }
+  35%  { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  80%  { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: color-mix(in srgb, var(--background-primary) 8%, transparent); }
+  100% { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); background: transparent; }
+}
+.ob-window.is-entering-theater .open-scene.is-playing .open-blur,
+.ob-phone-screen.is-entering-theater .open-scene.is-playing .open-blur {
+  animation-name: open-blur-theater;
+}
+@keyframes open-blur-theater {
+  0%   { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); background: transparent; }
+  40%  { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: color-mix(in srgb, var(--theater-void, #ebe8e2) 38%, transparent); }
+  80%  { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: color-mix(in srgb, var(--theater-void, #ebe8e2) 12%, transparent); }
+  100% { backdrop-filter: blur(0); -webkit-backdrop-filter: blur(0); background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atomic-book, .atomic-book:hover { transform: none !important; transition: none !important; }
+  .atomic-book::after { opacity: 0 !important; }
+  .open-scene, .open-scene.is-playing .open-book,
+  .open-scene.is-playing .open-cover,
+  .open-scene.is-playing .open-flip,
+  .open-scene.is-playing .open-blur { animation: none !important; }
+}
+.mock-reduced .atomic-book, .mock-reduced .atomic-book:hover { transform: none !important; transition: none !important; }
+.mock-reduced .atomic-book::after { opacity: 0 !important; }
+.mock-reduced .open-scene, .mock-reduced .open-scene.is-playing .open-book,
+.mock-reduced .open-scene.is-playing .open-cover,
+.mock-reduced .open-scene.is-playing .open-flip,
+.mock-reduced .open-scene.is-playing .open-blur { animation: none !important; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+</style>
+</head>
+<body>
+<div class="board" id="board">
+  <header class="board-head">
+    <div>
+      <div class="board-kicker">Atomic Tracker · 1.6.0 design</div>
+      <h1 class="board-title">Reader, Ask, and the book canvas</h1>
+      <p class="board-sub">Matches the approved OpenPencil journey. Tap a cover → chooser (Open Notes default; Open Book only with a file). Open Book flies in place onto p. 47. Theater follows the theme. Book size S·M·L·XL enlarges the page, not the type.</p>
+    </div>
+    <div class="board-meta">
+      1.6.0 design · do not merge<br>
+      Inter + Literata · 1.5.0 tokens<br>
+      Pride and Prejudice · public domain
+    </div>
+  </header>
+
+  <div class="board-tools">
+    <div class="board-seg" data-tool="scene" role="tablist" aria-label="Screen">
+      <button type="button" data-scene="library" class="is-on">Library</button>
+      <button type="button" data-scene="reading">Reading view</button>
+      <button type="button" data-scene="chooser">Chooser</button>
+      <button type="button" data-scene="note">Open Notes</button>
+      <button type="button" data-scene="reader">Reader</button>
+      <button type="button" data-scene="select">Select</button>
+      <button type="button" data-scene="ask">Ask</button>
+      <button type="button" data-scene="canvas">Canvas</button>
+      <button type="button" data-scene="settings">Settings</button>
+      <button type="button" data-scene="empty">Empty</button>
+    </div>
+    <div class="board-seg" data-tool="theme" aria-label="Theme">
+      <button type="button" data-theme="light" class="is-on">Light</button>
+      <button type="button" data-theme="dark">Dark</button>
+    </div>
+    <div class="board-seg" data-tool="motion" aria-label="Motion">
+      <button type="button" data-motion="full" class="is-on">Motion</button>
+      <button type="button" data-motion="reduced">Reduced</button>
+    </div>
+    <button type="button" class="fitness-plugin atomic-btn is-primary" id="replay" style="--atomic-ink:#1d1d1b;--atomic-paper:#ebeae6;--atomic-fill-2:rgba(0,0,0,.08)">Replay open</button>
+    <button type="button" class="fitness-plugin atomic-btn" id="rerender-block" hidden style="--atomic-ink:#1d1d1b;--atomic-paper:#ebeae6;--atomic-fill-2:rgba(0,0,0,.08)">Re-render block</button>
+    <div class="board-seg" data-tool="empty" id="empty-kind" hidden aria-label="Empty state">
+      <button type="button" data-empty="key" class="is-on">No secret</button>
+      <button type="button" data-empty="file">Bad file</button>
+    </div>
+    <div class="board-seg" data-tool="appver" id="settings-kind" hidden aria-label="Obsidian version">
+      <button type="button" data-appver="current" class="is-on">1.11.4+</button>
+      <button type="button" data-appver="older">Older</button>
+    </div>
+    <p class="board-note" id="scene-note">Tap a cover. Chooser first: Open Notes is the default. Open Book only if an EPUB or PDF exists.</p>
+  </div>
+
+  <div class="pair">
+    <figure class="pair-desk">
+      <figcaption class="pair-cap"><b>Desktop</b> · 1020 × 720</figcaption>
+      <div id="desk-host"></div>
+    </figure>
+    <figure class="pair-phone">
+      <figcaption class="pair-cap"><b>Phone</b> · 390 × 844 · equal side margins</figcaption>
+      <div id="phone-host"></div>
+    </figure>
+  </div>
+
+  <div class="why">
+    <div>
+      <h2>One file, three places</h2>
+      <p>The EPUB or PDF stays in the vault. The book note stays the ledger. The canvas is the map. Open Notes stays on the note. Open Book flies onto the reader, then a theme-matched theater.</p>
+    </div>
+    <div>
+      <h2>Ask never stands alone</h2>
+      <p>A question writes a card on the canvas as it lands. Scope is this page, this selection, or — after a warning — the whole book. The key lives in Obsidian secrets.</p>
+    </div>
+    <div>
+      <h2>Same product on a phone</h2>
+      <p>Margins become dots. The side panel becomes a sheet. Ask, canvas, and settings are all there. Nothing is desktop-only.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const ICONS = {
+    sidebar: "M4 6h16M4 12h16M4 18h10",
+    file: "M7 3.5h6l4 4V18a1.5 1.5 0 0 1-1.5 1.5h-8.5A1.5 1.5 0 0 1 5.5 18V5A1.5 1.5 0 0 1 7 3.5z M13 3.5V8h4.5",
+    cal: "M5 6.5h12.5A1.5 1.5 0 0 1 19 8v9.5A1.5 1.5 0 0 1 17.5 19h-12A1.5 1.5 0 0 1 4 17.5V8a1.5 1.5 0 0 1 1.5-1.5zM4 9.5h15M7 4v3M15 4v3",
+    term: "M4.5 5.5h13A1.5 1.5 0 0 1 19 7v8.5A1.5 1.5 0 0 1 17.5 17h-13A1.5 1.5 0 0 1 3 15.5V7a1.5 1.5 0 0 1 1.5-1.5zM6.5 9.5l2.5 2-2.5 2M11 13.5h4",
+    grid: "M4 4.5h4.5V9H4zM10.75 4.5H15.25V9h-4.5zM4 11.5h4.5V16H4zM10.75 11.5H15.25V16h-4.5z",
+    left: "M11 5l-6 6 6 6M5 11h12",
+    right: "M9 5l6 6-6 6M15 11H3",
+    book: "M4.5 5.2C6.4 4.4 8.6 4.4 10.5 5.2V17c-1.9-.8-4.1-.8-6 0V5.2zM13.5 5.2c1.9-.8 4.1-.8 6 0V17c-1.9-.8-4.1-.8-6 0V5.2z",
+    more: "M5 11.5h.01M10 11.5h.01M15 11.5h.01",
+    plus: "M10 4v12M4 10h12",
+    search: "M10.2 10.2 15 15M8.5 4.8a4.4 4.4 0 1 1 0 8.8 4.4 4.4 0 0 1 0-8.8z",
+    menu: "M4 6h12M4 10h12M4 14h8",
+    chev: "M5 7.5 10 12 5 16.5",
+    down: "M5 7.5 10 12.5 15 7.5",
+    send: "M10 15V5M5 10l5-5 5 5",
+  };
+
+  function svg(d, cls) {
+    const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    s.setAttribute("class", cls || "ob-icon");
+    s.setAttribute("viewBox", "0 0 20 20");
+    s.setAttribute("aria-hidden", "true");
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", d);
+    s.appendChild(p);
+    return s;
+  }
+  function el(tag, attrs, kids) {
+    const n = document.createElement(tag);
+    if (attrs) {
+      Object.entries(attrs).forEach(([k, v]) => {
+        if (v == null || v === false) return;
+        if (k === "class") n.className = v;
+        else if (k === "style" && typeof v === "object") {
+          Object.entries(v).forEach(([sk, sv]) => {
+            if (sv == null) return;
+            if (sk.startsWith("--")) n.style.setProperty(sk, String(sv));
+            else n.style[sk] = sv;
+          });
+        }
+        else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2).toLowerCase(), v);
+        else n.setAttribute(k, v === true ? "" : v);
+      });
+    }
+    (Array.isArray(kids) ? kids : kids == null ? [] : [kids]).forEach((c) => {
+      if (c == null) return;
+      n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return n;
+  }
+
+  const BOOKS = [
+    { id: "pp", title: "Pride and Prejudice", author: "Jane Austen", status: "Reading", kind: "epub", pages: 432, last: 47, cover: "#3d2a1c", ink: "#f4ecdf" },
+    { id: "od", title: "The Odyssey", author: "Homer", status: "Finished", kind: "epub", pages: 560, last: 560, cover: "#1a2744", ink: "#e8dfc8" },
+    { id: "os", title: "On the Origin of Species", author: "Charles Darwin", status: "To read", kind: "pdf", pages: 502, last: 1, cover: "#2c3a22", ink: "#e7ecd4" },
+    { id: "fr", title: "Frankenstein", author: "Mary Shelley", status: "Finished", kind: "epub", pages: 280, last: 280, cover: "#3a1c22", ink: "#f3dce0" },
+    { id: "wa", title: "Walden", author: "Henry David Thoreau", status: "To read", kind: "pdf", pages: 216, last: 1, cover: "#2a3328", ink: "#e4eedc" },
+    { id: "mi", title: "Middlemarch", author: "George Eliot", status: "Reading", kind: "epub", pages: 880, last: 112, cover: "#4a3420", ink: "#f3e6c8" },
+    { id: "lg", title: "Leaves of Grass", author: "Walt Whitman", status: "To read", kind: "none", pages: 0, last: 1, cover: "#1e2e28", ink: "#dceee4" },
+    { id: "re", title: "The Republic", author: "Plato", status: "Finished", kind: "pdf", pages: 320, last: 320, cover: "#2a2438", ink: "#e6dff3" },
+    { id: "scan", title: "Unreadable scan", author: "Unknown", status: "To read", kind: "bad", pages: 0, last: 0, cover: "#5c5c5c", ink: "#ececec" },
+    { id: "em", title: "Emma", author: "Jane Austen", status: "Reading", kind: "epub", pages: 474, last: 20, cover: "#3a2430", ink: "#f6dfea" },
+  ];
+
+  const LEFT = [
+    ["It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.", "hl-open"],
+    "However little known the feelings or views of such a man may be on his first entering a neighbourhood, this truth is so well fixed in the minds of the surrounding families, that he is considered the rightful property of some one or other of their daughters.",
+    "“My dear Mr. Bennet,” said his lady to him one day, “have you heard that Netherfield Park is let at last?”",
+    "Mr. Bennet replied that he had not.",
+  ];
+  const RIGHT = [
+    "“But it is,” returned she; “for Mrs. Long has just been here, and she told me all about it.”",
+    "Mr. Bennet made no answer.",
+    "“Do you not want to know who has taken it?” cried his wife impatiently.",
+    "“You want to tell me, and I have no objection to hearing it.”",
+    ["This was invitation enough. “Why, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England.”", "hl-sel"],
+  ];
+
+  const NOTES = {
+    library: "Tap a cover. Chooser first: Open Notes is the default. Open Book only if an EPUB or PDF exists.",
+    reading: "A note in reading mode. The shelf is a post-processed block. Tap a cover. Chooser, then Open Book flies from that rect on the window.",
+    chooser: "Open Notes is primary. Open Book is hidden when there is no EPUB or PDF. Pride and Prejudice has a file.",
+    note: "Same item note as today: timer and related_canvas stay here. Open Book starts the timer; leaving or closing the book stops it.",
+    reader: "Settled reader. Book size S·M·L·XL enlarges the page, not the type. Theater is always XL; the pill is Exit Esc only.",
+    select: "Select a line. Highlight, remark, or ask. Each one saves to the canvas.",
+    ask: "Read this page, this selection, or the whole book. The key is in Obsidian secrets. The answer is already on the canvas.",
+    canvas: "One canvas per book. The book is in the middle. Click a card to jump to that page.",
+    settings: "The key lives in Obsidian secrets. Replace picks another. Remove unlinks the name.",
+    empty: "No secret linked, or a file we cannot open. Say so in one line.",
+  };
+
+  const state = {
+    scene: "library",
+    theme: "light",
+    motion: "full",
+    hasKey: true,
+    hasSecretApi: true,
+    secretName: "atomic-ask",
+    secretUi: "stored",
+    secretMenu: false,
+    emptyKind: "key",
+    page: 47,
+    from: "shelf",
+    book: BOOKS[0],
+    slip: null,
+    playing: false,
+    theater: false,
+    chromeReveal: false,
+    chooserOpen: false,
+    timer: { mode: "idle", total: 21, lastAdded: 0, lastLabel: "Last · today · 21 min" },
+  };
+
+  function reduceMotion() {
+    return state.motion === "reduced" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  const BOOK_SIZES = {
+    s: { w: 230, h: 280, theaterH: 280 },
+    m: { w: 270, h: 340, theaterH: 340 },
+    l: { w: 305, h: 410, theaterH: 420 },
+    xl: { w: 340, h: 488, theaterH: 500 },
+  };
+  const SIZE_ORDER = ["s", "m", "l", "xl"];
+
+  function bookSize() {
+    return state.book.size || "m";
+  }
+
+  function hasBookFile(b) {
+    return b && (b.kind === "epub" || b.kind === "pdf");
+  }
+
+  function fileLabel(b) {
+    if (!hasBookFile(b)) return "";
+    return b.title.replace(/ /g, "-") + "." + b.kind;
+  }
+
+  function highlightFor(page, which) {
+    if (!page) return null;
+    const marks = [...page.querySelectorAll(".atomic-hl")];
+    if (!marks.length) return null;
+    if (which === "ai") return marks[marks.length - 1];
+    return marks[0];
+  }
+
+  function placeBesideHighlight(el, page, hl, gutter) {
+    if (!el || !hl) return;
+    const host = gutter || page;
+    const hostBox = host.getBoundingClientRect();
+    const hlBox = hl.getBoundingClientRect();
+    let top = hlBox.top - hostBox.top;
+    const max = Math.max(0, host.clientHeight - el.offsetHeight);
+    if (top > max) top = max;
+    if (top < 0) top = 0;
+    el.style.top = Math.round(top) + "px";
+  }
+
+  function alignReaderNotes(root) {
+    if (root.querySelector(".is-theater")) return;
+    const phone = !!root.querySelector(".ob-phone-screen, .ob-mcontent");
+    const pages = [...root.querySelectorAll(".atomic-page")];
+    if (!pages.length) return;
+    if (phone || pages.length === 1) {
+      const page = pages[0];
+      const quote = highlightFor(page, "quote");
+      const ask = highlightFor(page, "ai");
+      const dots = root.querySelectorAll(".atomic-mdot");
+      if (dots[0] && quote) placeBesideHighlight(dots[0], page, quote, dots[0].parentElement);
+      if (dots[1] && ask) placeBesideHighlight(dots[1], page, ask, dots[1].parentElement);
+      const slip = page.querySelector(".atomic-slip");
+      if (slip && !slip.hidden) {
+        const hl = state.slip === "ai" ? ask : quote;
+        placeBesideHighlight(slip, page, hl, page);
+      }
+      return;
+    }
+    const left = root.querySelector(".atomic-gutter:not(.is-right) .atomic-remark");
+    const right = root.querySelector(".atomic-gutter.is-right .atomic-remark");
+    const quote = highlightFor(pages[0], "quote");
+    const ask = highlightFor(pages[1], "ai") || highlightFor(pages[1], "quote");
+    if (left && quote) placeBesideHighlight(left, pages[0], quote, left.parentElement);
+    if (right && ask) placeBesideHighlight(right, pages[1], ask, right.parentElement);
+  }
+
+  function applyPageSize(node, theater) {
+    const dim = (theater ? BOOK_SIZES.xl : BOOK_SIZES[bookSize()]) || BOOK_SIZES.m;
+    node.style.setProperty("--page-w", dim.w + "px");
+    node.style.setProperty("--page-h", (theater ? dim.theaterH : dim.h) + "px");
+  }
+
+  function bookSizeControl(phone) {
+    const current = bookSize();
+    return el("div", { class: "bsize" + (phone ? " is-phone" : ""), "aria-label": "Book size" }, [
+      el("div", { class: "seg", role: "group" },
+        SIZE_ORDER.map((sz, i) => el("button", {
+          type: "button",
+          class: "opt" + (current === sz ? " on" : ""),
+          "data-act": "book-size",
+          "data-size": sz,
+          "aria-pressed": current === sz ? "true" : "false",
+        }, [el("span", { class: "bk b" + (i + 1) }), sz.toUpperCase()])),
+      ),
+      phone ? null : el("span", { class: "kbd" }, "⌘− / ⌘+"),
+    ]);
+  }
+
+  function setBookSize(sz) {
+    if (!SIZE_ORDER.includes(sz)) return;
+    state.book.size = sz;
+    const rec = BOOKS.find((b) => b.id === state.book.id);
+    if (rec) rec.size = sz;
+    render();
+  }
+
+  function stepBookSize(dir) {
+    const i = SIZE_ORDER.indexOf(bookSize());
+    setBookSize(SIZE_ORDER[Math.max(0, Math.min(SIZE_ORDER.length - 1, i + dir))]);
+  }
+
+  function pageText(lines, mark) {
+    return lines.map((item) => {
+      if (typeof item === "string") return el("p", null, item);
+      if (!mark) return el("p", null, item[0]);
+      const [text, kind] = item;
+      const span = el("span", { class: "atomic-hl" + (kind === "hl-sel" && mark === "sel" ? " is-sel" : ""), "data-hl": kind }, text);
+      return el("p", null, [span, document.createTextNode("")]);
+    });
+  }
+
+  function leafLines(lines) {
+    return lines.map((item) => {
+      const text = typeof item === "string" ? item : item[0];
+      return el("p", { style: { margin: "0 0 0.55em" } }, text);
+    });
+  }
+
+  function bookButton(b) {
+    const btn = el("button", {
+      class: "atomic-book",
+      type: "button",
+      "data-book": b.id,
+      "aria-label": "Open " + b.title,
+      style: { "--cover": b.cover, "--ink": b.ink },
+    }, [
+      el("span", { class: "atomic-book-cover" }, [
+        el("span", { class: "rule" }),
+        el("span", { class: "t" }, b.title),
+        el("span", { class: "a" }, b.author),
+      ]),
+      b.status === "Reading" ? el("span", { class: "atomic-book-ribbon" }) : null,
+    ]);
+    btn.addEventListener("pointermove", (e) => {
+      const r = btn.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      btn.style.setProperty("--px", px.toFixed(3));
+      btn.style.setProperty("--py", py.toFixed(3));
+      btn.style.setProperty("--sx", ((px + 0.5) * 100).toFixed(1) + "%");
+      btn.style.setProperty("--sy", ((py + 0.5) * 100).toFixed(1) + "%");
+    });
+    return btn;
+  }
+
+  function shelf() {
+    const row = el("div", { class: "atomic-shelf-row" }, BOOKS.map(bookButton));
+    const heat = [];
+    for (let i = 0; i < 28; i++) {
+      const today = i === 26;
+      const fill = [4, 8, 11, 15, 18, 19, 22, 26].includes(i);
+      heat.push(el("span", { class: "atomic-heat-cell" + (today ? " is-today" : fill ? "" : " is-empty"), style: fill ? { "--l": i === 26 ? "92%" : "62%" } : null }));
+    }
+    return el("div", { class: "fitness-plugin atomic-shelf" }, [
+      el("div", { class: "atomic-shelf-scroll" }, [row, el("div", { class: "atomic-plank" })]),
+      el("div", { class: "atomic-shelf-readout" }, [
+        el("span", { class: "atomic-shelf-readout-title", "data-read-title": "" }, "10 books"),
+        el("span", { class: "atomic-shelf-readout-meta", "data-read-meta": "" }, "3 reading · 3 finished · EPUB and PDF"),
+        el("span", { class: "atomic-readout", "data-read-hint": "" }, "Tap a cover for Open Notes or Open Book"),
+      ]),
+      el("div", { class: "atomic-heat-mini" }, [
+        el("div", { class: "atomic-section-head", style: { display: "flex", justifyContent: "space-between" } }, [
+          el("span", { class: "atomic-name" }, [el("span", { class: "atomic-dot" }), "Reading"]),
+          el("span", { class: "atomic-readout" }, "This month · 6 days"),
+        ]),
+        el("div", { class: "atomic-heat-row" }, heat),
+        el("p", { class: "atomic-hint", style: { marginTop: "8px" } }, "Minutes in the reader fill this row. Same heatmap as the rest of Atomic."),
+      ]),
+    ]);
+  }
+
+  function readingShelf() {
+    const items = BOOKS.filter((b) => b.kind !== "bad").slice(0, 6);
+    const row = el("div", { class: "atomic-shelf-row" }, items.map(bookButton));
+    return el("div", { class: "fitness-plugin atomic-shelf" }, [
+      el("div", { class: "atomic-shelf-scroll" }, [row, el("div", { class: "atomic-plank" })]),
+      el("div", { class: "atomic-shelf-readout" }, [
+        el("span", { class: "atomic-shelf-readout-title", "data-read-title": "" }, "Pride and Prejudice"),
+        el("span", { class: "atomic-shelf-readout-meta", "data-read-meta": "" }, "Jane Austen · Reading · EPUB"),
+        el("span", { class: "atomic-readout", "data-read-hint": "" }, "Tap the cover in this block"),
+      ]),
+    ]);
+  }
+
+  function readingBlock() {
+    return el("div", { class: "ob-block", "data-block-host": "" }, [
+      el("div", { class: "ob-block-bar" }, [
+        el("span", null, "atomic-bookshelf"),
+        el("span", null, "reading view"),
+      ]),
+      readingShelf(),
+    ]);
+  }
+
+  function readingView() {
+    return el("div", { class: "ob-reading" }, [
+      el("h2", { class: "ob-inline-title" }, "Book shelf"),
+      el("div", { class: "ob-props" }, [
+        el("div", { class: "ob-prop" }, [el("span", null, "Hobby"), el("span", null, "Reading")]),
+        el("div", { class: "ob-prop" }, [el("span", null, "Kind"), el("span", null, "Note · reading mode")]),
+      ]),
+      el("p", { class: "ob-reading-p" }, "This is the note in reading mode. The shelf below is a post-processed block, not a custom view. Tap a cover. Chooser first, then Open Book flies from that rectangle."),
+      readingBlock(),
+    ]);
+  }
+
+  function hasCanvas(b) {
+    return !!(b && b.id && b.kind !== "none" && b.kind !== "bad");
+  }
+
+  function startReadingTimer() {
+    if (state.timer.mode === "auto") return;
+    state.timer.mode = "auto";
+  }
+
+  function stopAutoTimer() {
+    if (state.timer.mode !== "auto") return;
+    state.timer.total += 12;
+    state.timer.lastAdded = 12;
+    state.timer.lastLabel = "Just now · +12 min";
+    state.timer.mode = "idle";
+  }
+
+  function stopReadingTimer() {
+    if (state.timer.mode === "auto") {
+      stopAutoTimer();
+      return;
+    }
+    if (state.timer.mode !== "manual") return;
+    state.timer.total += 8;
+    state.timer.lastAdded = 8;
+    state.timer.lastLabel = "Just now · +8 min";
+    state.timer.mode = "idle";
+  }
+
+  function syncTimerToScene(scene) {
+    if (scene === "reader" || scene === "select" || scene === "ask") startReadingTimer();
+    else stopAutoTimer();
+  }
+
+  function itemTimer() {
+    const running = state.timer.mode === "manual" || state.timer.mode === "auto";
+    const caption = running
+      ? [el("span", { class: "atomic-pulse" }), el("span", { class: "atomic-caption" }, state.timer.mode === "auto" ? "Reading · since 09:41" : "Running · since 09:41")]
+      : [el("span", { class: "atomic-caption" }, "Reads with the book")];
+    const readout = running
+      ? el("span", { class: "atomic-readout" }, "Total " + state.timer.total + " min")
+      : el("span", { class: "atomic-readout" + (state.timer.lastAdded ? " is-live" : "") }, state.timer.lastLabel);
+    const clock = running
+      ? el("div", { class: "atomic-timer-clock" }, "12:04")
+      : el("div", { class: "atomic-timer-clock" }, [String(state.timer.total), el("span", { class: "atomic-unit" }, "min")]);
+    const actions = running
+      ? [
+          el("button", { type: "button", class: "atomic-btn is-quiet", "data-act": "timer-discard" }, "Discard"),
+          el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "timer-stop" }, "Stop"),
+        ]
+      : [el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "timer-start" }, "Start")];
+    return el("div", {
+      class: "fitness-plugin atomic-timer atomic-well" + (running ? " is-running" : ""),
+      "data-testid": "atomic-timer",
+      style: { "--atomic-c": "#5b7cfa" },
+    }, [
+      el("div", { class: "atomic-timer-head" }, [
+        el("div", { class: "atomic-timer-caption" }, caption),
+        readout,
+      ]),
+      clock,
+      el("div", { class: "atomic-timer-actions" }, actions),
+    ]);
+  }
+
+  function itemNoteView(phone) {
+    const b = state.book;
+    const file = hasBookFile(b) ? fileLabel(b) : "None — Open Book hidden";
+    const canvasPath = b.title + ".canvas";
+    const canvasBlock = hasCanvas(b)
+      ? el("div", { class: "ob-block" }, [
+          el("div", { class: "ob-block-bar" }, [
+            el("span", null, "related_canvas"),
+            el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, [canvasPath, el("span", null, "↗")]),
+          ]),
+          canvasView(phone, { embed: true }),
+        ])
+      : el("div", { class: "fitness-plugin atomic-well atomic-canvas-empty" }, [
+          el("p", { class: "atomic-hint", style: { margin: "0 0 6px" } }, "No canvas on this note yet."),
+          el("p", { class: "atomic-hint", style: { margin: "0" } }, "First highlight, remark, or Ask writes " + canvasPath + " and sets related_canvas. Past notes keep working without one."),
+        ]);
+    return el("div", { class: "ob-reading" }, [
+      el("h2", { class: "ob-inline-title" }, b.title),
+      el("div", { class: "ob-props" }, [
+        el("div", { class: "ob-prop" }, [el("span", null, "Hobby"), el("span", null, "Reading")]),
+        el("div", { class: "ob-prop" }, [el("span", null, "Status"), el("span", null, b.status)]),
+        el("div", { class: "ob-prop" }, [el("span", null, "File"), el("span", null, file)]),
+        el("div", { class: "ob-prop" }, [el("span", null, "reader.size"), el("span", null, bookSize())]),
+        el("div", { class: "ob-prop" }, [el("span", null, "related_canvas"), el("span", null, hasCanvas(b) ? canvasPath : "—")]),
+      ]),
+      el("p", { class: "ob-reading-p" }, "Opened via Open Notes. Stay in this leaf. No theater. The timer and canvas already on this note stay here."),
+      el("h3", { class: "ob-h2" }, "Time log"),
+      itemTimer(),
+      el("p", { class: "atomic-hint" }, "Open Book starts this timer. It stops when the book is not frontmost, or you close it. Start still works for time on this note."),
+      el("h3", { class: "ob-h2" }, "Remarks"),
+      el("p", { class: "ob-reading-p" }, "“It is a truth universally acknowledged…” — p. 47"),
+      el("h3", { class: "ob-h2" }, "Canvas"),
+      canvasBlock,
+    ]);
+  }
+
+  function chooserSheet(phone) {
+    const b = state.book;
+    const rows = [
+      el("button", { type: "button", class: "atomic-chooser-row is-primary", "data-act": "open-notes" }, [
+        el("span", { class: "ico" }, "✎"),
+        el("span", { class: "label" }, [el("b", null, "Open Notes"), el("span", null, "Continue the book note · default")]),
+        el("span", { class: "kbd" }, "↵"),
+      ]),
+    ];
+    if (hasBookFile(b)) {
+      rows.push(el("button", { type: "button", class: "atomic-chooser-row", "data-act": "open-book" }, [
+        el("span", { class: "ico" }, "📖"),
+        el("span", { class: "label" }, [el("b", null, "Open Book"), el("span", null, fileLabel(b))]),
+      ]));
+    }
+    return el("div", { class: "atomic-chooser-scrim", "data-chooser": "" },
+      el("div", { class: "atomic-chooser fitness-plugin" }, [
+        phone ? el("div", { class: "grab" }) : null,
+        ...rows,
+        el("button", { type: "button", class: "atomic-chooser-cancel", "data-act": "chooser-cancel" }, "Cancel"),
+      ]),
+    );
+  }
+
+  function theaterLayers() {
+    return [
+      el("div", { class: "th-ambient", "aria-hidden": "true" }),
+      el("div", { class: "th-key", "aria-hidden": "true" }),
+      el("div", { class: "curtain is-l", "aria-hidden": "true" }),
+      el("div", { class: "curtain is-r", "aria-hidden": "true" }),
+      el("div", { class: "lamp-pool is-l", "aria-hidden": "true" }),
+      el("div", { class: "lamp-pool is-r", "aria-hidden": "true" }),
+      el("div", { class: "th-chrome" }, [
+        el("button", { type: "button", class: "th-exit", "data-act": "theater-exit" }, [
+          "Exit",
+          el("span", { class: "kbd" }, "Esc"),
+        ]),
+      ]),
+      el("div", { class: "th-hint", "aria-hidden": "true" }, "Chrome hides after 2 s · move mouse to show"),
+    ];
+  }
+
+  function openScene() {
+    const flips = [1, 2, 3, 4, 5].map(() => el("div", { class: "open-flip" }));
+    return el("div", { class: "open-scene", "data-open": "", "data-overlay-host": "window", "aria-hidden": "true" }, [
+      el("div", { class: "open-blur" }),
+      el("div", { class: "open-stage" },
+        el("div", { class: "open-book" }, [
+          el("div", { class: "open-back" }),
+          el("div", { class: "open-leaf is-left" }, leafLines(LEFT)),
+          el("div", { class: "open-leaf is-right" }, leafLines(RIGHT)),
+          el("div", { style: { position: "absolute", inset: "0", transformStyle: "preserve-3d" } }, flips),
+          el("div", { class: "open-cover" }, [
+            el("div", { class: "open-cover-face" }, [
+              el("span", { class: "t" }, "Pride and Prejudice"),
+              el("span", { class: "a" }, "Jane Austen"),
+            ]),
+            el("div", { class: "open-cover-in" }),
+          ]),
+        ]),
+      ),
+      el("div", { class: "open-hint fitness-plugin" }, el("span", { class: "atomic-readout is-live" }, "Tap to skip")),
+    ]);
+  }
+
+  function reader(kind, phone) {
+    const fromCanvas = state.from === "canvas";
+    const inTheater = state.theater;
+    const showSel = kind === "select" || kind === "ask";
+    const showAsk = kind === "ask";
+    const marks = inTheater ? false : (showSel ? "sel" : "on");
+    const leftGutter = el("div", { class: "atomic-gutter" },
+      el("button", { type: "button", class: "atomic-remark", "data-jump": "47", "data-note": "quote" }, [
+        el("strong", null, "Remark · p. 47"),
+        "The line everyone quotes. Keep it.",
+      ]),
+    );
+    const rightGutter = el("div", { class: "atomic-gutter is-right" }, [
+      el("button", { type: "button", class: "atomic-remark is-ai", "data-jump": "47", "data-note": "ai" }, [
+        el("strong", null, "Ask · p. 47"),
+        "Austen opens on social pressure, not character.",
+      ]),
+    ]);
+    const dots = el("div", { class: "atomic-gutter is-phone" }, [
+      el("button", { type: "button", class: "atomic-mdot", "data-slip": "quote", "aria-label": "Open remark" }),
+      el("button", { type: "button", class: "atomic-mdot", "data-slip": "ai", "aria-label": "Open answer" }),
+    ]);
+    const slip = el("div", {
+      class: "atomic-slip",
+      hidden: !state.slip,
+      "data-slip-card": "",
+      "data-kind": state.slip === "ai" ? "ai" : "quote",
+    }, [
+      el("strong", { class: "atomic-caption", style: { display: "block", marginBottom: "4px", whiteSpace: "nowrap" } }, state.slip === "ai" ? "Ask · p. 47" : "Remark · p. 47"),
+      el("p", { class: "atomic-hint", style: { margin: "0" } }, state.slip === "ai"
+        ? "Austen opens on social pressure, not character."
+        : "The line everyone quotes. Keep it."),
+    ]);
+
+    const selbar = inTheater ? null : el("div", { class: "atomic-selbar fitness-plugin", hidden: !showSel || showAsk, style: phone ? { left: "50%", top: "300px" } : { left: "68%", top: "248px" } },
+      el("div", { class: "atomic-glass" }, [
+        el("button", { type: "button", class: "atomic-btn is-small", "data-act": "highlight" }, "Highlight"),
+        el("button", { type: "button", class: "atomic-btn is-small", "data-act": "remark" }, "Remark"),
+        el("button", { type: "button", class: "atomic-btn is-small is-primary", "data-act": "ask" }, "Ask"),
+      ]),
+    );
+
+    const askBody = [
+      el("h4", null, "Ask about this book"),
+      el("span", { class: "atomic-readout" }, "Pride and Prejudice · p. 47"),
+      el("div", { class: "atomic-saved" }, [el("i"), el("span", { class: "atomic-readout is-live" }, "Saved to canvas")]),
+      el("div", { class: "atomic-seg", style: { margin: "10px 0 0" } }, [
+        el("button", { type: "button", class: "atomic-seg-option is-on" }, "This page"),
+        el("button", { type: "button", class: "atomic-seg-option" }, "Selection"),
+        el("button", { type: "button", class: "atomic-seg-option", "data-act": "whole" }, "Whole book"),
+      ]),
+      el("div", { class: "atomic-thread" }, [
+        el("div", { class: "atomic-bubble is-user" }, "Why start with a universal truth?"),
+        el("div", { class: "atomic-bubble atomic-answer" }, [
+          el("p", { style: { margin: "0 0 8px" } }, "The first sentence is a joke that the neighbourhood treats as a rule. The book then watches what that rule does to people."),
+          el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, ["Open canvas card", el("span", null, "↗")]),
+        ]),
+      ]),
+      el("div", { class: "atomic-compose" }, [
+        el("textarea", { readonly: true, rows: "1", placeholder: phone ? "Ask…" : "Ask about this passage…" }, ""),
+        el("button", { type: "button", class: "atomic-btn is-primary is-icon", "data-act": "ask-send", "aria-label": "Send" }, svg(ICONS.send)),
+      ]),
+      phone ? el("p", { class: "atomic-hint", style: { margin: "8px 2px 0" } }, "Secret storage · configured") : null,
+    ];
+
+    const ask = phone
+      ? el("div", { class: "atomic-sheet fitness-plugin", hidden: !showAsk }, [el("div", { class: "grab" }), ...askBody])
+      : el("div", { class: "atomic-ask fitness-plugin", hidden: !showAsk }, askBody);
+
+    const pages = phone
+      ? [el("div", { class: "atomic-page" }, [el("h3", null, "Chapter I · p. 47"), ...pageText(LEFT.concat(RIGHT), marks), inTheater ? null : slip, inTheater ? null : dots])]
+      : [
+          inTheater ? null : leftGutter,
+          el("div", { class: "atomic-page is-verso" }, [el("h3", null, "Chapter I"), ...pageText(LEFT, marks)]),
+          el("div", { class: "atomic-page is-recto" }, [el("h3", null, "p. 47"), ...pageText(RIGHT, marks)]),
+          inTheater ? null : rightGutter,
+        ];
+
+    return el("div", { class: "fitness-plugin atomic-reader" }, [
+      inTheater ? null : el("div", { class: "atomic-reader-bar" }, [
+        el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-scene": "library" }, "Shelf"),
+        el("span", { class: "grow atomic-name" }, [el("span", { class: "atomic-dot" }), "Pride and Prejudice"]),
+        el("button", { type: "button", class: "atomic-link", "data-scene": "canvas" }, "Canvas"),
+        el("button", { type: "button", class: "atomic-link", "data-act": "note" }, "Note"),
+        phone ? null : bookSizeControl(false),
+        el("button", { type: "button", class: "atomic-btn is-quiet is-small", "data-act": "theater-enter" }, "Theater"),
+      ]),
+      el("div", { class: "atomic-spread" }, pages.concat([selbar, ask])),
+      inTheater ? null : el("div", { class: "atomic-reader-foot" }, [
+        el("span", null, fromCanvas ? "From canvas · p. " + state.page : "Last read · p. 47"),
+        el("span", { class: "atomic-prog" }, el("i")),
+        el("span", null, "47 / 432 · 11%"),
+      ]),
+      phone && !inTheater ? el("div", { class: "atomic-phone-size" }, [
+        el("div", { class: "rs-title" }, "Book size"),
+        bookSizeControl(true),
+      ]) : null,
+    ]);
+  }
+
+  function canvasView(phone, opts) {
+    const embed = !!(opts && opts.embed);
+    const cards = [
+      { x: phone ? 22 : 16, y: phone ? 22 : 20, k: "Highlight", ai: false, t: "“a truth universally acknowledged”", page: 47 },
+      { x: phone ? 78 : 84, y: phone ? 24 : 22, k: "Remark", ai: false, t: "The line everyone quotes. Keep it.", page: 47 },
+      { x: phone ? 18 : 14, y: phone ? 72 : 74, k: "Ask", ai: true, t: "Austen opens on social pressure, not character.", page: 47 },
+      { x: phone ? 80 : 86, y: phone ? 70 : 76, k: "Highlight", ai: false, t: "“a young man of large fortune”", page: 47 },
+    ];
+    const wires = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    wires.setAttribute("class", "wires");
+    wires.setAttribute("viewBox", "0 0 100 100");
+    wires.setAttribute("preserveAspectRatio", "none");
+    [["50", "48", "22", "28"], ["50", "48", "78", "28"], ["50", "48", "18", "68"], ["50", "48", "80", "68"]].forEach(([x1, y1, x2, y2]) => {
+      const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      l.setAttribute("x1", x1); l.setAttribute("y1", y1);
+      l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+      wires.appendChild(l);
+    });
+    return el("div", { class: "fitness-plugin atomic-canvas" + (embed ? " is-embed" : "") }, [
+      wires,
+      el("div", { class: "atomic-cnode is-group", style: { left: "22%", top: "12%" } }, "Chapter I"),
+      el("div", { class: "atomic-cnode is-group", style: { left: "80%", top: "12%" } }, "Chapter I"),
+      el("div", { class: "atomic-cnode is-book", style: { left: "50%", top: "48%" } }, [
+        el("div", { class: "atomic-cbook-plate" }, bookButton(BOOKS[0])),
+        embed ? null : el("div", { class: "atomic-caption", style: { textAlign: "center", marginTop: "8px" } }, "Pride and Prejudice"),
+      ]),
+      ...cards.map((c) => el("button", {
+        type: "button",
+        class: "atomic-cnode atomic-ccard",
+        style: { left: c.x + "%", top: c.y + "%" },
+        "data-jump": String(c.page),
+      }, [
+        el("div", { class: "k" + (c.ai ? " is-ai" : "") }, c.k + " · p. " + c.page),
+        el("div", { class: "b" }, c.t),
+      ])),
+      embed
+        ? null
+        : el("button", { type: "button", class: "atomic-canvas-note atomic-link", "data-act": "note" }, "Pride and Prejudice.md ↗"),
+    ]);
+  }
+
+  function providerFields(disabled) {
+    return [
+      el("h3", null, "Provider"),
+      el("div", { class: "atomic-well" + (disabled ? " is-disabled" : "") }, [
+        el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "Provider"),
+          el("select", { disabled: disabled || undefined }, ["OpenAI-compatible", "Anthropic", "Local"].map((x) => el("option", null, x)))]),
+        el("label", { class: "atomic-field" }, [el("span", { class: "atomic-field-label" }, "Model"),
+          el("input", { value: "gpt-4.1", spellcheck: "false", disabled: disabled || undefined })]),
+      ]),
+    ];
+  }
+
+  function storedSecret() {
+    return el("div", { class: "atomic-well" }, [
+      el("div", { class: "atomic-field" }, [
+        el("span", { class: "atomic-field-label" }, "API key"),
+        el("span", { class: "atomic-secret-mask", "aria-label": "Masked key" }, "••••••••••••••••"),
+      ]),
+      el("p", { class: "atomic-secret-status" }, "Stored in Obsidian secrets"),
+      el("p", { class: "atomic-hint", style: { margin: "0 4px" } }, "Settings keep the name " + state.secretName + ". The value stays in the app Keychain."),
+      el("div", { class: "atomic-secret-actions" }, [
+        el("button", { type: "button", class: "atomic-btn", "data-act": "replace-secret" }, "Replace"),
+        el("button", { type: "button", class: "atomic-btn is-quiet", "data-act": "remove-secret" }, "Remove"),
+      ]),
+    ]);
+  }
+
+  function secretPicker() {
+    const secrets = ["atomic-ask", "openai-compatible"];
+    const label = state.secretName
+      ? el("span", null, state.secretName)
+      : el("span", { class: "is-placeholder" }, "Select a secret");
+    return el("div", { class: "atomic-well" }, [
+      el("p", { class: "atomic-hint", style: { margin: "0 4px 2px" } }, "Pick a secret from Obsidian Keychain, or create one. Settings keep the name, not the value."),
+      el("div", { class: "atomic-secret-picker" }, [
+        el("button", {
+          type: "button",
+          class: "atomic-secret-trigger",
+          "data-act": "toggle-secret-menu",
+          "aria-expanded": state.secretMenu ? "true" : "false",
+          "aria-haspopup": "listbox",
+        }, [label, svg(ICONS.down)]),
+        state.secretMenu ? el("div", { class: "atomic-secret-menu", role: "listbox" }, [
+          ...secrets.map((id) => el("button", {
+            type: "button",
+            role: "option",
+            class: id === state.secretName ? "is-on" : "",
+            "data-act": "pick-secret",
+            "data-secret": id,
+          }, id)),
+          el("button", { type: "button", class: "is-create", "data-act": "create-secret" }, "Create new secret"),
+        ]) : null,
+      ]),
+    ]);
+  }
+
+  function createSecretForm() {
+    return el("div", { class: "atomic-well" }, [
+      el("p", { class: "atomic-hint", style: { margin: "0 4px 2px" } }, "New Keychain secret. Id is lowercase letters, numbers, and dashes."),
+      el("label", { class: "atomic-field" }, [
+        el("span", { class: "atomic-field-label" }, "Name"),
+        el("input", { value: "atomic-ask", spellcheck: "false", autocomplete: "off", "data-secret-name": "" }),
+      ]),
+      el("label", { class: "atomic-field" }, [
+        el("span", { class: "atomic-field-label" }, "Secret"),
+        el("input", { type: "password", placeholder: "Paste once", spellcheck: "false", autocomplete: "off", "data-secret-value": "" }),
+      ]),
+      el("div", { class: "atomic-secret-actions" }, [
+        el("button", { type: "button", class: "atomic-btn is-primary", "data-act": "save-secret" }, "Save in Keychain"),
+        el("button", { type: "button", class: "atomic-btn is-quiet", "data-act": "cancel-secret" }, "Cancel"),
+      ]),
+    ]);
+  }
+
+  function settingsView() {
+    if (!state.hasSecretApi) {
+      return el("div", { class: "fitness-plugin atomic-settings" }, [
+        el("div", { class: "atomic-notice" }, [
+          el("h3", null, "Update Obsidian to ask"),
+          el("p", { class: "atomic-hint", style: { margin: 0 } }, "Ask keeps the key in Obsidian secrets. That needs version 1.11.4 or newer. Update Obsidian. Ask stays off. We do not keep a key in plugin data."),
+        ]),
+        ...providerFields(true),
+        el("p", { class: "atomic-hint", style: { marginTop: "16px" } }, "Read, highlight, and remark still work."),
+      ]);
+    }
+    const keyBlock = state.secretUi === "create"
+      ? createSecretForm()
+      : (state.secretUi === "pick" || !state.hasKey)
+        ? secretPicker()
+        : storedSecret();
+    return el("div", { class: "fitness-plugin atomic-settings" }, [
+      el("p", { class: "atomic-hint" }, "Ask uses a key from Obsidian secrets. Atomic does not run a model. The key never goes in plugin data, notes, or the canvas."),
+      ...providerFields(false),
+      el("h3", null, "Key"),
+      keyBlock,
+      state.hasKey && state.secretUi === "stored"
+        ? el("div", { style: { display: "flex", gap: "8px", marginTop: "16px" } }, [
+            el("button", { type: "button", class: "atomic-btn", "data-act": "test-key" }, "Test"),
+          ])
+        : null,
+    ]);
+  }
+
+  function emptyView() {
+    if (state.emptyKind === "file") {
+      return el("div", { class: "fitness-plugin" }, [
+        shelf(),
+        el("div", { class: "atomic-empty" }, [
+          el("h3", null, "This file is not an EPUB or PDF"),
+          el("p", { class: "atomic-hint", style: { margin: 0 } }, "Unreadable scan has no reader. Keep the book note. Add a real file when you have one."),
+          el("button", { type: "button", class: "atomic-btn is-primary", "data-scene": "library" }, "Back to shelf"),
+        ]),
+      ]);
+    }
+    return el("div", { class: "fitness-plugin atomic-empty" }, [
+      el("h3", null, "Link a secret to ask"),
+      el("p", { class: "atomic-hint", style: { margin: 0 } }, "You can still read, highlight, and remark. Ask needs a Keychain secret in Obsidian 1.11.4 or newer."),
+      el("button", { type: "button", class: "atomic-btn is-primary", "data-scene": "settings" }, "Open settings"),
+    ]);
+  }
+
+  function crumbsFor(scene) {
+    if (scene === "settings") return ["Settings", "Atomic Tracker", "Ask"];
+    if (scene === "canvas") return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
+    if (scene === "empty" && state.emptyKind === "key") return ["Settings", "Atomic Tracker", "Ask"];
+    if (scene === "library" || scene === "reading" || scene === "empty") return ["atomics", "hobbies", "Reading", "Book shelf"];
+    if (scene === "chooser" || scene === "note") return ["atomics", "hobbies", "Reading", state.book.title];
+    return ["atomics", "hobbies", "Reading", "Pride and Prejudice"];
+  }
+
+  function titleFor(scene) {
+    if (scene === "settings") return "Ask";
+    if (scene === "canvas") return "Pride and Prejudice.canvas";
+    if (scene === "library" || scene === "reading" || (scene === "empty" && state.emptyKind === "file")) return "Book shelf";
+    if (scene === "empty") return "Ask";
+    if (scene === "chooser" || scene === "note") return state.book.title;
+    return "Pride and Prejudice";
+  }
+
+  function statusFor(scene) {
+    if (scene === "library") return "10 books";
+    if (scene === "reading") return "Reading view";
+    if (scene === "canvas") return "1 canvas";
+    if (scene === "settings") return state.hasSecretApi ? "" : "Needs 1.11.4";
+    if (scene === "empty") return state.emptyKind === "file" ? "Unsupported" : "No secret";
+    if (scene === "chooser") return "Chooser";
+    if (scene === "note") return "Open Notes";
+    return "p. 47 · 11%";
+  }
+
+  function contentFor(scene, phone) {
+    if (scene === "library") return shelf();
+    if (scene === "reading") return readingView();
+    if (scene === "chooser" || scene === "note") return itemNoteView(phone);
+    if (scene === "canvas") return canvasView(phone);
+    if (scene === "settings") return settingsView();
+    if (scene === "empty") return emptyView();
+    return reader(scene, phone);
+  }
+
+  function pane(scene, phone) {
+    const wrap = el("div", { class: "atomic-pane" });
+    if (scene === "library" || (scene === "empty" && state.emptyKind === "file")) {
+      wrap.appendChild(el("h2", { class: "atomic-pane-title" }, titleFor(scene)));
+    }
+    wrap.appendChild(contentFor(scene, phone));
+    return wrap;
+  }
+
+  function ribbonIcons() {
+    return ["sidebar", "file", "cal", "term", "grid"].map((k) => svg(ICONS[k]));
+  }
+
+  function statusIcons() {
+    const box = el("div", { class: "ob-statusbar-icons" });
+    const bars = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    bars.setAttribute("width", "18"); bars.setAttribute("height", "12"); bars.setAttribute("viewBox", "0 0 18 12");
+    [[0, 8, 3, 4], [5, 5.5, 3, 6.5], [10, 3, 3, 9], [15, 0, 3, 12]].forEach(([x, y, w, h]) => {
+      const r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      r.setAttribute("x", x); r.setAttribute("y", y); r.setAttribute("width", w); r.setAttribute("height", h);
+      r.setAttribute("rx", "0.8"); r.setAttribute("fill", "currentColor");
+      bars.appendChild(r);
+    });
+    box.append(bars);
+    return box;
+  }
+
+  function theaterOn(scene) {
+    return state.theater && (scene === "reader" || scene === "select" || scene === "ask");
+  }
+
+  function theaterClass(base, scene) {
+    return base + " theme-" + state.theme
+      + (theaterOn(scene) ? " is-theater sz-xl" : "")
+      + (theaterOn(scene) && state.chromeReveal ? " is-chrome" : "");
+  }
+
+  function edgeZones() {
+    return ["n", "s", "w", "e"].map((side) => el("div", { class: "ob-edge is-" + side, "data-edge": side }));
+  }
+
+  function desktopWindow(scene) {
+    const crumbs = crumbsFor(scene);
+    const last = crumbs[crumbs.length - 1];
+    const rest = crumbs.slice(0, -1).join(" / ") + (crumbs.length > 1 ? " / " : "");
+    const onTheater = theaterOn(scene);
+    const win = el("div", { class: theaterClass("ob-window", scene), "data-theater": onTheater ? "on" : "off" }, [
+      el("div", { class: "ob-titlebar" }, [
+        el("div", { class: "ob-lights" }, [el("span"), el("span"), el("span")]),
+        el("div", { class: "ob-tab" }, [titleFor(scene), el("span", { class: "ob-x" }, "×")]),
+        el("span", { class: "ob-plus" }, "+"),
+        el("div", { class: "ob-title-actions" }, [svg(ICONS.chev), svg(ICONS.sidebar)]),
+      ]),
+      el("div", { class: "ob-ribbon" }, ribbonIcons()),
+      el("div", { class: "ob-main" }, [
+        el("div", { class: "ob-viewhead" }, [
+          svg(ICONS.left), svg(ICONS.right),
+          el("div", { class: "ob-crumbs" }, [rest, el("b", null, last)]),
+          svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
+        ]),
+        el("div", { class: "ob-content", "data-host": "desk" }, [
+          ...(onTheater ? theaterLayers() : []),
+          pane(scene, false),
+        ]),
+        statusFor(scene) ? el("div", { class: "ob-status" }, statusFor(scene)) : null,
+      ]),
+      ...(onTheater ? edgeZones() : []),
+      scene === "chooser" ? chooserSheet(false) : null,
+      openScene(),
+    ]);
+    applyPageSize(win, theaterOn(scene));
+    return win;
+  }
+
+  function phoneFrame(scene) {
+    const onTheater = theaterOn(scene);
+    const screen = el("div", { class: theaterClass("ob-phone-screen", scene), "data-theater": onTheater ? "on" : "off" }, [
+      el("div", { class: "ob-island" }),
+      el("div", { class: "ob-statusbar" }, [el("span", null, "9:41"), statusIcons()]),
+      el("div", { class: "ob-mhead" }, [
+        svg(ICONS.sidebar),
+        el("div", { class: "ob-mhead-title" }, titleFor(scene)),
+        svg(ICONS.book, scene === "reading" ? "ob-icon is-mode-on" : "ob-icon"), svg(ICONS.more),
+      ]),
+      el("div", { class: "ob-mcontent", "data-host": "phone" }, [
+        ...(onTheater ? theaterLayers() : []),
+        pane(scene, true),
+      ]),
+      el("div", { class: "ob-mnav" }, [svg(ICONS.left), svg(ICONS.right), svg(ICONS.plus), svg(ICONS.search), svg(ICONS.menu)]),
+      el("div", { class: "ob-home" }),
+      ...(onTheater ? edgeZones() : []),
+      scene === "chooser" ? chooserSheet(true) : null,
+      openScene(),
+    ]);
+    applyPageSize(screen, theaterOn(scene));
+    return el("div", { class: "ob-phone" }, screen);
+  }
+
+  function setSceneButtons() {
+    document.querySelectorAll("[data-tool=scene] button").forEach((b) => {
+      b.classList.toggle("is-on", b.getAttribute("data-scene") === state.scene);
+    });
+    document.querySelectorAll("[data-tool=theme] button").forEach((b) => {
+      b.classList.toggle("is-on", b.getAttribute("data-theme") === state.theme);
+    });
+    document.querySelectorAll("[data-tool=motion] button").forEach((b) => {
+      b.classList.toggle("is-on", b.getAttribute("data-motion") === state.motion);
+    });
+    const note = document.getElementById("scene-note");
+    if (note) {
+      note.textContent = state.scene === "settings" && !state.hasSecretApi
+        ? "This Obsidian is older than 1.11.4. Ask is off. No plaintext key."
+        : NOTES[state.scene];
+    }
+    const emptyKind = document.getElementById("empty-kind");
+    if (emptyKind) {
+      emptyKind.hidden = state.scene !== "empty";
+      emptyKind.querySelectorAll("button").forEach((b) => {
+        b.classList.toggle("is-on", b.getAttribute("data-empty") === state.emptyKind);
+      });
+    }
+    const settingsKind = document.getElementById("settings-kind");
+    if (settingsKind) {
+      settingsKind.hidden = state.scene !== "settings";
+      settingsKind.querySelectorAll("button").forEach((b) => {
+        const current = state.hasSecretApi ? "current" : "older";
+        b.classList.toggle("is-on", b.getAttribute("data-appver") === current);
+      });
+    }
+    const rerender = document.getElementById("rerender-block");
+    if (rerender) rerender.hidden = state.scene !== "reading";
+    document.getElementById("board").classList.toggle("is-dark", state.theme === "dark");
+    document.body.classList.toggle("mock-reduced", state.motion === "reduced");
+  }
+
+  function toast(host, msg) {
+    host.querySelectorAll(".atomic-toast").forEach((n) => n.remove());
+    const t = el("div", { class: "atomic-toast fitness-plugin" }, el("div", { class: "atomic-glass" }, el("span", { class: "atomic-readout is-live" }, msg)));
+    host.appendChild(t);
+    setTimeout(() => t.remove(), 1600);
+  }
+
+  let openGen = 0;
+  const openJobs = [];
+
+  function clearOverlay(overlay) {
+    if (!overlay) return;
+    overlay.classList.remove("is-on", "is-playing");
+    overlay.removeAttribute("data-open-tid");
+  }
+
+  function abortOpens() {
+    openGen += 1;
+    openJobs.splice(0).forEach((job) => {
+      if (job.tid) clearTimeout(job.tid);
+      if (job.overlay && job.skip) job.overlay.removeEventListener("click", job.skip);
+      clearOverlay(job.overlay);
+    });
+    document.querySelectorAll("[data-open]").forEach(clearOverlay);
+  }
+
+  function freezeOpenTimers() {
+    openJobs.forEach((job) => {
+      if (job.tid) clearTimeout(job.tid);
+      job.tid = null;
+      if (job.overlay && job.skip) job.overlay.removeEventListener("click", job.skip);
+      if (job.overlay) job.overlay.removeAttribute("data-open-tid");
+    });
+  }
+  document.addEventListener("reader-mock-freeze-open", freezeOpenTimers);
+  document.addEventListener("reader-mock-finish-open", () => {
+    abortOpens();
+    state.playing = false;
+    state.scene = "select";
+    state.theater = true;
+    state.chromeReveal = true;
+    startReadingTimer();
+    render();
+  });
+  document.addEventListener("reader-mock-reveal-chrome", () => {
+    revealChrome();
+  });
+
+  let idleTid = 0;
+
+  function applyTheaterChrome() {
+    document.querySelectorAll(".ob-window, .ob-phone-screen").forEach((n) => {
+      if (!n.classList.contains("is-theater")) return;
+      n.classList.toggle("is-chrome", state.chromeReveal);
+    });
+  }
+
+  function revealChrome() {
+    if (!state.theater) return;
+    state.chromeReveal = true;
+    applyTheaterChrome();
+    bumpIdle();
+  }
+
+  function hideChrome() {
+    if (!state.theater) return;
+    state.chromeReveal = false;
+    applyTheaterChrome();
+  }
+
+  function bumpIdle() {
+    if (idleTid) clearTimeout(idleTid);
+    if (!state.theater || !state.chromeReveal) return;
+    idleTid = setTimeout(hideChrome, 2000);
+  }
+
+  function enterTheater() {
+    state.theater = true;
+    state.chromeReveal = false;
+  }
+
+  function exitTheater() {
+    state.theater = false;
+    state.chromeReveal = false;
+    if (idleTid) clearTimeout(idleTid);
+  }
+
+  function rectIn(host, node) {
+    const h = host.getBoundingClientRect();
+    const r = node.getBoundingClientRect();
+    return {
+      cx: r.left + r.width / 2 - h.left,
+      cy: r.top + r.height / 2 - h.top,
+      w: r.width,
+      h: r.height,
+      hostW: h.width,
+      hostH: h.height,
+    };
+  }
+
+  function pageDest(host) {
+    const pages = [...host.querySelectorAll(".atomic-page")];
+    if (!pages.length) return null;
+    const h = host.getBoundingClientRect();
+    const rs = pages.map((p) => p.getBoundingClientRect());
+    const left = Math.min(...rs.map((r) => r.left));
+    const top = Math.min(...rs.map((r) => r.top));
+    const right = Math.max(...rs.map((r) => r.right));
+    const bottom = Math.max(...rs.map((r) => r.bottom));
+    return {
+      cx: (left + right) / 2 - h.left,
+      cy: (top + bottom) / 2 - h.top,
+      w: right - left,
+      h: bottom - top,
+      hostW: h.width,
+      hostH: h.height,
+    };
+  }
+
+  function applyFlight(flying, from, dest) {
+    const bookW = flying.offsetWidth || 168;
+    const bookH = flying.offsetHeight || 248;
+    flying.style.setProperty("--from-x", (from.cx - from.hostW / 2) + "px");
+    flying.style.setProperty("--from-y", (from.cy - from.hostH / 2) + "px");
+    flying.style.setProperty("--from-s", (from.w / bookW).toFixed(3));
+    if (!dest) return;
+    flying.style.setProperty("--to-x", (dest.cx - dest.hostW / 2) + "px");
+    flying.style.setProperty("--to-y", (dest.cy - dest.hostH / 2) + "px");
+    flying.style.setProperty("--to-s", Math.min(dest.w / (bookW * 0.92), dest.h / (bookH * 0.9)).toFixed(3));
+  }
+
+  function playOpen(sceneRoot, from, dest, then) {
+    const overlay = sceneRoot.querySelector('[data-open][data-overlay-host="window"]');
+    const flying = overlay && overlay.querySelector(".open-book");
+    if (!overlay || !flying || !from || reduceMotion()) { then(); return; }
+    applyFlight(flying, from, dest);
+    overlay.classList.remove("is-playing");
+    overlay.classList.add("is-on");
+    void overlay.offsetWidth;
+    overlay.classList.add("is-playing");
+    const gen = openGen;
+    const skip = () => {
+      if (gen !== openGen) return;
+      overlay.removeEventListener("click", skip);
+      clearTimeout(tid);
+      const idx = openJobs.indexOf(job);
+      if (idx >= 0) openJobs.splice(idx, 1);
+      clearOverlay(overlay);
+      then();
+    };
+    const tid = setTimeout(skip, 1450);
+    overlay.setAttribute("data-open-tid", String(tid));
+    const job = { overlay, skip, tid };
+    openJobs.push(job);
+    overlay.addEventListener("click", skip);
+  }
+
+  function promptChooser(book, origin) {
+    abortOpens();
+    state.book = book;
+    if (!state.book.size) state.book.size = "m";
+    state.from = origin;
+    state.scene = "chooser";
+    state.chooserOpen = true;
+    exitTheater();
+    render();
+  }
+
+  function openBook(book, origin) {
+    if (book.kind === "bad") {
+      abortOpens();
+      state.scene = "empty";
+      state.emptyKind = "file";
+      state.from = "shelf";
+      render();
+      return;
+    }
+    const desk = document.querySelector("#desk-host .ob-window");
+    const phone = document.querySelector("#phone-host .ob-phone-screen");
+    const deskBook = desk && desk.querySelector('[data-book="' + book.id + '"]');
+    const phoneBook = phone && phone.querySelector('[data-book="' + book.id + '"]');
+    const fromDesk = desk && deskBook ? rectIn(desk, deskBook) : null;
+    const fromPhone = phone && phoneBook ? rectIn(phone, phoneBook) : null;
+    state.book = book;
+    state.from = origin;
+    state.page = origin === "canvas" ? state.page : book.last;
+    state.slip = null;
+    state.scene = "select";
+    state.theater = true;
+    state.chromeReveal = true;
+    startReadingTimer();
+    if (origin === "canvas" || reduceMotion()) {
+      abortOpens();
+      state.playing = false;
+      render();
+      return;
+    }
+    abortOpens();
+    render();
+    state.playing = true;
+    const desk2 = document.querySelector("#desk-host .ob-window");
+    const phone2 = document.querySelector("#phone-host .ob-phone-screen");
+    let left = 2;
+    const done = () => {
+      left -= 1;
+      if (left > 0) return;
+      state.playing = false;
+      abortOpens();
+    };
+    if (fromDesk && desk2) playOpen(desk2, fromDesk, pageDest(desk2), done);
+    else done();
+    if (fromPhone && phone2) playOpen(phone2, fromPhone, pageDest(phone2), done);
+    else done();
+  }
+
+  function rerenderReadingBlocks() {
+    document.querySelectorAll("[data-block-host]").forEach((host) => {
+      const next = readingBlock();
+      host.replaceWith(next);
+    });
+  }
+
+  function wireClicks(root) {
+    root.addEventListener("click", (e) => {
+      const sceneBtn = e.target.closest("[data-scene]");
+      if (sceneBtn && sceneBtn.getAttribute("data-scene")) {
+        state.scene = sceneBtn.getAttribute("data-scene");
+        if (state.scene === "empty") state.emptyKind = "key";
+        if (state.scene !== "reader" && state.scene !== "select" && state.scene !== "ask") exitTheater();
+        if (state.scene === "chooser") state.book = BOOKS[0];
+        syncTimerToScene(state.scene);
+        render();
+        return;
+      }
+      if (e.target.closest("[data-edge]")) {
+        revealChrome();
+        return;
+      }
+      if (state.theater && !state.chromeReveal && e.target.closest(".is-theater")) {
+        const keep = e.target.closest(".atomic-page, .atomic-remark, .atomic-ask, .atomic-sheet, .atomic-selbar, .atomic-btn, .atomic-link, .atomic-mdot, .atomic-slip, [data-book]");
+        if (!keep) {
+          revealChrome();
+          return;
+        }
+      }
+      const book = e.target.closest("[data-book]");
+      if (book) {
+        const rec = BOOKS.find((b) => b.id === book.getAttribute("data-book"));
+        if (rec) {
+          if (rec.kind === "bad") openBook(rec, book.closest("[data-block-host]") ? "reading" : "shelf");
+          else promptChooser(rec, book.closest("[data-block-host]") ? "reading" : "shelf");
+        }
+        return;
+      }
+      const jump = e.target.closest("[data-jump]");
+      if (jump) {
+        state.page = Number(jump.getAttribute("data-jump")) || 47;
+        state.from = "canvas";
+        exitTheater();
+        state.scene = "reader";
+        startReadingTimer();
+        render();
+        return;
+      }
+      const slip = e.target.closest("[data-slip]");
+      if (slip) {
+        const id = slip.getAttribute("data-slip");
+        state.slip = state.slip === id ? null : id;
+        render();
+        return;
+      }
+      const act = e.target.closest("[data-act]");
+      if (!act) return;
+      const name = act.getAttribute("data-act");
+      if (name === "ask") {
+        if (!state.hasSecretApi) { state.scene = "settings"; render(); return; }
+        if (!state.hasKey) { state.scene = "empty"; state.emptyKind = "key"; render(); return; }
+        state.scene = "ask";
+        render();
+        return;
+      }
+      if (name === "highlight" || name === "remark") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Saved to canvas");
+        return;
+      }
+      if (name === "note") {
+        exitTheater();
+        stopAutoTimer();
+        state.scene = "note";
+        render();
+        return;
+      }
+      if (name === "theater-enter") {
+        enterTheater();
+        startReadingTimer();
+        render();
+        return;
+      }
+      if (name === "theater-exit") {
+        exitTheater();
+        render();
+        return;
+      }
+      if (name === "open-notes") {
+        state.scene = "note";
+        state.chooserOpen = false;
+        exitTheater();
+        stopAutoTimer();
+        render();
+        return;
+      }
+      if (name === "timer-start") {
+        state.timer.mode = "manual";
+        render();
+        return;
+      }
+      if (name === "timer-stop") {
+        stopReadingTimer();
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Logged " + state.timer.lastAdded + " min");
+        render();
+        return;
+      }
+      if (name === "timer-discard") {
+        state.timer.mode = "idle";
+        render();
+        return;
+      }
+      if (name === "ask-send") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Saved to canvas");
+        return;
+      }
+      if (name === "open-book") {
+        state.chooserOpen = false;
+        openBook(state.book, state.from || "shelf");
+        return;
+      }
+      if (name === "chooser-cancel") {
+        state.chooserOpen = false;
+        state.scene = state.from === "reading" ? "reading" : "library";
+        render();
+        return;
+      }
+      if (name === "book-size") {
+        setBookSize(act.getAttribute("data-size") || "m");
+        return;
+      }
+      if (name === "replace-secret") {
+        state.secretUi = "pick";
+        state.secretMenu = true;
+        render();
+        return;
+      }
+      if (name === "remove-secret") {
+        state.hasKey = false;
+        state.secretName = "";
+        state.secretUi = "pick";
+        state.secretMenu = false;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Unlinked. The Keychain secret stays in Obsidian.");
+        return;
+      }
+      if (name === "toggle-secret-menu") {
+        state.secretMenu = !state.secretMenu;
+        render();
+        return;
+      }
+      if (name === "pick-secret") {
+        state.secretName = act.getAttribute("data-secret") || "atomic-ask";
+        state.hasKey = true;
+        state.secretUi = "stored";
+        state.secretMenu = false;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Linked " + state.secretName);
+        return;
+      }
+      if (name === "create-secret") {
+        state.secretUi = "create";
+        state.secretMenu = false;
+        render();
+        return;
+      }
+      if (name === "cancel-secret") {
+        state.secretUi = "pick";
+        state.secretMenu = false;
+        render();
+        return;
+      }
+      if (name === "save-secret") {
+        const well = act.closest(".atomic-well");
+        const nameInput = well && well.querySelector("[data-secret-name]");
+        const raw = nameInput && nameInput.value ? nameInput.value.trim().toLowerCase() : "atomic-ask";
+        state.secretName = raw.replace(/[^a-z0-9-]/g, "") || "atomic-ask";
+        state.hasKey = true;
+        state.secretUi = "stored";
+        state.secretMenu = false;
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Saved in Obsidian secrets");
+        return;
+      }
+      if (name === "test-key") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Provider answered");
+        return;
+      }
+      if (name === "whole") {
+        toast(root.closest(".ob-window, .ob-phone-screen") || root, "Whole book sends the text. Confirm cost first.");
+      }
+    });
+  }
+
+  function wireHovers(root) {
+    root.querySelectorAll(".atomic-book").forEach((btn) => {
+      btn.addEventListener("pointerenter", () => {
+        const rec = BOOKS.find((b) => b.id === btn.getAttribute("data-book"));
+        const shelfEl = btn.closest(".atomic-shelf");
+        if (!rec || !shelfEl) return;
+        const t = shelfEl.querySelector("[data-read-title]");
+        const m = shelfEl.querySelector("[data-read-meta]");
+        const h = shelfEl.querySelector("[data-read-hint]");
+        if (t) t.textContent = rec.title;
+        if (m) m.textContent = [rec.author, rec.status, rec.kind === "bad" ? "unsupported" : rec.kind.toUpperCase(), rec.pages ? rec.pages + " pp" : ""].filter(Boolean).join(" · ");
+        if (h) h.textContent = rec.kind === "bad" ? "Cannot open this file" : hasBookFile(rec) ? (rec.status === "Reading" ? "Chooser · resume p. " + rec.last : "Chooser · Open Notes or Open Book") : "Open Notes only — no EPUB/PDF";
+      });
+    });
+  }
+
+  function bindTheaterChrome(host) {
+    if (!host || !host.classList.contains("is-theater")) return;
+    host.addEventListener("pointermove", (e) => {
+      const r = host.getBoundingClientRect();
+      const edge = 32;
+      const near = e.clientY - r.top < edge || r.bottom - e.clientY < edge
+        || e.clientX - r.left < edge || r.right - e.clientX < edge;
+      if (near) revealChrome();
+    });
+  }
+
+  function render() {
+    abortOpens();
+    state.playing = false;
+    setSceneButtons();
+    const desk = document.getElementById("desk-host");
+    const phone = document.getElementById("phone-host");
+    desk.replaceChildren(desktopWindow(state.scene));
+    phone.replaceChildren(phoneFrame(state.scene));
+    wireHovers(desk);
+    wireHovers(phone);
+    bindTheaterChrome(desk.querySelector(".ob-window"));
+    bindTheaterChrome(phone.querySelector(".ob-phone-screen"));
+    alignReaderNotes(desk);
+    alignReaderNotes(phone);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === "-" || e.key === "=" || e.key === "+")) {
+      e.preventDefault();
+      stepBookSize(e.key === "-" ? -1 : 1);
+      return;
+    }
+    if (e.key === "Enter" && state.scene === "chooser") {
+      e.preventDefault();
+      state.scene = "note";
+      state.chooserOpen = false;
+      exitTheater();
+      render();
+      return;
+    }
+    if (e.key === "Escape" && state.scene === "chooser") {
+      e.preventDefault();
+      state.chooserOpen = false;
+      state.scene = state.from === "reading" ? "reading" : "library";
+      render();
+      return;
+    }
+    if (e.key !== "Escape" || !state.theater) return;
+    e.preventDefault();
+    exitTheater();
+    render();
+  });
+
+  document.querySelector("[data-tool=scene]").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-scene]");
+    if (!b) return;
+    state.scene = b.getAttribute("data-scene");
+    if (state.scene === "empty") state.emptyKind = "key";
+    if (state.scene === "reader" || state.scene === "select" || state.scene === "ask") {
+      state.from = "shelf";
+    }
+    if (state.scene === "chooser") state.book = BOOKS[0];
+    exitTheater();
+    syncTimerToScene(state.scene);
+    render();
+  });
+  document.querySelector("[data-tool=theme]").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-theme]");
+    if (!b) return;
+    state.theme = b.getAttribute("data-theme");
+    render();
+  });
+  document.querySelector("[data-tool=motion]").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-motion]");
+    if (!b) return;
+    state.motion = b.getAttribute("data-motion");
+    render();
+  });
+  document.getElementById("empty-kind").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-empty]");
+    if (!b) return;
+    state.emptyKind = b.getAttribute("data-empty");
+    state.scene = "empty";
+    render();
+  });
+  document.getElementById("settings-kind").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-appver]");
+    if (!b) return;
+    const older = b.getAttribute("data-appver") === "older";
+    state.hasSecretApi = !older;
+    state.scene = "settings";
+    if (older) {
+      state.hasKey = false;
+      state.secretUi = "stored";
+      state.secretMenu = false;
+    } else {
+      state.hasKey = true;
+      state.secretName = state.secretName || "atomic-ask";
+      state.secretUi = "stored";
+      state.secretMenu = false;
+    }
+    render();
+  });
+  document.getElementById("rerender-block").addEventListener("click", () => {
+    rerenderReadingBlocks();
+  });
+  document.getElementById("replay").addEventListener("click", () => {
+    const fromReading = state.scene === "reading" || state.from === "reading";
+    exitTheater();
+    state.scene = fromReading ? "reading" : "library";
+    state.from = fromReading ? "reading" : "shelf";
+    state.emptyKind = "key";
+    state.hasSecretApi = true;
+    state.hasKey = true;
+    state.secretName = "atomic-ask";
+    state.secretUi = "stored";
+    state.secretMenu = false;
+    render();
+    requestAnimationFrame(() => {
+      const sel = fromReading
+        ? '#desk-host [data-block-host] [data-book="pp"]'
+        : '#desk-host [data-book="pp"]';
+      const first = document.querySelector(sel);
+      if (first) openBook(BOOKS[0], fromReading ? "reading" : "shelf");
+    });
+  });
+
+  wireClicks(document.getElementById("desk-host"));
+  wireClicks(document.getElementById("phone-host"));
+  render();
+})();
+</script>
+</body>
+</html>
