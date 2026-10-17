@@ -31,12 +31,16 @@ function visibleText(html: string): string {
     .trim();
 }
 
-/** Drop every script or style element, including a nested or spaced end tag. */
+/**
+ * Drop every script or style element.
+ * The end tag may contain tabs, newlines, and other non-`>` text
+ * (`</script\t\n bar>`). Repeat until a nested tag cannot rebuild.
+ */
 function dropWrapped(html: string, tag: "script" | "style"): string {
   const pattern =
     tag === "script"
-      ? /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi
-      : /<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+      ? /<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi
+      : /<style\b[^>]*>[\s\S]*?<\/style[^>]*>/gi;
   let current = html;
   let previous = "";
   while (current !== previous) {

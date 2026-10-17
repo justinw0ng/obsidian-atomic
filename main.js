@@ -9938,7 +9938,7 @@ function visibleText(html) {
   return decodeXml(html.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 }
 function dropWrapped(html, tag) {
-  const pattern = tag === "script" ? /<script\b[^>]*>[\s\S]*?<\/script\s*>/gi : /<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+  const pattern = tag === "script" ? /<script\b[^>]*>[\s\S]*?<\/script[^>]*>/gi : /<style\b[^>]*>[\s\S]*?<\/style[^>]*>/gi;
   let current = html;
   let previous = "";
   while (current !== previous) {

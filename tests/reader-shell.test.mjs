@@ -182,6 +182,10 @@ test("html blocks ignore scripts and pdf info stays inside the file bytes", () =
     "<scr<script>ipt>alert(1)</script><style>p{color:red}</style ><p>Kept</p>",
   );
   assert.deepEqual(nested, [{ kind: "paragraph", text: "Kept" }]);
+  const spacedEnd = htmlToReaderBlocks(
+    "<script>alert(1)</script\t\n bar><style>x</style\t\n bar><p>Kept</p>",
+  );
+  assert.deepEqual(spacedEnd, [{ kind: "paragraph", text: "Kept" }]);
 
   const pdf = encoder.encode(
     "%PDF-1.4\n2 0 obj << /Type /Pages /Count 4 /Kids [3 0 R] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF",
