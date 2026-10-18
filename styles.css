@@ -3161,7 +3161,7 @@
   width: var(--atomic-page-w);
   height: var(--atomic-page-h);
   margin: 0;
-  padding: 26px 24px;
+  padding: 22px 22px 28px;
   overflow: hidden;
   border-radius: var(--atomic-r-object);
   background: var(--atomic-paper);
@@ -3641,7 +3641,7 @@ button.atomic-chooser-row {
   box-sizing: border-box;
   width: var(--atomic-reader-page-w);
   height: var(--atomic-reader-page-h);
-  padding: 26px 24px;
+  padding: 22px 22px 28px;
   overflow: hidden;
   font-family: Literata, "Source Serif Pro", "IBM Plex Serif", Georgia, serif;
   font-size: var(--atomic-reader-font-size, 12.5px);

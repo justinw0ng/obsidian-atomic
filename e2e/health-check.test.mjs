@@ -2439,7 +2439,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(reader.pageWidth, 340);
       assert.equal(reader.pageHeight, 488);
       assert.equal(reader.radius, "3px");
-      assert.equal(reader.pad, "26px 24px 26px 24px");
+      assert.equal(reader.pad, "22px 22px 28px 22px");
       assert.equal(reader.margin, "0px 0px 0px 0px");
       assert.equal(reader.barGap, "4px");
       assert.ok(Math.abs(reader.seam) <= 1, `pages sit together ${reader.seam}`);
