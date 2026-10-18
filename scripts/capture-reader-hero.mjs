@@ -686,7 +686,7 @@ async function captureScene(driver, scene, dest) {
 
 async function capturePass(kind) {
   const phone = kind === "phone";
-  const size = phone ? heroHoleSize("daily", "phone") : { width: 1196, height: 820 };
+  const size = heroHoleSize("daily", phone ? "phone" : "desktop");
   const dailySize = phone ? size : { width: 1560, height: 1100 };
   prepareVault(phone ? 3 : 12);
   const launched = await launchObsidian(VAULT, DAILY);
