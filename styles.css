@@ -3326,22 +3326,33 @@
   bottom: 0;
   left: 0;
   z-index: 1000;
+  background: transparent;
+}
+
+/* Grey only the note. Ribbon and tabs stay put. Frame 03: 420px card, 24px off the note bottom. */
+.atomic-chooser-veil {
+  position: fixed;
+  top: var(--atomic-chooser-top, 0px);
+  left: var(--atomic-chooser-left, 0px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  box-sizing: border-box;
+  width: var(--atomic-chooser-width, 100%);
+  height: var(--atomic-chooser-height, 100%);
   padding: 0 16px 24px;
   background: rgba(20, 18, 16, 0.28);
 }
 
-.atomic-chooser-scrim.is-phone {
-  align-items: flex-end;
+.atomic-chooser-veil.is-phone {
   padding: 0 24px 40px;
-  background: rgba(20, 18, 16, 0.28);
 }
 
 .atomic-chooser {
   width: 420px;
   max-width: 100%;
+  box-sizing: border-box;
+  flex: none;
   padding: 10px 12px 14px;
   border-radius: 16px;
   background: var(--background-primary);
@@ -3367,23 +3378,25 @@
   background: rgba(255, 255, 255, 0.22);
 }
 
-.atomic-chooser-row,
-.atomic-chooser-cancel {
+button.atomic-chooser-row,
+button.atomic-chooser-cancel {
   appearance: none;
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
+  height: auto;
   margin: 0;
   border: 0;
+  box-shadow: none;
   background: transparent;
   color: var(--atomic-ink);
-  font-family: var(--atomic-font);
+  font-family: var(--font-interface, var(--atomic-font));
   text-align: left;
   cursor: pointer;
 }
 
-.atomic-chooser-row {
+button.atomic-chooser-row {
   margin-bottom: 4px;
   padding: 12px;
   border-radius: var(--atomic-r-control);
@@ -3448,12 +3461,14 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
+  line-height: 18px;
 }
 
 .atomic-chooser-label span {
   display: block;
   margin-top: 2px;
   font-size: 12px;
+  line-height: 16px;
   color: inherit;
   opacity: 0.7;
 }

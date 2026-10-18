@@ -12653,19 +12653,44 @@ function resolveLinkedBookFile(input) {
 // src/reader/shell/chooser.ts
 var session2 = null;
 function rowIcon(doc, kind) {
-  const host = (doc ?? activeDocument).createElement("span");
+  const owner = doc ?? activeDocument;
+  const host = owner.createElement("span");
   host.className = "atomic-chooser-ico";
   host.setAttribute("aria-hidden", "true");
-  const svg = (doc ?? activeDocument).createElementNS("http://www.w3.org/2000/svg", "svg");
+  const svg = owner.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
-  const path = (doc ?? activeDocument).createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute(
-    "d",
-    kind === "notes" ? "M4 20h4l10-10-4-4L4 16v4zM13 7l4 4" : "M6 4h9a2 2 0 0 1 2 2v14H8a2 2 0 0 0-2 2V4z"
-  );
-  svg.append(path);
+  const paths = kind === "notes" ? ["M4 20h4l10.2-10.2a1.6 1.6 0 0 0 0-2.3l-1.7-1.7a1.6 1.6 0 0 0-2.3 0L4 16v4z", "M13 7l4 4"] : ["M12 6.2C10.2 5 8.2 4.6 5.6 4.6H4v13.4h1.8c2.2 0 4 .5 6.2 1.6 2.2-1.1 4-1.6 6.2-1.6H20V4.6h-1.6c-2.6 0-4.6.4-6.4 1.6z", "M12 6.2v13.4"];
+  for (const d of paths) {
+    const path = owner.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    svg.append(path);
+  }
   host.append(svg);
   return host;
+}
+function asHtml(node) {
+  if (!node || !("instanceOf" in node)) return null;
+  const current = node;
+  return current.instanceOf(HTMLElement) ? current : null;
+}
+function notePane(doc) {
+  return asHtml(doc.querySelector(".workspace-leaf.mod-active .view-content"));
+}
+function placeChooser(overlay) {
+  const doc = overlay.ownerDocument;
+  const view = doc.defaultView;
+  const pane = notePane(doc);
+  const rect = pane?.getBoundingClientRect();
+  const width = rect && rect.width > 1 ? rect.width : view?.innerWidth ?? 0;
+  const height = rect && rect.height > 1 ? rect.height : view?.innerHeight ?? 0;
+  const top = rect && rect.height > 1 ? rect.top : 0;
+  const left = rect && rect.width > 1 ? rect.left : 0;
+  overlay.setCssProps({
+    "--atomic-chooser-top": `${Math.round(top)}px`,
+    "--atomic-chooser-left": `${Math.round(left)}px`,
+    "--atomic-chooser-width": `${Math.round(width)}px`,
+    "--atomic-chooser-height": `${Math.round(height)}px`
+  });
 }
 function overlayBody(owner) {
   if (owner?.body && owner === activeDocument) return activeDocument.body;
@@ -12682,6 +12707,8 @@ function closeBookChooser() {
   if (!current) return;
   session2 = null;
   current.view.removeEventListener("keydown", current.onKey, true);
+  current.view.removeEventListener("resize", current.onPlace);
+  current.observer?.disconnect();
   current.overlay.detach();
 }
 function openBookChooser(options) {
@@ -12700,7 +12727,11 @@ function openBookChooser(options) {
     }
   });
   if (options.phone) overlay.addClass("is-phone");
-  const sheet = overlay.createDiv({
+  const veil = overlay.createDiv({
+    cls: options.phone ? "atomic-chooser-veil is-phone" : "atomic-chooser-veil",
+    attr: { "data-testid": "atomic-chooser-veil" }
+  });
+  const sheet = veil.createDiv({
     cls: options.phone ? "atomic-chooser fitness-plugin is-phone" : "atomic-chooser fitness-plugin"
   });
   sheet.createDiv({ cls: "atomic-chooser-grab" });
@@ -12752,15 +12783,21 @@ function openBookChooser(options) {
   overlay.addEventListener("click", (event) => {
     const target = elementTarget(event.target);
     if (!target) return;
-    if (target === overlay) {
+    if (target === overlay || target === veil) {
       choose("cancel");
       return;
     }
     const act = target.closest("[data-chooser-act]")?.getAttribute("data-chooser-act");
     if (act === "notes" || act === "book" || act === "cancel") choose(act);
   });
+  const onPlace = () => placeChooser(overlay);
+  onPlace();
+  const pane = notePane(overlay.ownerDocument);
+  const observer = pane ? new ResizeObserver(onPlace) : null;
+  if (pane && observer) observer.observe(pane);
   view.addEventListener("keydown", onKey, true);
-  session2 = { overlay, onKey, view };
+  view.addEventListener("resize", onPlace);
+  session2 = { overlay, onKey, onPlace, view, observer };
   notes.focus();
 }
 

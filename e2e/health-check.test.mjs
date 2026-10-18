@@ -2260,6 +2260,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       };
       const chooserMetrics = () => driver.executeScript(`
         const scrim = document.querySelector('[data-testid="atomic-chooser"]');
+        const veil = scrim?.querySelector('[data-testid="atomic-chooser-veil"]');
         const sheet = scrim?.querySelector(".atomic-chooser");
         const notes = scrim?.querySelector('[data-testid="atomic-chooser-notes"]');
         const book = scrim?.querySelector('[data-testid="atomic-chooser-book"]');
@@ -2269,9 +2270,11 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         const notesStyle = notes ? getComputedStyle(notes) : null;
         const grabStyle = grab ? getComputedStyle(grab) : null;
         const cancelStyle = cancel ? getComputedStyle(cancel) : null;
+        const veilStyle = veil ? getComputedStyle(veil) : null;
         const scrimStyle = scrim ? getComputedStyle(scrim) : null;
         const sheetRect = sheet?.getBoundingClientRect();
-        const scrimRect = scrim?.getBoundingClientRect();
+        const veilRect = veil?.getBoundingClientRect();
+        const frame = veilRect && veilRect.width > 1 ? veilRect : scrim?.getBoundingClientRect();
         return {
           phone: sheet?.classList.contains("is-phone") === true,
           scrimPhone: scrim?.classList.contains("is-phone") === true,
@@ -2292,12 +2295,17 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           grabHeight: grab ? Math.round(grab.getBoundingClientRect().height) : 0,
           grabMarginTop: grabStyle?.marginTop || "",
           grabMarginBottom: grabStyle?.marginBottom || "",
-          bottom: sheetRect && scrimRect ? Math.round(scrimRect.bottom - sheetRect.bottom) : -1,
-          left: sheetRect && scrimRect ? Math.round(sheetRect.left - scrimRect.left) : -1,
-          right: sheetRect && scrimRect ? Math.round(scrimRect.right - sheetRect.right) : -1,
+          bottom: sheetRect && frame ? Math.round(frame.bottom - sheetRect.bottom) : -1,
+          left: sheetRect && frame ? Math.round(sheetRect.left - frame.left) : -1,
+          right: sheetRect && frame ? Math.round(frame.right - sheetRect.right) : -1,
+          centered: sheetRect && frame
+            ? Math.abs((sheetRect.left - frame.left) - (frame.right - sheetRect.right)) <= 2
+            : false,
           cancelWeight: cancelStyle?.fontWeight || "",
           cancelSize: cancelStyle?.fontSize || "",
-          scrim: scrimStyle?.backgroundColor || "",
+          scrim: veilStyle?.backgroundColor || "",
+          stage: scrimStyle?.backgroundColor || "",
+          rowHeight: notes ? Math.round(notes.getBoundingClientRect().height) : 0,
         };
       `);
 
@@ -2326,9 +2334,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(deskChooser.grabMarginTop, "4px");
       assert.equal(deskChooser.grabMarginBottom, "12px");
       assert.ok(Math.abs(deskChooser.bottom - 24) <= 2, JSON.stringify(deskChooser));
+      assert.equal(deskChooser.centered, true, JSON.stringify(deskChooser));
+      assert.ok(deskChooser.rowHeight >= 52 && deskChooser.rowHeight <= 68, JSON.stringify(deskChooser));
       assert.equal(deskChooser.cancelWeight, "500");
       assert.equal(deskChooser.cancelSize, "13px");
       assert.equal(deskChooser.scrim, "rgba(20, 18, 16, 0.28)");
+      assert.notEqual(deskChooser.stage, "rgba(20, 18, 16, 0.28)");
 
       await driver.executeScript(`return app.plugins.getPlugin("atomic-tracker").refreshAll()`);
       await driver.wait(async () => {
@@ -2549,7 +2560,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.notEqual(phoneChooser.radius, "16px 16px 0 0");
       assert.equal(phoneChooser.padding, "10px 12px 14px 12px");
       assert.equal(phoneChooser.rowRadius, "9px");
-      assert.ok(phoneChooser.width <= 342 && phoneChooser.width >= 300, JSON.stringify(phoneChooser));
+      assert.ok(phoneChooser.width <= 342 && phoneChooser.width >= 240, JSON.stringify(phoneChooser));
       assert.ok(Math.abs(phoneChooser.left - 24) <= 4, JSON.stringify(phoneChooser));
       assert.ok(Math.abs(phoneChooser.right - 24) <= 4, JSON.stringify(phoneChooser));
       assert.ok(Math.abs(phoneChooser.bottom - 40) <= 4, JSON.stringify(phoneChooser));

@@ -271,6 +271,8 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
 
   const chooser = src("src/reader/shell/chooser.ts");
   assert.match(chooser, /data-testid": "atomic-chooser"/);
+  assert.match(chooser, /data-testid": "atomic-chooser-veil"/);
+  assert.match(chooser, /workspace-leaf\.mod-active \.view-content/);
   assert.match(chooser, /data-testid": "atomic-chooser-notes"/);
   assert.match(chooser, /data-testid": "atomic-chooser-book"/);
   assert.match(chooser, /data-overlay-host": "window"/);
