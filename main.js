@@ -10372,7 +10372,7 @@ async function readEpub(bytes) {
 var READER_PHONE_MAX_WIDTH = 780;
 var PAGE_PAD = 26;
 var LINE_HEIGHT = 19;
-var CHAR_WIDTH = 6.25;
+var CHAR_WIDTH = 5;
 var BOXES = {
   s: { w: 230, h: 280 },
   m: { w: 270, h: 340 },

@@ -29,7 +29,7 @@ const fixture = readFileSync(join(root, "tests/fixtures/reader-size-note.md"), "
 
 test("desk page boxes match the reader mock and the journey line clip", () => {
   assert.equal(THEATER_XL_HEIGHT, 500);
-  assert.deepEqual(readerPageBox("m"), { w: 270, h: 340, bodyLines: 15, charsPerLine: 36 });
+  assert.deepEqual(readerPageBox("m"), { w: 270, h: 340, bodyLines: 15, charsPerLine: 45 });
   assert.equal(readerPageBox("xl").bodyLines, 22);
   assert.equal(readerPageBox("xl", THEATER_XL_HEIGHT).h, 500);
   assert.equal(readerPageBox("xl", THEATER_XL_HEIGHT).bodyLines, 23);

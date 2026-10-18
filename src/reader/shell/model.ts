@@ -16,7 +16,8 @@ export const READER_PHONE_MAX_WIDTH = 780;
 
 const PAGE_PAD = 26;
 const LINE_HEIGHT = 19;
-const CHAR_WIDTH = 6.25;
+/** Literata 12.5 on the 292px XL measure. A full page is about 22 lines. */
+const CHAR_WIDTH = 5;
 
 const BOXES: Record<ReaderSizeId, { w: number; h: number }> = {
   s: { w: 230, h: 280 },
