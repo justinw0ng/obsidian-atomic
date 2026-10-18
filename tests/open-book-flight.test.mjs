@@ -209,6 +209,9 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.match(css, /inset:\s*0/);
   assert.match(css, /transform:\s*scale\(var\(--flight-from\)\)/);
   assert.match(css, /100% \{ transform: scale\(1\); \}/);
+  assert.match(css, /atomic-flight-reveal/);
+  assert.match(css, /0%, 99% \{ opacity: 1; \}/);
+  assert.match(css, /100% \{ opacity: 0; \}/);
   assert.match(css, /rotateY\(-178deg\); opacity: 0/);
   assert.match(css, /86%, 100% \{ opacity: 0; \}/);
   assert.doesNotMatch(css, /width:\s*168px/);
@@ -246,7 +249,8 @@ test("flight source stays in its folder and off other readers", () => {
   assert.match(mount, /\.atomic-reader-page/);
   const register = readFileSync(join(flightDir, "register.ts"), "utf8");
   assert.match(register, /registerReaderFlight/);
-  assert.match(register, /page:\s*1/);
+  assert.match(register, /data-settled/);
+  assert.match(register, /settledPage/);
   assert.match(register, /left:\s*\[\]/);
   assert.match(register, /right:\s*\[\]/);
   assert.doesNotMatch(register, /JOURNEY_LANDING_PAGE|universally acknowledged/);
@@ -412,6 +416,55 @@ test("registered flight stays blank when the reader has no lines yet", async () 
     delete globalThis.activeWindow;
     delete globalThis.activeDocument;
     resetReaderMounts();
+  }
+});
+
+test("flight waits for the settled page and keeps that page", async () => {
+  const tap = makeHost({ rects: false });
+  tap.destination.setAttribute("data-testid", "atomic-reader");
+  tap.destination.setAttribute("data-settled", "false");
+  tap.destination.setAttribute("data-page", "1");
+  tap.verso.className = "atomic-reader-page is-verso";
+  tap.recto.className = "atomic-reader-page is-recto";
+  paint(tap.recto, ["Still opening."], 1);
+  globalThis.activeWindow = tap.view;
+  globalThis.activeDocument = tap.doc;
+  try {
+    const pending = playOpenBookFlight(async () => {}, {
+      notePath: "notes/book.md",
+      filePath: "notes/book.epub",
+      title: "Harbor Notes",
+      kind: "epub",
+      returnPath: "notes/shelf.md",
+      coverRect: { x: 40, y: 80, width: 64, height: 96 },
+      page: 10,
+    });
+    await Promise.resolve();
+    assert.equal(tap.destination.querySelector("[data-testid='atomic-open-flight']"), null);
+    tap.destination.setAttribute("data-settled", "true");
+    tap.destination.setAttribute("data-page", "10");
+    paint(tap.verso, ["Page ten stays."], 10);
+    paint(tap.recto, ["The facing page."], 11);
+    tap.verso.setRect(200, 100, 270, 340);
+    tap.recto.setRect(470, 100, 270, 340);
+    tap.destination.setRect(0, 0, 1200, 800);
+    tap.flushFrames();
+    assert.equal(await pending, true);
+    const overlay = tap.destination.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(overlay.getAttribute("data-page"), "10");
+    const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
+    assert.equal(snapshot.getAttribute("data-page"), "10");
+    assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
+    assert.match(snapshot.textContent, /Page ten stays/);
+    assert.equal(snapshot.textContent.includes("Still opening"), false);
+    const before = readerFrameSignature(tap.destination);
+    [...tap.timers.values()][0].fn();
+    assert.equal(tap.doc.querySelector("[data-testid='atomic-open-flight']"), null);
+    assert.equal(tap.destination.getAttribute("data-page"), "10");
+    assert.equal(readerFrameSignature(tap.destination), before);
+  } finally {
+    delete globalThis.activeWindow;
+    delete globalThis.activeDocument;
   }
 });
 

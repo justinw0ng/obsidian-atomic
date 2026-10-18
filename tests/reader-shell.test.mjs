@@ -212,6 +212,14 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /gap:\s*4px/);
   assert.match(block, /width:\s*340px/);
   assert.match(block, /width:\s*420px/);
+  assert.match(block, /max-width:\s*342px/);
+  assert.match(block, /padding:\s*10px 12px 14px/);
+  assert.match(block, /padding:\s*0 24px 40px/);
+  assert.match(block, /rgba\(20,\s*18,\s*16,\s*0\.28\)/);
+  assert.match(block, /width:\s*36px/);
+  assert.match(block, /margin:\s*4px auto 12px/);
+  assert.match(block, /border-radius:\s*var\(--atomic-r-control\)/);
+  assert.doesNotMatch(block, /16px 16px 0 0/);
   assert.match(block, /fonts\/literata-latin-400\.woff2/);
   assert.match(block, /--atomic-r-object/);
   assert.match(block, /--atomic-r-control/);
@@ -231,6 +239,21 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.equal(phoneFeet.length, 1);
   assert.match(phoneFeet[0], /background:\s*var\(--background-primary\)/);
   assert.doesNotMatch(block, /column-gap|clip-path|!important/);
+});
+
+test("reader open reads the saved page before the settled paint", () => {
+  const view = readFileSync(join(root, "src/reader/shell/view.ts"), "utf8");
+  const load = view.slice(view.indexOf("private async loadDocument"), view.indexOf("private readerIsPhone"));
+  const readAt = load.indexOf("this.noteFields");
+  const paintAt = load.lastIndexOf("this.paint()");
+  const early = load.indexOf("this.paint()");
+  assert.ok(readAt > 0 && paintAt > readAt);
+  assert.ok(early > 0 && early < readAt);
+  assert.match(view, /data-settled/);
+  assert.match(view.slice(view.indexOf("private async noteFields")), /cachedRead/);
+  const open = readFileSync(join(root, "src/reader/shell/open.ts"), "utf8");
+  assert.match(open, /cachedRead/);
+  assert.match(open, /page,/);
 });
 
 test("phone footer uses the same full bar as the settled reader", () => {

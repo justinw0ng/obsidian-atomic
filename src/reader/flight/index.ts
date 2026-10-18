@@ -2,8 +2,9 @@
  * Open Book flight for the reader shell.
  *
  * The shell calls the registered flight from Open Book. The flight opens
- * the live reader, then plays on that leaf: cover, flips, zoom out to scale 1.
- * The snapshot is the settled reader. Reduced motion crossfades.
+ * the live reader on the saved page, then plays on that leaf: cover, flips,
+ * zoom out to scale 1. The last frame is that same reader. Reduced motion
+ * crossfades.
  */
 
 export {

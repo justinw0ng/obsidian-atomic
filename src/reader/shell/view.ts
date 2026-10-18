@@ -20,8 +20,8 @@ import { paginateReaderBlocks, type ReaderBlock, type ReaderLeaf } from "./pagin
 import { readerReflowBox } from "../size/reflow";
 import { inspectPdf, pdfViewerSrc } from "./pdf";
 
-function layoutBox(size: ReaderSizeId): ReaderPageBox {
-  const request = readerReflowBox(size, false);
+function layoutBox(size: ReaderSizeId, theater = false): ReaderPageBox {
+  const request = readerReflowBox(size, theater);
   return {
     w: request.width,
     h: request.height,
@@ -124,6 +124,7 @@ export class AtomicReaderView extends ItemView {
   private observed = false;
   private keys = false;
   private theaterWanted = false;
+  private phoneAfterFlight: boolean | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -191,11 +192,25 @@ export class AtomicReaderView extends ItemView {
     const observer = new ResizeObserver(() => {
       const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
       if (phone === this.phone) return;
+      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) {
+        this.phoneAfterFlight = phone;
+        return;
+      }
       this.phone = phone;
       this.paint();
     });
     observer.observe(this.contentEl);
     this.register(() => observer.disconnect());
+    const onFlightDone = (): void => {
+      const phone = this.phoneAfterFlight;
+      this.phoneAfterFlight = null;
+      if (phone == null || phone === this.phone) return;
+      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
+      this.phone = phone;
+      this.paint();
+    };
+    this.contentEl.addEventListener("atomic-flight-done", onFlightDone);
+    this.register(() => this.contentEl.removeEventListener("atomic-flight-done", onFlightDone));
   }
 
   private ensureKeys(): void {
@@ -219,7 +234,6 @@ export class AtomicReaderView extends ItemView {
     this.sizeFromReader = false;
     this.pdfSrc = "";
     this.total = 0;
-    this.paint();
 
     const file = this.plugin.data.getFileByPath(this.filePath);
     if (!(file instanceof TFile)) {
@@ -232,19 +246,17 @@ export class AtomicReaderView extends ItemView {
     if (file.extension === "epub") this.kind = "epub";
 
     const note = this.plugin.data.getFileByPath(this.notePath);
-    let storedPage = 1;
+    let storedPage = this.page >= 1 ? this.page : 1;
     if (note instanceof TFile) {
-      const cache = this.plugin.app.metadataCache.getFileCache(note);
-      const fields = cache?.frontmatter
-        ? readerFieldsFromFrontmatter(cache.frontmatter)
-        : readReaderNote(await this.plugin.app.vault.cachedRead(note));
+      const fields = await this.noteFields(note);
       if (token !== this.loadToken) return;
       this.size = "xl";
       const linked = sourcePathFromFrontmatter(fields.canvas);
       this.canvasPath = linked || canvasPathForNote(this.notePath) || "";
       storedPage = fields.page;
     }
-    if (!this.sizeFromReader) this.layout = layoutBox(this.size);
+    this.theaterWanted = this.plugin.settings.reader.theater;
+    if (!this.sizeFromReader) this.layout = layoutBox(this.size, this.theaterWanted);
     this.page = storedPage;
     this.savedPage = storedPage;
 
@@ -287,9 +299,25 @@ export class AtomicReaderView extends ItemView {
     this.savedPage = this.page;
     this.dirty = false;
     this.ready = true;
-    this.phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-    this.theaterWanted = this.plugin.settings.reader.theater;
+    this.phone = this.readerIsPhone();
     this.paint();
+  }
+
+  /** Content width wins after layout. Before that, the window width avoids a desktop spread on a phone. */
+  private readerIsPhone(): boolean {
+    const contentWidth = this.contentEl.clientWidth;
+    if (contentWidth > 0) return isPhoneReaderLayout(contentWidth);
+    return isPhoneReaderLayout(this.contentEl.win.innerWidth || 0);
+  }
+
+  /** The note file is the saved page. The metadata cache can still say page 1. */
+  private async noteFields(note: TFile): Promise<ReturnType<typeof readReaderNote>> {
+    try {
+      return readReaderNote(await this.plugin.app.vault.cachedRead(note));
+    } catch {
+      const cache = this.plugin.app.metadataCache.getFileCache(note);
+      return readerFieldsFromFrontmatter(cache?.frontmatter);
+    }
   }
 
   private leafAt(number: number): ReaderLeaf | null {
@@ -416,7 +444,11 @@ export class AtomicReaderView extends ItemView {
   private paint(): void {
     const language = this.plugin.settings.language;
     const box = this.layout;
-    const previous = paintedBox(this.contentEl);
+    const previousRoot = this.contentEl.querySelector(".atomic-reader");
+    const previousSettled =
+      previousRoot?.instanceOf(HTMLElement) === true &&
+      previousRoot.getAttribute("data-settled") === "true";
+    const previous = previousSettled ? paintedBox(this.contentEl) : null;
     const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
     this.contentEl.empty();
     const root = this.contentEl.createDiv({
@@ -429,6 +461,7 @@ export class AtomicReaderView extends ItemView {
         "data-total": String(this.total),
         "data-size": this.size,
         "data-body-lines": String(box.bodyLines),
+        "data-settled": this.ready ? "true" : "false",
         tabindex: "0",
       },
     });

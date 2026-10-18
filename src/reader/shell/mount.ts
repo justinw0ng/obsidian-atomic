@@ -16,6 +16,8 @@ export type ReaderOpenRequest = {
   kind: "epub" | "pdf";
   returnPath: string;
   coverRect: CoverRect | null;
+  /** Saved page to open. The note file wins when the shell reads it. */
+  page?: number;
 };
 
 /** Ask the open reader to paginate again for the box on screen. */

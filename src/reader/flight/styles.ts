@@ -3,9 +3,9 @@ import { COVER_OPEN_MS, FLIGHT_EASE, FLIGHT_MS, FLIP_LEAVES, REDUCED_FADE_MS } f
 
 /**
  * In-place flight on the reader leaf.
- * The camera is a snapshot of the settled reader. It starts zoomed in,
- * the cover and flips play on that snapshot, then the camera zooms out
- * to scale 1. The last frame is that snapshot with no transform.
+ * The camera zooms a snapshot of the settled reader. Cover and flips play
+ * on that snapshot, then the camera reaches scale 1 and the snapshot
+ * drops out. The held last frame is the real reader already on that page.
  * Reduced motion is a crossfade, not this flight.
  * 1.5.0 tokens. No black stage. No purple.
  */
@@ -54,6 +54,9 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   margin: 0;
   pointer-events: none;
+}
+.atomic-open-flight.is-playing .atomic-flight-snapshot {
+  animation: atomic-flight-reveal ${FLIGHT_MS}ms linear forwards;
 }
 .atomic-flight-cover,
 .atomic-flight-flips {
@@ -174,6 +177,10 @@ ${flipRules()}
 @keyframes atomic-flight-zoom {
   0%, 82% { transform: scale(var(--flight-from)); }
   100% { transform: scale(1); }
+}
+@keyframes atomic-flight-reveal {
+  0%, 99% { opacity: 1; }
+  100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover {
   0% { transform: rotateY(0deg); opacity: 1; }

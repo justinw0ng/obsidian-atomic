@@ -2258,6 +2258,48 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         }
         return chooserState();
       };
+      const chooserMetrics = () => driver.executeScript(`
+        const scrim = document.querySelector('[data-testid="atomic-chooser"]');
+        const sheet = scrim?.querySelector(".atomic-chooser");
+        const notes = scrim?.querySelector('[data-testid="atomic-chooser-notes"]');
+        const book = scrim?.querySelector('[data-testid="atomic-chooser-book"]');
+        const grab = scrim?.querySelector(".atomic-chooser-grab");
+        const cancel = scrim?.querySelector('[data-testid="atomic-chooser-cancel"]');
+        const sheetStyle = sheet ? getComputedStyle(sheet) : null;
+        const notesStyle = notes ? getComputedStyle(notes) : null;
+        const grabStyle = grab ? getComputedStyle(grab) : null;
+        const cancelStyle = cancel ? getComputedStyle(cancel) : null;
+        const scrimStyle = scrim ? getComputedStyle(scrim) : null;
+        const sheetRect = sheet?.getBoundingClientRect();
+        const scrimRect = scrim?.getBoundingClientRect();
+        return {
+          phone: sheet?.classList.contains("is-phone") === true,
+          scrimPhone: scrim?.classList.contains("is-phone") === true,
+          notesPrimary: notes?.classList.contains("is-primary") === true,
+          bookPrimary: book?.classList.contains("is-primary") === true,
+          book: Boolean(book),
+          width: sheetRect ? Math.round(sheetRect.width) : 0,
+          radius: sheetStyle?.borderRadius || "",
+          padding: sheetStyle
+            ? [sheetStyle.paddingTop, sheetStyle.paddingRight, sheetStyle.paddingBottom, sheetStyle.paddingLeft].join(" ")
+            : "",
+          rowRadius: notesStyle?.borderRadius || "",
+          rowBg: notesStyle?.backgroundColor || "",
+          rowPad: notesStyle
+            ? [notesStyle.paddingTop, notesStyle.paddingRight, notesStyle.paddingBottom, notesStyle.paddingLeft].join(" ")
+            : "",
+          grabWidth: grab ? Math.round(grab.getBoundingClientRect().width) : 0,
+          grabHeight: grab ? Math.round(grab.getBoundingClientRect().height) : 0,
+          grabMarginTop: grabStyle?.marginTop || "",
+          grabMarginBottom: grabStyle?.marginBottom || "",
+          bottom: sheetRect && scrimRect ? Math.round(scrimRect.bottom - sheetRect.bottom) : -1,
+          left: sheetRect && scrimRect ? Math.round(sheetRect.left - scrimRect.left) : -1,
+          right: sheetRect && scrimRect ? Math.round(scrimRect.right - sheetRect.right) : -1,
+          cancelWeight: cancelStyle?.fontWeight || "",
+          cancelSize: cancelStyle?.fontSize || "",
+          scrim: scrimStyle?.backgroundColor || "",
+        };
+      `);
 
       await restoreDesktopPointer(driver, desktopViewport);
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
@@ -2269,6 +2311,24 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(linked.host, "window");
       assert.equal(linked.onBody, true);
       assert.equal(linked.book, true, "Open Book shows when an EPUB is linked");
+      const deskChooser = await chooserMetrics();
+      assert.equal(deskChooser.phone, false);
+      assert.equal(deskChooser.notesPrimary, true, "Open Notes stays the default row");
+      assert.equal(deskChooser.bookPrimary, false);
+      assert.equal(deskChooser.width, 420);
+      assert.equal(deskChooser.radius, "16px");
+      assert.equal(deskChooser.padding, "10px 12px 14px 12px");
+      assert.equal(deskChooser.rowRadius, "9px");
+      assert.equal(deskChooser.rowBg, "rgb(34, 34, 34)");
+      assert.equal(deskChooser.rowPad, "12px 12px 12px 12px");
+      assert.equal(deskChooser.grabWidth, 36);
+      assert.equal(deskChooser.grabHeight, 4);
+      assert.equal(deskChooser.grabMarginTop, "4px");
+      assert.equal(deskChooser.grabMarginBottom, "12px");
+      assert.ok(Math.abs(deskChooser.bottom - 24) <= 2, JSON.stringify(deskChooser));
+      assert.equal(deskChooser.cancelWeight, "500");
+      assert.equal(deskChooser.cancelSize, "13px");
+      assert.equal(deskChooser.scrim, "rgba(20, 18, 16, 0.28)");
 
       await driver.executeScript(`return app.plugins.getPlugin("atomic-tracker").refreshAll()`);
       await driver.wait(async () => {
@@ -2470,8 +2530,6 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.ok(phone.footWidth >= phone.rootWidth - 2, JSON.stringify(phone));
       assert.ok(phone.meterWidth >= 24, JSON.stringify(phone));
       await shot(driver, "reader-shell-phone");
-      await restoreDesktopPointer(driver, desktopViewport);
-
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-reader-shelf"]').click();
       `);
@@ -2481,6 +2539,26 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
         );
         return path === E2E_FILES.bookshelfAll;
       }, 8000);
+      const phoneLinked = await openChooser("Currently Reading");
+      assert.equal(phoneLinked.book, true, "Open Book still shows on the phone when an EPUB is linked");
+      const phoneChooser = await chooserMetrics();
+      assert.equal(phoneChooser.phone, true);
+      assert.equal(phoneChooser.scrimPhone, true);
+      assert.equal(phoneChooser.notesPrimary, true);
+      assert.equal(phoneChooser.radius, "16px");
+      assert.notEqual(phoneChooser.radius, "16px 16px 0 0");
+      assert.equal(phoneChooser.padding, "10px 12px 14px 12px");
+      assert.equal(phoneChooser.rowRadius, "9px");
+      assert.ok(phoneChooser.width <= 342 && phoneChooser.width >= 300, JSON.stringify(phoneChooser));
+      assert.ok(Math.abs(phoneChooser.left - 24) <= 4, JSON.stringify(phoneChooser));
+      assert.ok(Math.abs(phoneChooser.right - 24) <= 4, JSON.stringify(phoneChooser));
+      assert.ok(Math.abs(phoneChooser.bottom - 40) <= 4, JSON.stringify(phoneChooser));
+      assert.equal(phoneChooser.scrim, "rgba(20, 18, 16, 0.28)");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-cancel"]').click();
+      `);
+      await driver.wait(async () => (await chooserState()) == null, 4000);
+      await restoreDesktopPointer(driver, desktopViewport);
     });
   });
 
@@ -2946,6 +3024,7 @@ ${E2E_CUE_LOG_FENCE}
           from,
           page: overlay.getAttribute("data-page") || "",
           readerPage: reader.getAttribute("data-page") || "",
+          settled: reader.getAttribute("data-settled") || "",
           line,
           snapPages: pageText(snapshot, false),
           livePages: pageText(reader, true),
@@ -2970,6 +3049,26 @@ ${E2E_CUE_LOG_FENCE}
         driver,
         '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
       );
+      await driver.executeScript(async (path) => {
+        const file = app.vault.getAbstractFileByPath(path);
+        if (!file) throw new Error("missing reading note");
+        const body = await app.vault.read(file);
+        let next = body;
+        if (/^reader\.page\s*:/m.test(body)) {
+          next = body.replace(/^(reader\.page\s*:\s*)\d+/m, "$110");
+        } else if (/^\s+page\s*:/m.test(body)) {
+          next = body.replace(/(^\s+page\s*:\s*)\d+/m, "$110");
+        } else {
+          const fence = body.indexOf("\n---");
+          next = fence >= 0
+            ? `${body.slice(0, fence)}\nreader:\n  page: 10${body.slice(fence)}`
+            : `---\nreader:\n  page: 10\n---\n\n${body}`;
+        }
+        if (!/page\s*:\s*10/.test(next)) throw new Error(`page 10 missing\n${next.slice(0, 500)}`);
+        if (next !== body) await app.vault.modify(file, next);
+        const check = await app.vault.read(file);
+        if (!/page\s*:\s*10/.test(check)) throw new Error(check.slice(0, 500));
+      }, E2E_FILES.readingCurrent);
       await openChooser("Currently Reading");
       const clicked = await driver.executeScript(`
         const choosers = [...document.querySelectorAll('[data-testid="atomic-chooser"]')];
@@ -3035,12 +3134,52 @@ ${E2E_CUE_LOG_FENCE}
       assert.equal(flight.onBody, false);
       assert.equal(flight.insideReader, true);
       assert.equal(flight.book, false);
+      assert.equal(flight.readerPage, "3", "saved page 10 clamps to the last EPUB page");
       assert.equal(flight.page, flight.readerPage);
+      assert.equal(flight.settled, "true");
+      assert.match(flight.livePages, /last buoy/);
+      assert.doesNotMatch(flight.livePages, /Harbor light/);
       assert.ok(Number(flight.from) > 1, `zoom starts above the settled reader ${flight.from}`);
       assert.equal(flight.snapPages, flight.livePages);
       assert.ok(flight.line.length > 0, "the live page has a paragraph");
       assert.ok(flight.snapPages.includes(flight.line), flight.snapPages);
       assert.notEqual(flight.background, "rgb(0, 0, 0)");
+
+      const held = await driver.executeScript(`
+        const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+        const snapshot = overlay?.querySelector('[data-testid="atomic-flight-snapshot"]');
+        const camera = overlay?.querySelector('[data-testid="atomic-flight-camera"]');
+        const reader = document.querySelector('[data-testid="atomic-reader"]');
+        const named = (node, name) => {
+          if (!node || typeof node.getAnimations !== "function") return null;
+          return [...node.getAnimations()].find((anim) => anim.animationName === name) || null;
+        };
+        const reveal = named(snapshot, "atomic-flight-reveal");
+        const zoom = named(camera, "atomic-flight-zoom");
+        if (reveal) reveal.finish();
+        if (zoom) zoom.finish();
+        const text = reader?.innerText || "";
+        return {
+          reveal: Boolean(reveal),
+          zoom: Boolean(zoom),
+          opacity: snapshot ? getComputedStyle(snapshot).opacity : "",
+          page: reader?.getAttribute("data-page") || "",
+          overlayPage: overlay?.getAttribute("data-page") || "",
+          settled: reader?.getAttribute("data-settled") || "",
+          overlay: Boolean(overlay),
+          buoy: /last buoy/.test(text),
+          harbor: /Harbor light/.test(text),
+        };
+      `);
+      assert.equal(held.reveal, true, "the zoom keeps a snapshot until the last frame");
+      assert.equal(held.zoom, true);
+      assert.equal(held.opacity, "0", "the held last frame is the real reader under the snapshot");
+      assert.equal(held.page, "3");
+      assert.equal(held.overlayPage, "3");
+      assert.equal(held.settled, "true");
+      assert.equal(held.overlay, true);
+      assert.equal(held.buoy, true);
+      assert.equal(held.harbor, false);
 
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-open-flight"]').click();
@@ -3053,10 +3192,19 @@ ${E2E_CUE_LOG_FENCE}
           const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
             || readers.find((el) => el.getBoundingClientRect().width > 0)
             || readers[0];
-          const text = reader?.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
-          return { overlay: Boolean(overlay), kept: text.includes(want) };
+          const text = reader?.innerText || "";
+          const line = reader?.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
+          return {
+            overlay: Boolean(overlay),
+            kept: line.includes(want),
+            page: reader?.getAttribute("data-page") || "",
+            settled: reader?.getAttribute("data-settled") || "",
+            buoy: /last buoy/.test(text),
+            harbor: /Harbor light/.test(text),
+          };
         `, flight.line);
-        return settled.overlay === false && settled.kept;
+        return settled.overlay === false && settled.kept && settled.page === "3"
+          && settled.settled === "true" && settled.buoy && settled.harbor === false;
       }, 4000);
 
       let emulated = false;
@@ -3093,18 +3241,24 @@ ${E2E_CUE_LOG_FENCE}
             const reader = document.querySelector('[data-testid="atomic-reader"]');
             const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
             const snapshot = overlay?.querySelector('[data-testid="atomic-flight-snapshot"]');
+            const text = reader?.innerText || "";
             return {
               total: reader?.getAttribute("data-total") || "",
+              page: reader?.getAttribute("data-page") || "",
+              settled: reader?.getAttribute("data-settled") || "",
               mount: reader?.getAttribute("data-reader-mount") || "",
               overlay: Boolean(overlay),
               zoom: overlay?.getAttribute("data-zoom") || "",
               snapshot: Boolean(snapshot),
+              buoy: /last buoy/.test(text),
+              harbor: /Harbor light/.test(text),
             };
           `);
           if (state.snapshot || (state.overlay && state.zoom !== "fade")) {
             throw new Error(`reduced motion built a flight ${JSON.stringify(state)}`);
           }
-          return state.total === "3" && state.mount === "shell" && state.overlay === false;
+          return state.total === "3" && state.mount === "shell" && state.overlay === false
+            && state.page === "3" && state.settled === "true" && state.buoy && state.harbor === false;
         }, 8000);
       } finally {
         try {

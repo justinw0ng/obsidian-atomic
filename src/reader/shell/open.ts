@@ -46,10 +46,21 @@ function prefersReducedMotion(): boolean {
   return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+async function savedReaderPage(plugin: FitnessPlugin, notePath: string): Promise<number> {
+  const file = plugin.data.getFileByPath(notePath);
+  if (!(file instanceof TFile)) return 1;
+  try {
+    return readReaderNote(await plugin.app.vault.cachedRead(file)).page;
+  } catch {
+    return 1;
+  }
+}
+
 export async function openReaderDirect(
   plugin: FitnessPlugin,
   request: ReaderOpenRequest,
 ): Promise<void> {
+  const page = request.page ?? (await savedReaderPage(plugin, request.notePath));
   const leaf: WorkspaceLeaf = plugin.app.workspace.getLeaf(false);
   await leaf.setViewState({
     type: ATOMIC_READER_VIEW,
@@ -61,6 +72,7 @@ export async function openReaderDirect(
       kind: request.kind,
       returnPath: request.returnPath,
       coverRect: request.coverRect,
+      page,
     },
   });
   plugin.app.workspace.revealLeaf(leaf);
@@ -74,6 +86,8 @@ async function openLinkedBook(
     new Notice(t("notice.readerOff", plugin.settings.language));
     return;
   }
+  const page = request.page ?? (await savedReaderPage(plugin, request.notePath));
+  const opening: ReaderOpenRequest = { ...request, page };
   const plan = readerOpenPlan({
     reducedMotion: prefersReducedMotion(),
     hasFlight: Boolean(readerMounts().flight),
@@ -81,11 +95,11 @@ async function openLinkedBook(
   if (plan === "flight") {
     const flight = readerMounts().flight;
     if (flight) {
-      const handled = await flight.open(request);
+      const handled = await flight.open(opening);
       if (handled) return;
     }
   }
-  await openReaderDirect(plugin, request);
+  await openReaderDirect(plugin, opening);
 }
 
 export async function openBookChooser(

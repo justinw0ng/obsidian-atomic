@@ -147,6 +147,7 @@ export function mountOpenBookFlight(
     view.removeEventListener("keydown", onKey, true);
     view.removeEventListener("pagehide", onLeave);
     overlay.remove();
+    request.destination.dispatchEvent(new CustomEvent("atomic-flight-done", { bubbles: true }));
     if (session && sessions.get(doc) === session) sessions.delete(doc);
     resolveDone(reason);
     if (reason !== "aborted") onLand?.(reason);
@@ -176,7 +177,8 @@ export function mountOpenBookFlight(
   const start = (spread: FlightBox | null): void => {
     if (closed) return;
     const page = spreadFromPainted(paintedPages(request.destination), request.page);
-    overlay.setAttribute("data-page", String(page.page));
+    const marked = readPageNumber(request.destination.getAttribute("data-page"));
+    overlay.setAttribute("data-page", String(marked ?? page.page));
     if (motion === "reduced") {
       overlay.classList.add("is-on");
       timer = view.setTimeout(() => finish("reduced"), REDUCED_FADE_MS);

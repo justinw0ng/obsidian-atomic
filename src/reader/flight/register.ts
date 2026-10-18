@@ -11,8 +11,8 @@ import {
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 } from "./mount.ts";
 
-/** How many frames to wait for the live page box before the fallback scale. */
-const LIVE_PAGE_FRAMES = 16;
+/** How many frames to wait for the settled page before skipping the flight. */
+const LIVE_PAGE_FRAMES = 300;
 
 const LIVE_READER_SELECTOR = "[data-testid='atomic-reader']";
 
@@ -51,11 +51,25 @@ export async function playOpenBookFlight(
       cover: {
         title: request.title,
       },
-      page: { page: 1, left: [], right: [] },
+      page: { page: settledPage(destination, request.page), left: [], right: [] },
       destination,
     });
   }
   return true;
+}
+
+function settledPage(root: HTMLElement, fallback: number | undefined): number {
+  const marked = positivePage(root.getAttribute("data-page"));
+  if (marked) return marked;
+  const requested = positivePage(fallback);
+  if (requested) return requested;
+  return 1;
+}
+
+function positivePage(value: number | string | null | undefined): number | null {
+  const page = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(page) || page < 1) return null;
+  return Math.trunc(page);
 }
 
 function prefersReducedMotion(view: Window): boolean {
@@ -87,6 +101,7 @@ async function waitForLiveReader(view: Window): Promise<HTMLElement | null> {
     await nextFrame(view);
     root = readerRoot(doc);
   }
+  if (!livePageReady(root)) return null;
   return root;
 }
 
@@ -107,6 +122,7 @@ function inActiveLeaf(node: HTMLElement): boolean {
 
 function livePageReady(root: HTMLElement | null): boolean {
   if (!root) return false;
+  if (root.getAttribute("data-settled") === "false") return false;
   const pages = root.querySelectorAll(OPEN_BOOK_PAGE_SELECTOR);
   for (let index = 0; index < pages.length; index++) {
     const node = pages[index];

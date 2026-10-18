@@ -3330,12 +3330,13 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0 16px 24px;
-  background: rgba(34, 34, 34, 0.28);
+  background: rgba(20, 18, 16, 0.28);
 }
 
 .atomic-chooser-scrim.is-phone {
   align-items: flex-end;
-  background: rgba(34, 34, 34, 0.4);
+  padding: 0 24px 40px;
+  background: rgba(20, 18, 16, 0.28);
 }
 
 .atomic-chooser {
@@ -3344,22 +3345,26 @@
   padding: 10px 12px 14px;
   border-radius: 16px;
   background: var(--background-primary);
-  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
 }
 
 .atomic-chooser.is-phone {
   width: 100%;
-  max-width: none;
-  padding: 10px 12px 18px;
-  border-radius: 16px 16px 0 0;
+  max-width: 342px;
+  padding: 10px 12px 14px;
+  border-radius: 16px;
 }
 
 .atomic-chooser-grab {
-  width: 40px;
+  width: 36px;
   height: 4px;
-  margin: 4px auto 10px;
-  border-radius: var(--atomic-r-object);
-  background: var(--atomic-fill-3);
+  margin: 4px auto 12px;
+  border-radius: 2px;
+  background: rgba(34, 34, 34, 0.13);
+}
+
+.theme-dark .atomic-chooser-grab {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .atomic-chooser-row,
@@ -3381,7 +3386,7 @@
 .atomic-chooser-row {
   margin-bottom: 4px;
   padding: 12px;
-  border-radius: 16px;
+  border-radius: var(--atomic-r-control);
   background: rgba(34, 34, 34, 0.045);
 }
 
@@ -3397,12 +3402,16 @@
 .atomic-chooser-row.is-primary:hover {
   background: #222;
   color: #fff;
-  border-radius: 16px;
 }
 
-.atomic-chooser-row.is-primary .atomic-chooser-label span,
+.atomic-chooser-row.is-primary .atomic-chooser-label span {
+  color: inherit;
+  opacity: 0.7;
+}
+
 .atomic-chooser-row.is-primary .atomic-chooser-kbd {
-  color: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  opacity: 0.5;
 }
 
 .atomic-chooser-ico {
@@ -3445,7 +3454,8 @@
   display: block;
   margin-top: 2px;
   font-size: 12px;
-  color: var(--atomic-ink-2);
+  color: inherit;
+  opacity: 0.7;
 }
 
 .atomic-chooser-kbd {
@@ -3456,9 +3466,14 @@
 
 .atomic-chooser-cancel {
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 0;
   padding: 10px;
   font-size: 13px;
+  font-weight: 500;
+  color: #5c5c5c;
+}
+
+.theme-dark .atomic-chooser-cancel {
   color: var(--atomic-ink-2);
 }
 

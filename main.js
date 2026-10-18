@@ -11375,6 +11375,9 @@ var OPEN_BOOK_FLIGHT_CSS = `
   margin: 0;
   pointer-events: none;
 }
+.atomic-open-flight.is-playing .atomic-flight-snapshot {
+  animation: atomic-flight-reveal ${FLIGHT_MS}ms linear forwards;
+}
 .atomic-flight-cover,
 .atomic-flight-flips {
   position: absolute;
@@ -11495,6 +11498,10 @@ ${flipRules()}
   0%, 82% { transform: scale(var(--flight-from)); }
   100% { transform: scale(1); }
 }
+@keyframes atomic-flight-reveal {
+  0%, 99% { opacity: 1; }
+  100% { opacity: 0; }
+}
 @keyframes atomic-flight-cover {
   0% { transform: rotateY(0deg); opacity: 1; }
   72% { transform: rotateY(-168deg); opacity: 1; }
@@ -11592,6 +11599,7 @@ function mountOpenBookFlight(request, onLand) {
     view.removeEventListener("keydown", onKey, true);
     view.removeEventListener("pagehide", onLeave);
     overlay.remove();
+    request.destination.dispatchEvent(new CustomEvent("atomic-flight-done", { bubbles: true }));
     if (session3 && sessions.get(doc) === session3) sessions.delete(doc);
     resolveDone(reason);
     if (reason !== "aborted") onLand?.(reason);
@@ -11616,7 +11624,8 @@ function mountOpenBookFlight(request, onLand) {
   const start = (spread2) => {
     if (closed) return;
     const page = spreadFromPainted(paintedPages(request.destination), request.page);
-    overlay.setAttribute("data-page", String(page.page));
+    const marked = readPageNumber(request.destination.getAttribute("data-page"));
+    overlay.setAttribute("data-page", String(marked ?? page.page));
     if (motion === "reduced") {
       overlay.classList.add("is-on");
       timer = view.setTimeout(() => finish2("reduced"), REDUCED_FADE_MS);
@@ -11871,7 +11880,7 @@ function belongsToFlight(node) {
 }
 
 // src/reader/flight/register.ts
-var LIVE_PAGE_FRAMES = 16;
+var LIVE_PAGE_FRAMES = 300;
 var LIVE_READER_SELECTOR = "[data-testid='atomic-reader']";
 function registerOpenBookFlight(openDirect) {
   registerReaderFlight({
@@ -11893,11 +11902,23 @@ async function playOpenBookFlight(openDirect, request) {
       cover: {
         title: request.title
       },
-      page: { page: 1, left: [], right: [] },
+      page: { page: settledPage(destination, request.page), left: [], right: [] },
       destination
     });
   }
   return true;
+}
+function settledPage(root, fallback) {
+  const marked = positivePage(root.getAttribute("data-page"));
+  if (marked) return marked;
+  const requested = positivePage(fallback);
+  if (requested) return requested;
+  return 1;
+}
+function positivePage(value) {
+  const page = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(page) || page < 1) return null;
+  return Math.trunc(page);
 }
 function prefersReducedMotion4(view) {
   if (typeof view.matchMedia !== "function") return false;
@@ -11921,6 +11942,7 @@ async function waitForLiveReader(view) {
     await nextFrame(view);
     root = readerRoot(doc);
   }
+  if (!livePageReady(root)) return null;
   return root;
 }
 function readerRoot(doc) {
@@ -11938,6 +11960,7 @@ function inActiveLeaf(node) {
 }
 function livePageReady(root) {
   if (!root) return false;
+  if (root.getAttribute("data-settled") === "false") return false;
   const pages = root.querySelectorAll(OPEN_BOOK_PAGE_SELECTOR);
   for (let index = 0; index < pages.length; index++) {
     const node = pages[index];
@@ -13383,8 +13406,8 @@ function pdfViewerSrc(resourcePath, page) {
 }
 
 // src/reader/shell/view.ts
-function layoutBox(size) {
-  const request = readerReflowBox(size, false);
+function layoutBox(size, theater = false) {
+  const request = readerReflowBox(size, theater);
   return {
     w: request.width,
     h: request.height,
@@ -13473,6 +13496,7 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     this.observed = false;
     this.keys = false;
     this.theaterWanted = false;
+    this.phoneAfterFlight = null;
   }
   getViewType() {
     return ATOMIC_READER_VIEW;
@@ -13525,11 +13549,25 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     const observer = new ResizeObserver(() => {
       const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
       if (phone === this.phone) return;
+      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) {
+        this.phoneAfterFlight = phone;
+        return;
+      }
       this.phone = phone;
       this.paint();
     });
     observer.observe(this.contentEl);
     this.register(() => observer.disconnect());
+    const onFlightDone = () => {
+      const phone = this.phoneAfterFlight;
+      this.phoneAfterFlight = null;
+      if (phone == null || phone === this.phone) return;
+      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
+      this.phone = phone;
+      this.paint();
+    };
+    this.contentEl.addEventListener("atomic-flight-done", onFlightDone);
+    this.register(() => this.contentEl.removeEventListener("atomic-flight-done", onFlightDone));
   }
   ensureKeys() {
     if (this.keys) return;
@@ -13551,7 +13589,6 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     this.sizeFromReader = false;
     this.pdfSrc = "";
     this.total = 0;
-    this.paint();
     const file = this.plugin.data.getFileByPath(this.filePath);
     if (!(file instanceof import_obsidian17.TFile)) {
       this.failure = "unreadable";
@@ -13562,17 +13599,17 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     if (file.extension === "pdf") this.kind = "pdf";
     if (file.extension === "epub") this.kind = "epub";
     const note = this.plugin.data.getFileByPath(this.notePath);
-    let storedPage = 1;
+    let storedPage = this.page >= 1 ? this.page : 1;
     if (note instanceof import_obsidian17.TFile) {
-      const cache = this.plugin.app.metadataCache.getFileCache(note);
-      const fields = cache?.frontmatter ? readerFieldsFromFrontmatter(cache.frontmatter) : readReaderNote(await this.plugin.app.vault.cachedRead(note));
+      const fields = await this.noteFields(note);
       if (token !== this.loadToken) return;
       this.size = "xl";
       const linked = sourcePathFromFrontmatter(fields.canvas);
       this.canvasPath = linked || canvasPathForNote(this.notePath) || "";
       storedPage = fields.page;
     }
-    if (!this.sizeFromReader) this.layout = layoutBox(this.size);
+    this.theaterWanted = this.plugin.settings.reader.theater;
+    if (!this.sizeFromReader) this.layout = layoutBox(this.size, this.theaterWanted);
     this.page = storedPage;
     this.savedPage = storedPage;
     try {
@@ -13613,9 +13650,23 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     this.savedPage = this.page;
     this.dirty = false;
     this.ready = true;
-    this.phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-    this.theaterWanted = this.plugin.settings.reader.theater;
+    this.phone = this.readerIsPhone();
     this.paint();
+  }
+  /** Content width wins after layout. Before that, the window width avoids a desktop spread on a phone. */
+  readerIsPhone() {
+    const contentWidth = this.contentEl.clientWidth;
+    if (contentWidth > 0) return isPhoneReaderLayout(contentWidth);
+    return isPhoneReaderLayout(this.contentEl.win.innerWidth || 0);
+  }
+  /** The note file is the saved page. The metadata cache can still say page 1. */
+  async noteFields(note) {
+    try {
+      return readReaderNote(await this.plugin.app.vault.cachedRead(note));
+    } catch {
+      const cache = this.plugin.app.metadataCache.getFileCache(note);
+      return readerFieldsFromFrontmatter(cache?.frontmatter);
+    }
   }
   leafAt(number) {
     return this.leaves.find((leaf) => leaf.number === number) ?? null;
@@ -13726,7 +13777,9 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
   paint() {
     const language = this.plugin.settings.language;
     const box = this.layout;
-    const previous = paintedBox(this.contentEl);
+    const previousRoot = this.contentEl.querySelector(".atomic-reader");
+    const previousSettled = previousRoot?.instanceOf(HTMLElement) === true && previousRoot.getAttribute("data-settled") === "true";
+    const previous = previousSettled ? paintedBox(this.contentEl) : null;
     const progress = readerProgress(this.failure ? 0 : this.page, this.failure ? 0 : this.total);
     this.contentEl.empty();
     const root = this.contentEl.createDiv({
@@ -13739,6 +13792,7 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
         "data-total": String(this.total),
         "data-size": this.size,
         "data-body-lines": String(box.bodyLines),
+        "data-settled": this.ready ? "true" : "false",
         tabindex: "0"
       }
     });
@@ -13920,7 +13974,17 @@ function linkedFile(plugin, notePath, title) {
 function prefersReducedMotion5() {
   return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+async function savedReaderPage(plugin, notePath) {
+  const file = plugin.data.getFileByPath(notePath);
+  if (!(file instanceof import_obsidian18.TFile)) return 1;
+  try {
+    return readReaderNote(await plugin.app.vault.cachedRead(file)).page;
+  } catch {
+    return 1;
+  }
+}
 async function openReaderDirect(plugin, request) {
+  const page = request.page ?? await savedReaderPage(plugin, request.notePath);
   const leaf = plugin.app.workspace.getLeaf(false);
   await leaf.setViewState({
     type: ATOMIC_READER_VIEW,
@@ -13931,7 +13995,8 @@ async function openReaderDirect(plugin, request) {
       title: request.title,
       kind: request.kind,
       returnPath: request.returnPath,
-      coverRect: request.coverRect
+      coverRect: request.coverRect,
+      page
     }
   });
   plugin.app.workspace.revealLeaf(leaf);
@@ -13941,6 +14006,8 @@ async function openLinkedBook(plugin, request) {
     new import_obsidian18.Notice(t("notice.readerOff", plugin.settings.language));
     return;
   }
+  const page = request.page ?? await savedReaderPage(plugin, request.notePath);
+  const opening = { ...request, page };
   const plan = readerOpenPlan({
     reducedMotion: prefersReducedMotion5(),
     hasFlight: Boolean(readerMounts().flight)
@@ -13948,11 +14015,11 @@ async function openLinkedBook(plugin, request) {
   if (plan === "flight") {
     const flight = readerMounts().flight;
     if (flight) {
-      const handled = await flight.open(request);
+      const handled = await flight.open(opening);
       if (handled) return;
     }
   }
-  await openReaderDirect(plugin, request);
+  await openReaderDirect(plugin, opening);
 }
 async function openBookChooser2(plugin, request) {
   const language = plugin.settings.language;
