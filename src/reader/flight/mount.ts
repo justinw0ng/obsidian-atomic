@@ -1,6 +1,9 @@
 import {
+  FLIGHT_SETTLE_MS,
   FLIGHT_SKIP_MS,
   FLIP_LEAVES,
+  PAGE_RIBS,
+  QUIRE_EDGES,
   REDUCED_FADE_MS,
   flightZoom,
   resolveFlightLayout,
@@ -129,6 +132,7 @@ export function mountOpenBookFlight(
 
   let closed = false;
   let timer = 0;
+  let settle = 0;
   let frame = 0;
   let resolveDone: (reason: OpenBookFlightReason) => void = () => {};
   const done = new Promise<OpenBookFlightReason>((resolve) => {
@@ -140,6 +144,7 @@ export function mountOpenBookFlight(
     if (closed) return;
     closed = true;
     if (timer) view.clearTimeout(timer);
+    if (settle) view.clearTimeout(settle);
     if (frame && typeof view.cancelAnimationFrame === "function") {
       view.cancelAnimationFrame(frame);
     }
@@ -189,6 +194,10 @@ export function mountOpenBookFlight(
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
     timer = view.setTimeout(() => finish("landed"), FLIGHT_SKIP_MS);
+    settle = view.setTimeout(() => {
+      settle = 0;
+      if (!closed) overlay.classList.add("is-settling");
+    }, FLIGHT_SETTLE_MS);
   };
 
   const spread = spreadBox(request.destination);
@@ -364,50 +373,132 @@ function buildOverlay(
   snapshot.setAttribute("data-testid", "atomic-flight-snapshot");
   camera.appendChild(snapshot);
 
+  const veil = doc.createElement("div");
+  veil.className = "atomic-flight-veil";
+  const stage = doc.createElement("div");
+  stage.className = "atomic-flight-stage";
+  stage.setAttribute("aria-hidden", "true");
+  const volume = doc.createElement("div");
+  volume.className = "atomic-flight-volume";
+  const cast = doc.createElement("div");
+  cast.className = "atomic-flight-cast";
+  const gutter = doc.createElement("div");
+  gutter.className = "atomic-flight-gutter";
   const flips = doc.createElement("div");
   flips.className = "atomic-flight-flips";
-  flips.setAttribute("aria-hidden", "true");
-  const turning = turningPage(doc, request.destination);
-  for (let index = 0; index < FLIP_LEAVES.length; index++) {
-    const flip = doc.createElement("div");
-    flip.className = "atomic-flight-flip";
-    const face = turning ? clonePage(doc, turning) : null;
-    if (face) flip.appendChild(face);
-    flips.appendChild(flip);
+  const turning = liveSide(request.destination, "recto");
+  for (let leaf = FLIP_LEAVES.length - 1; leaf >= 0; leaf -= 1) {
+    flips.appendChild(buildLeaf(doc, turning, leaf));
   }
-
-  const cover = doc.createElement("div");
-  cover.className = "atomic-flight-cover";
-  const face = doc.createElement("div");
-  face.className = "atomic-flight-cover-face";
-  const title = doc.createElement("span");
-  title.className = "atomic-flight-title";
-  title.textContent = request.cover.title;
-  face.appendChild(title);
-  if (request.cover.author) {
-    const author = doc.createElement("span");
-    author.className = "atomic-flight-author";
-    author.textContent = request.cover.author;
-    face.appendChild(author);
-  }
-  const inside = doc.createElement("div");
-  inside.className = "atomic-flight-cover-in";
-  cover.append(face, inside);
+  volume.append(
+    cast,
+    buildSheet(doc, request.destination, "left"),
+    buildSheet(doc, request.destination, "right"),
+    gutter,
+    flips,
+    buildCover(doc, request.cover),
+    buildQuire(doc, "left"),
+    buildQuire(doc, "right"),
+  );
+  stage.appendChild(volume);
 
   const hint = doc.createElement("div");
   hint.className = "atomic-open-hint";
   hint.setAttribute("data-testid", "atomic-open-flight-hint");
   hint.textContent = request.hint?.trim() || OPEN_BOOK_HINT;
 
-  camera.append(flips, cover);
+  camera.append(veil, stage);
   overlay.append(camera, hint);
   return { overlay, camera };
 }
 
-function turningPage(doc: Document, destination: HTMLElement): HTMLElement | null {
+function buildCover(doc: Document, cover: OpenBookCover): HTMLElement {
+  const node = doc.createElement("div");
+  node.className = "atomic-flight-cover";
+  const edge = doc.createElement("div");
+  edge.className = "atomic-flight-cover-edge";
+  const face = doc.createElement("div");
+  face.className = "atomic-flight-cover-face";
+  const title = doc.createElement("span");
+  title.className = "atomic-flight-title";
+  title.textContent = cover.title;
+  face.appendChild(title);
+  if (cover.author) {
+    const author = doc.createElement("span");
+    author.className = "atomic-flight-author";
+    author.textContent = cover.author;
+    face.appendChild(author);
+  }
+  const inside = doc.createElement("div");
+  inside.className = "atomic-flight-cover-in";
+  node.append(edge, face, inside);
+  return node;
+}
+
+/** Spine rib is the outer joint. Higher ribs chain toward the free edge. */
+function buildLeaf(doc: Document, turning: HTMLElement | null, leaf: number): HTMLElement {
+  const flip = doc.createElement("div");
+  flip.className = "atomic-flight-flip";
+  flip.setAttribute("data-leaf", String(leaf));
+  const contact = doc.createElement("div");
+  contact.className = "atomic-flight-contact";
+  flip.append(contact, buildRib(doc, turning, 0));
+  return flip;
+}
+
+function buildRib(doc: Document, turning: HTMLElement | null, rib: number): HTMLElement {
+  const node = doc.createElement("div");
+  node.className = "atomic-flight-rib";
+  node.setAttribute("data-rib", String(rib));
+  node.style.setProperty("--rib", String(rib));
+  node.style.setProperty("--rib-shift", `${-rib * 100}%`);
+  const face = doc.createElement("div");
+  face.className = "atomic-flight-rib-face";
+  const clip = doc.createElement("div");
+  clip.className = "atomic-flight-rib-clip";
+  const page = turning ? clonePage(doc, turning) : null;
+  if (page) clip.appendChild(page);
+  face.appendChild(clip);
+  const back = doc.createElement("div");
+  back.className = "atomic-flight-rib-back";
+  node.append(face, back);
+  if (rib + 1 < PAGE_RIBS) node.appendChild(buildRib(doc, turning, rib + 1));
+  else {
+    const edge = doc.createElement("div");
+    edge.className = "atomic-flight-paper-edge";
+    node.appendChild(edge);
+  }
+  return node;
+}
+
+function buildSheet(doc: Document, destination: HTMLElement, side: "left" | "right"): HTMLElement {
+  const sheet = doc.createElement("div");
+  sheet.className = `atomic-flight-sheet is-${side}`;
+  const source = liveSide(destination, side === "left" ? "verso" : "recto");
+  const clone = source ? clonePage(doc, source) : null;
+  if (clone) sheet.appendChild(clone);
+  return sheet;
+}
+
+function buildQuire(doc: Document, side: "left" | "right"): HTMLElement {
+  const quire = doc.createElement("div");
+  quire.className = `atomic-flight-quire is-${side}`;
+  for (let edge = 0; edge < QUIRE_EDGES; edge += 1) {
+    const sheet = doc.createElement("div");
+    sheet.className = "atomic-flight-edge";
+    sheet.style.setProperty("--edge-x", `${edge * 2}px`);
+    sheet.style.setProperty("--edge-inset", `${edge}px`);
+    quire.appendChild(sheet);
+  }
+  return quire;
+}
+
+function liveSide(destination: HTMLElement, side: "verso" | "recto"): HTMLElement | null {
   const pages = livePages(destination);
-  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
-  return recto ? clonePage(doc, recto) : null;
+  const found = pages.find((el) => el.classList.contains(`is-${side}`));
+  if (found) return found;
+  if (side === "recto") return pages[pages.length - 1] ?? null;
+  return pages[0] ?? null;
 }
 
 function clonePage(doc: Document, source: HTMLElement): HTMLElement | null {

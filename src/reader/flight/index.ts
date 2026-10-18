@@ -2,20 +2,27 @@
  * Open Book flight for the reader shell.
  *
  * The shell calls the registered flight from Open Book. The flight opens
- * the live reader on the saved page, then plays on that leaf: cover, flips,
- * zoom out to scale 1. The last frame is that same reader. Reduced motion
- * crossfades.
+ * the live reader on the saved page, then plays on that leaf: the cover
+ * lifts on the spine, pages curl right to left, the spread settles, and
+ * the camera zooms out to scale 1. The last frame is that same reader.
+ * Reduced motion crossfades.
  */
 
 export {
+  COVER_EASE,
   COVER_OPEN_MS,
+  CURL_EASE,
   DESKTOP_BOOK_PX,
   DESKTOP_FALLBACK_SCALE,
   FLIGHT_EASE,
   FLIGHT_MS,
+  FLIGHT_SETTLE_MS,
   FLIGHT_SKIP_MS,
   FLIP_LEAVES,
+  PAGE_RIBS,
+  QUIRE_EDGES,
   REDUCED_FADE_MS,
+  RIB_STAGGER_MS,
   PHONE_BOOK_PX,
   PHONE_FALLBACK_SCALE,
   PHONE_LAYOUT_MAX_PX,

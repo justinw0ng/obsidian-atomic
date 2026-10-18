@@ -4,14 +4,19 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  COVER_EASE,
   COVER_OPEN_MS,
+  CURL_EASE,
   DESKTOP_BOOK_PX,
   FLIGHT_EASE,
   FLIGHT_MS,
+  FLIGHT_SETTLE_MS,
   FLIGHT_SKIP_MS,
   FLIP_LEAVES,
   OPEN_BOOK_HINT,
+  PAGE_RIBS,
   PHONE_BOOK_PX,
+  QUIRE_EDGES,
   REDUCED_FADE_MS,
   flightOverlayBody,
   flightVars,
@@ -190,6 +195,8 @@ function escapeRegExp(value) {
 test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   const css = OPEN_BOOK_FLIGHT_CSS;
   assert.match(css, new RegExp(escapeRegExp(FLIGHT_EASE)));
+  assert.match(css, new RegExp(escapeRegExp(COVER_EASE)));
+  assert.match(css, new RegExp(escapeRegExp(CURL_EASE)));
   assert.match(css, new RegExp(`${FLIGHT_MS}ms`));
   assert.match(css, new RegExp(`${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms`));
   for (const leaf of FLIP_LEAVES) {
@@ -212,13 +219,28 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.match(css, /atomic-flight-reveal/);
   assert.match(css, /0%, 99% \{ opacity: 1; \}/);
   assert.match(css, /100% \{ opacity: 0; \}/);
-  assert.match(css, /rotateY\(-178deg\); opacity: 0/);
   assert.match(css, /86%, 100% \{ opacity: 0; \}/);
+  const spine = css.match(/@keyframes atomic-flight-spine \{[\s\S]*?\n\}/);
+  assert.ok(spine);
+  assert.doesNotMatch(spine[0], /opacity/);
+  assert.match(spine[0], /translateZ\(40px\) rotateY\(-36deg\)/);
+  assert.match(spine[0], /rotateY\(-178deg\)/);
+  assert.match(css, /atomic-flight-leaf-fade/);
+  assert.match(css, /atomic-flight-paper-edge/);
+  assert.match(css, /rotateY\(-30deg\)/);
   assert.doesNotMatch(css, /width:\s*168px/);
   assert.doesNotMatch(css, /height:\s*248px/);
   assert.doesNotMatch(css, /#000|background:\s*black/);
   assert.match(css, /rotateY\(-168deg\)/);
   assert.match(css, /rotateY\(-178deg\)/);
+  assert.match(css, /translateZ\(42px\) rotateY\(-24deg\)/);
+  assert.match(css, /rotateY\(-92deg\)/);
+  assert.match(css, /atomic-flight-spine/);
+  assert.match(css, /atomic-flight-bend-7/);
+  assert.match(css, /atomic-flight-contact/);
+  assert.match(css, /atomic-flight-quire/);
+  assert.match(css, /atomic-flight-gutter/);
+  assert.match(css, /atomic-flight-veil/);
   assert.doesNotMatch(css, /!important/);
   assert.doesNotMatch(css, /:has\(/);
   assert.doesNotMatch(css, /clip-path|mask-image|-webkit-mask|column-gap|column-count/);
@@ -325,6 +347,9 @@ test("registered flight lands on the live reader page", async () => {
     const flips = overlay.querySelectorAll(".atomic-flight-flip");
     assert.equal(flips.length, FLIP_LEAVES.length);
     assert.equal(flips.filter((flip) => flip.querySelector(".is-recto")).length, FLIP_LEAVES.length);
+    assert.equal(overlay.querySelectorAll(".atomic-flight-rib").length, FLIP_LEAVES.length * PAGE_RIBS);
+    assert.equal(overlay.querySelectorAll(".atomic-flight-paper-edge").length, FLIP_LEAVES.length);
+    assert.equal(overlay.querySelectorAll(".atomic-flight-contact").length, FLIP_LEAVES.length);
     assert.equal(overlay.getAttribute("data-page"), "1");
     const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
     assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
@@ -505,9 +530,27 @@ test("flight lands on the page the shell painted", () => {
   assert.equal(overlay.querySelector(".atomic-flight-title").textContent, "Pride and Prejudice");
   assert.equal(overlay.querySelector(".atomic-open-hint").textContent, OPEN_BOOK_HINT);
   assert.equal(overlay.querySelectorAll(".atomic-flight-flip").length, FLIP_LEAVES.length);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-rib").length, FLIP_LEAVES.length * PAGE_RIBS);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-paper-edge").length, FLIP_LEAVES.length);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-contact").length, FLIP_LEAVES.length);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-quire").length, 2);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-edge").length, QUIRE_EDGES * 2);
+  assert.equal(overlay.querySelectorAll(".atomic-flight-sheet").length, 2);
+  assert.ok(overlay.querySelector(".atomic-flight-gutter"));
+  assert.ok(overlay.querySelector(".atomic-flight-veil"));
+  assert.ok(overlay.querySelector(".atomic-flight-cover-edge"));
+  const topLeaf = [...overlay.querySelectorAll(".atomic-flight-flip")].find(
+    (flip) => flip.getAttribute("data-leaf") === "0",
+  );
+  const spine = topLeaf.querySelector(".atomic-flight-rib");
+  assert.equal(spine.getAttribute("data-rib"), "0");
+  const freeEdge = spine.querySelector("[data-rib='5']");
+  assert.ok(freeEdge);
+  assert.notEqual(freeEdge.parentElement, spine);
   assert.equal(reasons.length, 0);
-  assert.equal(tap.timers.size, 1);
-  assert.equal([...tap.timers.values()][0].ms, FLIGHT_SKIP_MS);
+  assert.equal(tap.timers.size, 2);
+  const delays = [...tap.timers.values()].map((job) => job.ms).sort((a, b) => a - b);
+  assert.deepEqual(delays, [FLIGHT_SETTLE_MS, FLIGHT_SKIP_MS]);
 });
 
 test("empty shell pages do not invent a second book", () => {
@@ -534,6 +577,7 @@ test("reduced motion crossfades and does not build a second book", () => {
   assert.equal(handle.overlay.getAttribute("data-motion"), "reduced");
   assert.equal(handle.overlay.getAttribute("data-zoom"), "fade");
   assert.equal(handle.overlay.querySelector("[data-testid='atomic-flight-snapshot']"), null);
+  assert.equal(handle.overlay.querySelector(".atomic-flight-rib"), null);
   assert.equal(handle.overlay.classList.contains("is-reduced"), true);
   assert.deepEqual(reasons, []);
   assert.equal(tap.doc.querySelectorAll(".atomic-reader").length, readers);

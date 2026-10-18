@@ -3030,6 +3030,11 @@ ${E2E_CUE_LOG_FENCE}
           livePages: pageText(reader, true),
           background: getComputedStyle(overlay).backgroundColor,
           book: Boolean(overlay.querySelector('[data-testid="atomic-open-book"]')),
+          ribs: overlay.querySelectorAll(".atomic-flight-rib").length,
+          contacts: overlay.querySelectorAll(".atomic-flight-contact").length,
+          quires: overlay.querySelectorAll(".atomic-flight-quire").length,
+          gutter: Boolean(overlay.querySelector(".atomic-flight-gutter")),
+          coverEdge: Boolean(overlay.querySelector(".atomic-flight-cover-edge")),
         };
       `);
 
@@ -3134,6 +3139,11 @@ ${E2E_CUE_LOG_FENCE}
       assert.equal(flight.onBody, false);
       assert.equal(flight.insideReader, true);
       assert.equal(flight.book, false);
+      assert.equal(flight.ribs, 32, "four leaves, eight ribs each");
+      assert.equal(flight.contacts, 4);
+      assert.equal(flight.quires, 2);
+      assert.equal(flight.gutter, true);
+      assert.equal(flight.coverEdge, true);
       assert.equal(flight.readerPage, "3", "saved page 10 clamps to the last EPUB page");
       assert.equal(flight.page, flight.readerPage);
       assert.equal(flight.settled, "true");

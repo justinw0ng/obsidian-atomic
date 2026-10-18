@@ -29,22 +29,36 @@ export const PHONE_BOOK_PX = { width: 120, height: 178 } as const;
 export const DESKTOP_FALLBACK_SCALE = 3.15;
 export const PHONE_FALLBACK_SCALE = 2.35;
 
-/** Whole flight. The overlay lifts 50ms after the zoom-out ends. */
-export const FLIGHT_MS = 1400;
-export const FLIGHT_SKIP_MS = 1450;
+/**
+ * Whole flight. The book opens first. The zoom-out starts after the spread
+ * is flat. The overlay lifts just after the zoom ends.
+ */
+export const FLIGHT_MS = 3200;
+export const FLIGHT_SKIP_MS = 3280;
+/** The spread is flat. The book fades and the settled reader shows through. */
+export const FLIGHT_SETTLE_MS = 2480;
 export const REDUCED_FADE_MS = 280;
 export const FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
+/** Slow hinge. The free edge lifts before the cover swings. */
+export const COVER_EASE = "cubic-bezier(0.42, 0.05, 0.18, 1)";
+/** Page bend. The free edge leads; the spine follows. */
+export const CURL_EASE = "cubic-bezier(0.46, 0.02, 0.16, 1)";
 
-export const COVER_OPEN_MS = { duration: 900, delay: 180 } as const;
+export const COVER_OPEN_MS = { duration: 1000, delay: 80 } as const;
 
-/** Five leaves. An opaque turn, not a see-through page. */
+/** Four leaves. The cover lands, then one page curls at a time. */
 export const FLIP_LEAVES = [
-  { duration: 220, delay: 420 },
-  { duration: 200, delay: 560 },
-  { duration: 180, delay: 690 },
-  { duration: 180, delay: 810 },
-  { duration: 200, delay: 930 },
+  { duration: 420, delay: 980 },
+  { duration: 400, delay: 1360 },
+  { duration: 380, delay: 1720 },
+  { duration: 360, delay: 2060 },
 ] as const;
+
+/** Strips in one turning page. The free edge starts first. */
+export const PAGE_RIBS = 8;
+export const RIB_STAGGER_MS = 42;
+/** Visible sheet edges on each side of the block. */
+export const QUIRE_EDGES = 6;
 
 /** A viewport this narrow uses the phone book. The shell can still pass a layout. */
 export const PHONE_LAYOUT_MAX_PX = 480;

@@ -11178,18 +11178,23 @@ function registerAskOnShell(plugin) {
 }
 
 // src/reader/flight/geometry.ts
-var FLIGHT_MS = 1400;
-var FLIGHT_SKIP_MS = 1450;
+var FLIGHT_MS = 3200;
+var FLIGHT_SKIP_MS = 3280;
+var FLIGHT_SETTLE_MS = 2480;
 var REDUCED_FADE_MS = 280;
 var FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
-var COVER_OPEN_MS = { duration: 900, delay: 180 };
+var COVER_EASE = "cubic-bezier(0.42, 0.05, 0.18, 1)";
+var CURL_EASE = "cubic-bezier(0.46, 0.02, 0.16, 1)";
+var COVER_OPEN_MS = { duration: 1e3, delay: 80 };
 var FLIP_LEAVES = [
-  { duration: 220, delay: 420 },
-  { duration: 200, delay: 560 },
-  { duration: 180, delay: 690 },
-  { duration: 180, delay: 810 },
-  { duration: 200, delay: 930 }
+  { duration: 420, delay: 980 },
+  { duration: 400, delay: 1360 },
+  { duration: 380, delay: 1720 },
+  { duration: 360, delay: 2060 }
 ];
+var PAGE_RIBS = 8;
+var RIB_STAGGER_MS = 42;
+var QUIRE_EDGES = 6;
 var PHONE_LAYOUT_MAX_PX = 480;
 var SAFE_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)|[a-z]{1,24})$/i;
 function resolveFlightLayout(explicit, viewportWidth) {
@@ -11340,6 +11345,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   --atomic-rule: #e0e0e0;
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
+  --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
   --flight-from: 1.8;
   --flight-ox: 50%;
   --flight-oy: 46%;
@@ -11363,6 +11369,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   inset: 0;
   transform-origin: var(--flight-ox) var(--flight-oy);
   transform: scale(var(--flight-from));
+  transform-style: preserve-3d;
 }
 .atomic-open-flight.is-playing .atomic-flight-camera {
   animation: atomic-flight-zoom ${FLIGHT_MS}ms var(--atomic-ease) forwards;
@@ -11370,6 +11377,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-snapshot {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -11378,39 +11386,235 @@ var OPEN_BOOK_FLIGHT_CSS = `
 .atomic-open-flight.is-playing .atomic-flight-snapshot {
   animation: atomic-flight-reveal ${FLIGHT_MS}ms linear forwards;
 }
-.atomic-flight-cover,
-.atomic-flight-flips {
+.atomic-flight-veil {
   position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--background-primary, #ffffff);
   pointer-events: none;
 }
-.atomic-flight-cover {
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-veil {
+  animation: atomic-flight-veil ${FLIGHT_MS}ms linear forwards;
+}
+.atomic-flight-stage {
+  position: absolute;
   left: var(--flight-cover-x, 18%);
   top: var(--flight-cover-y, 12%);
   width: var(--flight-cover-w, 64%);
   height: var(--flight-cover-h, 70%);
-  z-index: 4;
+  z-index: 3;
+  perspective: 1600px;
+  perspective-origin: 50% 42%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.atomic-flight-volume {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform: translateX(-25%);
+  transform-style: preserve-3d;
+}
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-volume {
+  animation: atomic-flight-volume ${FLIGHT_MS}ms ${COVER_EASE} forwards;
+}
+.atomic-open-flight.is-flat .atomic-flight-volume {
+  transform: none;
+}
+.atomic-flight-cast {
+  position: absolute;
+  left: 16%;
+  right: 2%;
+  bottom: -7%;
+  height: 12%;
+  border-radius: 50%;
+  background: rgba(36, 24, 16, 0.22);
+  box-shadow: 0 22px 36px rgba(36, 24, 16, 0.18);
+  pointer-events: none;
+}
+.atomic-flight-sheet {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--atomic-flight-paper);
+  box-shadow: 0 0 0 1px rgba(90, 70, 48, 0.22);
+  pointer-events: none;
+}
+.atomic-flight-sheet.is-left { left: 0; opacity: 0; }
+.atomic-flight-sheet.is-right { left: 50%; }
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-sheet.is-left {
+  animation: atomic-flight-sheet-left ${FLIGHT_MS}ms linear forwards;
+}
+.atomic-open-flight .atomic-flight-sheet .atomic-reader-page,
+.atomic-open-flight .atomic-flight-sheet .atomic-page {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-shadow: none;
+}
+.atomic-flight-gutter {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 36px;
+  height: 100%;
+  margin-left: -18px;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(48, 32, 18, 0), rgba(48, 32, 18, 0.16), rgba(48, 32, 18, 0));
+  pointer-events: none;
+}
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-gutter {
+  animation: atomic-flight-gutter ${FLIGHT_MS}ms linear forwards;
+}
+.atomic-flight-flips {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.atomic-flight-flip {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.atomic-flight-contact {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(36, 24, 16, 0) 4%, rgba(36, 24, 16, 0.38) 76%, rgba(36, 24, 16, 0.08));
+  pointer-events: none;
+}
+.atomic-flight-rib {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: ${(100 / PAGE_RIBS).toFixed(4)}%;
+  height: 100%;
   transform-origin: left center;
   transform-style: preserve-3d;
 }
-.atomic-flight-flips {
-  left: var(--flight-recto-x, 50%);
-  top: var(--flight-recto-y, 12%);
-  width: var(--flight-recto-w, 32%);
-  height: var(--flight-recto-h, 70%);
-  z-index: 3;
+.atomic-flight-rib .atomic-flight-rib {
+  left: 100%;
+  width: 100%;
+}
+.atomic-flight-rib-face,
+.atomic-flight-rib-back {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: -1px;
+  backface-visibility: hidden;
+}
+.atomic-flight-rib-face {
+  background: var(--atomic-flight-paper);
+  transform: translateZ(1px);
+}
+.atomic-flight-paper-edge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(#f4eadc, #d7c6ae 46%, #c4b094);
+  box-shadow: inset -1px 0 0 rgba(90, 70, 48, 0.35);
+  transform-origin: right center;
+  transform: rotateY(90deg);
+  pointer-events: none;
+}
+.atomic-flight-rib-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+.atomic-flight-rib-back {
+  background: #f3eadc;
+  transform: rotateY(180deg) translateZ(1px);
+}
+.atomic-open-flight .atomic-flight-rib-clip .atomic-reader-page,
+.atomic-open-flight .atomic-flight-rib-clip .atomic-page {
+  position: absolute;
+  top: 0;
+  left: var(--rib-shift, 0%);
+  width: ${PAGE_RIBS * 100}%;
+  height: 100%;
+  margin: 0;
+  box-shadow: none;
+}
+.atomic-flight-quire {
+  position: absolute;
+  top: 1.2%;
+  width: 14px;
+  height: 97.6%;
+  pointer-events: none;
+}
+.atomic-flight-quire.is-right {
+  right: 0;
+  transform-origin: right center;
+}
+.atomic-flight-quire.is-left {
+  left: calc(50% - 14px);
+  opacity: 0;
+  transform: scaleX(0.15);
+  transform-origin: right center;
+}
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-quire.is-right {
+  animation: atomic-flight-quire-right ${FLIGHT_MS}ms linear forwards;
+}
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-quire.is-left {
+  animation: atomic-flight-quire-left ${FLIGHT_MS}ms linear forwards;
+}
+.atomic-flight-edge {
+  position: absolute;
+  top: var(--edge-inset, 0px);
+  bottom: var(--edge-inset, 0px);
+  width: 2px;
+  background: var(--atomic-flight-paper);
+  box-shadow: inset -1px 0 0 rgba(90, 70, 48, 0.35);
+}
+.atomic-flight-quire.is-right .atomic-flight-edge { right: var(--edge-x, 0px); }
+.atomic-flight-quire.is-left .atomic-flight-edge { left: var(--edge-x, 0px); }
+.atomic-flight-cover {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  width: calc(50% - 8px);
+  height: calc(100% - 4px);
+  transform-origin: left center;
+  transform-style: preserve-3d;
 }
 .atomic-open-flight.is-playing .atomic-flight-cover {
-  animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms var(--atomic-ease) forwards;
+  animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms linear forwards;
+}
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-face,
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-in,
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-edge {
+  animation: atomic-flight-cover-ink ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms linear forwards;
 }
 .atomic-open-flight.is-flat.is-playing .atomic-flight-cover {
   animation: atomic-flight-cover-fade ${FLIGHT_MS}ms var(--atomic-ease) forwards;
 }
+.atomic-open-flight.is-flat.is-playing .atomic-flight-veil {
+  animation: atomic-flight-cover-fade ${FLIGHT_MS}ms linear forwards;
+}
+.atomic-flight-cover-face,
+.atomic-flight-cover-in,
+.atomic-flight-cover-edge {
+  position: absolute;
+  backface-visibility: hidden;
+}
 .atomic-flight-cover-face,
 .atomic-flight-cover-in {
-  position: absolute;
   inset: 0;
   border-radius: var(--atomic-r-object);
-  backface-visibility: hidden;
 }
 .atomic-flight-cover-face {
   display: flex;
@@ -11425,8 +11629,18 @@ var OPEN_BOOK_FLIGHT_CSS = `
   box-shadow:
     inset 0 0 0 1px rgba(244, 236, 223, 0.45),
     inset 0 0 0 10px var(--atomic-open-cover),
-    inset 0 0 0 11px rgba(244, 236, 223, 0.28);
+    inset 0 0 0 11px rgba(244, 236, 223, 0.28),
+    0 16px 28px -18px rgba(36, 24, 16, 0.55);
   color: var(--atomic-open-ink);
+}
+.atomic-flight-cover-edge {
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  transform-origin: right center;
+  transform: rotateY(90deg);
+  background: #2a1c12;
 }
 .atomic-flight-title {
   font-size: 22px;
@@ -11442,32 +11656,21 @@ var OPEN_BOOK_FLIGHT_CSS = `
   opacity: 0.7;
 }
 .atomic-flight-cover-in {
-  background: var(--atomic-paper, var(--background-primary, #ffffff));
+  background: #f3eadc;
+  box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.35);
   transform: rotateY(180deg);
 }
-.atomic-flight-flip {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 0 var(--atomic-r-object) var(--atomic-r-object) 0;
-  background: var(--atomic-paper, var(--background-primary, #ffffff));
-  box-shadow: -8px 0 16px -12px rgba(0, 0, 0, 0.35);
-  transform-origin: left center;
-  backface-visibility: hidden;
-}
-.atomic-flight-flip .atomic-reader-page,
-.atomic-flight-flip .atomic-page {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  box-shadow: none;
-}
 ${flipRules()}
-.atomic-open-flight.is-flat.is-playing .atomic-flight-flip {
-  animation: none;
+.atomic-open-flight.is-flat .atomic-flight-flip,
+.atomic-open-flight.is-flat .atomic-flight-quire,
+.atomic-open-flight.is-flat .atomic-flight-gutter,
+.atomic-open-flight.is-flat .atomic-flight-cast,
+.atomic-open-flight.is-flat .atomic-flight-sheet {
   opacity: 0;
+}
+.atomic-open-flight.is-flat.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-rib[data-rib],
+.atomic-open-flight.is-flat.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-contact {
+  animation: none;
 }
 .atomic-open-hint {
   position: absolute;
@@ -11495,7 +11698,7 @@ ${flipRules()}
   animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
 }
 @keyframes atomic-flight-zoom {
-  0%, 82% { transform: scale(var(--flight-from)); }
+  0%, 88% { transform: scale(var(--flight-from)); }
   100% { transform: scale(1); }
 }
 @keyframes atomic-flight-reveal {
@@ -11503,18 +11706,64 @@ ${flipRules()}
   100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover {
-  0% { transform: rotateY(0deg); opacity: 1; }
-  72% { transform: rotateY(-168deg); opacity: 1; }
-  100% { transform: rotateY(-178deg); opacity: 0; }
+  0% { transform: translateZ(12px) rotateY(0deg); }
+  35% { transform: translateZ(42px) rotateY(-24deg); }
+  58% { transform: translateZ(28px) rotateY(-92deg); }
+  84% { transform: translateZ(10px) rotateY(-168deg); }
+  100% { transform: translateZ(4px) rotateY(-178deg); }
+}
+@keyframes atomic-flight-cover-ink {
+  0%, 74% { opacity: 1; }
+  100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover-fade {
   0%, 36% { opacity: 1; }
   100% { opacity: 0; }
 }
-@keyframes atomic-flight-flip {
-  0% { transform: rotateY(0deg); opacity: 1; }
-  80% { transform: rotateY(-178deg); opacity: 1; }
-  100% { transform: rotateY(-178deg); opacity: 0; }
+@keyframes atomic-flight-volume {
+  0% { transform: translateX(-25%); }
+  36%, 100% { transform: translateX(0%); }
+}
+.atomic-open-flight.is-settling .atomic-flight-volume {
+  opacity: 0;
+  transition: opacity 480ms linear;
+}
+@keyframes atomic-flight-veil {
+  0%, 78% { opacity: 1; }
+  92%, 100% { opacity: 0; }
+}
+@keyframes atomic-flight-spine {
+  0% { transform: translateZ(0px) rotateY(0deg); }
+  20% { transform: translateZ(16px) rotateY(-2deg); }
+  45% { transform: translateZ(40px) rotateY(-36deg); }
+  75% { transform: translateZ(14px) rotateY(-130deg); }
+  100% { transform: translateZ(0px) rotateY(-178deg); }
+}
+@keyframes atomic-flight-leaf-fade {
+  0%, 92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+${bendFrames()}
+@keyframes atomic-flight-contact {
+  0% { opacity: 0; transform: translateX(22%); }
+  28% { opacity: 1; transform: translateX(0%); }
+  100% { opacity: 0; transform: translateX(-36%); }
+}
+@keyframes atomic-flight-quire-right {
+  0% { transform: scaleX(1); opacity: 1; }
+  72%, 100% { transform: scaleX(0.45); opacity: 1; }
+}
+@keyframes atomic-flight-quire-left {
+  0%, 22% { transform: scaleX(0.15); opacity: 0; }
+  58%, 100% { transform: scaleX(1); opacity: 1; }
+}
+@keyframes atomic-flight-sheet-left {
+  0%, 14% { opacity: 0; }
+  24%, 100% { opacity: 1; }
+}
+@keyframes atomic-flight-gutter {
+  0%, 18% { opacity: 0; }
+  30%, 100% { opacity: 1; }
 }
 @keyframes atomic-flight-hint {
   0%, 68% { opacity: 1; }
@@ -11527,16 +11776,61 @@ ${flipRules()}
 @media (prefers-reduced-motion: reduce) {
   .atomic-open-flight.is-playing .atomic-flight-camera,
   .atomic-open-flight.is-playing .atomic-flight-cover,
-  .atomic-open-flight.is-playing .atomic-flight-flip {
+  .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-volume,
+  .atomic-open-flight.is-playing .atomic-flight-veil,
+  .atomic-open-flight.is-playing .atomic-flight-quire,
+  .atomic-open-flight.is-playing .atomic-flight-gutter,
+  .atomic-open-flight.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-rib[data-rib],
+  .atomic-open-flight.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-contact {
     animation: none;
   }
 }
 `.trim();
-function flipRules() {
-  return FLIP_LEAVES.map((leaf, index) => {
-    const child = index + 1;
-    return `.atomic-open-flight.is-playing .atomic-flight-flip:nth-child(${child}) { animation: atomic-flight-flip ${leaf.duration}ms ${leaf.delay}ms var(--atomic-ease) forwards; }`;
+function bendFrames() {
+  const joints = [
+    [6, 18, 14],
+    [8, 20, 10],
+    [12, 22, 7],
+    [16, 22, 4],
+    [20, 18, 2],
+    [24, 14, 1],
+    [30, 10, 0]
+  ].slice(0, PAGE_RIBS - 1);
+  return joints.map((joint, index) => {
+    const rib = index + 1;
+    const [lead, peak, late] = joint;
+    return [
+      `@keyframes atomic-flight-bend-${rib} {`,
+      `  0% { transform: rotateY(0deg); }`,
+      `  20% { transform: rotateY(-${lead}deg); }`,
+      `  45% { transform: rotateY(-${peak}deg); }`,
+      `  75% { transform: rotateY(-${late}deg); }`,
+      `  100% { transform: rotateY(0deg); }`,
+      `}`
+    ].join("\n");
   }).join("\n");
+}
+function flipRules() {
+  const lines = [];
+  FLIP_LEAVES.forEach((leaf, index) => {
+    const clock = `${leaf.duration}ms ${leaf.delay}ms`;
+    const shadow = `${leaf.duration}ms ${Math.max(0, leaf.delay - RIB_STAGGER_MS)}ms`;
+    const lift = 12 - index * 3;
+    lines.push(
+      `.atomic-flight-flip[data-leaf="${index}"] { transform: translateZ(${lift}px); }`,
+      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-contact { animation: atomic-flight-contact ${shadow} linear forwards; }`,
+      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-rib-face,`,
+      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-rib-back,`,
+      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-paper-edge { animation: atomic-flight-leaf-fade ${clock} linear forwards; }`
+    );
+    for (let rib = 0; rib < PAGE_RIBS; rib += 1) {
+      const name = rib === 0 ? "atomic-flight-spine" : `atomic-flight-bend-${rib}`;
+      lines.push(
+        `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-rib[data-rib="${rib}"] { animation: ${name} ${clock} ${CURL_EASE} forwards; }`
+      );
+    }
+  });
+  return lines.join("\n");
 }
 
 // src/reader/flight/mount.ts
@@ -11581,6 +11875,7 @@ function mountOpenBookFlight(request, onLand) {
   request.destination.appendChild(overlay);
   let closed = false;
   let timer = 0;
+  let settle = 0;
   let frame = 0;
   let resolveDone = () => {
   };
@@ -11592,6 +11887,7 @@ function mountOpenBookFlight(request, onLand) {
     if (closed) return;
     closed = true;
     if (timer) view.clearTimeout(timer);
+    if (settle) view.clearTimeout(settle);
     if (frame && typeof view.cancelAnimationFrame === "function") {
       view.cancelAnimationFrame(frame);
     }
@@ -11636,6 +11932,10 @@ function mountOpenBookFlight(request, onLand) {
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
     timer = view.setTimeout(() => finish2("landed"), FLIGHT_SKIP_MS);
+    settle = view.setTimeout(() => {
+      settle = 0;
+      if (!closed) overlay.classList.add("is-settling");
+    }, FLIGHT_SETTLE_MS);
   };
   const spread = spreadBox(request.destination);
   if (spread || typeof view.requestAnimationFrame !== "function") {
@@ -11768,46 +12068,123 @@ function buildOverlay(doc, request, layout, motion) {
   snapshot.classList.add("atomic-flight-snapshot");
   snapshot.setAttribute("data-testid", "atomic-flight-snapshot");
   camera.appendChild(snapshot);
+  const veil = doc.createElement("div");
+  veil.className = "atomic-flight-veil";
+  const stage = doc.createElement("div");
+  stage.className = "atomic-flight-stage";
+  stage.setAttribute("aria-hidden", "true");
+  const volume = doc.createElement("div");
+  volume.className = "atomic-flight-volume";
+  const cast = doc.createElement("div");
+  cast.className = "atomic-flight-cast";
+  const gutter = doc.createElement("div");
+  gutter.className = "atomic-flight-gutter";
   const flips = doc.createElement("div");
   flips.className = "atomic-flight-flips";
-  flips.setAttribute("aria-hidden", "true");
-  const turning = turningPage(doc, request.destination);
-  for (let index = 0; index < FLIP_LEAVES.length; index++) {
-    const flip = doc.createElement("div");
-    flip.className = "atomic-flight-flip";
-    const face2 = turning ? clonePage(doc, turning) : null;
-    if (face2) flip.appendChild(face2);
-    flips.appendChild(flip);
+  const turning = liveSide(request.destination, "recto");
+  for (let leaf = FLIP_LEAVES.length - 1; leaf >= 0; leaf -= 1) {
+    flips.appendChild(buildLeaf(doc, turning, leaf));
   }
-  const cover = doc.createElement("div");
-  cover.className = "atomic-flight-cover";
-  const face = doc.createElement("div");
-  face.className = "atomic-flight-cover-face";
-  const title = doc.createElement("span");
-  title.className = "atomic-flight-title";
-  title.textContent = request.cover.title;
-  face.appendChild(title);
-  if (request.cover.author) {
-    const author = doc.createElement("span");
-    author.className = "atomic-flight-author";
-    author.textContent = request.cover.author;
-    face.appendChild(author);
-  }
-  const inside = doc.createElement("div");
-  inside.className = "atomic-flight-cover-in";
-  cover.append(face, inside);
+  volume.append(
+    cast,
+    buildSheet(doc, request.destination, "left"),
+    buildSheet(doc, request.destination, "right"),
+    gutter,
+    flips,
+    buildCover(doc, request.cover),
+    buildQuire(doc, "left"),
+    buildQuire(doc, "right")
+  );
+  stage.appendChild(volume);
   const hint = doc.createElement("div");
   hint.className = "atomic-open-hint";
   hint.setAttribute("data-testid", "atomic-open-flight-hint");
   hint.textContent = request.hint?.trim() || OPEN_BOOK_HINT;
-  camera.append(flips, cover);
+  camera.append(veil, stage);
   overlay.append(camera, hint);
   return { overlay, camera };
 }
-function turningPage(doc, destination) {
+function buildCover(doc, cover) {
+  const node = doc.createElement("div");
+  node.className = "atomic-flight-cover";
+  const edge = doc.createElement("div");
+  edge.className = "atomic-flight-cover-edge";
+  const face = doc.createElement("div");
+  face.className = "atomic-flight-cover-face";
+  const title = doc.createElement("span");
+  title.className = "atomic-flight-title";
+  title.textContent = cover.title;
+  face.appendChild(title);
+  if (cover.author) {
+    const author = doc.createElement("span");
+    author.className = "atomic-flight-author";
+    author.textContent = cover.author;
+    face.appendChild(author);
+  }
+  const inside = doc.createElement("div");
+  inside.className = "atomic-flight-cover-in";
+  node.append(edge, face, inside);
+  return node;
+}
+function buildLeaf(doc, turning, leaf) {
+  const flip = doc.createElement("div");
+  flip.className = "atomic-flight-flip";
+  flip.setAttribute("data-leaf", String(leaf));
+  const contact = doc.createElement("div");
+  contact.className = "atomic-flight-contact";
+  flip.append(contact, buildRib(doc, turning, 0));
+  return flip;
+}
+function buildRib(doc, turning, rib) {
+  const node = doc.createElement("div");
+  node.className = "atomic-flight-rib";
+  node.setAttribute("data-rib", String(rib));
+  node.style.setProperty("--rib", String(rib));
+  node.style.setProperty("--rib-shift", `${-rib * 100}%`);
+  const face = doc.createElement("div");
+  face.className = "atomic-flight-rib-face";
+  const clip2 = doc.createElement("div");
+  clip2.className = "atomic-flight-rib-clip";
+  const page = turning ? clonePage(doc, turning) : null;
+  if (page) clip2.appendChild(page);
+  face.appendChild(clip2);
+  const back = doc.createElement("div");
+  back.className = "atomic-flight-rib-back";
+  node.append(face, back);
+  if (rib + 1 < PAGE_RIBS) node.appendChild(buildRib(doc, turning, rib + 1));
+  else {
+    const edge = doc.createElement("div");
+    edge.className = "atomic-flight-paper-edge";
+    node.appendChild(edge);
+  }
+  return node;
+}
+function buildSheet(doc, destination, side) {
+  const sheet = doc.createElement("div");
+  sheet.className = `atomic-flight-sheet is-${side}`;
+  const source = liveSide(destination, side === "left" ? "verso" : "recto");
+  const clone = source ? clonePage(doc, source) : null;
+  if (clone) sheet.appendChild(clone);
+  return sheet;
+}
+function buildQuire(doc, side) {
+  const quire = doc.createElement("div");
+  quire.className = `atomic-flight-quire is-${side}`;
+  for (let edge = 0; edge < QUIRE_EDGES; edge += 1) {
+    const sheet = doc.createElement("div");
+    sheet.className = "atomic-flight-edge";
+    sheet.style.setProperty("--edge-x", `${edge * 2}px`);
+    sheet.style.setProperty("--edge-inset", `${edge}px`);
+    quire.appendChild(sheet);
+  }
+  return quire;
+}
+function liveSide(destination, side) {
   const pages = livePages(destination);
-  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
-  return recto ? clonePage(doc, recto) : null;
+  const found = pages.find((el) => el.classList.contains(`is-${side}`));
+  if (found) return found;
+  if (side === "recto") return pages[pages.length - 1] ?? null;
+  return pages[0] ?? null;
 }
 function clonePage(doc, source) {
   if (typeof source.cloneNode === "function") {
