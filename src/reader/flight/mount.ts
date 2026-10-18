@@ -350,6 +350,7 @@ function buildOverlay(
   const overlay = doc.createElement("div");
   overlay.className = "atomic-open-flight";
   overlay.classList.add(layout === "phone" ? "is-phone" : "is-desktop");
+  overlay.setAttribute("data-open", layout === "phone" ? "page" : "spread");
   if (motion === "flat") overlay.classList.add("is-flat");
   if (motion === "reduced") overlay.classList.add("is-reduced");
   overlay.setAttribute("data-testid", "atomic-open-flight");

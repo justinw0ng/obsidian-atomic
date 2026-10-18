@@ -11784,6 +11784,25 @@ ${bendFrames()}
   from { opacity: 1; }
   to { opacity: 0; }
 }
+.atomic-open-flight.is-phone .atomic-flight-volume,
+.atomic-open-flight.is-phone.is-playing:not(.is-flat) .atomic-flight-volume {
+  transform: none;
+  animation: none;
+}
+.atomic-open-flight.is-phone .atomic-flight-sheet.is-left,
+.atomic-open-flight.is-phone .atomic-flight-quire.is-left,
+.atomic-open-flight.is-phone .atomic-flight-gutter {
+  display: none;
+}
+.atomic-open-flight.is-phone .atomic-flight-sheet.is-right,
+.atomic-open-flight.is-phone .atomic-flight-flips,
+.atomic-open-flight.is-phone .atomic-flight-cover {
+  left: 0;
+  width: 100%;
+}
+.atomic-open-flight.is-phone .atomic-flight-cover {
+  transform-origin: left center;
+}
 @media (prefers-reduced-motion: reduce) {
   .atomic-open-flight.is-playing .atomic-flight-camera,
   .atomic-open-flight.is-playing .atomic-flight-cover,
@@ -12060,6 +12079,7 @@ function buildOverlay(doc, request, layout, motion) {
   const overlay = doc.createElement("div");
   overlay.className = "atomic-open-flight";
   overlay.classList.add(layout === "phone" ? "is-phone" : "is-desktop");
+  overlay.setAttribute("data-open", layout === "phone" ? "page" : "spread");
   if (motion === "flat") overlay.classList.add("is-flat");
   if (motion === "reduced") overlay.classList.add("is-reduced");
   overlay.setAttribute("data-testid", "atomic-open-flight");
@@ -13271,6 +13291,11 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   box-sizing: border-box;
   background: transparent;
 }
+.atomic-theater-root.is-theater .atomic-reader-book {
+  zoom: 1;
+  width: 100%;
+  grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
+}
 .atomic-theater-root.is-theater.is-phone .atomic-reader-spread,
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-spread {
   display: flex;
@@ -13280,6 +13305,14 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   min-height: 0;
   padding: 48px 16px 20px;
   background: transparent;
+}
+.atomic-theater-root.is-theater.is-phone .atomic-reader-book,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-book {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  zoom: 1;
 }
 ${suppressCss()}
 `.trim();
@@ -13788,6 +13821,51 @@ function paginateReaderBlocks(blocks, box) {
   return pages;
 }
 
+// src/reader/shell/scale.ts
+var DESKTOP_VIEWPORT = { width: 1020, height: 720 };
+var PHONE_VIEWPORT = { width: 390, height: 844 };
+var DESKTOP_BOOK = { width: 680, height: 488 };
+var PHONE_BOOK = { width: 350, height: 520 };
+var XL_PAGE = { width: 340, height: 488 };
+var DESKTOP_GUTTER = 112;
+var SPREAD_PAD_Y = 16;
+var PHONE_PAGE_MARGIN_TOP = 12;
+var DESKTOP_BOOK_VIEWPORT_RATIO = DESKTOP_BOOK.width * DESKTOP_BOOK.height / (DESKTOP_VIEWPORT.width * DESKTOP_VIEWPORT.height);
+var PHONE_BOOK_VIEWPORT_RATIO = PHONE_BOOK.width * PHONE_BOOK.height / (PHONE_VIEWPORT.width * PHONE_VIEWPORT.height);
+function readerBookScale(input) {
+  const phone = input.surface === "phone";
+  const ratio = phone ? PHONE_BOOK_VIEWPORT_RATIO : DESKTOP_BOOK_VIEWPORT_RATIO;
+  const pageW = XL_PAGE.width;
+  const pageH = XL_PAGE.height;
+  const naturalArea = (phone ? pageW : DESKTOP_BOOK.width) * pageH;
+  const blockW = phone ? pageW : DESKTOP_GUTTER + pageW + pageW + DESKTOP_GUTTER;
+  const blockH = phone ? PHONE_PAGE_MARGIN_TOP + pageH : pageH;
+  if (input.viewportWidth <= 0 || input.viewportHeight <= 0 || naturalArea <= 0 || !Number.isFinite(input.viewportWidth) || !Number.isFinite(input.viewportHeight)) {
+    return { scale: 1, clamped: false, ratio };
+  }
+  let scale = Math.sqrt(ratio * input.viewportWidth * input.viewportHeight / naturalArea);
+  let clamped = false;
+  if (input.fieldWidth > 0 && blockW > 0) {
+    const fit = input.fieldWidth / blockW;
+    if (fit < scale) {
+      scale = fit;
+      clamped = true;
+    }
+  }
+  const availH = input.fieldHeight - SPREAD_PAD_Y;
+  if (availH > 0 && blockH > 0) {
+    const fit = availH / blockH;
+    if (fit < scale) {
+      scale = fit;
+      clamped = true;
+    }
+  }
+  if (!Number.isFinite(scale) || scale <= 0) return { scale: 1, clamped: false, ratio };
+  const rounded = clamped ? Math.floor(scale * 1e3) / 1e3 : Math.round(scale * 1e3) / 1e3;
+  if (rounded <= 0) return { scale: 1, clamped: false, ratio };
+  return { scale: rounded, clamped, ratio };
+}
+
 // src/reader/size/geometry.ts
 var THEATER_XL_HEIGHT = 500;
 function effectiveReaderSize(size, theaterLocked) {
@@ -13973,23 +14051,31 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     this.observed = true;
     const observer = new ResizeObserver(() => {
       const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-      if (phone === this.phone) return;
-      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) {
-        this.phoneAfterFlight = phone;
+      const flying = Boolean(this.contentEl.querySelector("[data-testid='atomic-open-flight']"));
+      if (phone !== this.phone) {
+        if (flying) {
+          this.phoneAfterFlight = phone;
+          return;
+        }
+        this.phone = phone;
+        this.paint();
         return;
       }
-      this.phone = phone;
-      this.paint();
+      if (flying) return;
+      this.fitBook();
     });
     observer.observe(this.contentEl);
     this.register(() => observer.disconnect());
     const onFlightDone = () => {
       const phone = this.phoneAfterFlight;
       this.phoneAfterFlight = null;
-      if (phone == null || phone === this.phone) return;
-      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
-      this.phone = phone;
-      this.paint();
+      if (phone != null && phone !== this.phone) {
+        if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
+        this.phone = phone;
+        this.paint();
+        return;
+      }
+      this.fitBook();
     };
     this.contentEl.addEventListener("atomic-flight-done", onFlightDone);
     this.register(() => this.contentEl.removeEventListener("atomic-flight-done", onFlightDone));
@@ -14266,9 +14352,10 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
       attr: { "data-reader-slot": "theater", "data-testid": "atomic-reader-slot-theater" }
     });
     const spreadEl = root.createDiv({ cls: "atomic-reader-spread" });
+    const bookEl = spreadEl.createDiv({ cls: "atomic-reader-book" });
     if (this.failure) {
       const key = this.failure === "encrypted" ? "view.reader.encrypted" : this.failure === "empty" ? "view.reader.empty" : this.failure === "opening" ? "view.reader.opening" : "view.reader.unreadable";
-      spreadEl.createEl("p", {
+      bookEl.createEl("p", {
         cls: "atomic-reader-status",
         attr: { "data-testid": "atomic-reader-status", "data-state": this.failure },
         text: t(key, language)
@@ -14276,24 +14363,45 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     } else {
       const pair = spreadPages(this.page, this.total);
       if (!this.phone) {
-        spreadEl.createDiv({
+        bookEl.createDiv({
           cls: "atomic-reader-gutter is-margin",
           attr: { "data-reader-slot": "margin" }
         });
-        this.paintPage(spreadEl, pair.verso, "verso");
-        this.paintPage(spreadEl, pair.recto, "recto");
+        this.paintPage(bookEl, pair.verso, "verso");
+        this.paintPage(bookEl, pair.recto, "recto");
       } else {
         const shown = clampReaderPage(this.page, Math.max(this.total, 1));
-        this.paintPage(spreadEl, this.total > 0 ? shown : null, "recto");
+        this.paintPage(bookEl, this.total > 0 ? shown : null, "recto");
       }
     }
-    spreadEl.createDiv({
+    bookEl.createDiv({
       cls: "atomic-reader-gutter is-ask",
       attr: { "data-reader-slot": "ask", "data-testid": "atomic-reader-slot-ask" }
     });
     this.paintFoot(root, language, progress);
     this.attachMounts(root);
     slideBox(root, previous, box);
+    this.fitBook();
+  }
+  /** Paint the XL pages at the design's share of this window. */
+  fitBook() {
+    const root = this.contentEl.querySelector(".atomic-reader");
+    if (!root?.instanceOf(HTMLElement)) return;
+    if (root.classList.contains("is-theater")) return;
+    const spread = root.querySelector(".atomic-reader-spread");
+    if (!spread?.instanceOf(HTMLElement)) return;
+    const view = this.contentEl.win;
+    const fitted = readerBookScale({
+      surface: root.classList.contains("is-phone") ? "phone" : "desk",
+      viewportWidth: view.innerWidth,
+      viewportHeight: view.innerHeight,
+      fieldWidth: spread.clientWidth,
+      fieldHeight: spread.clientHeight
+    });
+    const zoom = fitted.scale.toFixed(3);
+    root.setCssProps({ "--atomic-book-zoom": zoom });
+    root.setAttribute("data-book-zoom", zoom);
+    root.setAttribute("data-book-clamped", fitted.clamped ? "true" : "false");
   }
   paintPage(parent, number, side) {
     const page = parent.createDiv({

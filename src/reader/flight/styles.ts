@@ -16,8 +16,9 @@ import {
  * The cover lifts on a spine hinge. Each page is a chain of ribs: the free
  * edge bends first, the spine follows, and the ribs land flat. A quire shows
  * the page block. The camera stays at the settled page, so the land does not
- * shrink or grow. The snapshot drops out onto that same reader, already on
- * that page. Reduced motion is a crossfade, not this flight.
+ * shrink or grow. Phone opens that one page from its spine. Desktop opens
+ * from the gutter between the two pages. The snapshot drops out onto that
+ * same reader, already on that page. Reduced motion is a crossfade, not this flight.
  * 1.5.0 tokens. No black stage. No purple.
  */
 export const OPEN_BOOK_FLIGHT_CSS = `
@@ -472,6 +473,25 @@ ${bendFrames()}
 @keyframes atomic-flight-fade {
   from { opacity: 1; }
   to { opacity: 0; }
+}
+.atomic-open-flight.is-phone .atomic-flight-volume,
+.atomic-open-flight.is-phone.is-playing:not(.is-flat) .atomic-flight-volume {
+  transform: none;
+  animation: none;
+}
+.atomic-open-flight.is-phone .atomic-flight-sheet.is-left,
+.atomic-open-flight.is-phone .atomic-flight-quire.is-left,
+.atomic-open-flight.is-phone .atomic-flight-gutter {
+  display: none;
+}
+.atomic-open-flight.is-phone .atomic-flight-sheet.is-right,
+.atomic-open-flight.is-phone .atomic-flight-flips,
+.atomic-open-flight.is-phone .atomic-flight-cover {
+  left: 0;
+  width: 100%;
+}
+.atomic-open-flight.is-phone .atomic-flight-cover {
+  transform-origin: left center;
 }
 @media (prefers-reduced-motion: reduce) {
   .atomic-open-flight.is-playing .atomic-flight-camera,

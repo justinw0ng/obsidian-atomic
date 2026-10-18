@@ -428,6 +428,11 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   box-sizing: border-box;
   background: transparent;
 }
+.atomic-theater-root.is-theater .atomic-reader-book {
+  zoom: 1;
+  width: 100%;
+  grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
+}
 .atomic-theater-root.is-theater.is-phone .atomic-reader-spread,
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-spread {
   display: flex;
@@ -437,6 +442,14 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   min-height: 0;
   padding: 48px 16px 20px;
   background: transparent;
+}
+.atomic-theater-root.is-theater.is-phone .atomic-reader-book,
+.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-book {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  zoom: 1;
 }
 ${suppressCss()}
 `.trim();

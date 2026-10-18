@@ -226,6 +226,25 @@ async function waitForCuePop(driver, index) {
   return last;
 }
 
+const DESK_BOOK_RATIO = (680 * 488) / (1020 * 720);
+const PHONE_BOOK_RATIO = (350 * 520) / (390 * 844);
+
+/** XL tokens stay 340×488. Painted size is that box times the viewport zoom. */
+function settledBook(sample, surface) {
+  if (!sample || sample.pageW !== "340px" || sample.pageH !== "488px") return false;
+  const zoom = Number(sample.zoom);
+  if (!(zoom > 0)) return false;
+  if (Math.abs(sample.pageWidth - 340 * zoom) > 3) return false;
+  if (Math.abs(sample.pageHeight - 488 * zoom) > 3) return false;
+  if (sample.clamped === "true") return true;
+  const pages = surface === "phone" ? 1 : 2;
+  const view = Number(sample.vw) * Number(sample.vh);
+  if (!(view > 0)) return false;
+  const ratio = (sample.pageWidth * pages * sample.pageHeight) / view;
+  const target = surface === "phone" ? PHONE_BOOK_RATIO : DESK_BOOK_RATIO;
+  return Math.abs(ratio - target) < 0.04;
+}
+
 function isCssTransparent(color) {
   const value = String(color).trim().toLowerCase();
   if (!value || value === "transparent") return true;
@@ -2400,6 +2419,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
               fontFamily: style?.fontFamily || "",
               pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
               pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+              pageW: root.style.getPropertyValue("--atomic-page-w").trim(),
+              pageH: root.style.getPropertyValue("--atomic-page-h").trim(),
+              zoom: root.getAttribute("data-book-zoom") || "",
+              clamped: root.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
               radius: boxStyle?.borderRadius || "",
               pad: boxStyle ? [boxStyle.paddingTop, boxStyle.paddingRight, boxStyle.paddingBottom, boxStyle.paddingLeft].join(" ") : "",
               margin: boxStyle ? [boxStyle.marginTop, boxStyle.marginRight, boxStyle.marginBottom, boxStyle.marginLeft].join(" ") : "",
@@ -2436,8 +2461,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(reader.fontSize, "12.5px");
       assert.equal(reader.lineHeight, "19px");
       assert.match(reader.fontFamily, /Literata/);
-      assert.equal(reader.pageWidth, 340);
-      assert.equal(reader.pageHeight, 488);
+      assert.equal(settledBook(reader, "desk"), true, JSON.stringify(reader));
       assert.equal(reader.radius, "3px");
       assert.equal(reader.pad, "22px 22px 28px 22px");
       assert.equal(reader.margin, "0px 0px 0px 0px");
@@ -2511,6 +2535,12 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
               canvas: Boolean(root?.querySelector('[data-testid="atomic-reader-canvas"]')),
               pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
               pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+              pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+              pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+              zoom: root?.getAttribute("data-book-zoom") || "",
+              clamped: root?.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
               shadow: boxStyle?.boxShadow || "",
               footHeight: foot ? Math.round(foot.getBoundingClientRect().height) : 0,
               footWidth: footRect ? Math.round(footRect.width) : 0,
@@ -2522,7 +2552,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
             };
           `);
           return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px" && phone.pages === 1
-            && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488 && phone.footHeight >= 28
+            && settledBook(phone, "phone") && phone.footHeight >= 28
             && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
             && /Last read/.test(phone.last) && /3 \/ 3/.test(phone.progress);
         }, 8000);
@@ -3344,6 +3374,12 @@ ${E2E_CUE_LOG_FENCE}
                 status: root?.querySelector('[data-testid="atomic-reader-status"]')?.getAttribute("data-state") || "",
                 pageWidth: rect ? Math.round(rect.width) : 0,
                 pageHeight: rect ? Math.round(rect.height) : 0,
+                pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+                pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+                zoom: root?.getAttribute("data-book-zoom") || "",
+                clamped: root?.getAttribute("data-book-clamped") || "",
+                vw: window.innerWidth,
+                vh: window.innerHeight,
                 enter: root?.querySelector('[data-testid="atomic-theater-enter"]')?.textContent || "",
                 readers: [...document.querySelectorAll('[data-testid="atomic-reader"]')].map((node) => ({
                   active: Boolean(node.closest(".workspace-leaf.mod-active")),
@@ -3355,8 +3391,7 @@ ${E2E_CUE_LOG_FENCE}
             return settled.theater === false
               && settled.total === "3"
               && settled.status === ""
-              && settled.pageWidth === 340
-              && settled.pageHeight === 488
+              && settledBook(settled, "desk")
               && settled.enter === "Theater";
           }, 8000);
         } catch (error) {
@@ -3486,10 +3521,16 @@ ${E2E_CUE_LOG_FENCE}
               theater: root?.classList.contains("is-theater") === true,
               pageWidth: rect ? Math.round(rect.width) : 0,
               pageHeight: rect ? Math.round(rect.height) : 0,
+              pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+              pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+              zoom: root?.getAttribute("data-book-zoom") || "",
+              clamped: root?.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
               enter: Boolean(root?.querySelector('[data-testid="atomic-theater-enter"]')),
             };
           `);
-          return back.theater === false && back.pageWidth === 340 && back.pageHeight === 488 && back.enter;
+          return back.theater === false && settledBook(back, "desk") && back.enter;
         }, 4000);
 
         try {
@@ -3594,6 +3635,10 @@ ${E2E_CUE_LOG_FENCE}
           return {
             pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
             pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+            zoom: root?.getAttribute("data-book-zoom") || "",
+            clamped: root?.getAttribute("data-book-clamped") || "",
+            vw: window.innerWidth,
+            vh: window.innerHeight,
             text: page?.textContent || "",
             bodyLines: root?.getAttribute("data-body-lines") || "",
             fontSize: style?.fontSize || "",
@@ -3688,7 +3733,7 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             desk = await readSize();
-            return desk.phone === false && desk.fontSize === "12.5px" && desk.bodyLines === "22" && desk.pageWidth === 340 && desk.pageHeight === 488 && desk.text.length > 0;
+            return desk.phone === false && desk.fontSize === "12.5px" && desk.bodyLines === "22" && settledBook(desk, "desk") && desk.text.length > 0;
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} desk=${JSON.stringify(desk)}`);
@@ -3707,7 +3752,7 @@ ${E2E_CUE_LOG_FENCE}
             const read = String(phone.last).match(/^Last read p\. (\d+)$/);
             const count = String(phone.progress).match(/^(\d+) \/ (\d+)$/);
             return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false
-              && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488
+              && settledBook(phone, "phone")
               && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
               && read && count && read[1] === count[1] && Number(count[2]) >= Number(count[1]);
           }, 8000);

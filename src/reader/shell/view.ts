@@ -17,6 +17,7 @@ import { readerMounts, type CoverRect, type ReaderLayoutRequest, type ReaderSess
 import { canvasPathForNote, ensureRelatedCanvas, seedBookCanvas } from "../ask/canvas";
 import { preferReaderTheater } from "../theater/slot";
 import { paginateReaderBlocks, type ReaderBlock, type ReaderLeaf } from "./paginate";
+import { readerBookScale } from "./scale";
 import { readerReflowBox } from "../size/reflow";
 import { inspectPdf, pdfViewerSrc } from "./pdf";
 
@@ -191,23 +192,31 @@ export class AtomicReaderView extends ItemView {
     this.observed = true;
     const observer = new ResizeObserver(() => {
       const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-      if (phone === this.phone) return;
-      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) {
-        this.phoneAfterFlight = phone;
+      const flying = Boolean(this.contentEl.querySelector("[data-testid='atomic-open-flight']"));
+      if (phone !== this.phone) {
+        if (flying) {
+          this.phoneAfterFlight = phone;
+          return;
+        }
+        this.phone = phone;
+        this.paint();
         return;
       }
-      this.phone = phone;
-      this.paint();
+      if (flying) return;
+      this.fitBook();
     });
     observer.observe(this.contentEl);
     this.register(() => observer.disconnect());
     const onFlightDone = (): void => {
       const phone = this.phoneAfterFlight;
       this.phoneAfterFlight = null;
-      if (phone == null || phone === this.phone) return;
-      if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
-      this.phone = phone;
-      this.paint();
+      if (phone != null && phone !== this.phone) {
+        if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
+        this.phone = phone;
+        this.paint();
+        return;
+      }
+      this.fitBook();
     };
     this.contentEl.addEventListener("atomic-flight-done", onFlightDone);
     this.register(() => this.contentEl.removeEventListener("atomic-flight-done", onFlightDone));
@@ -512,6 +521,7 @@ export class AtomicReaderView extends ItemView {
     });
 
     const spreadEl = root.createDiv({ cls: "atomic-reader-spread" });
+    const bookEl = spreadEl.createDiv({ cls: "atomic-reader-book" });
     if (this.failure) {
       const key =
         this.failure === "encrypted"
@@ -521,7 +531,7 @@ export class AtomicReaderView extends ItemView {
             : this.failure === "opening"
               ? "view.reader.opening"
               : "view.reader.unreadable";
-      spreadEl.createEl("p", {
+      bookEl.createEl("p", {
         cls: "atomic-reader-status",
         attr: { "data-testid": "atomic-reader-status", "data-state": this.failure },
         text: t(key, language),
@@ -529,18 +539,18 @@ export class AtomicReaderView extends ItemView {
     } else {
       const pair = spreadPages(this.page, this.total);
       if (!this.phone) {
-        spreadEl.createDiv({
+        bookEl.createDiv({
           cls: "atomic-reader-gutter is-margin",
           attr: { "data-reader-slot": "margin" },
         });
-        this.paintPage(spreadEl, pair.verso, "verso");
-        this.paintPage(spreadEl, pair.recto, "recto");
+        this.paintPage(bookEl, pair.verso, "verso");
+        this.paintPage(bookEl, pair.recto, "recto");
       } else {
         const shown = clampReaderPage(this.page, Math.max(this.total, 1));
-        this.paintPage(spreadEl, this.total > 0 ? shown : null, "recto");
+        this.paintPage(bookEl, this.total > 0 ? shown : null, "recto");
       }
     }
-    spreadEl.createDiv({
+    bookEl.createDiv({
       cls: "atomic-reader-gutter is-ask",
       attr: { "data-reader-slot": "ask", "data-testid": "atomic-reader-slot-ask" },
     });
@@ -548,6 +558,28 @@ export class AtomicReaderView extends ItemView {
     this.paintFoot(root, language, progress);
     this.attachMounts(root);
     slideBox(root, previous, box);
+    this.fitBook();
+  }
+
+  /** Paint the XL pages at the design's share of this window. */
+  private fitBook(): void {
+    const root = this.contentEl.querySelector(".atomic-reader");
+    if (!root?.instanceOf(HTMLElement)) return;
+    if (root.classList.contains("is-theater")) return;
+    const spread = root.querySelector(".atomic-reader-spread");
+    if (!spread?.instanceOf(HTMLElement)) return;
+    const view = this.contentEl.win;
+    const fitted = readerBookScale({
+      surface: root.classList.contains("is-phone") ? "phone" : "desk",
+      viewportWidth: view.innerWidth,
+      viewportHeight: view.innerHeight,
+      fieldWidth: spread.clientWidth,
+      fieldHeight: spread.clientHeight,
+    });
+    const zoom = fitted.scale.toFixed(3);
+    root.setCssProps({ "--atomic-book-zoom": zoom });
+    root.setAttribute("data-book-zoom", zoom);
+    root.setAttribute("data-book-clamped", fitted.clamped ? "true" : "false");
   }
 
   private paintPage(parent: HTMLElement, number: number | null, side: "verso" | "recto"): void {

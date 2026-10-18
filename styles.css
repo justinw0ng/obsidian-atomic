@@ -3078,6 +3078,7 @@
 .atomic-reader {
   --atomic-page-w: 340px;
   --atomic-page-h: 488px;
+  --atomic-book-zoom: 1;
   --atomic-reader-progress: 0%;
   --atomic-reader-serif: "Literata", "Source Serif 4", Georgia, serif;
   position: relative;
@@ -3136,14 +3137,27 @@
 
 .atomic-reader-spread {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 0;
+  padding: 4px 0 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
+}
+
+.atomic-reader-book {
   display: grid;
   grid-template-columns: 112px var(--atomic-page-w) var(--atomic-page-w) 112px;
   justify-content: center;
   align-items: start;
-  min-height: 0;
-  padding: 4px 0 12px;
-  overflow: auto;
-  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
+  flex: none;
+  zoom: var(--atomic-book-zoom, 1);
+}
+
+.atomic-reader.is-theater .atomic-reader-book {
+  zoom: 1;
 }
 
 .atomic-reader-gutter {
@@ -3266,10 +3280,9 @@
   gap: 4px;
 }
 
-.atomic-reader.is-phone .atomic-reader-spread {
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
+.atomic-reader.is-phone .atomic-reader-book {
+  position: relative;
+  grid-template-columns: var(--atomic-page-w);
 }
 
 .atomic-reader.is-phone .atomic-reader-gutter.is-margin {
@@ -3290,7 +3303,6 @@
 .atomic-reader.is-phone .atomic-reader-page {
   width: var(--atomic-page-w);
   height: var(--atomic-page-h);
-  max-width: 100%;
   margin-top: 12px;
   justify-self: center;
   overflow: hidden;

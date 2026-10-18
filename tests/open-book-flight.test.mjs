@@ -217,6 +217,9 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.match(css, /transform:\s*scale\(var\(--flight-from\)\)/);
   assert.match(css, /--flight-from:\s*1;/);
   assert.match(css, /0%, 100% \{ transform: scale\(var\(--flight-from\)\); \}/);
+  assert.match(css, /\.atomic-open-flight\.is-phone \.atomic-flight-sheet\.is-left[\s\S]*display:\s*none/);
+  assert.match(css, /\.atomic-open-flight\.is-phone \.atomic-flight-sheet\.is-right,\n\.atomic-open-flight\.is-phone \.atomic-flight-flips,\n\.atomic-open-flight\.is-phone \.atomic-flight-cover \{\n  left: 0;\n  width: 100%;\n\}/);
+  assert.match(css, /\.atomic-open-flight\.is-phone \.atomic-flight-volume,\n\.atomic-open-flight\.is-phone\.is-playing:not\(\.is-flat\) \.atomic-flight-volume \{\n  transform: none;\n  animation: none;\n\}/);
   assert.match(css, /atomic-flight-reveal/);
   assert.match(css, /0%, 99% \{ opacity: 1; \}/);
   assert.match(css, /100% \{ opacity: 0; \}/);
@@ -676,6 +679,7 @@ test("phone and coarse pointer pick their motions and still land on the spread",
   const phone = makeHost();
   const phoneFlight = mountOpenBookFlight(request(phone, { layout: "phone" }));
   assert.equal(phoneFlight.overlay.classList.contains("is-phone"), true);
+  assert.equal(phoneFlight.overlay.getAttribute("data-open"), "page");
   assert.equal(phoneFlight.overlay.getAttribute("data-motion"), "phone");
   assert.equal(
     phoneFlight.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-from"),
@@ -704,6 +708,7 @@ test("layout waits one frame when the shell pages have no rect yet", () => {
   tap.recto.setRect(470, 100, 270, 340);
   tap.flushFrames();
   assert.equal(handle.overlay.classList.contains("is-playing"), true);
+  assert.equal(handle.overlay.getAttribute("data-open"), "spread");
   assert.equal(
     handle.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-from"),
     "1.000",
