@@ -3137,7 +3137,7 @@
 .atomic-reader-spread {
   position: relative;
   display: grid;
-  grid-template-columns: 120px var(--atomic-page-w) var(--atomic-page-w) 120px;
+  grid-template-columns: 112px var(--atomic-page-w) var(--atomic-page-w) 112px;
   justify-content: center;
   align-items: start;
   min-height: 0;
@@ -3148,8 +3148,8 @@
 
 .atomic-reader-gutter {
   position: relative;
-  width: 120px;
-  min-width: 120px;
+  width: 112px;
+  min-width: 112px;
   height: var(--atomic-page-h);
   margin: 0;
   align-self: start;

@@ -207,7 +207,9 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /line-height:\s*23px/);
   assert.match(block, /340px/);
   assert.match(block, /488px/);
-  assert.match(block, /112px/);
+  assert.match(block, /grid-template-columns:\s*112px var\(--atomic-page-w\) var\(--atomic-page-w\) 112px/);
+  assert.match(block, /\.atomic-reader-gutter \{[^}]*width:\s*112px;\s*min-width:\s*112px;/s);
+  assert.doesNotMatch(block, /grid-template-columns:\s*120px var\(--atomic-page-w\)/);
   assert.match(block, /padding:\s*26px 24px/);
   assert.match(block, /gap:\s*4px/);
   assert.match(block, /width:\s*340px/);
