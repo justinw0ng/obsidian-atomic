@@ -32,7 +32,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
   --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
-  --flight-from: 1.8;
+  --flight-from: 1.55;
   --flight-ox: 50%;
   --flight-oy: 46%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -89,8 +89,8 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   width: var(--flight-cover-w, 64%);
   height: var(--flight-cover-h, 70%);
   z-index: 3;
-  perspective: 2000px;
-  perspective-origin: 50% 42%;
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
   transform-style: preserve-3d;
   pointer-events: none;
 }
@@ -314,6 +314,9 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   border-radius: var(--atomic-r-object);
 }
 .atomic-flight-cover-face {
+  transform: translateZ(1px);
+}
+.atomic-flight-cover-face {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -355,7 +358,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-cover-in {
   background: #f3eadc;
   box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.35);
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
 }
 ${flipRules()}
 .atomic-open-flight.is-flat .atomic-flight-flip,
@@ -403,11 +406,11 @@ ${flipRules()}
   100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover {
-  0% { transform: translateZ(8px) rotateY(0deg); }
-  30% { transform: translateZ(42px) rotateY(-24deg); }
-  58% { transform: translateZ(22px) rotateY(-92deg); }
-  82% { transform: translateZ(10px) rotateY(-168deg); }
-  100% { transform: translateZ(2px) rotateY(-178deg); }
+  0% { transform: translateZ(16px) rotateY(0deg); }
+  30% { transform: translateZ(16px) rotateY(-24deg); }
+  58% { transform: translateZ(16px) rotateY(-92deg); }
+  82% { transform: translateZ(12px) rotateY(-168deg); }
+  100% { transform: translateZ(4px) rotateY(-178deg); }
 }
 @keyframes atomic-flight-cover-ink {
   0%, 46% { opacity: 1; }
@@ -430,11 +433,11 @@ ${flipRules()}
   92%, 100% { opacity: 0; }
 }
 @keyframes atomic-flight-spine {
-  0% { transform: translateZ(0px) rotateY(0deg); }
-  20% { transform: translateZ(16px) rotateY(-2deg); }
-  45% { transform: translateZ(40px) rotateY(-36deg); }
-  75% { transform: translateZ(14px) rotateY(-130deg); }
-  100% { transform: translateZ(0px) rotateY(-178deg); }
+  0% { transform: rotateY(0deg); }
+  20% { transform: rotateY(-6deg); }
+  45% { transform: rotateY(-36deg); }
+  75% { transform: rotateY(-130deg); }
+  100% { transform: rotateY(-178deg); }
 }
 @keyframes atomic-flight-leaf-fade {
   0%, 92% { opacity: 1; }

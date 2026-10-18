@@ -11181,6 +11181,8 @@ function registerAskOnShell(plugin) {
 var FLIGHT_MS = 3200;
 var FLIGHT_SKIP_MS = 3280;
 var FLIGHT_SETTLE_MS = 2520;
+var FLIGHT_ZOOM_PAD = 48;
+var FLIGHT_ZOOM_MAX = 2;
 var REDUCED_FADE_MS = 280;
 var FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 var COVER_EASE = "cubic-bezier(0.42, 0.05, 0.18, 1)";
@@ -11245,7 +11247,7 @@ function flightZoom(input) {
   const fallback = {
     originX: "50%",
     originY: "46%",
-    fromScale: "1.800",
+    fromScale: "1.550",
     coverX: "18%",
     coverY: "12%",
     coverW: "64%",
@@ -11254,22 +11256,36 @@ function flightZoom(input) {
   if (input.host.width <= 0 || input.host.height <= 0 || !input.spread) return fallback;
   const localX = input.spread.x - input.host.x;
   const localY = input.spread.y - input.host.y;
-  const cx = (localX + input.spread.width / 2) / input.host.width * 100;
-  const cy = (localY + input.spread.height / 2) / input.host.height * 100;
-  const fill = Math.min(
-    input.host.width / input.spread.width,
-    input.host.height / input.spread.height
-  );
-  const from = Math.max(1.15, Math.min(2.6, fill));
+  const width = input.spread.width;
+  const height = input.spread.height;
+  const marginLeft = localX - FLIGHT_ZOOM_PAD;
+  const marginRight = input.host.width - FLIGHT_ZOOM_PAD - (localX + width);
+  const marginTop = localY - FLIGHT_ZOOM_PAD;
+  const marginBottom = input.host.height - FLIGHT_ZOOM_PAD - (localY + height);
+  const roomX = Math.max(0, marginLeft) + Math.max(0, marginRight);
+  const roomY = Math.max(0, marginTop) + Math.max(0, marginBottom);
+  const fitX = width > 0 ? 1 + roomX / width : 1;
+  const fitY = height > 0 ? 1 + roomY / height : 1;
+  const from = Math.max(1, Math.min(FLIGHT_ZOOM_MAX, fitX, fitY));
+  const originX = zoomAnchor(localX, width, marginLeft, marginRight, from);
+  const originY = zoomAnchor(localY, height, marginTop, marginBottom, from);
   return {
-    originX: `${clampPercent(cx)}%`,
-    originY: `${clampPercent(cy)}%`,
+    originX: `${clampPercent(originX / input.host.width * 100)}%`,
+    originY: `${clampPercent(originY / input.host.height * 100)}%`,
     fromScale: from.toFixed(3),
     coverX: px(localX),
     coverY: px(localY),
-    coverW: px(input.spread.width),
-    coverH: px(input.spread.height)
+    coverW: px(width),
+    coverH: px(height)
   };
+}
+function zoomAnchor(start, size, marginStart, marginEnd, scale) {
+  if (scale <= 1 || size <= 0) return start + size / 2;
+  const extra = (scale - 1) * size;
+  const roomStart = Math.max(0, marginStart);
+  const roomEnd = Math.max(0, marginEnd);
+  const growStart = Math.min(roomStart, Math.max(extra - roomEnd, extra / 2));
+  return start + growStart / (scale - 1);
 }
 function clampPercent(value) {
   const next = Math.max(0, Math.min(100, value));
@@ -11346,7 +11362,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
   --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
-  --flight-from: 1.8;
+  --flight-from: 1.55;
   --flight-ox: 50%;
   --flight-oy: 46%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -11403,8 +11419,8 @@ var OPEN_BOOK_FLIGHT_CSS = `
   width: var(--flight-cover-w, 64%);
   height: var(--flight-cover-h, 70%);
   z-index: 3;
-  perspective: 2000px;
-  perspective-origin: 50% 42%;
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
   transform-style: preserve-3d;
   pointer-events: none;
 }
@@ -11628,6 +11644,9 @@ var OPEN_BOOK_FLIGHT_CSS = `
   border-radius: var(--atomic-r-object);
 }
 .atomic-flight-cover-face {
+  transform: translateZ(1px);
+}
+.atomic-flight-cover-face {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11669,7 +11688,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-cover-in {
   background: #f3eadc;
   box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.35);
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
 }
 ${flipRules()}
 .atomic-open-flight.is-flat .atomic-flight-flip,
@@ -11717,11 +11736,11 @@ ${flipRules()}
   100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover {
-  0% { transform: translateZ(8px) rotateY(0deg); }
-  30% { transform: translateZ(42px) rotateY(-24deg); }
-  58% { transform: translateZ(22px) rotateY(-92deg); }
-  82% { transform: translateZ(10px) rotateY(-168deg); }
-  100% { transform: translateZ(2px) rotateY(-178deg); }
+  0% { transform: translateZ(16px) rotateY(0deg); }
+  30% { transform: translateZ(16px) rotateY(-24deg); }
+  58% { transform: translateZ(16px) rotateY(-92deg); }
+  82% { transform: translateZ(12px) rotateY(-168deg); }
+  100% { transform: translateZ(4px) rotateY(-178deg); }
 }
 @keyframes atomic-flight-cover-ink {
   0%, 46% { opacity: 1; }
@@ -11744,11 +11763,11 @@ ${flipRules()}
   92%, 100% { opacity: 0; }
 }
 @keyframes atomic-flight-spine {
-  0% { transform: translateZ(0px) rotateY(0deg); }
-  20% { transform: translateZ(16px) rotateY(-2deg); }
-  45% { transform: translateZ(40px) rotateY(-36deg); }
-  75% { transform: translateZ(14px) rotateY(-130deg); }
-  100% { transform: translateZ(0px) rotateY(-178deg); }
+  0% { transform: rotateY(0deg); }
+  20% { transform: rotateY(-6deg); }
+  45% { transform: rotateY(-36deg); }
+  75% { transform: rotateY(-130deg); }
+  100% { transform: rotateY(-178deg); }
 }
 @keyframes atomic-flight-leaf-fade {
   0%, 92% { opacity: 1; }

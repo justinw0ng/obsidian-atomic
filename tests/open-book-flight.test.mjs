@@ -104,9 +104,9 @@ test("flight zoom starts on the spread and ends at the settled reader", () => {
     host: { x: 0, y: 0, width: HOST.width, height: HOST.height },
     spread: SPREAD,
   });
-  assert.equal(zoom.originX, "46.08%");
-  assert.equal(zoom.originY, "37.50%");
-  assert.equal(zoom.fromScale, "1.889");
+  assert.equal(zoom.originX, "40.56%");
+  assert.equal(zoom.originY, "24.05%");
+  assert.equal(zoom.fromScale, "1.711");
   assert.equal(zoom.coverX, "200px");
   assert.equal(zoom.coverY, "100px");
   assert.equal(zoom.coverW, "540px");
@@ -115,7 +115,7 @@ test("flight zoom starts on the spread and ends at the settled reader", () => {
     host: { x: 0, y: 0, width: 0, height: 0 },
     spread: null,
   });
-  assert.equal(waiting.fromScale, "1.800");
+  assert.equal(waiting.fromScale, "1.550");
   assert.equal(waiting.originX, "50%");
 });
 
@@ -223,8 +223,9 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   const spine = css.match(/@keyframes atomic-flight-spine \{[\s\S]*?\n\}/);
   assert.ok(spine);
   assert.doesNotMatch(spine[0], /opacity/);
-  assert.match(spine[0], /translateZ\(40px\) rotateY\(-36deg\)/);
+  assert.match(spine[0], /45% \{ transform: rotateY\(-36deg\); \}/);
   assert.match(spine[0], /rotateY\(-178deg\)/);
+  assert.doesNotMatch(spine[0], /translateZ/);
   assert.match(css, /atomic-flight-leaf-fade/);
   assert.match(css, /atomic-flight-paper-edge/);
   assert.match(css, /@keyframes atomic-flight-bend-7 \{[\s\S]*?45% \{ transform: rotateY\(-16deg\); \}/);
@@ -234,7 +235,7 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.doesNotMatch(css, /#000|background:\s*black/);
   assert.match(css, /rotateY\(-168deg\)/);
   assert.match(css, /rotateY\(-178deg\)/);
-  assert.match(css, /translateZ\(42px\) rotateY\(-24deg\)/);
+  assert.match(css, /30% \{ transform: translateZ\(16px\) rotateY\(-24deg\); \}/);
   assert.match(css, /rotateY\(-92deg\)/);
   assert.match(css, /atomic-flight-spine/);
   assert.match(css, /atomic-flight-bend-7/);
@@ -339,8 +340,8 @@ test("registered flight lands on the live reader page", async () => {
     assert.equal(overlay.getAttribute("data-zoom"), "out");
     assert.equal(tap.reading.contains(overlay), false);
     const camera = overlay.querySelector("[data-testid='atomic-flight-camera']");
-    assert.equal(camera.style.getPropertyValue("--flight-from"), "1.889");
-    assert.equal(camera.style.getPropertyValue("--flight-ox"), "46.08%");
+    assert.equal(camera.style.getPropertyValue("--flight-from"), "1.711");
+    assert.equal(camera.style.getPropertyValue("--flight-ox"), "40.56%");
     assert.equal(camera.style.getPropertyValue("--flight-recto-x"), "470px");
     assert.equal(camera.style.getPropertyValue("--flight-recto-y"), "100px");
     assert.equal(camera.style.getPropertyValue("--flight-recto-w"), "270px");
@@ -523,9 +524,9 @@ test("flight lands on the page the shell painted", () => {
   assert.deepEqual(leafLines(overlay, "verso"), paragraphs(tap.verso));
   assert.deepEqual(leafLines(overlay, "recto"), paragraphs(tap.recto));
   const camera = overlay.querySelector("[data-testid='atomic-flight-camera']");
-  assert.equal(camera.style.getPropertyValue("--flight-from"), "1.889");
-  assert.equal(camera.style.getPropertyValue("--flight-ox"), "46.08%");
-  assert.equal(camera.style.getPropertyValue("--flight-oy"), "37.50%");
+  assert.equal(camera.style.getPropertyValue("--flight-from"), "1.711");
+  assert.equal(camera.style.getPropertyValue("--flight-ox"), "40.56%");
+  assert.equal(camera.style.getPropertyValue("--flight-oy"), "24.05%");
   const snapshot = overlay.querySelector("[data-testid='atomic-flight-snapshot']");
   assert.equal(readerFrameSignature(snapshot), readerFrameSignature(tap.destination));
   assert.equal(overlay.querySelector(".atomic-flight-title").textContent, "Pride and Prejudice");
@@ -677,7 +678,7 @@ test("phone and coarse pointer pick their motions and still land on the spread",
   assert.equal(phoneFlight.overlay.getAttribute("data-motion"), "phone");
   assert.equal(
     phoneFlight.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-from"),
-    "1.889",
+    "1.711",
   );
   const phoneSnap = phoneFlight.overlay.querySelector("[data-testid='atomic-flight-snapshot']");
   assert.equal(readerFrameSignature(phoneSnap), readerFrameSignature(phone.destination));
@@ -704,7 +705,7 @@ test("layout waits one frame when the shell pages have no rect yet", () => {
   assert.equal(handle.overlay.classList.contains("is-playing"), true);
   assert.equal(
     handle.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-from"),
-    "1.889",
+    "1.711",
   );
 });
 
