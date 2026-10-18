@@ -35,8 +35,8 @@ export const PHONE_FALLBACK_SCALE = 2.35;
  */
 export const FLIGHT_MS = 3200;
 export const FLIGHT_SKIP_MS = 3280;
-/** The spread is flat. The book fades and the settled reader shows through. */
-export const FLIGHT_SETTLE_MS = 2480;
+/** The spread is flat. The book fades into the reader. */
+export const FLIGHT_SETTLE_MS = 2520;
 export const REDUCED_FADE_MS = 280;
 export const FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 /** Slow hinge. The free edge lifts before the cover swings. */
@@ -44,21 +44,21 @@ export const COVER_EASE = "cubic-bezier(0.42, 0.05, 0.18, 1)";
 /** Page bend. The free edge leads; the spine follows. */
 export const CURL_EASE = "cubic-bezier(0.46, 0.02, 0.16, 1)";
 
-export const COVER_OPEN_MS = { duration: 1000, delay: 80 } as const;
+export const COVER_OPEN_MS = { duration: 980, delay: 40 } as const;
 
-/** Four leaves. The cover lands, then one page curls at a time. */
+/** Four leaves in one fan. The next page leaves before the last one lands. */
 export const FLIP_LEAVES = [
-  { duration: 420, delay: 980 },
-  { duration: 400, delay: 1360 },
-  { duration: 380, delay: 1720 },
-  { duration: 360, delay: 2060 },
+  { duration: 720, delay: 860 },
+  { duration: 700, delay: 1040 },
+  { duration: 680, delay: 1220 },
+  { duration: 660, delay: 1400 },
 ] as const;
 
 /** Strips in one turning page. The free edge starts first. */
 export const PAGE_RIBS = 8;
 export const RIB_STAGGER_MS = 42;
 /** Visible sheet edges on each side of the block. */
-export const QUIRE_EDGES = 6;
+export const QUIRE_EDGES = 8;
 
 /** A viewport this narrow uses the phone book. The shell can still pass a layout. */
 export const PHONE_LAYOUT_MAX_PX = 480;

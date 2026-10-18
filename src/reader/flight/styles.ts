@@ -89,7 +89,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   width: var(--flight-cover-w, 64%);
   height: var(--flight-cover-h, 70%);
   z-index: 3;
-  perspective: 1600px;
+  perspective: 2000px;
   perspective-origin: 50% 42%;
   transform-style: preserve-3d;
   pointer-events: none;
@@ -98,7 +98,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   position: absolute;
   inset: 0;
   transform-origin: 50% 50%;
-  transform: translateX(-25%);
+  transform: translateX(-14%);
   transform-style: preserve-3d;
 }
 .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-volume {
@@ -203,6 +203,14 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   background: var(--atomic-flight-paper);
   transform: translateZ(1px);
 }
+.atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-face {
+  background:
+    repeating-linear-gradient(180deg, transparent, transparent 22px, rgba(90, 70, 48, 0.14) 22px, rgba(90, 70, 48, 0.14) 23px),
+    var(--atomic-flight-paper);
+}
+.atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-clip {
+  opacity: 0;
+}
 .atomic-flight-paper-edge {
   position: absolute;
   top: 0;
@@ -237,17 +245,21 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-quire {
   position: absolute;
-  top: 1.2%;
-  width: 14px;
-  height: 97.6%;
+  top: 1.4%;
+  width: 16px;
+  height: 97.2%;
   pointer-events: none;
+  background: linear-gradient(90deg, #efe3d2, #dccab4 72%, #cbb89e);
+  box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.28);
 }
 .atomic-flight-quire.is-right {
-  right: 0;
+  right: -14px;
+  border-radius: 0 3px 3px 0;
   transform-origin: right center;
 }
 .atomic-flight-quire.is-left {
-  left: calc(50% - 14px);
+  left: calc(50% - 16px);
+  border-radius: 3px 0 0 3px;
   opacity: 0;
   transform: scaleX(0.15);
   transform-origin: right center;
@@ -271,9 +283,9 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-cover {
   position: absolute;
   left: 50%;
-  top: 2px;
-  width: calc(50% - 8px);
-  height: calc(100% - 4px);
+  top: 0;
+  width: 50%;
+  height: 100%;
   transform-origin: left center;
   transform-style: preserve-3d;
 }
@@ -281,9 +293,8 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms linear forwards;
 }
 .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-face,
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-in,
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-edge {
-  animation: atomic-flight-cover-ink ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms linear forwards;
+.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-in {
+  animation: atomic-flight-cover-ink ${FLIGHT_MS}ms linear forwards;
 }
 .atomic-open-flight.is-flat.is-playing .atomic-flight-cover {
   animation: atomic-flight-cover-fade ${FLIGHT_MS}ms var(--atomic-ease) forwards;
@@ -392,22 +403,22 @@ ${flipRules()}
   100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover {
-  0% { transform: translateZ(12px) rotateY(0deg); }
-  35% { transform: translateZ(42px) rotateY(-24deg); }
-  58% { transform: translateZ(28px) rotateY(-92deg); }
-  84% { transform: translateZ(10px) rotateY(-168deg); }
-  100% { transform: translateZ(4px) rotateY(-178deg); }
+  0% { transform: translateZ(8px) rotateY(0deg); }
+  30% { transform: translateZ(42px) rotateY(-24deg); }
+  58% { transform: translateZ(22px) rotateY(-92deg); }
+  82% { transform: translateZ(10px) rotateY(-168deg); }
+  100% { transform: translateZ(2px) rotateY(-178deg); }
 }
 @keyframes atomic-flight-cover-ink {
-  0%, 74% { opacity: 1; }
-  100% { opacity: 0; }
+  0%, 46% { opacity: 1; }
+  62%, 100% { opacity: 0; }
 }
 @keyframes atomic-flight-cover-fade {
   0%, 36% { opacity: 1; }
   100% { opacity: 0; }
 }
 @keyframes atomic-flight-volume {
-  0% { transform: translateX(-25%); }
+  0% { transform: translateX(-14%); }
   36%, 100% { transform: translateX(0%); }
 }
 .atomic-open-flight.is-settling .atomic-flight-volume {
@@ -437,7 +448,8 @@ ${bendFrames()}
 }
 @keyframes atomic-flight-quire-right {
   0% { transform: scaleX(1); opacity: 1; }
-  72%, 100% { transform: scaleX(0.45); opacity: 1; }
+  48% { transform: scaleX(0.8); opacity: 1; }
+  74%, 100% { transform: scaleX(0.2); opacity: 0; }
 }
 @keyframes atomic-flight-quire-left {
   0%, 22% { transform: scaleX(0.15); opacity: 0; }
@@ -480,13 +492,13 @@ ${bendFrames()}
  */
 function bendFrames(): string {
   const joints = [
-    [6, 18, 14],
-    [8, 20, 10],
-    [12, 22, 7],
-    [16, 22, 4],
-    [20, 18, 2],
-    [24, 14, 1],
-    [30, 10, 0],
+    [6, 12, 2],
+    [8, 12, 3],
+    [10, 13, 3],
+    [11, 13, 4],
+    [12, 14, 4],
+    [13, 14, 5],
+    [16, 16, 5],
   ].slice(0, PAGE_RIBS - 1);
   return joints.map((joint, index) => {
     const rib = index + 1;

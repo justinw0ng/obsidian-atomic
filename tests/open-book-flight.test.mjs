@@ -227,7 +227,8 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.match(spine[0], /rotateY\(-178deg\)/);
   assert.match(css, /atomic-flight-leaf-fade/);
   assert.match(css, /atomic-flight-paper-edge/);
-  assert.match(css, /rotateY\(-30deg\)/);
+  assert.match(css, /@keyframes atomic-flight-bend-7 \{[\s\S]*?45% \{ transform: rotateY\(-16deg\); \}/);
+  assert.doesNotMatch(css, /rotateX\(/);
   assert.doesNotMatch(css, /width:\s*168px/);
   assert.doesNotMatch(css, /height:\s*248px/);
   assert.doesNotMatch(css, /#000|background:\s*black/);

@@ -486,7 +486,7 @@ function buildQuire(doc: Document, side: "left" | "right"): HTMLElement {
   for (let edge = 0; edge < QUIRE_EDGES; edge += 1) {
     const sheet = doc.createElement("div");
     sheet.className = "atomic-flight-edge";
-    sheet.style.setProperty("--edge-x", `${edge * 2}px`);
+    sheet.style.setProperty("--edge-x", `${edge * 1.6}px`);
     sheet.style.setProperty("--edge-inset", `${edge}px`);
     quire.appendChild(sheet);
   }
