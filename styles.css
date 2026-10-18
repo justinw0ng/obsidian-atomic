@@ -3258,7 +3258,7 @@
 }
 
 .atomic-reader.is-phone {
-  grid-template-rows: 40px minmax(0, 1fr) auto;
+  grid-template-rows: 40px minmax(0, 1fr) 36px;
 }
 
 .atomic-reader.is-phone .atomic-reader-bar {
@@ -3267,8 +3267,9 @@
 }
 
 .atomic-reader.is-phone .atomic-reader-spread {
-  grid-template-columns: 1fr;
-  background: var(--background-primary);
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  background: color-mix(in srgb, var(--text-normal) 3.5%, var(--background-primary));
 }
 
 .atomic-reader.is-phone .atomic-reader-gutter.is-margin {
@@ -3287,12 +3288,14 @@
 }
 
 .atomic-reader.is-phone .atomic-reader-page {
-  width: auto;
-  height: auto;
-  margin: 0;
-  padding: 26px 24px;
-  overflow: auto;
-  box-shadow: none;
+  width: var(--atomic-page-w);
+  height: var(--atomic-page-h);
+  max-width: 100%;
+  margin-top: 12px;
+  justify-self: center;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--atomic-rule);
+  background: var(--atomic-paper);
 }
 
 .atomic-reader.is-phone .atomic-reader-page p + p {
@@ -3643,12 +3646,6 @@
 
 .atomic-reader.is-instant .atomic-reader-page {
   transition: none;
-}
-
-.atomic-reader.is-phone .atomic-reader-page {
-  width: min(var(--atomic-page-w), 100%);
-  height: var(--atomic-page-h);
-  max-width: 100%;
 }
 
 .atomic-reader.is-phone [data-reader-slot="size"] {

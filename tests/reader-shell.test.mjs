@@ -217,6 +217,14 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /--atomic-r-control/);
   assert.match(block, /border-radius:\s*16px/);
   assert.doesNotMatch(block, /#7c3aed|#8b5cf6|purple/i);
+  const phonePages = [...block.matchAll(/\.atomic-reader\.is-phone \.atomic-reader-page \{[^}]*\}/g)].map(
+    (match) => match[0],
+  );
+  assert.equal(phonePages.length, 1);
+  assert.match(phonePages[0], /width:\s*var\(--atomic-page-w\)/);
+  assert.match(phonePages[0], /height:\s*var\(--atomic-page-h\)/);
+  assert.match(phonePages[0], /box-shadow:\s*0 0 0 1px var\(--atomic-rule\)/);
+  assert.doesNotMatch(phonePages[0], /width:\s*auto|height:\s*auto|box-shadow:\s*none/);
   assert.doesNotMatch(block, /column-gap|clip-path|!important/);
 });
 

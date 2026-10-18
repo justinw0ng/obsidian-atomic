@@ -2423,6 +2423,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
             const root = document.querySelector('[data-testid="atomic-reader"]');
             const page = root?.querySelector('[data-testid="atomic-reader-page"] p');
             const style = page ? getComputedStyle(page) : null;
+            const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+            const boxStyle = box ? getComputedStyle(box) : null;
+            const foot = root?.querySelector(".atomic-reader-foot");
             return {
               phone: root?.classList.contains("is-phone") === true,
               width: root ? Math.round(root.getBoundingClientRect().width) : 0,
@@ -2432,9 +2435,15 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
               ask: Boolean(root?.querySelector('[data-testid="atomic-reader-slot-ask"]')),
               pages: root?.querySelectorAll('[data-testid="atomic-reader-page"]').length || 0,
               canvas: Boolean(root?.querySelector('[data-testid="atomic-reader-canvas"]')),
+              pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
+              pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+              shadow: boxStyle?.boxShadow || "",
+              footHeight: foot ? Math.round(foot.getBoundingClientRect().height) : 0,
+              text: page?.textContent || "",
             };
           `);
-          return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px" && phone.pages === 1;
+          return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px" && phone.pages === 1
+            && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488 && phone.footHeight >= 28;
         }, 8000);
       } catch (error) {
         throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
@@ -2444,6 +2453,8 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(phone.ask, true);
       assert.equal(phone.pages, 1);
       assert.equal(phone.canvas, true);
+      assert.match(phone.shadow, /1px/);
+      assert.match(phone.text, /\S/);
       await shot(driver, "reader-shell-phone");
       await restoreDesktopPointer(driver, desktopViewport);
 
@@ -3494,7 +3505,8 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             phone = await readSize();
-            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false;
+            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false
+              && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488;
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
