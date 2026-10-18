@@ -527,8 +527,6 @@ var en = {
   "view.reader.note": "Note",
   "view.reader.canvas": "Canvas",
   "view.reader.lastRead": "Last read p. {page}",
-  "view.reader.pageMark": "p. {page}",
-  "view.reader.totalMark": "{total}",
   "view.reader.progress": "{page} / {total}",
   "view.reader.prev": "Previous page",
   "view.reader.next": "Next page",
@@ -970,8 +968,6 @@ var zhHantEn = {
   "view.reader.note": "\u7B46\u8A18",
   "view.reader.canvas": "Canvas",
   "view.reader.lastRead": "\u4E0A\u6B21\u8B80\u5230 p. {page}",
-  "view.reader.pageMark": "p. {page}",
-  "view.reader.totalMark": "{total}",
   "view.reader.progress": "{page}/{total}",
   "view.reader.prev": "\u4E0A\u4E00\u9801",
   "view.reader.next": "\u4E0B\u4E00\u9801",
@@ -13870,7 +13866,7 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     foot.createSpan({
       cls: "atomic-reader-last",
       attr: { "data-testid": "atomic-reader-last" },
-      text: this.phone ? t("view.reader.pageMark", language, { page: progress.page || this.page }) : t("view.reader.lastRead", language, { page: progress.page || this.page })
+      text: t("view.reader.lastRead", language, { page: progress.page || this.page })
     });
     const meter = foot.createSpan({
       cls: "atomic-reader-progress",
@@ -13880,7 +13876,7 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     foot.createSpan({
       cls: "atomic-reader-count",
       attr: { "data-testid": "atomic-reader-progress" },
-      text: this.phone ? t("view.reader.totalMark", language, { total: progress.total }) : t("view.reader.progress", language, {
+      text: t("view.reader.progress", language, {
         page: progress.page,
         total: progress.total
       })

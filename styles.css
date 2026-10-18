@@ -3313,6 +3313,12 @@
   text-align: center;
 }
 
+.atomic-reader.is-phone .atomic-reader-foot {
+  gap: 10px;
+  padding: 0 16px;
+  background: var(--background-primary);
+}
+
 .atomic-chooser-scrim {
   position: fixed;
   top: 0;

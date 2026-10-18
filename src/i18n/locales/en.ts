@@ -357,8 +357,6 @@ export const en = {
   "view.reader.note": "Note",
   "view.reader.canvas": "Canvas",
   "view.reader.lastRead": "Last read p. {page}",
-  "view.reader.pageMark": "p. {page}",
-  "view.reader.totalMark": "{total}",
   "view.reader.progress": "{page} / {total}",
   "view.reader.prev": "Previous page",
   "view.reader.next": "Next page",

@@ -379,8 +379,6 @@ export const zhHantEn = {
   "view.reader.note": "筆記",
   "view.reader.canvas": "Canvas",
   "view.reader.lastRead": "上次讀到 p. {page}",
-  "view.reader.pageMark": "p. {page}",
-  "view.reader.totalMark": "{total}",
   "view.reader.progress": "{page}/{total}",
   "view.reader.prev": "上一頁",
   "view.reader.next": "下一頁",

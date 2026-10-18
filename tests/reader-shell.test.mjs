@@ -225,7 +225,20 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(phonePages[0], /height:\s*var\(--atomic-page-h\)/);
   assert.match(phonePages[0], /box-shadow:\s*0 0 0 1px var\(--atomic-rule\)/);
   assert.doesNotMatch(phonePages[0], /width:\s*auto|height:\s*auto|box-shadow:\s*none/);
+  const phoneFeet = [...block.matchAll(/\.atomic-reader\.is-phone \.atomic-reader-foot \{[^}]*\}/g)].map(
+    (match) => match[0],
+  );
+  assert.equal(phoneFeet.length, 1);
+  assert.match(phoneFeet[0], /background:\s*var\(--background-primary\)/);
   assert.doesNotMatch(block, /column-gap|clip-path|!important/);
+});
+
+test("phone footer uses the same full bar as the settled reader", () => {
+  const view = readFileSync(join(root, "src/reader/shell/view.ts"), "utf8");
+  const foot = view.slice(view.indexOf("private paintFoot"));
+  assert.match(foot, /view\.reader\.lastRead/);
+  assert.match(foot, /view\.reader\.progress/);
+  assert.doesNotMatch(foot, /pageMark|totalMark/);
 });
 
 test("flight registration does not own the shell folders", () => {

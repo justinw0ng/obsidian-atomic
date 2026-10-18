@@ -575,9 +575,7 @@ export class AtomicReaderView extends ItemView {
     foot.createSpan({
       cls: "atomic-reader-last",
       attr: { "data-testid": "atomic-reader-last" },
-      text: this.phone
-        ? t("view.reader.pageMark", language, { page: progress.page || this.page })
-        : t("view.reader.lastRead", language, { page: progress.page || this.page }),
+      text: t("view.reader.lastRead", language, { page: progress.page || this.page }),
     });
     const meter = foot.createSpan({
       cls: "atomic-reader-progress",
@@ -587,12 +585,10 @@ export class AtomicReaderView extends ItemView {
     foot.createSpan({
       cls: "atomic-reader-count",
       attr: { "data-testid": "atomic-reader-progress" },
-      text: this.phone
-        ? t("view.reader.totalMark", language, { total: progress.total })
-        : t("view.reader.progress", language, {
-            page: progress.page,
-            total: progress.total,
-          }),
+      text: t("view.reader.progress", language, {
+        page: progress.page,
+        total: progress.total,
+      }),
     });
 
     const next = foot.createEl("button", {

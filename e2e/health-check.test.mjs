@@ -2426,6 +2426,9 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
             const box = root?.querySelector('[data-testid="atomic-reader-page"]');
             const boxStyle = box ? getComputedStyle(box) : null;
             const foot = root?.querySelector(".atomic-reader-foot");
+            const meter = foot?.querySelector('[data-testid="atomic-reader-meter"]');
+            const rootRect = root?.getBoundingClientRect();
+            const footRect = foot?.getBoundingClientRect();
             return {
               phone: root?.classList.contains("is-phone") === true,
               width: root ? Math.round(root.getBoundingClientRect().width) : 0,
@@ -2439,11 +2442,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
               pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
               shadow: boxStyle?.boxShadow || "",
               footHeight: foot ? Math.round(foot.getBoundingClientRect().height) : 0,
+              footWidth: footRect ? Math.round(footRect.width) : 0,
+              rootWidth: rootRect ? Math.round(rootRect.width) : 0,
+              meterWidth: meter ? Math.round(meter.getBoundingClientRect().width) : 0,
+              last: root?.querySelector('[data-testid="atomic-reader-last"]')?.textContent || "",
+              progress: root?.querySelector('[data-testid="atomic-reader-progress"]')?.textContent || "",
               text: page?.textContent || "",
             };
           `);
           return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px" && phone.pages === 1
-            && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488 && phone.footHeight >= 28;
+            && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488 && phone.footHeight >= 28
+            && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
+            && /Last read/.test(phone.last) && /3 \/ 3/.test(phone.progress);
         }, 8000);
       } catch (error) {
         throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
@@ -2455,6 +2465,10 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(phone.canvas, true);
       assert.match(phone.shadow, /1px/);
       assert.match(phone.text, /\S/);
+      assert.match(phone.last, /Last read p\. 3/);
+      assert.match(phone.progress, /3 \/ 3/);
+      assert.ok(phone.footWidth >= phone.rootWidth - 2, JSON.stringify(phone));
+      assert.ok(phone.meterWidth >= 24, JSON.stringify(phone));
       await shot(driver, "reader-shell-phone");
       await restoreDesktopPointer(driver, desktopViewport);
 
@@ -3438,6 +3452,16 @@ ${E2E_CUE_LOG_FENCE}
               return Math.round(root.getBoundingClientRect().bottom - sheet.getBoundingClientRect().bottom);
             })(),
             saved: /reader\\.size:\\s*\\S+/.test(body) ? (body.match(/reader\\.size:\\s*\\S+/) || [])[0] : "none",
+            last: root?.querySelector('[data-testid="atomic-reader-last"]')?.textContent || "",
+            progress: root?.querySelector('[data-testid="atomic-reader-progress"]')?.textContent || "",
+            footWidth: (() => {
+              const foot = root?.querySelector(".atomic-reader-foot");
+              return foot ? Math.round(foot.getBoundingClientRect().width) : 0;
+            })(),
+            meterWidth: (() => {
+              const meter = root?.querySelector('[data-testid="atomic-reader-meter"]');
+              return meter ? Math.round(meter.getBoundingClientRect().width) : 0;
+            })(),
           };
         })();
       `);
@@ -3506,7 +3530,9 @@ ${E2E_CUE_LOG_FENCE}
           await driver.wait(async () => {
             phone = await readSize();
             return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false
-              && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488;
+              && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488
+              && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
+              && /Last read/.test(phone.last) && /1 \/ 3/.test(phone.progress);
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
@@ -3514,6 +3540,10 @@ ${E2E_CUE_LOG_FENCE}
         assert.equal(phone.lineHeight, "23px");
         assert.equal(phone.inSlot, false);
         assert.equal(phone.sheet, false);
+        assert.match(phone.last, /Last read p\. 1/);
+        assert.match(phone.progress, /1 \/ 3/);
+        assert.ok(phone.footWidth >= phone.rootWidth - 2, JSON.stringify(phone));
+        assert.ok(phone.meterWidth >= 24, JSON.stringify(phone));
         await shot(driver, "reader-book-size-phone");
       } finally {
         await restoreDesktopPointer(driver, desktopViewport);
