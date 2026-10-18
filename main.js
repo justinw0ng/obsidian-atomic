@@ -11181,8 +11181,6 @@ function registerAskOnShell(plugin) {
 var FLIGHT_MS = 3200;
 var FLIGHT_SKIP_MS = 3280;
 var FLIGHT_SETTLE_MS = 2520;
-var FLIGHT_ZOOM_PAD = 48;
-var FLIGHT_ZOOM_MAX = 2;
 var REDUCED_FADE_MS = 280;
 var FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 var COVER_EASE = "cubic-bezier(0.42, 0.05, 0.18, 1)";
@@ -11247,7 +11245,7 @@ function flightZoom(input) {
   const fallback = {
     originX: "50%",
     originY: "46%",
-    fromScale: "1.550",
+    fromScale: "1.000",
     coverX: "18%",
     coverY: "12%",
     coverW: "64%",
@@ -11258,34 +11256,17 @@ function flightZoom(input) {
   const localY = input.spread.y - input.host.y;
   const width = input.spread.width;
   const height = input.spread.height;
-  const marginLeft = localX - FLIGHT_ZOOM_PAD;
-  const marginRight = input.host.width - FLIGHT_ZOOM_PAD - (localX + width);
-  const marginTop = localY - FLIGHT_ZOOM_PAD;
-  const marginBottom = input.host.height - FLIGHT_ZOOM_PAD - (localY + height);
-  const roomX = Math.max(0, marginLeft) + Math.max(0, marginRight);
-  const roomY = Math.max(0, marginTop) + Math.max(0, marginBottom);
-  const fitX = width > 0 ? 1 + roomX / width : 1;
-  const fitY = height > 0 ? 1 + roomY / height : 1;
-  const from = Math.max(1, Math.min(FLIGHT_ZOOM_MAX, fitX, fitY));
-  const originX = zoomAnchor(localX, width, marginLeft, marginRight, from);
-  const originY = zoomAnchor(localY, height, marginTop, marginBottom, from);
+  const originX = localX + width / 2;
+  const originY = localY + height / 2;
   return {
     originX: `${clampPercent(originX / input.host.width * 100)}%`,
     originY: `${clampPercent(originY / input.host.height * 100)}%`,
-    fromScale: from.toFixed(3),
+    fromScale: "1.000",
     coverX: px(localX),
     coverY: px(localY),
     coverW: px(width),
     coverH: px(height)
   };
-}
-function zoomAnchor(start, size, marginStart, marginEnd, scale) {
-  if (scale <= 1 || size <= 0) return start + size / 2;
-  const extra = (scale - 1) * size;
-  const roomStart = Math.max(0, marginStart);
-  const roomEnd = Math.max(0, marginEnd);
-  const growStart = Math.min(roomStart, Math.max(extra - roomEnd, extra / 2));
-  return start + growStart / (scale - 1);
 }
 function clampPercent(value) {
   const next = Math.max(0, Math.min(100, value));
@@ -11362,7 +11343,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
   --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
-  --flight-from: 1.55;
+  --flight-from: 1;
   --flight-ox: 50%;
   --flight-oy: 46%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -11728,8 +11709,7 @@ ${flipRules()}
   animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
 }
 @keyframes atomic-flight-zoom {
-  0%, 88% { transform: scale(var(--flight-from)); }
-  100% { transform: scale(1); }
+  0%, 100% { transform: scale(var(--flight-from)); }
 }
 @keyframes atomic-flight-reveal {
   0%, 99% { opacity: 1; }

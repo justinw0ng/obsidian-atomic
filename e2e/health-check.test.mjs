@@ -3160,7 +3160,7 @@ ${E2E_CUE_LOG_FENCE}
       assert.equal(flight.settled, "true");
       assert.match(flight.livePages, /last buoy/);
       assert.doesNotMatch(flight.livePages, /Harbor light/);
-      assert.ok(Number(flight.from) > 1, `zoom starts above the settled reader ${flight.from}`);
+      assert.equal(Number(flight.from), 1, `flight lands on the settled page ${flight.from}`);
       assert.equal(flight.snapPages, flight.livePages);
       assert.ok(flight.line.length > 0, "the live page has a paragraph");
       assert.ok(flight.snapPages.includes(flight.line), flight.snapPages);

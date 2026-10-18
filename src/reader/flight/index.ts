@@ -4,7 +4,7 @@
  * The shell calls the registered flight from Open Book. The flight opens
  * the live reader on the saved page, then plays on that leaf: the cover
  * lifts on the spine, pages curl right to left, the spread settles, and
- * the camera zooms out to scale 1. The last frame is that same reader.
+ * the camera stays on that page. The last frame is that same reader.
  * Reduced motion crossfades.
  */
 

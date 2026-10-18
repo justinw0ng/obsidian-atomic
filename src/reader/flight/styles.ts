@@ -15,8 +15,8 @@ import {
  * In-place flight on the reader leaf.
  * The cover lifts on a spine hinge. Each page is a chain of ribs: the free
  * edge bends first, the spine follows, and the ribs land flat. A quire shows
- * the page block. The camera then zooms the settled reader to scale 1 and
- * the snapshot drops out. The held last frame is the real reader already on
+ * the page block. The camera stays at the settled page, so the land does not
+ * shrink or grow. The snapshot drops out onto that same reader, already on
  * that page. Reduced motion is a crossfade, not this flight.
  * 1.5.0 tokens. No black stage. No purple.
  */
@@ -32,7 +32,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
   --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
-  --flight-from: 1.55;
+  --flight-from: 1;
   --flight-ox: 50%;
   --flight-oy: 46%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -398,8 +398,7 @@ ${flipRules()}
   animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
 }
 @keyframes atomic-flight-zoom {
-  0%, 88% { transform: scale(var(--flight-from)); }
-  100% { transform: scale(1); }
+  0%, 100% { transform: scale(var(--flight-from)); }
 }
 @keyframes atomic-flight-reveal {
   0%, 99% { opacity: 1; }
