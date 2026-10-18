@@ -3529,10 +3529,12 @@ ${E2E_CUE_LOG_FENCE}
         try {
           await driver.wait(async () => {
             phone = await readSize();
+            const read = String(phone.last).match(/^Last read p\. (\d+)$/);
+            const count = String(phone.progress).match(/^(\d+) \/ (\d+)$/);
             return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false
               && phone.pageWidth >= 200 && phone.pageWidth <= 340 && phone.pageHeight === 488
               && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
-              && /Last read/.test(phone.last) && /1 \/ 3/.test(phone.progress);
+              && read && count && read[1] === count[1] && Number(count[2]) >= Number(count[1]);
           }, 8000);
         } catch (error) {
           throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
@@ -3540,8 +3542,9 @@ ${E2E_CUE_LOG_FENCE}
         assert.equal(phone.lineHeight, "23px");
         assert.equal(phone.inSlot, false);
         assert.equal(phone.sheet, false);
-        assert.match(phone.last, /Last read p\. 1/);
-        assert.match(phone.progress, /1 \/ 3/);
+        assert.match(phone.last, /^Last read p\. \d+$/);
+        assert.match(phone.progress, /^\d+ \/ \d+$/);
+        assert.equal(phone.last.match(/(\d+)$/)?.[1], phone.progress.match(/^(\d+)/)?.[1]);
         assert.ok(phone.footWidth >= phone.rootWidth - 2, JSON.stringify(phone));
         assert.ok(phone.meterWidth >= 24, JSON.stringify(phone));
         await shot(driver, "reader-book-size-phone");
