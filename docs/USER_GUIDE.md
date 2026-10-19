@@ -167,7 +167,7 @@ On a narrow pane the list shows four lines of each cue. The first line sits on t
 The shelf on today’s note is your books.
 
 1. Hover a cover. The book pops up. The line under the shelf names the book.
-2. Click the cover, or tap it on a phone. A chooser opens.
+2. Click the cover, or tap it on a phone. The cover opens. Click or tap again. A chooser opens.
 3. **Open Notes** is the default. Press Enter, or choose it, to open the book note. There is no theater.
 4. **Open Book** is listed only when that title has an EPUB or PDF. Choose it to read the file.
 
@@ -181,7 +181,7 @@ A cover you add fills the book. If the picture is wider or narrower than the boo
 
 ## Read a book
 
-Open Book stays on the same note. The cover opens in place. The pages turn, then the view zooms out onto the settled reader. The last frame is that reader. Reduced motion is a crossfade.
+Open Book stays on the same note. The cover opens in place. On a computer the pages open from the gutter onto the settled spread. On a phone one page opens. The flight lands on that XL page. The last frame is the settled reader. Reduced motion is a crossfade.
 
 ![Open book](./images/atomic-reader.gif)
 

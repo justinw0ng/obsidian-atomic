@@ -119,32 +119,112 @@ async function waitForCoverImages(driver, min = 12, timeoutMs = 30000) {
   throw new Error(`Cover images not ready (loaded ${last}, need ${min})`);
 }
 
-async function openCover(driver, title) {
+function storedZip(files) {
+  const encoder = new TextEncoder();
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const file of files) {
+    const name = encoder.encode(file.name);
+    const data = file.data;
+    const local = new Uint8Array(30 + name.byteLength + data.byteLength);
+    const localView = new DataView(local.buffer);
+    localView.setUint32(0, 0x04034b50, true);
+    localView.setUint16(4, 20, true);
+    localView.setUint16(6, 0x0800, true);
+    localView.setUint32(18, data.byteLength, true);
+    localView.setUint32(22, data.byteLength, true);
+    localView.setUint16(26, name.byteLength, true);
+    local.set(name, 30);
+    local.set(data, 30 + name.byteLength);
+    locals.push(local);
+    const central = new Uint8Array(46 + name.byteLength);
+    const centralView = new DataView(central.buffer);
+    centralView.setUint32(0, 0x02014b50, true);
+    centralView.setUint16(4, 20, true);
+    centralView.setUint16(6, 20, true);
+    centralView.setUint16(8, 0x0800, true);
+    centralView.setUint32(20, data.byteLength, true);
+    centralView.setUint32(24, data.byteLength, true);
+    centralView.setUint16(28, name.byteLength, true);
+    centralView.setUint32(42, offset, true);
+    central.set(name, 46);
+    centrals.push(central);
+    offset += local.byteLength;
+  }
+  const centralSize = centrals.reduce((sum, part) => sum + part.byteLength, 0);
+  const eocd = new Uint8Array(22);
+  const eocdView = new DataView(eocd.buffer);
+  eocdView.setUint32(0, 0x06054b50, true);
+  eocdView.setUint16(8, files.length, true);
+  eocdView.setUint16(10, files.length, true);
+  eocdView.setUint32(12, centralSize, true);
+  eocdView.setUint32(16, offset, true);
+  const out = new Uint8Array(offset + centralSize + eocd.byteLength);
+  let cursor = 0;
+  for (const part of [...locals, ...centrals, eocd]) {
+    out.set(part, cursor);
+    cursor += part.byteLength;
+  }
+  return out;
+}
+
+/** Invented EPUB so the shelf chooser can show Open Book. Not a publisher file. */
+function attachShelfBook() {
+  const title = OPEN_COVER_TITLE;
+  const rel = `atomics/hobbies/Reading/Items/${title}.epub`;
+  const encoder = new TextEncoder();
+  const chapter = encoder.encode(`<?xml version="1.0"?>
+<html xmlns="http://www.w3.org/1999/xhtml"><body>
+<h1>Chapter 1</h1>
+<p>The hour stayed honest. She opened the cover, found the sentence, and left the pencil in the gutter.</p>
+</body></html>`);
+  writeFileSync(join(USER_GUIDE_VAULT, rel), storedZip([
+    { name: "mimetype", data: encoder.encode("application/epub+zip") },
+    {
+      name: "META-INF/container.xml",
+      data: encoder.encode(`<container><rootfiles><rootfile full-path="OEBPS/content.opf"/></rootfiles></container>`),
+    },
+    {
+      name: "OEBPS/content.opf",
+      data: encoder.encode(`<?xml version="1.0"?><package><manifest><item id="c1" href="chapter.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="c1"/></spine></package>`),
+    },
+    { name: "OEBPS/chapter.xhtml", data: chapter },
+  ]));
+  const notePath = join(USER_GUIDE_VAULT, `atomics/hobbies/Reading/Items/${title}.md`);
+  let markdown = readFileSync(notePath, "utf8");
+  if (!/^source:/m.test(markdown)) {
+    markdown = markdown.replace(/\n---\n/, `\nsource: "${rel}"\n---\n`);
+  }
+  if (!markdown.includes(`source: "${rel}"`)) {
+    throw new Error(`Could not link ${title} to its EPUB`);
+  }
+  writeFileSync(notePath, markdown);
+}
+
+async function clickShelfBook(driver, title) {
   const result = await driver.executeScript(
     `
     const title = arguments[0];
-    const books = [...document.querySelectorAll('[data-testid="atomic-book"][data-title="' + title + '"]')];
-    const visible = books.find((el) => {
-      const rect = el.getBoundingClientRect();
-      return rect.width > 20 && rect.height > 20;
-    });
-    const book = visible || books[0];
+    const books = [...document.querySelectorAll('[data-testid="atomic-book"]')];
+    const book = books.find((el) => el.getAttribute("data-title") === title && el.getBoundingClientRect().width > 20);
     if (!book) return { ok: false, error: "missing book", count: books.length };
     book.scrollIntoView({ block: "center", inline: "nearest" });
-    book.classList.add("is-cover-open");
-    const face = book.querySelector(".atomic-book-face");
-    for (const el of [book, face]) {
-      if (!el) continue;
-      el.style.setProperty("transition", "none", "important");
-    }
-    return { ok: true, open: book.classList.contains("is-cover-open"), title: book.getAttribute("data-title") };
+    book.click();
+    return {
+      ok: true,
+      open: book.classList.contains("is-cover-open"),
+      chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
+      notes: Boolean(document.querySelector('[data-testid="atomic-chooser-notes"]')),
+      bookRow: Boolean(document.querySelector('[data-testid="atomic-chooser-book"]')),
+    };
     `,
     title,
   );
   if (!result?.ok) {
-    throw new Error(`Could not open cover for ${title}: ${JSON.stringify(result)}`);
+    throw new Error(`Could not click ${title}: ${JSON.stringify(result)}`);
   }
-  await sleep(200);
+  return result;
 }
 
 async function prepareGuideView(driver) {
@@ -338,13 +418,58 @@ async function popCueCard(driver, preferIndex = 1) {
 async function captureBookShelfGif(driver) {
   await openPreviewNote(driver, FILES.bookShelf);
   await waitCss(driver, '[data-testid="atomic-bookshelf"]');
-  await waitForCoverImages(driver, 12);
+  await driver.executeScript(`
+    for (const img of document.querySelectorAll("img.atomic-book-cover")) {
+      img.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  `);
+  await sleep(400);
+  try {
+    await waitForCoverImages(driver, 12);
+  } catch (error) {
+    const loaded = await driver.executeScript(`
+      return [...document.querySelectorAll("img.atomic-book-cover")].map((img) => ({
+        w: img.naturalWidth,
+        complete: img.complete,
+        title: img.closest("[data-title]")?.getAttribute("data-title") || "",
+      }));
+    `);
+    const ready = Array.isArray(loaded) ? loaded.filter((img) => img.complete && img.w > 40) : [];
+    const target = ready.some((img) => img.title === OPEN_COVER_TITLE);
+    if (ready.length < 6 || !target) {
+      throw new Error(`${error instanceof Error ? error.message : error}; covers=${JSON.stringify(loaded)}`);
+    }
+    console.log(`shelf covers ready ${ready.length}/${Array.isArray(loaded) ? loaded.length : 0}`);
+  }
+  await driver.executeScript(`
+    const title = arguments[0];
+    const book = [...document.querySelectorAll('[data-testid="atomic-book"]')]
+      .find((el) => el.getAttribute("data-title") === title);
+    book?.scrollIntoView({ block: "center", inline: "center" });
+  `, OPEN_COVER_TITLE);
   await prepareGuideView(driver);
   await sleep(700);
   const dir = frameDir("book-shelf");
   await grabHold(driver, dir, 0, 2, 200);
-  await openCover(driver, OPEN_COVER_TITLE);
-  await grabHold(driver, dir, 2, 3, 180);
+  const first = await clickShelfBook(driver, OPEN_COVER_TITLE);
+  let nextIndex = 2;
+  if (first.chooser) {
+    if (!first.notes || !first.bookRow) {
+      throw new Error(`chooser is missing Open Notes or Open Book: ${JSON.stringify(first)}`);
+    }
+  } else if (first.open) {
+    await sleep(180);
+    await grabHold(driver, dir, nextIndex, 2, 180);
+    nextIndex += 2;
+    const second = await clickShelfBook(driver, OPEN_COVER_TITLE);
+    if (!second.chooser || !second.notes || !second.bookRow) {
+      throw new Error(`second click should open the chooser: ${JSON.stringify(second)}`);
+    }
+  } else {
+    throw new Error(`click did not open the cover or the chooser: ${JSON.stringify(first)}`);
+  }
+  await sleep(200);
+  await grabHold(driver, dir, nextIndex, 3, 200);
   assembleGif(dir, OUTPUTS.bookShelf, { durationMs: 280, holdFirst: 1, holdLast: 2 });
 }
 
@@ -789,6 +914,7 @@ async function main() {
   const built = ensureDocsBundle(["atomic-dashboard-recent", "atomic-cue-log"]);
   try {
     prepareUserGuideVault();
+    if (wantShot("bookShelf")) attachShelfBook();
     const launchFile = wantShot("bookShelf") ? FILES.bookShelf : FILES.dashboard;
     const launched = await launchObsidian(USER_GUIDE_VAULT, launchFile);
     const driver = await attachSelenium(undefined, launched.version);

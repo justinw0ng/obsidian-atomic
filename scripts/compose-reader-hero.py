@@ -101,12 +101,33 @@ def save_gif(frames: list[Image.Image], destination: Path, framerate: str) -> No
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def guide_gif(still: Image.Image, destination: Path) -> None:
+def fit_width(still: Image.Image, width: int = 1280) -> Image.Image:
     fitted = still.convert("RGB")
-    if fitted.width > 1280:
-        height = max(1, round(fitted.height * (1280 / fitted.width)))
-        fitted = fitted.resize((1280, height), Image.Resampling.LANCZOS)
+    if fitted.width > width:
+        height = max(1, round(fitted.height * (width / fitted.width)))
+        fitted = fitted.resize((width, height), Image.Resampling.LANCZOS)
+    return fitted
+
+
+def guide_gif(still: Image.Image, destination: Path) -> None:
+    fitted = fit_width(still)
     save_gif([fitted, fitted], destination, "1")
+
+
+def flight_guide_gif(shots: Path, destination: Path) -> None:
+    """Desktop flight: gutter open through the settled spread."""
+    seq = sorted((shots / "flight-seq").glob("*.png"))
+    if len(seq) < 2:
+        guide_gif(require(shots / "flight-desktop.png"), destination)
+        return
+    frames = [fit_width(Image.open(path)) for path in seq]
+    width, height = frames[0].size
+    fitted = [
+        frame if frame.size == (width, height) else frame.resize((width, height), Image.Resampling.LANCZOS)
+        for frame in frames
+    ]
+    fitted.append(fitted[-1])
+    save_gif(fitted, destination, "2")
 
 
 def require(path: Path) -> Image.Image:
@@ -143,7 +164,10 @@ def main() -> None:
 
     for filename, gif_name in GUIDE:
         destination = IMAGES / gif_name
-        guide_gif(require(shots / filename), destination)
+        if gif_name == "atomic-reader.gif":
+            flight_guide_gif(shots, destination)
+        else:
+            guide_gif(require(shots / filename), destination)
         print(f"wrote {destination} {destination.stat().st_size}")
 
 
