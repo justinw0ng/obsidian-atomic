@@ -260,8 +260,6 @@ export function resolveCoverSrc(
   return data.resolveResourcePath(ref.path, sourcePath);
 }
 
-const COVER_OPEN_CLASS = "is-cover-open";
-
 export function hoverFinePointer(
   media: Pick<MediaQueryList, "matches"> | null | undefined,
 ): boolean {
@@ -269,34 +267,27 @@ export function hoverFinePointer(
 }
 
 /**
- * Hover on a fine pointer only pops the book. The click opens the cover.
- * The next click opens the chooser. A coarse pointer lifts on the first tap
- * and opens the chooser on the next. Reduced motion skips the cover swing.
+ * One tap opens the chooser. Hover only pops the book.
+ * Desktop and phone share that step.
  */
 export function bookClickOpensNote(options: {
   hoverFine: boolean;
-  coverOpen: boolean;
-  reducedMotion?: boolean;
 }): boolean {
-  if (options.coverOpen) return true;
-  return Boolean(options.hoverFine && options.reducedMotion);
+  switch (options.hoverFine) {
+    case true:
+    case false:
+      return true;
+    default: {
+      const never: never = options.hoverFine;
+      return never;
+    }
+  }
 }
 
 function hoverFineMedia(): Pick<MediaQueryList, "matches"> | null {
   if (typeof window.matchMedia !== "function") return null;
   // pointer:none is a virtual display with a mouse, not a coarse phone.
   return window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)");
-}
-
-function prefersReducedMotion(): boolean {
-  if (typeof window.matchMedia !== "function") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function closeOpenCovers(root: ParentNode): void {
-  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
-    el.classList.remove(COVER_OPEN_CLASS);
-  });
 }
 
 function shelfSummary(items: readonly BookShelfItem[], language: Language): string {
@@ -313,21 +304,13 @@ function showBookReadout(
   readout: HTMLElement,
   item: BookShelfItem,
   language: Language,
-  mode: "preview" | "again",
-  hoverFine = false,
 ): void {
   readout.empty();
   readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
   const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
   readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" · ") });
-  const again = mode === "again";
-  const hint = readout.createDiv({ cls: again ? "atomic-readout is-live" : "atomic-readout" });
-  const key = !again
-    ? "view.bookShelf.clickToOpen"
-    : hoverFine
-      ? "view.bookShelf.clickAgain"
-      : "view.bookShelf.tapAgain";
-  hint.setText(t(key, language));
+  const hint = readout.createDiv({ cls: "atomic-readout" });
+  hint.setText(t("view.bookShelf.clickToOpen", language));
 }
 
 /** Smaller cover/page type for long titles so they wrap inside the book face. */
@@ -398,11 +381,10 @@ function createBook(
   });
   button.addEventListener("pointerenter", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    showBookReadout(readout, item, language, "preview");
+    showBookReadout(readout, item, language);
   });
   button.addEventListener("pointerleave", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    button.classList.remove(COVER_OPEN_CLASS);
     const summary = readout.dataset.shelfSummary;
     if (summary) readout.setText(summary);
   });
@@ -410,20 +392,7 @@ function createBook(
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    const hoverFine = hoverFinePointer(hoverFineMedia());
-    const coverOpen = button.classList.contains(COVER_OPEN_CLASS);
-    if (!bookClickOpensNote({
-      hoverFine,
-      coverOpen,
-      reducedMotion: prefersReducedMotion(),
-    })) {
-      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
-      closeOpenCovers(shelf);
-      button.classList.add(COVER_OPEN_CLASS);
-      showBookReadout(readout, item, language, "again", hoverFine);
-      return;
-    }
-    button.classList.remove(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({ hoverFine: hoverFinePointer(hoverFineMedia()) })) return;
     const rect = button.getBoundingClientRect();
     presentBookChooser({
       notePath: item.path,

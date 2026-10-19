@@ -167,7 +167,7 @@ On a narrow pane the list shows four lines of each cue. The first line sits on t
 The shelf on today’s note is your books.
 
 1. Hover a cover. The book pops up. The line under the shelf names the book.
-2. Click the cover, or tap it on a phone. The cover opens. Click or tap again. A chooser opens.
+2. Click the cover, or tap it on a phone. One tap opens a chooser.
 3. **Open Notes** is the default. Press Enter, or choose it, to open the book note. There is no theater.
 4. **Open Book** is listed only when that title has an EPUB or PDF. Choose it to read the file.
 
