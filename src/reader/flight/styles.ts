@@ -36,6 +36,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   --flight-from: 1;
   --flight-ox: 50%;
   --flight-oy: 46%;
+  --flight-seam: 50%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
   --font-text: "Literata", "Source Serif 4", Georgia, "Iowan Old Style", Palatino, serif;
   position: absolute;
@@ -145,7 +146,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-gutter {
   position: absolute;
-  left: 50%;
+  left: var(--flight-seam, 50%);
   top: 0;
   width: 36px;
   height: 100%;
@@ -159,7 +160,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-flips {
   position: absolute;
-  left: 50%;
+  left: var(--flight-seam, 50%);
   top: 0;
   width: 50%;
   height: 100%;
@@ -259,7 +260,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   transform-origin: right center;
 }
 .atomic-flight-quire.is-left {
-  left: calc(50% - 16px);
+  left: calc(var(--flight-seam, 50%) - 16px);
   border-radius: 3px 0 0 3px;
   opacity: 0;
   transform: scaleX(0.15);
@@ -283,7 +284,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-quire.is-left .atomic-flight-edge { left: var(--edge-x, 0px); }
 .atomic-flight-cover {
   position: absolute;
-  left: 50%;
+  left: var(--flight-seam, 50%);
   top: 0;
   width: 50%;
   height: 100%;

@@ -350,6 +350,18 @@ test("registered flight lands on the live reader page", async () => {
     assert.equal(camera.style.getPropertyValue("--flight-recto-y"), "100px");
     assert.equal(camera.style.getPropertyValue("--flight-recto-w"), "270px");
     assert.equal(camera.style.getPropertyValue("--flight-recto-h"), "340px");
+    assert.equal(camera.style.getPropertyValue("--flight-seam"), "270px");
+    const sheets = [...overlay.querySelectorAll(".atomic-flight-sheet")];
+    const leftSheet = sheets.find((sheet) => sheet.classList.contains("is-left"));
+    const rightSheet = sheets.find((sheet) => sheet.classList.contains("is-right"));
+    assert.equal(leftSheet.style.getPropertyValue("left"), "0px");
+    assert.equal(leftSheet.style.getPropertyValue("top"), "0px");
+    assert.equal(leftSheet.style.getPropertyValue("width"), "270px");
+    assert.equal(leftSheet.style.getPropertyValue("height"), "340px");
+    assert.equal(rightSheet.style.getPropertyValue("left"), "270px");
+    assert.equal(rightSheet.style.getPropertyValue("top"), "0px");
+    assert.equal(rightSheet.style.getPropertyValue("width"), "270px");
+    assert.equal(rightSheet.style.getPropertyValue("height"), "340px");
     const flips = overlay.querySelectorAll(".atomic-flight-flip");
     assert.equal(flips.length, FLIP_LEAVES.length);
     assert.equal(flips.filter((flip) => flip.querySelector(".is-recto")).length, FLIP_LEAVES.length);
@@ -697,6 +709,46 @@ test("phone and coarse pointer pick their motions and still land on the spread",
   assert.equal(flat.overlay.classList.contains("is-phone"), true);
   assert.equal(flat.overlay.getAttribute("data-zoom"), "out");
   assert.ok(flat.overlay.querySelector("[data-testid='atomic-flight-snapshot']"));
+});
+
+test("flight sheets use each live page rect and refresh at settle", () => {
+  const tap = makeHost();
+  tap.verso.setRect(200, 80, 300, 400);
+  tap.recto.setRect(510, 90, 280, 390);
+  const handle = mountOpenBookFlight(request(tap));
+  const camera = handle.overlay.querySelector("[data-testid='atomic-flight-camera']");
+  const right = [...handle.overlay.querySelectorAll(".atomic-flight-sheet")].find((sheet) => sheet.classList.contains("is-right"));
+  assert.equal(camera.style.getPropertyValue("--flight-seam"), "310px");
+  assert.equal(right.style.getPropertyValue("left"), "310px");
+  assert.equal(right.style.getPropertyValue("top"), "10px");
+  assert.equal(right.style.getPropertyValue("width"), "280px");
+  assert.equal(right.style.getPropertyValue("height"), "390px");
+  tap.recto.setRect(520, 96, 260, 380);
+  const settle = [...tap.timers.values()].find((job) => job.ms === FLIGHT_SETTLE_MS);
+  settle.fn();
+  assert.equal(handle.overlay.classList.contains("is-settling"), true);
+  assert.equal(camera.style.getPropertyValue("--flight-seam"), "320px");
+  assert.equal(right.style.getPropertyValue("left"), "320px");
+  assert.equal(right.style.getPropertyValue("top"), "16px");
+  assert.equal(right.style.getPropertyValue("width"), "260px");
+  assert.equal(right.style.getPropertyValue("height"), "380px");
+  handle.abort();
+
+  const phone = makeHost();
+  phone.verso.setRect(0, 0, 0, 0);
+  phone.recto.setRect(40, 120, 350, 520);
+  const single = mountOpenBookFlight(request(phone, { layout: "phone" }));
+  const page = [...single.overlay.querySelectorAll(".atomic-flight-sheet")].find((sheet) => sheet.classList.contains("is-right"));
+  assert.equal(single.overlay.getAttribute("data-open"), "page");
+  assert.equal(page.style.getPropertyValue("left"), "0px");
+  assert.equal(page.style.getPropertyValue("top"), "0px");
+  assert.equal(page.style.getPropertyValue("width"), "350px");
+  assert.equal(page.style.getPropertyValue("height"), "520px");
+  assert.equal(
+    single.overlay.querySelector("[data-testid='atomic-flight-camera']").style.getPropertyValue("--flight-seam"),
+    "0px",
+  );
+  single.abort();
 });
 
 test("layout waits one frame when the shell pages have no rect yet", () => {

@@ -5469,9 +5469,9 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     if (!hoverFinePointer(hoverFineMedia())) return;
     const rect = button2.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
-    const px3 = (event.clientX - rect.left) / rect.width - 0.5;
+    const px2 = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    button2.style.setProperty("--px", px3.toFixed(3));
+    button2.style.setProperty("--px", px2.toFixed(3));
     button2.style.setProperty("--py", py.toFixed(3));
     button2.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
     button2.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
@@ -11346,6 +11346,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   --flight-from: 1;
   --flight-ox: 50%;
   --flight-oy: 46%;
+  --flight-seam: 50%;
   --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
   --font-text: "Literata", "Source Serif 4", Georgia, "Iowan Old Style", Palatino, serif;
   position: absolute;
@@ -11455,7 +11456,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-gutter {
   position: absolute;
-  left: 50%;
+  left: var(--flight-seam, 50%);
   top: 0;
   width: 36px;
   height: 100%;
@@ -11469,7 +11470,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-flips {
   position: absolute;
-  left: 50%;
+  left: var(--flight-seam, 50%);
   top: 0;
   width: 50%;
   height: 100%;
@@ -11569,7 +11570,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   transform-origin: right center;
 }
 .atomic-flight-quire.is-left {
-  left: calc(50% - 16px);
+  left: calc(var(--flight-seam, 50%) - 16px);
   border-radius: 3px 0 0 3px;
   opacity: 0;
   transform: scaleX(0.15);
@@ -11593,7 +11594,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
 .atomic-flight-quire.is-left .atomic-flight-edge { left: var(--edge-x, 0px); }
 .atomic-flight-cover {
   position: absolute;
-  left: 50%;
+  left: var(--flight-seam, 50%);
   top: 0;
   width: 50%;
   height: 100%;
@@ -11947,7 +11948,7 @@ function mountOpenBookFlight(request, onLand) {
   overlay.addEventListener("click", onClick);
   view.addEventListener("keydown", onKey, true);
   view.addEventListener("pagehide", onLeave);
-  const start = (spread2) => {
+  const start = () => {
     if (closed) return;
     const page = spreadFromPainted(paintedPages(request.destination), request.page);
     const marked = readPageNumber(request.destination.getAttribute("data-page"));
@@ -11957,24 +11958,26 @@ function mountOpenBookFlight(request, onLand) {
       timer = view.setTimeout(() => finish2("reduced"), REDUCED_FADE_MS);
       return;
     }
-    applyZoom(built.camera, zoomFor(request.destination, spread2), request.destination);
+    placeLanding(built.camera, request.destination);
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
     timer = view.setTimeout(() => finish2("landed"), FLIGHT_SKIP_MS);
     settle = view.setTimeout(() => {
       settle = 0;
-      if (!closed) overlay.classList.add("is-settling");
+      if (closed) return;
+      placeLanding(built.camera, request.destination);
+      overlay.classList.add("is-settling");
     }, FLIGHT_SETTLE_MS);
   };
   const spread = spreadBox(request.destination);
   if (spread || typeof view.requestAnimationFrame !== "function") {
-    start(spread);
+    start();
   } else {
     frame = view.requestAnimationFrame(() => {
       frame = 0;
       if (closed) return;
-      start(spreadBox(request.destination));
+      start();
     });
   }
   return {
@@ -12041,6 +12044,23 @@ function isHtmlElement2(node) {
   if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
   return node.nodeType === 1;
 }
+function placeLanding(camera, destination) {
+  const pages = measuredPages(destination);
+  const spread = unionBoxes(pages.map((page) => page.box));
+  applyZoom(camera, zoomFor(destination, spread), destination);
+  if (!spread) return;
+  for (const page of pages) {
+    const sheet = sheetFor(camera, page.side);
+    if (!sheet) continue;
+    sheet.style.setProperty("left", cssPx(page.box.x - spread.x));
+    sheet.style.setProperty("top", cssPx(page.box.y - spread.y));
+    sheet.style.setProperty("width", cssPx(page.box.width));
+    sheet.style.setProperty("height", cssPx(page.box.height));
+  }
+  const right = pages.find((page) => page.side === "right") ?? pages[pages.length - 1];
+  if (!right) return;
+  camera.style.setProperty("--flight-seam", cssPx(right.box.x - spread.x));
+}
 function applyZoom(camera, zoom, destination) {
   camera.style.setProperty("--flight-ox", zoom.originX);
   camera.style.setProperty("--flight-oy", zoom.originY);
@@ -12052,13 +12072,35 @@ function applyZoom(camera, zoom, destination) {
   const host = destination.getBoundingClientRect();
   const recto = rectoBox(destination);
   if (!recto || host.width <= 0) return;
-  camera.style.setProperty("--flight-recto-x", px2(recto.x - host.left));
-  camera.style.setProperty("--flight-recto-y", px2(recto.y - host.top));
-  camera.style.setProperty("--flight-recto-w", px2(recto.width));
-  camera.style.setProperty("--flight-recto-h", px2(recto.height));
+  camera.style.setProperty("--flight-recto-x", cssPx(recto.x - host.left));
+  camera.style.setProperty("--flight-recto-y", cssPx(recto.y - host.top));
+  camera.style.setProperty("--flight-recto-w", cssPx(recto.width));
+  camera.style.setProperty("--flight-recto-h", cssPx(recto.height));
 }
-function px2(value) {
-  return `${Math.round(value)}px`;
+function cssPx(value) {
+  return `${value}px`;
+}
+function measuredPages(root) {
+  const pages = [];
+  for (const el of livePages(root)) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    pages.push({
+      side: el.classList.contains("is-verso") ? "left" : "right",
+      box: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
+    });
+  }
+  return pages;
+}
+function sheetFor(camera, side) {
+  const name = side === "left" ? "is-left" : "is-right";
+  const found = camera.querySelectorAll(".atomic-flight-sheet");
+  for (let index = 0; index < found.length; index += 1) {
+    const sheet = found[index];
+    if (!isHtmlElement2(sheet) || !sheet.classList.contains(name)) continue;
+    return sheet;
+  }
+  return null;
 }
 function rectoBox(root) {
   const pages = livePages(root);

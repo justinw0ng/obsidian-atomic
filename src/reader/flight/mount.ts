@@ -179,7 +179,7 @@ export function mountOpenBookFlight(
   view.addEventListener("keydown", onKey, true);
   view.addEventListener("pagehide", onLeave);
 
-  const start = (spread: FlightBox | null): void => {
+  const start = (): void => {
     if (closed) return;
     const page = spreadFromPainted(paintedPages(request.destination), request.page);
     const marked = readPageNumber(request.destination.getAttribute("data-page"));
@@ -189,25 +189,27 @@ export function mountOpenBookFlight(
       timer = view.setTimeout(() => finish("reduced"), REDUCED_FADE_MS);
       return;
     }
-    applyZoom(built.camera, zoomFor(request.destination, spread), request.destination);
+    placeLanding(built.camera, request.destination);
     overlay.classList.add("is-on");
     void overlay.offsetWidth;
     overlay.classList.add("is-playing");
     timer = view.setTimeout(() => finish("landed"), FLIGHT_SKIP_MS);
     settle = view.setTimeout(() => {
       settle = 0;
-      if (!closed) overlay.classList.add("is-settling");
+      if (closed) return;
+      placeLanding(built.camera, request.destination);
+      overlay.classList.add("is-settling");
     }, FLIGHT_SETTLE_MS);
   };
 
   const spread = spreadBox(request.destination);
   if (spread || typeof view.requestAnimationFrame !== "function") {
-    start(spread);
+    start();
   } else {
     frame = view.requestAnimationFrame(() => {
       frame = 0;
       if (closed) return;
-      start(spreadBox(request.destination));
+      start();
     });
   }
 
@@ -298,6 +300,28 @@ function isHtmlElement(node: Node): node is HTMLElement {
   return node.nodeType === 1;
 }
 
+/**
+ * The stage and each sheet use the live page rects.
+ * A fresh pass at settle keeps the last flight frame on those same rects.
+ */
+function placeLanding(camera: HTMLElement, destination: HTMLElement): void {
+  const pages = measuredPages(destination);
+  const spread = unionBoxes(pages.map((page) => page.box));
+  applyZoom(camera, zoomFor(destination, spread), destination);
+  if (!spread) return;
+  for (const page of pages) {
+    const sheet = sheetFor(camera, page.side);
+    if (!sheet) continue;
+    sheet.style.setProperty("left", cssPx(page.box.x - spread.x));
+    sheet.style.setProperty("top", cssPx(page.box.y - spread.y));
+    sheet.style.setProperty("width", cssPx(page.box.width));
+    sheet.style.setProperty("height", cssPx(page.box.height));
+  }
+  const right = pages.find((page) => page.side === "right") ?? pages[pages.length - 1];
+  if (!right) return;
+  camera.style.setProperty("--flight-seam", cssPx(right.box.x - spread.x));
+}
+
 function applyZoom(camera: HTMLElement, zoom: FlightZoom, destination: HTMLElement): void {
   camera.style.setProperty("--flight-ox", zoom.originX);
   camera.style.setProperty("--flight-oy", zoom.originY);
@@ -309,14 +333,43 @@ function applyZoom(camera: HTMLElement, zoom: FlightZoom, destination: HTMLEleme
   const host = destination.getBoundingClientRect();
   const recto = rectoBox(destination);
   if (!recto || host.width <= 0) return;
-  camera.style.setProperty("--flight-recto-x", px(recto.x - host.left));
-  camera.style.setProperty("--flight-recto-y", px(recto.y - host.top));
-  camera.style.setProperty("--flight-recto-w", px(recto.width));
-  camera.style.setProperty("--flight-recto-h", px(recto.height));
+  camera.style.setProperty("--flight-recto-x", cssPx(recto.x - host.left));
+  camera.style.setProperty("--flight-recto-y", cssPx(recto.y - host.top));
+  camera.style.setProperty("--flight-recto-w", cssPx(recto.width));
+  camera.style.setProperty("--flight-recto-h", cssPx(recto.height));
 }
 
-function px(value: number): string {
-  return `${Math.round(value)}px`;
+function cssPx(value: number): string {
+  return `${value}px`;
+}
+
+type MeasuredPage = {
+  side: "left" | "right";
+  box: FlightBox;
+};
+
+function measuredPages(root: ParentNode): MeasuredPage[] {
+  const pages: MeasuredPage[] = [];
+  for (const el of livePages(root)) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    pages.push({
+      side: el.classList.contains("is-verso") ? "left" : "right",
+      box: { x: rect.left, y: rect.top, width: rect.width, height: rect.height },
+    });
+  }
+  return pages;
+}
+
+function sheetFor(camera: HTMLElement, side: "left" | "right"): HTMLElement | null {
+  const name = side === "left" ? "is-left" : "is-right";
+  const found = camera.querySelectorAll(".atomic-flight-sheet");
+  for (let index = 0; index < found.length; index += 1) {
+    const sheet = found[index];
+    if (!isHtmlElement(sheet) || !sheet.classList.contains(name)) continue;
+    return sheet;
+  }
+  return null;
 }
 
 function rectoBox(root: ParentNode): FlightBox | null {
