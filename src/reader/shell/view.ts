@@ -565,7 +565,6 @@ export class AtomicReaderView extends ItemView {
   private fitBook(): void {
     const root = this.contentEl.querySelector(".atomic-reader");
     if (!root?.instanceOf(HTMLElement)) return;
-    if (root.classList.contains("is-theater")) return;
     const spread = root.querySelector(".atomic-reader-spread");
     if (!spread?.instanceOf(HTMLElement)) return;
     const view = this.contentEl.win;
@@ -575,6 +574,7 @@ export class AtomicReaderView extends ItemView {
       viewportHeight: view.innerHeight,
       fieldWidth: spread.clientWidth,
       fieldHeight: spread.clientHeight,
+      theater: root.classList.contains("is-theater"),
     });
     const zoom = fitted.scale.toFixed(3);
     root.setCssProps({ "--atomic-book-zoom": zoom });

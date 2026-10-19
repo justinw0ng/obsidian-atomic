@@ -13173,9 +13173,8 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
 .atomic-theater-root.is-theater.is-phone .atomic-reader-page,
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-page {
-  width: min(${THEATER_PAGE_WIDTH}px, calc(100% - 32px));
-  height: var(--page-h, ${THEATER_PAGE_HEIGHT}px);
-  min-height: 280px;
+  width: var(--atomic-page-w, ${THEATER_PAGE_WIDTH}px);
+  height: var(--atomic-page-h, ${THEATER_PAGE_HEIGHT}px);
   flex: none;
   margin: 0 auto;
   overflow: hidden;
@@ -13292,8 +13291,7 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   background: transparent;
 }
 .atomic-theater-root.is-theater .atomic-reader-book {
-  zoom: 1;
-  width: 100%;
+  width: auto;
   grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
 }
 .atomic-theater-root.is-theater.is-phone .atomic-reader-spread,
@@ -13311,8 +13309,8 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  zoom: 1;
+  width: auto;
+  flex: none;
 }
 ${suppressCss()}
 `.trim();
@@ -13832,27 +13830,40 @@ var SPREAD_PAD_Y = 16;
 var PHONE_PAGE_MARGIN_TOP = 12;
 var DESKTOP_BOOK_VIEWPORT_RATIO = DESKTOP_BOOK.width * DESKTOP_BOOK.height / (DESKTOP_VIEWPORT.width * DESKTOP_VIEWPORT.height);
 var PHONE_BOOK_VIEWPORT_RATIO = PHONE_BOOK.width * PHONE_BOOK.height / (PHONE_VIEWPORT.width * PHONE_VIEWPORT.height);
+var THEATER_PAGE = { width: 340, height: 500 };
+var DESKTOP_THEATER_BOOK = { width: 680, height: 500 };
+var PHONE_THEATER_BOOK = { width: 326, height: 500 };
+var DESKTOP_THEATER_BOOK_VIEWPORT_RATIO = DESKTOP_THEATER_BOOK.width * DESKTOP_THEATER_BOOK.height / (DESKTOP_VIEWPORT.width * DESKTOP_VIEWPORT.height);
+var PHONE_THEATER_BOOK_VIEWPORT_RATIO = PHONE_THEATER_BOOK.width * PHONE_THEATER_BOOK.height / (PHONE_VIEWPORT.width * PHONE_VIEWPORT.height);
+var DESKTOP_THEATER_PAD_Y = 68 + 28;
+var PHONE_THEATER_PAD_Y = 48 + 20;
+var PHONE_THEATER_PAD_X = 16 + 16;
 function readerBookScale(input) {
   const phone = input.surface === "phone";
-  const ratio = phone ? PHONE_BOOK_VIEWPORT_RATIO : DESKTOP_BOOK_VIEWPORT_RATIO;
-  const pageW = XL_PAGE.width;
-  const pageH = XL_PAGE.height;
-  const naturalArea = (phone ? pageW : DESKTOP_BOOK.width) * pageH;
-  const blockW = phone ? pageW : DESKTOP_GUTTER + pageW + pageW + DESKTOP_GUTTER;
-  const blockH = phone ? PHONE_PAGE_MARGIN_TOP + pageH : pageH;
+  const theater = input.theater === true;
+  const ratio = theater ? phone ? PHONE_THEATER_BOOK_VIEWPORT_RATIO : DESKTOP_THEATER_BOOK_VIEWPORT_RATIO : phone ? PHONE_BOOK_VIEWPORT_RATIO : DESKTOP_BOOK_VIEWPORT_RATIO;
+  const pageW = theater ? THEATER_PAGE.width : XL_PAGE.width;
+  const pageH = theater ? THEATER_PAGE.height : XL_PAGE.height;
+  const naturalW = phone ? pageW : theater ? DESKTOP_THEATER_BOOK.width : DESKTOP_BOOK.width;
+  const naturalArea = naturalW * pageH;
+  const blockW = phone ? pageW : theater ? DESKTOP_THEATER_BOOK.width : DESKTOP_GUTTER + pageW + pageW + DESKTOP_GUTTER;
+  const blockH = !theater && phone ? PHONE_PAGE_MARGIN_TOP + pageH : pageH;
+  const padX = theater && phone ? PHONE_THEATER_PAD_X : 0;
+  const padY = theater ? phone ? PHONE_THEATER_PAD_Y : DESKTOP_THEATER_PAD_Y : SPREAD_PAD_Y;
   if (input.viewportWidth <= 0 || input.viewportHeight <= 0 || naturalArea <= 0 || !Number.isFinite(input.viewportWidth) || !Number.isFinite(input.viewportHeight)) {
     return { scale: 1, clamped: false, ratio };
   }
   let scale = Math.sqrt(ratio * input.viewportWidth * input.viewportHeight / naturalArea);
   let clamped = false;
-  if (input.fieldWidth > 0 && blockW > 0) {
-    const fit = input.fieldWidth / blockW;
+  const availW = input.fieldWidth - padX;
+  if (availW > 0 && blockW > 0) {
+    const fit = availW / blockW;
     if (fit < scale) {
       scale = fit;
       clamped = true;
     }
   }
-  const availH = input.fieldHeight - SPREAD_PAD_Y;
+  const availH = input.fieldHeight - padY;
   if (availH > 0 && blockH > 0) {
     const fit = availH / blockH;
     if (fit < scale) {
@@ -14387,7 +14398,6 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
   fitBook() {
     const root = this.contentEl.querySelector(".atomic-reader");
     if (!root?.instanceOf(HTMLElement)) return;
-    if (root.classList.contains("is-theater")) return;
     const spread = root.querySelector(".atomic-reader-spread");
     if (!spread?.instanceOf(HTMLElement)) return;
     const view = this.contentEl.win;
@@ -14396,7 +14406,8 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
       viewportWidth: view.innerWidth,
       viewportHeight: view.innerHeight,
       fieldWidth: spread.clientWidth,
-      fieldHeight: spread.clientHeight
+      fieldHeight: spread.clientHeight,
+      theater: root.classList.contains("is-theater")
     });
     const zoom = fitted.scale.toFixed(3);
     root.setCssProps({ "--atomic-book-zoom": zoom });

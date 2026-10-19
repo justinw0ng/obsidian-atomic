@@ -1,15 +1,20 @@
 /**
- * Settled book area as a share of the viewport.
+ * Book area as a share of the design window.
  *
- * Desktop XL matches both designs: two 340×488 pages in a 1020×720 window.
- * 680×488 / (1020×720) = 61/135.
+ * Settled desktop XL matches both designs: two 340×488 pages in a 1020×720
+ * window. 680×488 / (1020×720) = 61/135.
  *
- * The phone card matches the journey step 07 `.phone-page`: 350×520 inside
- * the 390×844 screen. The mock phone page is `height: auto`. Its border box
- * overflows the spread. The sized phone book is the journey card.
+ * The settled phone card matches the journey step 07 `.phone-page`: 350×520
+ * inside the 390×844 screen. The mock phone page is `height: auto`. Its
+ * border box overflows the spread. The sized phone book is the journey card.
  *
- * Page-face tokens stay 340×488. `zoom` on the book block paints that share.
- * A field that cannot hold the share clamps the zoom so the block still fits.
+ * Theater uses the same window. Desktop theater is the XL pair at 340×500,
+ * so 680×500 / (1020×720) = 25/54. Phone theater is one column. The mock
+ * paints that page at 326×500 inside the 390×844 screen. The token stays
+ * 340×500; zoom paints the share.
+ *
+ * `zoom` on the book block paints the share. A field that cannot hold it
+ * clamps the zoom so the block still fits.
  */
 
 export const DESKTOP_VIEWPORT = { width: 1020, height: 720 } as const;
@@ -33,10 +38,33 @@ export const DESKTOP_BOOK_VIEWPORT_RATIO =
 export const PHONE_BOOK_VIEWPORT_RATIO =
   (PHONE_BOOK.width * PHONE_BOOK.height) / (PHONE_VIEWPORT.width * PHONE_VIEWPORT.height);
 
+/** Theater page faces. Taller than the settled XL page. Gutters stay off. */
+export const THEATER_PAGE = { width: 340, height: 500 } as const;
+export const DESKTOP_THEATER_BOOK = { width: 680, height: 500 } as const;
+
+/**
+ * Mock phone theater page border box. `min(340px, calc(100% - 32px))` on the
+ * 390×844 screen resolves to 326×500.
+ */
+export const PHONE_THEATER_BOOK = { width: 326, height: 500 } as const;
+
+export const DESKTOP_THEATER_BOOK_VIEWPORT_RATIO =
+  (DESKTOP_THEATER_BOOK.width * DESKTOP_THEATER_BOOK.height) /
+  (DESKTOP_VIEWPORT.width * DESKTOP_VIEWPORT.height);
+
+export const PHONE_THEATER_BOOK_VIEWPORT_RATIO =
+  (PHONE_THEATER_BOOK.width * PHONE_THEATER_BOOK.height) /
+  (PHONE_VIEWPORT.width * PHONE_VIEWPORT.height);
+
+/** Theater spread padding. The book sits inside it. */
+const DESKTOP_THEATER_PAD_Y = 68 + 28;
+const PHONE_THEATER_PAD_Y = 48 + 20;
+const PHONE_THEATER_PAD_X = 16 + 16;
+
 export type ReaderScaleSurface = "desk" | "phone";
 
 export type ReaderBookScale = {
-  /** CSS zoom for the book block. 1 paints the 340×488 tokens. */
+  /** CSS zoom for the book block. 1 paints the XL tokens. */
   scale: number;
   /** True when the gray field, not the ratio, set the zoom. */
   clamped: boolean;
@@ -50,14 +78,30 @@ export function readerBookScale(input: {
   viewportHeight: number;
   fieldWidth: number;
   fieldHeight: number;
+  /** Theater pages are 340×500. Desktop is two pages. Phone is one column. */
+  theater?: boolean;
 }): ReaderBookScale {
   const phone = input.surface === "phone";
-  const ratio = phone ? PHONE_BOOK_VIEWPORT_RATIO : DESKTOP_BOOK_VIEWPORT_RATIO;
-  const pageW = XL_PAGE.width;
-  const pageH = XL_PAGE.height;
-  const naturalArea = (phone ? pageW : DESKTOP_BOOK.width) * pageH;
-  const blockW = phone ? pageW : DESKTOP_GUTTER + pageW + pageW + DESKTOP_GUTTER;
-  const blockH = phone ? PHONE_PAGE_MARGIN_TOP + pageH : pageH;
+  const theater = input.theater === true;
+  const ratio = theater
+    ? phone
+      ? PHONE_THEATER_BOOK_VIEWPORT_RATIO
+      : DESKTOP_THEATER_BOOK_VIEWPORT_RATIO
+    : phone
+      ? PHONE_BOOK_VIEWPORT_RATIO
+      : DESKTOP_BOOK_VIEWPORT_RATIO;
+  const pageW = theater ? THEATER_PAGE.width : XL_PAGE.width;
+  const pageH = theater ? THEATER_PAGE.height : XL_PAGE.height;
+  const naturalW = phone ? pageW : theater ? DESKTOP_THEATER_BOOK.width : DESKTOP_BOOK.width;
+  const naturalArea = naturalW * pageH;
+  const blockW = phone
+    ? pageW
+    : theater
+      ? DESKTOP_THEATER_BOOK.width
+      : DESKTOP_GUTTER + pageW + pageW + DESKTOP_GUTTER;
+  const blockH = !theater && phone ? PHONE_PAGE_MARGIN_TOP + pageH : pageH;
+  const padX = theater && phone ? PHONE_THEATER_PAD_X : 0;
+  const padY = theater ? (phone ? PHONE_THEATER_PAD_Y : DESKTOP_THEATER_PAD_Y) : SPREAD_PAD_Y;
   if (
     input.viewportWidth <= 0 ||
     input.viewportHeight <= 0 ||
@@ -69,14 +113,15 @@ export function readerBookScale(input: {
   }
   let scale = Math.sqrt((ratio * input.viewportWidth * input.viewportHeight) / naturalArea);
   let clamped = false;
-  if (input.fieldWidth > 0 && blockW > 0) {
-    const fit = input.fieldWidth / blockW;
+  const availW = input.fieldWidth - padX;
+  if (availW > 0 && blockW > 0) {
+    const fit = availW / blockW;
     if (fit < scale) {
       scale = fit;
       clamped = true;
     }
   }
-  const availH = input.fieldHeight - SPREAD_PAD_Y;
+  const availH = input.fieldHeight - padY;
   if (availH > 0 && blockH > 0) {
     const fit = availH / blockH;
     if (fit < scale) {

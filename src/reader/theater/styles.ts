@@ -310,9 +310,8 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
 .atomic-theater-root.is-theater.is-phone .atomic-reader-page,
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-reader-page {
-  width: min(${THEATER_PAGE_WIDTH}px, calc(100% - 32px));
-  height: var(--page-h, ${THEATER_PAGE_HEIGHT}px);
-  min-height: 280px;
+  width: var(--atomic-page-w, ${THEATER_PAGE_WIDTH}px);
+  height: var(--atomic-page-h, ${THEATER_PAGE_HEIGHT}px);
   flex: none;
   margin: 0 auto;
   overflow: hidden;
@@ -429,8 +428,7 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   background: transparent;
 }
 .atomic-theater-root.is-theater .atomic-reader-book {
-  zoom: 1;
-  width: 100%;
+  width: auto;
   grid-template-columns: var(--atomic-page-w) var(--atomic-page-w);
 }
 .atomic-theater-root.is-theater.is-phone .atomic-reader-spread,
@@ -448,8 +446,8 @@ html.atomic-theater-dim.is-reduced .ob-mhead {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  zoom: 1;
+  width: auto;
+  flex: none;
 }
 ${suppressCss()}
 `.trim();

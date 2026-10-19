@@ -228,6 +228,8 @@ async function waitForCuePop(driver, index) {
 
 const DESK_BOOK_RATIO = (680 * 488) / (1020 * 720);
 const PHONE_BOOK_RATIO = (350 * 520) / (390 * 844);
+const DESK_THEATER_RATIO = (680 * 500) / (1020 * 720);
+const PHONE_THEATER_RATIO = (326 * 500) / (390 * 844);
 
 /** XL tokens stay 340×488. Painted size is that box times the viewport zoom. */
 function settledBook(sample, surface) {
@@ -242,6 +244,23 @@ function settledBook(sample, surface) {
   if (!(view > 0)) return false;
   const ratio = (sample.pageWidth * pages * sample.pageHeight) / view;
   const target = surface === "phone" ? PHONE_BOOK_RATIO : DESK_BOOK_RATIO;
+  return Math.abs(ratio - target) < 0.04;
+}
+
+/** Theater tokens stay 340×500. Painted size is that box times the theater zoom. */
+function theaterBook(sample, surface) {
+  if (!sample || sample.pageW !== "340px" || sample.pageH !== "500px") return false;
+  const zoom = Number(sample.zoom);
+  if (!(zoom > 0)) return false;
+  if (Math.abs(sample.pageWidth - 340 * zoom) > 3) return false;
+  if (Math.abs(sample.pageHeight - 500 * zoom) > 3) return false;
+  const pages = surface === "phone" ? 1 : 2;
+  if (sample.pages !== pages) return false;
+  if (sample.clamped === "true") return true;
+  const view = Number(sample.vw) * Number(sample.vh);
+  if (!(view > 0)) return false;
+  const ratio = (sample.pageWidth * pages * sample.pageHeight) / view;
+  const target = surface === "phone" ? PHONE_THEATER_RATIO : DESK_THEATER_RATIO;
   return Math.abs(ratio - target) < 0.04;
 }
 
@@ -3401,41 +3420,54 @@ ${E2E_CUE_LOG_FENCE}
         await driver.executeScript(`
           document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]').click();
         `);
-        await driver.wait(async () => {
-          const on = await driver.executeScript(`
-            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
-            const box = root?.querySelector('[data-testid="atomic-reader-page"]');
-            const rect = box?.getBoundingClientRect();
-            const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
-            const chrome = root?.querySelector('[data-testid="atomic-theater-chrome"]');
-            const bar = root?.querySelector(".atomic-reader-bar");
-            const ask = root?.querySelector('[data-testid="atomic-reader-slot-ask"]');
-            const room = root?.querySelector('[data-testid="atomic-theater"]');
-            return {
-              theater: root?.classList.contains("is-theater") === true,
-              xl: root?.classList.contains("sz-xl") === true,
-              size: root?.getAttribute("data-atomic-theater-size") || "",
-              pageWidth: rect ? Math.round(rect.width) : 0,
-              pageHeight: rect ? Math.round(rect.height) : 0,
-              pageHidden: box?.hidden === true,
-              exit: Boolean(exit),
-              exitText: exit?.textContent || "",
-              chrome: Boolean(chrome),
-              chromeOn: root?.classList.contains("is-chrome") === true,
-              room: Boolean(room),
-              barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
-              askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
-            voidColor: root ? getComputedStyle(root).getPropertyValue("--theater-void").trim() : "",
-            air: (() => {
-              const pageTop = rect?.top ?? 0;
-              const chromeBottom = chrome?.getBoundingClientRect().bottom ?? 0;
-              return Math.round(pageTop - chromeBottom);
-            })(),
-            chromeGap: chrome ? getComputedStyle(chrome).gap : "",
-          };
-        `);
-          return on.theater && on.pageWidth === 340 && on.pageHeight === 500;
-        }, 8000);
+        let on = {};
+        try {
+          await driver.wait(async () => {
+            on = await driver.executeScript(`
+              const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+              const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+              const rect = box?.getBoundingClientRect();
+              const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
+              const chrome = root?.querySelector('[data-testid="atomic-theater-chrome"]');
+              const bar = root?.querySelector(".atomic-reader-bar");
+              const ask = root?.querySelector('[data-testid="atomic-reader-slot-ask"]');
+              const room = root?.querySelector('[data-testid="atomic-theater"]');
+              return {
+                theater: root?.classList.contains("is-theater") === true,
+                xl: root?.classList.contains("sz-xl") === true,
+                size: root?.getAttribute("data-atomic-theater-size") || "",
+                pageWidth: rect ? Math.round(rect.width) : 0,
+                pageHeight: rect ? Math.round(rect.height) : 0,
+                pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+                pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+                zoom: root?.getAttribute("data-book-zoom") || "",
+                clamped: root?.getAttribute("data-book-clamped") || "",
+                vw: window.innerWidth,
+                vh: window.innerHeight,
+                pages: root?.querySelectorAll(".atomic-reader-page").length || 0,
+                pageHidden: box?.hidden === true,
+                exit: Boolean(exit),
+                exitText: exit?.textContent || "",
+                chrome: Boolean(chrome),
+                chromeOn: root?.classList.contains("is-chrome") === true,
+                room: Boolean(room),
+                barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
+                askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
+                voidColor: root ? getComputedStyle(root).getPropertyValue("--theater-void").trim() : "",
+                air: (() => {
+                  const pageTop = rect?.top ?? 0;
+                  const chromeBottom = chrome?.getBoundingClientRect().bottom ?? 0;
+                  return Math.round(pageTop - chromeBottom);
+                })(),
+                chromeGap: chrome ? getComputedStyle(chrome).gap : "",
+              };
+            `);
+            return on.theater && theaterBook(on, "desk");
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(on)}`);
+        }
+        assert.equal(theaterBook(on, "desk"), true, JSON.stringify(on));
         const desk = await driver.executeScript(`
           const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
           const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
@@ -3576,18 +3608,25 @@ ${E2E_CUE_LOG_FENCE}
               pageHidden: box?.hidden === true,
               pageWidth: rect ? Math.round(rect.width) : 0,
               pageHeight: rect ? Math.round(rect.height) : 0,
+              pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+              pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+              zoom: root?.getAttribute("data-book-zoom") || "",
+              clamped: root?.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
+              pages: root?.querySelectorAll(".atomic-reader-page").length || 0,
               exitTop: exitRect && rootRect ? Math.round(exitRect.top - rootRect.top) : -1,
               askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
               barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
               text: box?.textContent || "",
             };
           `);
-          return phone.theater && phone.pageHeight === 500 && phone.pageHidden === false;
+          return phone.theater && phone.pageHidden === false && theaterBook(phone, "phone");
         }, 8000);
+        assert.equal(theaterBook(phone, "phone"), true, JSON.stringify(phone));
         assert.equal(phone.phone, true);
         assert.equal(phone.place, "screen");
         assert.equal(phone.pageHidden, false);
-        assert.ok(phone.pageWidth > 200 && phone.pageWidth <= 340, JSON.stringify(phone));
         assert.equal(phone.askHidden, true);
         assert.equal(phone.barHidden, true);
         assert.ok(phone.exitTop >= 40, JSON.stringify(phone));

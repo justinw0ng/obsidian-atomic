@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   DESKTOP_BOOK_VIEWPORT_RATIO,
+  DESKTOP_THEATER_BOOK_VIEWPORT_RATIO,
   PHONE_BOOK_VIEWPORT_RATIO,
+  PHONE_THEATER_BOOK_VIEWPORT_RATIO,
   readerBookScale,
 } from "../src/reader/shell/scale.ts";
 
@@ -67,6 +69,71 @@ test("a phone screen paints the journey card area on the XL page", () => {
   const ratio = pageArea / (390 * 844);
   assert.ok(Math.abs(ratio - PHONE_BOOK_VIEWPORT_RATIO) < 0.002, String(ratio));
   assert.equal(fitted.clamped, false);
+});
+
+test("desktop theater is 25/54 of the design window", () => {
+  assert.equal(DESKTOP_THEATER_BOOK_VIEWPORT_RATIO, (680 * 500) / (1020 * 720));
+  assert.equal(DESKTOP_THEATER_BOOK_VIEWPORT_RATIO, 25 / 54);
+});
+
+test("the design window paints the theater XL pair at zoom 1", () => {
+  const fitted = readerBookScale({
+    surface: "desk",
+    theater: true,
+    viewportWidth: 1020,
+    viewportHeight: 720,
+    fieldWidth: 2000,
+    fieldHeight: 2000,
+  });
+  assert.equal(fitted.scale, 1);
+  assert.equal(fitted.clamped, false);
+});
+
+test("a larger window grows the theater pair to the same share", () => {
+  const fitted = readerBookScale({
+    surface: "desk",
+    theater: true,
+    viewportWidth: 1920,
+    viewportHeight: 1200,
+    fieldWidth: 1800,
+    fieldHeight: 1100,
+  });
+  const pageArea = 680 * fitted.scale * (500 * fitted.scale);
+  const ratio = pageArea / (1920 * 1200);
+  assert.ok(Math.abs(ratio - DESKTOP_THEATER_BOOK_VIEWPORT_RATIO) < 0.002, String(ratio));
+  assert.equal(fitted.clamped, false);
+  assert.ok(fitted.scale > 1.5);
+});
+
+test("phone theater is the mock page share of the phone screen", () => {
+  assert.equal(PHONE_THEATER_BOOK_VIEWPORT_RATIO, (326 * 500) / (390 * 844));
+  const fitted = readerBookScale({
+    surface: "phone",
+    theater: true,
+    viewportWidth: 390,
+    viewportHeight: 844,
+    fieldWidth: 390,
+    fieldHeight: 700,
+  });
+  const pageArea = 340 * fitted.scale * (500 * fitted.scale);
+  const ratio = pageArea / (390 * 844);
+  assert.ok(Math.abs(ratio - PHONE_THEATER_BOOK_VIEWPORT_RATIO) < 0.002, String(ratio));
+  assert.equal(fitted.clamped, false);
+  assert.ok(fitted.scale < 1);
+});
+
+test("a short theater field clamps the taller XL page", () => {
+  const fitted = readerBookScale({
+    surface: "desk",
+    theater: true,
+    viewportWidth: 1920,
+    viewportHeight: 1200,
+    fieldWidth: 700,
+    fieldHeight: 400,
+  });
+  assert.equal(fitted.clamped, true);
+  assert.ok(fitted.scale * 680 <= 700 + 0.001);
+  assert.ok(fitted.scale * 500 <= 400 - 96 + 0.001);
 });
 
 test("a missing viewport stays at zoom 1", () => {

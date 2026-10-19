@@ -3156,10 +3156,6 @@
   zoom: var(--atomic-book-zoom, 1);
 }
 
-.atomic-reader.is-theater .atomic-reader-book {
-  zoom: 1;
-}
-
 .atomic-reader-gutter {
   position: relative;
   width: 112px;
