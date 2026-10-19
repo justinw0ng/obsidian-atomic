@@ -62,7 +62,7 @@ Command palette: **Create today's daily note** and **Create daily note template*
 - Heatmaps filterable with `activity: …`, optional 2×2 grid (`columns`, `rows`, …)
 - Yearly dashboard: one totals row, one row per habit with monthly hour bars, a monthly chart, and recent sessions. Last opens the latest session note, including reading
 - Property dropdowns for Reading `status`, golf `felt`/`location`, gym `location`/`weight_unit`. The select is the property value. `location` also allows Custom…
-- Book shelf: hover pops a book. One click or tap opens the chooser. Choose Open Notes (the default) or Open Book when that title has an EPUB or PDF. A cover image fills the book when its width does not match. On the dashboard, click a recent session row to open that note.
+- Book shelf: hover pops a book. Click or tap the cover and choose Open Notes (the default) or Open Book when that title has an EPUB or PDF. A cover image fills the book when its width does not match. On the dashboard, click a recent session row to open that note.
 
 Settings → Atomic Tracker → Language: English (`en`, default) or Traditional Chinese (`zh-Hant-en`). Traditional Chinese shows one language. A stored activity name such as `🏋️ Gym / 健身` shows `🏋️ Gym` in English and `🏋️ 健身` in Traditional Chinese. The dashboard activity row shows both halves, `Gym` then `健身`, and the color dot stands in for the emoji. Changing language never rewrites existing notes. Saved language is kept on existing installs.
 

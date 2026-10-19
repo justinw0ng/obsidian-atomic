@@ -452,11 +452,24 @@ async function captureBookShelfGif(driver) {
   const dir = frameDir("book-shelf");
   await grabHold(driver, dir, 0, 2, 200);
   const first = await clickShelfBook(driver, OPEN_COVER_TITLE);
-  if (!first.chooser || first.open || !first.notes || !first.bookRow) {
-    throw new Error(`one tap should open the chooser: ${JSON.stringify(first)}`);
+  let nextIndex = 2;
+  if (first.chooser) {
+    if (!first.notes || !first.bookRow) {
+      throw new Error(`chooser is missing Open Notes or Open Book: ${JSON.stringify(first)}`);
+    }
+  } else if (first.open) {
+    await sleep(180);
+    await grabHold(driver, dir, nextIndex, 2, 180);
+    nextIndex += 2;
+    const second = await clickShelfBook(driver, OPEN_COVER_TITLE);
+    if (!second.chooser || !second.notes || !second.bookRow) {
+      throw new Error(`second click should open the chooser: ${JSON.stringify(second)}`);
+    }
+  } else {
+    throw new Error(`click did not open the cover or the chooser: ${JSON.stringify(first)}`);
   }
   await sleep(200);
-  await grabHold(driver, dir, 2, 3, 200);
+  await grabHold(driver, dir, nextIndex, 3, 200);
   assembleGif(dir, OUTPUTS.bookShelf, { durationMs: 280, holdFirst: 1, holdLast: 2 });
 }
 

@@ -5382,23 +5382,26 @@ function resolveCoverSrc(cover, data, sourcePath) {
   if (ref.kind === "url") return ref.src;
   return data.resolveResourcePath(ref.path, sourcePath);
 }
+var COVER_OPEN_CLASS = "is-cover-open";
 function hoverFinePointer(media) {
   return Boolean(media?.matches);
 }
 function bookClickOpensNote(options) {
-  switch (options.hoverFine) {
-    case true:
-    case false:
-      return true;
-    default: {
-      const never = options.hoverFine;
-      return never;
-    }
-  }
+  if (options.coverOpen) return true;
+  return Boolean(options.hoverFine && options.reducedMotion);
 }
 function hoverFineMedia() {
   if (typeof window.matchMedia !== "function") return null;
   return window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)");
+}
+function prefersReducedMotion3() {
+  if (typeof window.matchMedia !== "function") return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function closeOpenCovers(root) {
+  root.querySelectorAll(`.atomic-book.${COVER_OPEN_CLASS}`).forEach((el) => {
+    el.classList.remove(COVER_OPEN_CLASS);
+  });
 }
 function shelfSummary(items, language) {
   const reading = items.filter((item) => item.status === "reading").length;
@@ -5409,13 +5412,15 @@ function shelfSummary(items, language) {
     finished
   });
 }
-function showBookReadout(readout, item, language) {
+function showBookReadout(readout, item, language, mode, hoverFine = false) {
   readout.empty();
   readout.createSpan({ cls: "atomic-shelf-readout-title", text: item.title });
   const meta = [item.authors[0] || item.status, item.status].filter(Boolean);
   readout.createSpan({ cls: "atomic-shelf-readout-meta", text: meta.join(" \xB7 ") });
-  const hint = readout.createDiv({ cls: "atomic-readout" });
-  hint.setText(t("view.bookShelf.clickToOpen", language));
+  const again = mode === "again";
+  const hint = readout.createDiv({ cls: again ? "atomic-readout is-live" : "atomic-readout" });
+  const key = !again ? "view.bookShelf.clickToOpen" : hoverFine ? "view.bookShelf.clickAgain" : "view.bookShelf.tapAgain";
+  hint.setText(t(key, language));
 }
 function titleLengthClass(title) {
   const length = title.trim().length;
@@ -5473,17 +5478,31 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
   });
   button2.addEventListener("pointerenter", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
-    showBookReadout(readout, item, language);
+    showBookReadout(readout, item, language, "preview");
   });
   button2.addEventListener("pointerleave", () => {
     if (!hoverFinePointer(hoverFineMedia())) return;
+    button2.classList.remove(COVER_OPEN_CLASS);
     const summary = readout.dataset.shelfSummary;
     if (summary) readout.setText(summary);
   });
   button2.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!bookClickOpensNote({ hoverFine: hoverFinePointer(hoverFineMedia()) })) return;
+    const hoverFine = hoverFinePointer(hoverFineMedia());
+    const coverOpen = button2.classList.contains(COVER_OPEN_CLASS);
+    if (!bookClickOpensNote({
+      hoverFine,
+      coverOpen,
+      reducedMotion: prefersReducedMotion3()
+    })) {
+      const shelf = parent.closest(".atomic-book-shelf") ?? parent;
+      closeOpenCovers(shelf);
+      button2.classList.add(COVER_OPEN_CLASS);
+      showBookReadout(readout, item, language, "again", hoverFine);
+      return;
+    }
+    button2.classList.remove(COVER_OPEN_CLASS);
     const rect = button2.getBoundingClientRect();
     presentBookChooser({
       notePath: item.path,
@@ -12323,7 +12342,7 @@ function registerOpenBookFlight(openDirect) {
 async function playOpenBookFlight(openDirect, request) {
   const view = openBookFlightView();
   if (!view) return false;
-  if (prefersReducedMotion3(view)) abortOpenBookFlight(view);
+  if (prefersReducedMotion4(view)) abortOpenBookFlight(view);
   await openDirect(request);
   const destination = await waitForLiveReader(view);
   if (destination) {
@@ -12351,7 +12370,7 @@ function positivePage(value) {
   if (!Number.isFinite(page) || page < 1) return null;
   return Math.trunc(page);
 }
-function prefersReducedMotion3(view) {
+function prefersReducedMotion4(view) {
   if (typeof view.matchMedia !== "function") return false;
   return view.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -14538,7 +14557,7 @@ function linkedFile(plugin, notePath, title) {
     files: bookFiles(plugin)
   });
 }
-function prefersReducedMotion4() {
+function prefersReducedMotion5() {
   return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 async function savedReaderPage(plugin, notePath) {
@@ -14576,7 +14595,7 @@ async function openLinkedBook(plugin, request) {
   const page = request.page ?? await savedReaderPage(plugin, request.notePath);
   const opening = { ...request, page };
   const plan = readerOpenPlan({
-    reducedMotion: prefersReducedMotion4(),
+    reducedMotion: prefersReducedMotion5(),
     hasFlight: Boolean(readerMounts().flight)
   });
   if (plan === "flight") {

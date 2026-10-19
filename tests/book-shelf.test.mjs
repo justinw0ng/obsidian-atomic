@@ -206,9 +206,15 @@ test("resolveCoverSrc uses URLs directly and vault resolver for paths", () => {
   );
 });
 
-test("bookClickOpensNote opens the chooser on the first tap", () => {
-  assert.equal(bookClickOpensNote({ hoverFine: true }), true);
-  assert.equal(bookClickOpensNote({ hoverFine: false }), true);
+test("bookClickOpensNote opens the cover before the note on a fine pointer", () => {
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: false }), false);
+  assert.equal(bookClickOpensNote({ hoverFine: true, coverOpen: true }), true);
+  assert.equal(
+    bookClickOpensNote({ hoverFine: true, coverOpen: false, reducedMotion: true }),
+    true,
+  );
+  assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: false }), false);
+  assert.equal(bookClickOpensNote({ hoverFine: false, coverOpen: true }), true);
 });
 
 test("hoverFinePointer follows the hover+fine media query", () => {

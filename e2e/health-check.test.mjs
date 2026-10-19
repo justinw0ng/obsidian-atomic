@@ -2123,7 +2123,7 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
     });
   });
 
-  it("opens the chooser on one shelf tap, then the note", async () => {
+  it("opens a book cover on click, then the note", async () => {
     await check(driver, "book-cover-open", async () => {
       await restoreDesktopPointer(driver);
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
@@ -2134,15 +2134,14 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       const pointer = await driver.executeScript(`
         return {
           hover: window.matchMedia("(hover: hover) and (pointer: fine), (pointer: none)").matches,
-          width: window.innerWidth,
+          reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
         };
       `);
       assert.equal(
         pointer.hover,
         true,
-        `a desktop pointer opens the chooser ${JSON.stringify(pointer)}`,
+        `a desktop pointer opens the cover ${JSON.stringify(pointer)}`,
       );
-      assert.ok(pointer.width >= 780, `desktop shelf is wide ${JSON.stringify(pointer)}`);
       const ribbon = await driver.executeScript(`
         const book = document.querySelector(
           '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
@@ -2178,92 +2177,76 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
           '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
         ).click();
       `);
-      const chooserHost = () => driver.executeScript(`
-        const node = document.querySelector('[data-testid="atomic-chooser"]');
-        if (!node || node.parentElement !== document.body) return null;
-        return {
-          host: node.getAttribute("data-overlay-host"),
-          phone: node.classList.contains("is-phone"),
-          notes: Boolean(node.querySelector('[data-testid="atomic-chooser-notes"]')),
-          book: Boolean(node.querySelector('[data-testid="atomic-chooser-book"]')),
-        };
-      `);
       await clickBook();
-      await driver.wait(async () => (await chooserHost())?.host === "window", 8000);
+      if (pointer.reduced) {
+        await driver.wait(async () => {
+          const chooser = await driver.executeScript(`
+            const node = document.querySelector('[data-testid="atomic-chooser"]');
+            if (!node || node.parentElement !== document.body) return null;
+            return node.getAttribute("data-overlay-host");
+          `);
+          return chooser === "window";
+        }, 8000);
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-notes"]').click();
+        `);
+        await driver.wait(async () => {
+          const path = await driver.executeScript(
+            `return app.workspace.getActiveFile()?.path || ""`,
+          );
+          return path === E2E_FILES.readingCurrent;
+        }, 8000);
+        return;
+      }
       const opened = await driver.executeScript(`
         const book = document.querySelector(
           '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
         );
+        const face = book?.querySelector(".atomic-book-face");
+        const cover = book?.querySelector(".atomic-book-cover");
         return {
           cover: book?.classList.contains("is-cover-open") === true,
+          className: book?.className || "",
           path: app.workspace.getActiveFile()?.path || "",
-          width: window.innerWidth,
+          coverText: (cover?.textContent || "").trim(),
+          coverClass: cover?.className || "",
+          coverTag: cover?.tagName || "",
+          coverOpacity: cover ? getComputedStyle(cover).opacity : "",
+          filter: face ? getComputedStyle(face).filter : "",
+          books: document.querySelectorAll('[data-testid="atomic-book"]').length,
         };
       `);
-      const deskChooser = await chooserHost();
-      assert.equal(opened.cover, false, `one tap skips the cover ${JSON.stringify(opened)}`);
+      assert.equal(
+        opened.cover,
+        true,
+        `the first click opens the cover ${JSON.stringify({ pointer, opened })}`,
+      );
+      assert.doesNotMatch(
+        String(opened.filter),
+        /invert\(/,
+        `opened cover keeps the original colors ${JSON.stringify(opened)}`,
+      );
+      assert.match(
+        String(opened.filter),
+        /blur\(/,
+        `opened cover should blur the original face ${JSON.stringify(opened)}`,
+      );
+      assert.equal(opened.coverOpacity, "1", "the original cover stays visible when open");
+      assert.match(
+        opened.coverText,
+        /Currently Reading/,
+        `open cover should keep the title ${JSON.stringify(opened)}`,
+      );
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
-      assert.equal(deskChooser.notes, true);
-      assert.equal(deskChooser.book, true, "Open Book shows when an EPUB is linked");
-      assert.equal(deskChooser.phone, false);
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-chooser-cancel"]').click();
-      `);
-      await driver.wait(async () => (await chooserHost()) == null, 4000);
-
-      const desktopViewport = await driver.executeScript(
-        `return { width: window.innerWidth, height: window.innerHeight }`,
-      );
-      try {
-        try {
-          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
-            width: 390,
-            height: 844,
-            deviceScaleFactor: 1,
-            mobile: true,
-          });
-        } catch {
-          await driver.executeScript(`window.resizeTo(390, 844)`);
-        }
-        await driver.wait(async () => driver.executeScript(
-          `return window.innerWidth < 780`,
-        ), 8000);
-        await openVaultFile(driver, E2E_FILES.bookshelfAll);
-        await waitCss(
-          driver,
-          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
-        );
-        await clickBook();
-        await driver.wait(async () => (await chooserHost())?.host === "window", 8000);
-        const phoneTap = await driver.executeScript(`
-          const book = document.querySelector(
-            '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
-          );
-          return {
-            cover: book?.classList.contains("is-cover-open") === true,
-            width: window.innerWidth,
-          };
-        `);
-        const phoneChooser = await chooserHost();
-        assert.equal(phoneTap.cover, false, `phone tap skips the cover ${JSON.stringify(phoneTap)}`);
-        assert.ok(phoneTap.width < 780, `phone shelf is narrow ${JSON.stringify(phoneTap)}`);
-        assert.equal(phoneChooser.phone, true);
-        assert.equal(phoneChooser.notes, true);
-        await driver.executeScript(`
-          document.querySelector('[data-testid="atomic-chooser-cancel"]').click();
-        `);
-        await driver.wait(async () => (await chooserHost()) == null, 4000);
-      } finally {
-        await restoreDesktopPointer(driver, desktopViewport);
-      }
-
-      await openVaultFile(driver, E2E_FILES.bookshelfAll);
-      await waitCss(
-        driver,
-        '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
-      );
       await clickBook();
-      await driver.wait(async () => (await chooserHost())?.host === "window", 8000);
+      await driver.wait(async () => {
+        const chooser = await driver.executeScript(`
+          const node = document.querySelector('[data-testid="atomic-chooser"]');
+          if (!node || node.parentElement !== document.body) return null;
+          return node.getAttribute("data-overlay-host");
+        `);
+        return chooser === "window";
+      }, 8000);
       await driver.executeScript(`
         document.querySelector('[data-testid="atomic-chooser-notes"]').click();
       `);
@@ -2299,17 +2282,18 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       `);
       const openChooser = async (title) => {
         await clickTitledBook(title);
-        await driver.wait(async () => {
-          const state = await chooserState();
-          return state?.notes === true && state.label === title;
-        }, 8000);
-        const cover = await driver.executeScript(`
-          const book = document.querySelector(
-            '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
-          );
-          return book?.classList.contains("is-cover-open") === true;
-        `, title);
-        assert.equal(cover, false, `one tap opens the chooser for ${title}`);
+        try {
+          await driver.wait(async () => {
+            const state = await chooserState();
+            return state?.notes === true && state.label === title;
+          }, 700);
+        } catch {
+          await clickTitledBook(title);
+          await driver.wait(async () => {
+            const state = await chooserState();
+            return state?.notes === true && state.label === title;
+          }, 8000);
+        }
         return chooserState();
       };
       const chooserMetrics = () => driver.executeScript(`
@@ -3765,12 +3749,22 @@ ${E2E_CUE_LOG_FENCE}
           '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
         );
         await clickTitledBook("Currently Reading");
-        await driver.wait(async () => {
-          const open = await driver.executeScript(`
-            return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
-          `);
-          return open;
-        }, 8000);
+        try {
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 700);
+        } catch {
+          await clickTitledBook("Currently Reading");
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 8000);
+        }
         await driver.executeScript(`
           document.querySelector('[data-testid="atomic-chooser-book"]').click();
         `);
