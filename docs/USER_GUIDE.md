@@ -3,8 +3,9 @@
 1. Open today’s note.
 2. Log the session from the blocks on that note.
 3. Read the cue cards and the book shelf that day produced.
+4. Open a book from the shelf when you want to read the file.
 
-Atomic Tracker records gym, golf, and reading in your Obsidian vault. Everything stays as markdown. Nothing is sent over the network.
+Atomic Tracker records gym, golf, and reading in your Obsidian vault. Everything stays as markdown. Habit tracking stays on this computer. Ask sends only the passage you choose, with your own key.
 
 ---
 
@@ -143,7 +144,7 @@ On a gym session, a golf session, or a reading item, some properties are a dropd
 2. On the book note, press **Start**.
 3. Press **Stop**. Stop asks for a short note. **Discard** drops the run.
 
-Those minutes fill the reading heatmap. The idle well shows the saved total.
+Those minutes fill the reading heatmap. The idle well shows the saved total. Open Book starts this timer. It stops when the book is not the front note, or when you close the book. Start on the note still counts time you spend writing.
 
 Open Book reads the file at one page size, XL (22 lines). The type stays Literata. There is no S·M·L·XL control and no size shortcut. A stored `reader.size` value is ignored. Theater uses that same XL page and leaves with Exit or Esc.
 
@@ -166,14 +167,41 @@ On a narrow pane the list shows four lines of each cue. The first line sits on t
 The shelf on today’s note is your books.
 
 1. Hover a cover. The book pops up. The line under the shelf names the book.
-2. Click the cover. The cover opens.
-3. Click the book again to open the note.
+2. Click the cover, or tap it on a phone. A chooser opens.
+3. **Open Notes** is the default. Press Enter, or choose it, to open the book note. There is no theater.
+4. **Open Book** is listed only when that title has an EPUB or PDF. Choose it to read the file.
 
-On a phone, tap once to lift the book. Tap again to open the note.
+Cancel closes the chooser. A title with no file has no Open Book row.
 
 A cover you add fills the book. If the picture is wider or narrower than the book, it scales until the book face is full.
 
 ![Book shelf](./images/atomic-book-shelf.gif)
+
+---
+
+## Read a book
+
+Open Book stays on the same note. The cover opens in place. The pages turn, then the view zooms out onto the settled reader. The last frame is that reader. Reduced motion is a crossfade.
+
+![Open book](./images/atomic-reader.gif)
+
+Theater follows the app theme. Light mode uses a linen room. Dark mode uses a museum room. The page stays XL, and it is 500px tall. The control is **Exit**. It fades after 2 seconds. Move the pointer, or tap, and it comes back. **Exit** or Esc leaves theater.
+
+On a phone the page is a card, and Exit sits at the top of the theater frame.
+
+![Theater](./images/atomic-reader-theater.gif)
+
+The page is fixed at XL (22 lines). There is no size control and no shortcut. There is no S·M·L·XL choice. The type stays Literata.
+
+Ask is titled **Ask · BYO key**. The key stays in Obsidian SecretStorage. That needs Obsidian 1.11.4 or newer. The key is not written into `data.json`. Settings store the provider, the model, and the secret’s name only. The key stays on this device, so a synced vault does not bring the key with it. On an older Obsidian, Ask is off and settings tell you to update. Read, highlight, and remark still work. On a phone the thread fills the screen.
+
+![Ask](./images/atomic-reader-ask.gif)
+
+Each book has one `.canvas`, opened in Obsidian’s canvas view. The book note stores that path as `related_canvas`. The board is Opening, Quote, Ask thread, Characters, and Themes. The first highlight, remark, or Ask adds a card on that board. A book note with no canvas is still valid.
+
+![Book canvas](./images/atomic-reader-canvas.gif)
+
+Pages are set in Literata. On a computer that is 12.5px type on 19px lines. On a phone it is 15px type on 23px lines.
 
 ---
 
@@ -190,5 +218,6 @@ A cover you add fills the book. If the picture is wider or narrower than the boo
 
 ## Privacy
 
-- All data stays in your vault as markdown.
+- Sessions, cues, and book notes stay in your vault as markdown.
 - The plugin does not call home. An `http(s):` book `cover` URL is loaded by Obsidian like any other remote image in a note.
+- Ask sends the passage you choose to the provider you pick. The key stays in Obsidian SecretStorage on this device. It is not stored in `data.json`, the book note, or the canvas.

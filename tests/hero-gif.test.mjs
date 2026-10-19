@@ -18,8 +18,28 @@ function gifSize(buffer) {
 
 test("README embeds the animated hero GIF", () => {
   const readme = readFileSync(join(root, "README.md"), "utf8");
-  assert.match(readme, /docs\/images\/atomic-daily-hero\.gif/);
+  assert.match(readme, /docs\/images\/atomic-reader-hero\.gif/);
   assert.doesNotMatch(readme, /docs\/images\/atomic-daily-hero\.png/);
+  assert.doesNotMatch(readme, /docs\/images\/atomic-reader-hero\.gif[\s\S]*docs\/images\/atomic-reader-hero\.gif/);
+});
+
+test("reader hero still is 1600x900 in the same banner chrome", () => {
+  const readme = readFileSync(join(root, "README.md"), "utf8");
+  assert.match(readme, /docs\/images\/atomic-reader-hero\.png/);
+  const png = readFileSync(join(root, "docs/images/atomic-reader-hero.png"));
+  assert.equal(png.readUInt32BE(16), 1600);
+  assert.equal(png.readUInt32BE(20), 900);
+});
+
+test("reader hero GIF is a 1600x900 looping banner", () => {
+  const path = join(root, "docs/images/atomic-reader-hero.gif");
+  assert.equal(existsSync(path), true);
+  const gif = readFileSync(path);
+  const { width, height } = gifSize(gif);
+  assert.equal(width, 1600);
+  assert.equal(height, 900);
+  assert.ok(gif.length > 50_000, `gif too small: ${gif.length}`);
+  assert.ok(gif.length < 5_000_000, `gif too large: ${gif.length}`);
 });
 
 test("hero GIF is 1600x900 and a small looping animation", () => {
