@@ -33,6 +33,8 @@ export function registerOpenBookFlight(openDirect: OpenBookDirectOpen): void {
 
 /**
  * Opens the live reader, then plays the flight on that leaf.
+ * The flight uses the painted reader: a phone column opens as one page,
+ * a desktop spread opens from the gutter. Window width is not the layout.
  * Reduced motion crossfades. No tap window returns false so the shell opens directly.
  */
 export async function playOpenBookFlight(
@@ -53,9 +55,15 @@ export async function playOpenBookFlight(
       },
       page: { page: settledPage(destination, request.page), left: [], right: [] },
       destination,
+      layout: flightLayoutForReader(destination),
     });
   }
   return true;
+}
+
+/** Match the reader that is already on screen, so the last frame shares its edges. */
+function flightLayoutForReader(root: HTMLElement): "phone" | "desktop" {
+  return root.classList.contains("is-phone") ? "phone" : "desktop";
 }
 
 function settledPage(root: HTMLElement, fallback: number | undefined): number {

@@ -12355,10 +12355,14 @@ async function playOpenBookFlight(openDirect, request) {
         title: request.title
       },
       page: { page: settledPage(destination, request.page), left: [], right: [] },
-      destination
+      destination,
+      layout: flightLayoutForReader(destination)
     });
   }
   return true;
+}
+function flightLayoutForReader(root) {
+  return root.classList.contains("is-phone") ? "phone" : "desktop";
 }
 function settledPage(root, fallback) {
   const marked = positivePage(root.getAttribute("data-page"));

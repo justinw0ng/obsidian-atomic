@@ -389,6 +389,45 @@ test("registered flight lands on the live reader page", async () => {
   }
 });
 
+test("a phone reader opens as one page even when the window is wide", async () => {
+  const tap = makeHost();
+  tap.view.innerWidth = 1020;
+  tap.destination.className = "atomic-reader is-phone";
+  tap.destination.setAttribute("data-testid", "atomic-reader");
+  tap.verso.remove();
+  tap.recto.className = "atomic-reader-page is-recto";
+  tap.recto.setRect(80, 120, 350, 520);
+  paint(tap.recto, ["One column on a wide window."], 1);
+  globalThis.activeWindow = tap.view;
+  globalThis.activeDocument = tap.doc;
+  try {
+    const handled = await playOpenBookFlight(async () => {}, {
+      notePath: "notes/book.md",
+      filePath: "notes/book.epub",
+      title: "Harbor Notes",
+      kind: "epub",
+      returnPath: "notes/shelf.md",
+      coverRect: { x: 100, y: 400, width: 64, height: 96, color: "#3d2a1c" },
+    });
+    assert.equal(handled, true);
+    const overlay = tap.destination.querySelector("[data-testid='atomic-open-flight']");
+    assert.equal(overlay.classList.contains("is-phone"), true);
+    assert.equal(overlay.classList.contains("is-desktop"), false);
+    assert.equal(overlay.getAttribute("data-open"), "page");
+    assert.equal(overlay.getAttribute("data-motion"), "phone");
+    const right = [...overlay.querySelectorAll(".atomic-flight-sheet")].find((sheet) =>
+      sheet.classList.contains("is-right"),
+    );
+    assert.equal(right.style.getPropertyValue("left"), "0px");
+    assert.equal(right.style.getPropertyValue("width"), "350px");
+    assert.equal(right.style.getPropertyValue("height"), "520px");
+  } finally {
+    delete globalThis.activeWindow;
+    delete globalThis.activeDocument;
+    resetReaderMounts();
+  }
+});
+
 test("registered flight lands on the active leaf, not a hidden reader", async () => {
   const tap = makeHost({ rects: false });
   const hiddenLeaf = tap.doc.createElement("div");
