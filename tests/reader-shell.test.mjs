@@ -245,6 +245,10 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.equal(phoneFeet.length, 1);
   assert.match(phoneFeet[0], /background:\s*var\(--background-primary\)/);
   assert.doesNotMatch(block, /column-gap|clip-path|!important/);
+  assert.doesNotMatch(
+    block,
+    /\.atomic-reader-bar \[data-reader-slot="theater"\] \{[^}]*width:\s*1px/s,
+  );
 });
 
 test("reader open reads the saved page before the settled paint", () => {

@@ -3128,13 +3128,6 @@
   flex: none;
 }
 
-.atomic-reader-bar [data-reader-slot="theater"] {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-}
-
 .atomic-reader-spread {
   position: relative;
   display: flex;
