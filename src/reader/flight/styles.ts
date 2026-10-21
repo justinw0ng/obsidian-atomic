@@ -17,8 +17,10 @@ import {
  * edge bends first, the spine follows, and the ribs land flat. A quire shows
  * the page block. The camera stays at the settled page, so the land does not
  * shrink or grow. Phone opens that one page from its spine. Desktop opens
- * from the gutter between the two pages. The snapshot drops out onto that
- * same reader, already on that page. Reduced motion is a crossfade, not this flight.
+ * from the gutter between the two pages. The gutter and the left quire
+ * fade out before the land, so the last frame's center line is the page
+ * hairline. The snapshot drops out onto that same reader, already on that
+ * page. Reduced motion is a crossfade, not this flight.
  * 1.5.0 tokens. No black stage. No purple.
  */
 export const OPEN_BOOK_FLIGHT_CSS = `
@@ -457,7 +459,8 @@ ${bendFrames()}
 }
 @keyframes atomic-flight-quire-left {
   0%, 22% { transform: scaleX(0.15); opacity: 0; }
-  58%, 100% { transform: scaleX(1); opacity: 1; }
+  58%, 70% { transform: scaleX(1); opacity: 1; }
+  82%, 100% { transform: scaleX(1); opacity: 0; }
 }
 @keyframes atomic-flight-sheet-left {
   0%, 14% { opacity: 0; }
@@ -465,7 +468,8 @@ ${bendFrames()}
 }
 @keyframes atomic-flight-gutter {
   0%, 18% { opacity: 0; }
-  30%, 100% { opacity: 1; }
+  30%, 70% { opacity: 1; }
+  82%, 100% { opacity: 0; }
 }
 @keyframes atomic-flight-hint {
   0%, 68% { opacity: 1; }

@@ -246,6 +246,14 @@ test("flight sheet matches the mock timing and 1.5.0 tokens", () => {
   assert.match(css, /atomic-flight-contact/);
   assert.match(css, /atomic-flight-quire/);
   assert.match(css, /atomic-flight-gutter/);
+  const quireLeft = css.match(/@keyframes atomic-flight-quire-left \{[\s\S]*?\n\}/);
+  const gutter = css.match(/@keyframes atomic-flight-gutter \{[\s\S]*?\n\}/);
+  assert.ok(quireLeft);
+  assert.ok(gutter);
+  assert.match(quireLeft[0], /58%, 70% \{ transform: scaleX\(1\); opacity: 1; \}/);
+  assert.match(quireLeft[0], /82%, 100% \{ transform: scaleX\(1\); opacity: 0; \}/);
+  assert.match(gutter[0], /30%, 70% \{ opacity: 1; \}/);
+  assert.match(gutter[0], /82%, 100% \{ opacity: 0; \}/);
   assert.match(css, /atomic-flight-veil/);
   assert.doesNotMatch(css, /!important/);
   assert.doesNotMatch(css, /:has\(/);

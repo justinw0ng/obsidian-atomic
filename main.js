@@ -11767,7 +11767,8 @@ ${bendFrames()}
 }
 @keyframes atomic-flight-quire-left {
   0%, 22% { transform: scaleX(0.15); opacity: 0; }
-  58%, 100% { transform: scaleX(1); opacity: 1; }
+  58%, 70% { transform: scaleX(1); opacity: 1; }
+  82%, 100% { transform: scaleX(1); opacity: 0; }
 }
 @keyframes atomic-flight-sheet-left {
   0%, 14% { opacity: 0; }
@@ -11775,7 +11776,8 @@ ${bendFrames()}
 }
 @keyframes atomic-flight-gutter {
   0%, 18% { opacity: 0; }
-  30%, 100% { opacity: 1; }
+  30%, 70% { opacity: 1; }
+  82%, 100% { opacity: 0; }
 }
 @keyframes atomic-flight-hint {
   0%, 68% { opacity: 1; }
