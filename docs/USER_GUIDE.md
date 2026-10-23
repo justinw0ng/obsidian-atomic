@@ -181,7 +181,7 @@ A cover you add fills the book. If the picture is wider or narrower than the boo
 
 ## Read a book
 
-Open Book stays on the same note. The cover opens in place. On a computer the pages open from the gutter onto the settled spread. On a phone one page opens. The flight lands on that XL page. The last frame is the settled reader. Reduced motion is a crossfade.
+Open Book stays on the same note and opens the settled Reading View. A computer shows the spread. A phone shows one page when the settled reader is one column. There is no open animation.
 
 ![Open book](./images/atomic-reader.gif)
 

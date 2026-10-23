@@ -119,14 +119,14 @@ export function canTurnPage(page: number, total: number, direction: -1 | 1): boo
 }
 
 /**
- * Flight plays when a module registered.
- * Reduced motion still uses that module. The module crossfades instead of flying.
+ * Open Book goes straight to the settled reader.
+ * Motion and a registered flight do not play an overlay.
  */
 export function readerOpenPlan(input: {
   reducedMotion: boolean;
   hasFlight: boolean;
-}): "flight" | "direct" {
+}): "direct" {
   void input.reducedMotion;
-  if (!input.hasFlight) return "direct";
-  return "flight";
+  void input.hasFlight;
+  return "direct";
 }

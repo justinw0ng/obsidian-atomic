@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { e2eReadingEpubBytes } from "../e2e/lib/vault.mjs";
@@ -89,9 +89,10 @@ test("reader progress, spread turns, and phone width follow the settled layout",
   assert.deepEqual({ w: medium.w, h: medium.h }, { w: 270, h: 340 });
   assert.equal(readerPageBox("xl").w, 340);
   assert.equal(readerPageBox("xl").h, 488);
-  assert.equal(readerOpenPlan({ reducedMotion: true, hasFlight: true }), "flight");
+  assert.equal(readerOpenPlan({ reducedMotion: true, hasFlight: true }), "direct");
   assert.equal(readerOpenPlan({ reducedMotion: false, hasFlight: false }), "direct");
-  assert.equal(readerOpenPlan({ reducedMotion: false, hasFlight: true }), "flight");
+  assert.equal(readerOpenPlan({ reducedMotion: false, hasFlight: true }), "direct");
+  assert.equal(readerOpenPlan({ reducedMotion: true, hasFlight: false }), "direct");
 });
 
 test("reader frontmatter keeps size and writes the last-read page", () => {
@@ -275,12 +276,21 @@ test("phone footer uses the same full bar as the settled reader", () => {
   assert.doesNotMatch(foot, /pageMark|totalMark/);
 });
 
-test("flight registration does not own the shell folders", () => {
+test("open book does not mount a flight", () => {
+  const open = readFileSync(join(root, "src/reader/shell/open.ts"), "utf8");
+  const main = readFileSync(join(root, "src/main.ts"), "utf8");
+  const view = readFileSync(join(root, "src/reader/shell/view.ts"), "utf8");
+  assert.equal(existsSync(join(root, "src/reader/flight")), false);
+  assert.deepEqual(readdirSync(join(root, "src/reader")).sort(), ["ask", "shell", "size", "theater"]);
+  assert.doesNotMatch(open, /mountOpenBookFlight|playOpenBookFlight|atomic-open-flight|readerOpenPlan/);
+  assert.doesNotMatch(main, /registerOpenBookFlight|reader\/flight/);
+  assert.doesNotMatch(view, /atomic-open-flight|atomic-flight-done|phoneAfterFlight/);
   resetReaderMounts();
   registerReaderFlight({
     open() {
-      return false;
+      return true;
     },
   });
+  assert.equal(readerOpenPlan({ reducedMotion: false, hasFlight: true }), "direct");
   resetReaderMounts();
 });

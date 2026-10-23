@@ -125,7 +125,6 @@ export class AtomicReaderView extends ItemView {
   private observed = false;
   private keys = false;
   private theaterWanted = false;
-  private phoneAfterFlight: boolean | null = null;
 
   constructor(
     leaf: WorkspaceLeaf,
@@ -192,34 +191,15 @@ export class AtomicReaderView extends ItemView {
     this.observed = true;
     const observer = new ResizeObserver(() => {
       const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-      const flying = Boolean(this.contentEl.querySelector("[data-testid='atomic-open-flight']"));
       if (phone !== this.phone) {
-        if (flying) {
-          this.phoneAfterFlight = phone;
-          return;
-        }
         this.phone = phone;
         this.paint();
         return;
       }
-      if (flying) return;
       this.fitBook();
     });
     observer.observe(this.contentEl);
     this.register(() => observer.disconnect());
-    const onFlightDone = (): void => {
-      const phone = this.phoneAfterFlight;
-      this.phoneAfterFlight = null;
-      if (phone != null && phone !== this.phone) {
-        if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
-        this.phone = phone;
-        this.paint();
-        return;
-      }
-      this.fitBook();
-    };
-    this.contentEl.addEventListener("atomic-flight-done", onFlightDone);
-    this.register(() => this.contentEl.removeEventListener("atomic-flight-done", onFlightDone));
   }
 
   private ensureKeys(): void {

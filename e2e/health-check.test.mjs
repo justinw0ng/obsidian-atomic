@@ -3039,8 +3039,8 @@ ${E2E_CUE_LOG_FENCE}
     });
   });
 
-  it("flies Open Book onto the live reader page", async () => {
-    await check(driver, "open-book-flight", async () => {
+  it("opens the settled reader without a flight", async () => {
+    await check(driver, "open-book-direct", async () => {
       const clickTitledBook = (title) => driver.executeScript(`
         document.querySelector(
           '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
@@ -3058,57 +3058,38 @@ ${E2E_CUE_LOG_FENCE}
           await driver.wait(async () => (await chooserTitle()) === title, 8000);
         }
       };
-      const flightReport = () => driver.executeScript(`
+      const readerReport = () => driver.executeScript(`
         const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
         const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
         const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
           || readers.find((el) => el.getBoundingClientRect().width > 0)
           || readers[0]
           || null;
-        if (!overlay || !reader) return null;
-        const camera = overlay.querySelector('[data-testid="atomic-flight-camera"]');
-        const snapshot = overlay.querySelector('[data-testid="atomic-flight-snapshot"]');
-        const from = camera?.style.getPropertyValue("--flight-from") || "";
-        if (!camera || !snapshot || !from) return null;
-        const textOf = (node) => (node?.textContent || "").replace(/\\s+/g, " ").trim();
-        const pageText = (root, skipFlight) => [...root.querySelectorAll(".atomic-reader-page, .atomic-page")]
-          .filter((el) => !skipFlight || !el.closest(".atomic-open-flight"))
-          .map((el) => textOf(el))
-          .join("\\n");
-        const line = reader.querySelector(".atomic-reader-page p")?.textContent || "";
+        const text = reader?.innerText || "";
         return {
-          host: overlay.getAttribute("data-overlay-host") || "",
-          zoom: overlay.getAttribute("data-zoom") || "",
-          onBody: overlay.parentElement === document.body,
-          insideReader: reader.contains(overlay),
-          from,
-          page: overlay.getAttribute("data-page") || "",
-          readerPage: reader.getAttribute("data-page") || "",
-          settled: reader.getAttribute("data-settled") || "",
-          line,
-          snapPages: pageText(snapshot, false),
-          livePages: pageText(reader, true),
-          background: getComputedStyle(overlay).backgroundColor,
-          book: Boolean(overlay.querySelector('[data-testid="atomic-open-book"]')),
-          ribs: overlay.querySelectorAll(".atomic-flight-rib").length,
-          contacts: overlay.querySelectorAll(".atomic-flight-contact").length,
-          quires: overlay.querySelectorAll(".atomic-flight-quire").length,
-          gutter: Boolean(overlay.querySelector(".atomic-flight-gutter")),
-          coverEdge: Boolean(overlay.querySelector(".atomic-flight-cover-edge")),
+          overlay: Boolean(overlay),
+          readers: readers.length,
+          chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
+          total: reader?.getAttribute("data-total") || "",
+          page: reader?.getAttribute("data-page") || "",
+          settled: reader?.getAttribute("data-settled") || "",
+          mount: reader?.getAttribute("data-reader-mount") || "",
+          pages: reader ? reader.querySelectorAll(".atomic-reader-page").length : 0,
+          buoy: /last buoy/.test(text),
+          harbor: /Harbor light/.test(text),
         };
       `);
+      const settledReader = (state) => state
+        && state.overlay === false
+        && state.chooser === false
+        && state.total === "3"
+        && state.mount === "shell"
+        && state.page === "3"
+        && state.settled === "true"
+        && state.buoy
+        && state.harbor === false
+        && state.pages >= 1;
 
-      try {
-        await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
-          features: [
-            { name: "hover", value: "hover" },
-            { name: "pointer", value: "fine" },
-            { name: "prefers-reduced-motion", value: "no-preference" },
-          ],
-        });
-      } catch {
-        // Older DevTools builds omit emulated media features.
-      }
       await openVaultFile(driver, E2E_FILES.bookshelfAll);
       await waitCss(
         driver,
@@ -3135,147 +3116,25 @@ ${E2E_CUE_LOG_FENCE}
         if (!/page\s*:\s*10/.test(check)) throw new Error(check.slice(0, 500));
       }, E2E_FILES.readingCurrent);
       await openChooser("Currently Reading");
-      const clicked = await driver.executeScript(`
-        const choosers = [...document.querySelectorAll('[data-testid="atomic-chooser"]')];
-        const button = document.querySelector('[data-testid="atomic-chooser-book"]');
-        const overlay = button?.closest('[data-testid="atomic-chooser"]') || null;
-        let reached = "";
-        const probe = (event) => {
-          const node = event.target;
-          reached = node?.getAttribute?.("data-testid")
-            || node?.closest?.("[data-testid]")?.getAttribute("data-testid")
-            || node?.nodeName
-            || "";
-        };
-        overlay?.addEventListener("click", probe);
-        button?.click();
-        return {
-          chooserCount: choosers.length,
-          reached,
-          chooserOpen: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
-          reader: Boolean(document.querySelector('[data-testid="atomic-reader"]')),
-          reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-        };
-      `);
-      if (clicked.chooserOpen) {
-        throw new Error(`Open Book click left the chooser open ${JSON.stringify(clicked)}`);
-      }
-
       const seen = [];
-      let flight = null;
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-book"]').click();
+      `);
+      let settled = null;
       try {
         await driver.wait(async () => {
-          const snap = await driver.executeScript(`
-            const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-            const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
-            const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
-              || readers[0]
-              || null;
-            const widths = reader
-              ? [...reader.querySelectorAll(".atomic-reader-page")].map((el) => Math.round(el.getBoundingClientRect().width))
-              : [];
-            const camera = overlay?.querySelector('[data-testid="atomic-flight-camera"]');
-            return {
-              readers: readers.length,
-              active: Boolean(reader?.closest(".workspace-leaf")?.classList.contains("mod-active")),
-              chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
-              overlay: Boolean(overlay),
-              total: reader?.getAttribute("data-total") || "",
-              from: camera?.style.getPropertyValue("--flight-from") || "",
-              widths,
-              reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-            };
-          `);
-          seen.push(snap);
-          if (seen.length > 8) seen.shift();
-          flight = await flightReport();
-          return Boolean(flight?.from);
+          settled = await readerReport();
+          seen.push(settled);
+          if (seen.length > 12) seen.shift();
+          if (settled.overlay) throw new Error(`open built a flight ${JSON.stringify(settled)}`);
+          return settledReader(settled);
         }, 8000);
       } catch (error) {
-        throw new Error(`${error.message} last=${JSON.stringify(flight)} seen=${JSON.stringify(seen)}`);
+        throw new Error(`${error.message} last=${JSON.stringify(settled)} seen=${JSON.stringify(seen)}`);
       }
-      assert.equal(flight.host, "leaf");
-      assert.equal(flight.zoom, "out");
-      assert.equal(flight.onBody, false);
-      assert.equal(flight.insideReader, true);
-      assert.equal(flight.book, false);
-      assert.equal(flight.ribs, 32, "four leaves, eight ribs each");
-      assert.equal(flight.contacts, 4);
-      assert.equal(flight.quires, 2);
-      assert.equal(flight.gutter, true);
-      assert.equal(flight.coverEdge, true);
-      assert.equal(flight.readerPage, "3", "saved page 10 clamps to the last EPUB page");
-      assert.equal(flight.page, flight.readerPage);
-      assert.equal(flight.settled, "true");
-      assert.match(flight.livePages, /last buoy/);
-      assert.doesNotMatch(flight.livePages, /Harbor light/);
-      assert.equal(Number(flight.from), 1, `flight lands on the settled page ${flight.from}`);
-      assert.equal(flight.snapPages, flight.livePages);
-      assert.ok(flight.line.length > 0, "the live page has a paragraph");
-      assert.ok(flight.snapPages.includes(flight.line), flight.snapPages);
-      assert.notEqual(flight.background, "rgb(0, 0, 0)");
-
-      const held = await driver.executeScript(`
-        const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-        const snapshot = overlay?.querySelector('[data-testid="atomic-flight-snapshot"]');
-        const camera = overlay?.querySelector('[data-testid="atomic-flight-camera"]');
-        const reader = document.querySelector('[data-testid="atomic-reader"]');
-        const named = (node, name) => {
-          if (!node || typeof node.getAnimations !== "function") return null;
-          return [...node.getAnimations()].find((anim) => anim.animationName === name) || null;
-        };
-        const reveal = named(snapshot, "atomic-flight-reveal");
-        const zoom = named(camera, "atomic-flight-zoom");
-        if (reveal) reveal.finish();
-        if (zoom) zoom.finish();
-        const text = reader?.innerText || "";
-        return {
-          reveal: Boolean(reveal),
-          zoom: Boolean(zoom),
-          opacity: snapshot ? getComputedStyle(snapshot).opacity : "",
-          page: reader?.getAttribute("data-page") || "",
-          overlayPage: overlay?.getAttribute("data-page") || "",
-          settled: reader?.getAttribute("data-settled") || "",
-          overlay: Boolean(overlay),
-          buoy: /last buoy/.test(text),
-          harbor: /Harbor light/.test(text),
-        };
-      `);
-      assert.equal(held.reveal, true, "the zoom keeps a snapshot until the last frame");
-      assert.equal(held.zoom, true);
-      assert.equal(held.opacity, "0", "the held last frame is the real reader under the snapshot");
-      assert.equal(held.page, "3");
-      assert.equal(held.overlayPage, "3");
-      assert.equal(held.settled, "true");
-      assert.equal(held.overlay, true);
-      assert.equal(held.buoy, true);
-      assert.equal(held.harbor, false);
-
-      await driver.executeScript(`
-        document.querySelector('[data-testid="atomic-open-flight"]').click();
-      `);
-      await driver.wait(async () => {
-        const settled = await driver.executeScript(`
-          const want = arguments[0];
-          const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-          const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
-          const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
-            || readers.find((el) => el.getBoundingClientRect().width > 0)
-            || readers[0];
-          const text = reader?.innerText || "";
-          const line = reader?.querySelector('[data-testid="atomic-reader-page"] p')?.textContent || "";
-          return {
-            overlay: Boolean(overlay),
-            kept: line.includes(want),
-            page: reader?.getAttribute("data-page") || "",
-            settled: reader?.getAttribute("data-settled") || "",
-            buoy: /last buoy/.test(text),
-            harbor: /Harbor light/.test(text),
-          };
-        `, flight.line);
-        return settled.overlay === false && settled.kept && settled.page === "3"
-          && settled.settled === "true" && settled.buoy && settled.harbor === false;
-      }, 4000);
+      assert.equal(settled.overlay, false);
+      assert.equal(settled.page, "3", "saved page 10 clamps to the last EPUB page");
+      assert.ok(seen.every((snap) => snap.overlay === false));
 
       let emulated = false;
       try {
@@ -3303,33 +3162,21 @@ ${E2E_CUE_LOG_FENCE}
           return path === E2E_FILES.bookshelfAll;
         }, 8000);
         await openChooser("Currently Reading");
+        const reducedSeen = [];
         await driver.executeScript(`
           document.querySelector('[data-testid="atomic-chooser-book"]').click();
         `);
+        let reduced = null;
         await driver.wait(async () => {
-          const state = await driver.executeScript(`
-            const reader = document.querySelector('[data-testid="atomic-reader"]');
-            const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-            const snapshot = overlay?.querySelector('[data-testid="atomic-flight-snapshot"]');
-            const text = reader?.innerText || "";
-            return {
-              total: reader?.getAttribute("data-total") || "",
-              page: reader?.getAttribute("data-page") || "",
-              settled: reader?.getAttribute("data-settled") || "",
-              mount: reader?.getAttribute("data-reader-mount") || "",
-              overlay: Boolean(overlay),
-              zoom: overlay?.getAttribute("data-zoom") || "",
-              snapshot: Boolean(snapshot),
-              buoy: /last buoy/.test(text),
-              harbor: /Harbor light/.test(text),
-            };
-          `);
-          if (state.snapshot || (state.overlay && state.zoom !== "fade")) {
-            throw new Error(`reduced motion built a flight ${JSON.stringify(state)}`);
-          }
-          return state.total === "3" && state.mount === "shell" && state.overlay === false
-            && state.page === "3" && state.settled === "true" && state.buoy && state.harbor === false;
+          reduced = await readerReport();
+          reducedSeen.push(reduced);
+          if (reducedSeen.length > 12) reducedSeen.shift();
+          if (reduced.overlay) throw new Error(`reduced motion built a flight ${JSON.stringify(reduced)}`);
+          return settledReader(reduced);
         }, 8000);
+        assert.ok(reducedSeen.every((snap) => snap.overlay === false));
+        assert.equal(reduced.page, "3");
+        assert.equal(reduced.settled, "true");
       } finally {
         try {
           await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {

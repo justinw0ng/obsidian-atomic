@@ -2,9 +2,9 @@ import { Notice, TFile, type WorkspaceLeaf } from "obsidian";
 import type FitnessPlugin from "../../main";
 import { t } from "../../i18n";
 import { readReaderNote } from "./frontmatter";
-import { isPhoneReaderLayout, readerOpenPlan } from "./model";
+import { isPhoneReaderLayout } from "./model";
 import { bookFileKind, resolveLinkedBookFile, type BookFileRef, type LinkedBookFile } from "./link";
-import { readerMounts, type ReaderOpenRequest } from "./mount";
+import type { ReaderOpenRequest } from "./mount";
 import { closeBookChooser, openBookChooser as mountBookChooser } from "./chooser";
 import { ATOMIC_READER_VIEW } from "./view";
 import type { BookChooserRequest } from "./present";
@@ -40,10 +40,6 @@ function linkedFile(
     source: frontmatter.source,
     files: bookFiles(plugin),
   });
-}
-
-function prefersReducedMotion(): boolean {
-  return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 async function savedReaderPage(plugin: FitnessPlugin, notePath: string): Promise<number> {
@@ -87,19 +83,7 @@ async function openLinkedBook(
     return;
   }
   const page = request.page ?? (await savedReaderPage(plugin, request.notePath));
-  const opening: ReaderOpenRequest = { ...request, page };
-  const plan = readerOpenPlan({
-    reducedMotion: prefersReducedMotion(),
-    hasFlight: Boolean(readerMounts().flight),
-  });
-  if (plan === "flight") {
-    const flight = readerMounts().flight;
-    if (flight) {
-      const handled = await flight.open(opening);
-      if (handled) return;
-    }
-  }
-  await openReaderDirect(plugin, opening);
+  await openReaderDirect(plugin, { ...request, page });
 }
 
 export async function openBookChooser(

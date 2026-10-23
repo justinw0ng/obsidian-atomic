@@ -3366,14 +3366,14 @@ async function renderCues(el, data, activityTypes, year, activity, language, hos
   bindCueCardFan(painted);
 }
 async function collectCues(data, activityType, year) {
-  const sessions3 = await Promise.all(
+  const sessions2 = await Promise.all(
     data.listSessions(activityType.folder, year).filter((session3) => !!session3.date).map(async (session3) => ({
       session: session3,
       reminders: await data.getSessionReminders(session3.path)
     }))
   );
   const cues = [];
-  for (const { session: session3, reminders } of sessions3) {
+  for (const { session: session3, reminders } of sessions2) {
     const focus = session3.focus.join(", ");
     for (const text of reminders) {
       if (!text) continue;
@@ -3740,9 +3740,9 @@ function dashboardPaintState(input, language) {
   return {
     year: input.year,
     language,
-    exercise: input.exercise.map(({ activity, sessions: sessions3 }) => ({
+    exercise: input.exercise.map(({ activity, sessions: sessions2 }) => ({
       activityKey: activityPaintKey(activity),
-      sessions: sessions3
+      sessions: sessions2
     })),
     hobbies: input.hobbies.map(({ activity, items }) => ({
       activityKey: activityPaintKey(activity),
@@ -3796,8 +3796,8 @@ function splitHoursMinutes(totalMinutes) {
   const safe = Math.max(0, Math.round(totalMinutes));
   return { hours: Math.floor(safe / 60), minutes: safe % 60 };
 }
-function averagePerSession(totalMinutes, sessions3) {
-  return sessions3 > 0 ? Math.round(totalMinutes / sessions3) : 0;
+function averagePerSession(totalMinutes, sessions2) {
+  return sessions2 > 0 ? Math.round(totalMinutes / sessions2) : 0;
 }
 function hoursFromMinutes(minutes) {
   return Math.round(minutes / 60 * 10) / 10;
@@ -3816,7 +3816,7 @@ function normalizeFelt(felt) {
   const value = String(felt || "").toLowerCase();
   return value === "good" || value === "ok" || value === "bad" ? value : null;
 }
-function summarizeExercise({ activity, sessions: sessions3 }) {
+function summarizeExercise({ activity, sessions: sessions2 }) {
   const monthly = emptyMonths();
   const monthlyMinutes = emptyMonths();
   const monthlyVolume = emptyMonths();
@@ -3829,7 +3829,7 @@ function summarizeExercise({ activity, sessions: sessions3 }) {
   let minutes = 0;
   let volumeKg = 0;
   let latest = null;
-  for (const { meta, setRows } of sessions3) {
+  for (const { meta, setRows } of sessions2) {
     const mi = monthIndexFromDate(meta.date);
     minutes += meta.duration_min;
     if (mi >= 0) {
@@ -3872,7 +3872,7 @@ function summarizeExercise({ activity, sessions: sessions3 }) {
     card: {
       domain: "exercise",
       activity,
-      count: sessions3.length,
+      count: sessions2.length,
       minutes,
       monthly,
       monthlyMinutes,
@@ -4632,11 +4632,11 @@ function appendFelt(parent, felt, ctx) {
 }
 function renderGolfFocus(parent, model, ctx) {
   if (!model.golfFocus) return;
-  const { activity, sessions: sessions3, tags } = model.golfFocus;
+  const { activity, sessions: sessions2, tags } = model.golfFocus;
   const { section } = appendSectionTitle(
     parent,
     t("view.dashboard.golfFocus", ctx.language),
-    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions3) })
+    t("view.dashboard.focusMeta", ctx.language, { count: formatCount(sessions2) })
   );
   const card = section.createDiv({
     cls: "atomic-stack",
@@ -4873,13 +4873,13 @@ function resolveDashboardYear(opts, frontmatterYear2, timezone) {
 async function collectDashboardInput(data, activityTypes, year) {
   const exercise = await Promise.all(
     exerciseActivities(activityTypes).map(async (activity) => {
-      const sessions3 = await Promise.all(
+      const sessions2 = await Promise.all(
         data.listSessions(activity.folder, year).map(async (meta) => ({
           meta,
           setRows: activity.supportsSetTable ? await data.getSessionSetRows(meta.path) : EMPTY_SET_ROWS
         }))
       );
-      return { activity, sessions: sessions3 };
+      return { activity, sessions: sessions2 };
     })
   );
   const hobbies = await Promise.all(
@@ -4970,9 +4970,9 @@ function renderKpis(root, model, ctx) {
     (card) => card.domain === "hobby"
   );
   if (exercise.length) {
-    const sessions3 = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
-    appendRoll(sessions3.value, formatCount(model.totalSessions));
-    appendCatalogLabel(sessions3.hint, splitText(exercise, ctx.language, (card) => card.count));
+    const sessions2 = appendKpiCard(grid, "sessions", t("view.dashboard.kpiSessions", ctx.language));
+    appendRoll(sessions2.value, formatCount(model.totalSessions));
+    appendCatalogLabel(sessions2.hint, splitText(exercise, ctx.language, (card) => card.count));
     const time = appendKpiCard(grid, "exercise-time", t("view.dashboard.kpiExerciseTime", ctx.language));
     appendHoursMinutes(time.value, model.totalExerciseMinutes, ctx, false);
     time.hint.createSpan({
@@ -5469,9 +5469,9 @@ function createBook(parent, item, data, language, ribbonColor, readout) {
     if (!hoverFinePointer(hoverFineMedia())) return;
     const rect = button2.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
-    const px2 = (event.clientX - rect.left) / rect.width - 0.5;
+    const px = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    button2.style.setProperty("--px", px2.toFixed(3));
+    button2.style.setProperty("--px", px.toFixed(3));
     button2.style.setProperty("--py", py.toFixed(3));
     button2.style.setProperty("--sx", `${Math.round((event.clientX - rect.left) / rect.width * 100)}%`);
     button2.style.setProperty("--sy", `${Math.round((event.clientY - rect.top) / rect.height * 100)}%`);
@@ -7278,9 +7278,9 @@ function registerCodeblocks(plugin) {
 var import_obsidian10 = require("obsidian");
 
 // src/util/duration-map.ts
-function durationMapFromSessions(sessions3) {
+function durationMapFromSessions(sessions2) {
   const map = /* @__PURE__ */ new Map();
-  for (const session3 of sessions3) {
+  for (const session3 of sessions2) {
     if (!session3.date) continue;
     const entry = map.get(session3.date) || { minutes: 0, path: null };
     entry.minutes += session3.duration_min;
@@ -10439,17 +10439,9 @@ function pageAfterTurn(page, total, direction) {
   if (prevLast < 1) return current;
   return visiblePage(spreadPages(prevLast, total), prevLast);
 }
-function readerOpenPlan(input) {
-  void input.reducedMotion;
-  if (!input.hasFlight) return "direct";
-  return "flight";
-}
 
 // src/reader/shell/mount.ts
 var mounts = {};
-function registerReaderFlight(flight) {
-  mounts.flight = flight;
-}
 function registerReaderTheater(theater) {
   mounts.theater = theater;
 }
@@ -11175,1297 +11167,6 @@ function registerAskOnShell(plugin) {
       void paintSession(plugin, slot, session3);
     }
   });
-}
-
-// src/reader/flight/geometry.ts
-var FLIGHT_MS = 3200;
-var FLIGHT_SKIP_MS = 3280;
-var FLIGHT_SETTLE_MS = 2520;
-var REDUCED_FADE_MS = 280;
-var FLIGHT_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
-var COVER_EASE = "cubic-bezier(0.42, 0.05, 0.18, 1)";
-var CURL_EASE = "cubic-bezier(0.46, 0.02, 0.16, 1)";
-var COVER_OPEN_MS = { duration: 980, delay: 40 };
-var FLIP_LEAVES = [
-  { duration: 720, delay: 860 },
-  { duration: 700, delay: 1040 },
-  { duration: 680, delay: 1220 },
-  { duration: 660, delay: 1400 }
-];
-var PAGE_RIBS = 8;
-var RIB_STAGGER_MS = 42;
-var QUIRE_EDGES = 8;
-var PHONE_LAYOUT_MAX_PX = 480;
-var SAFE_COLOR = /^(#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)|[a-z]{1,24})$/i;
-function resolveFlightLayout(explicit, viewportWidth) {
-  if (explicit === "phone" || explicit === "desktop") return explicit;
-  if (viewportWidth > 0 && viewportWidth <= PHONE_LAYOUT_MAX_PX) return "phone";
-  return "desktop";
-}
-function resolveFlightMotion(input) {
-  if (input.reducedMotion) return "reduced";
-  if (input.coarsePointer) return "flat";
-  switch (input.layout) {
-    case "phone":
-      return "phone";
-    case "desktop":
-      return "desktop";
-    default: {
-      const never = input.layout;
-      return never;
-    }
-  }
-}
-function safeCoverColor(value) {
-  if (!value) return null;
-  const color = value.trim();
-  if (!SAFE_COLOR.test(color)) return null;
-  return color;
-}
-function unionBoxes(boxes) {
-  const visible = boxes.filter((box) => box.width > 0 && box.height > 0);
-  const first = visible[0];
-  if (!first) return null;
-  let left = first.x;
-  let top = first.y;
-  let right = first.x + first.width;
-  let bottom = first.y + first.height;
-  for (const box of visible.slice(1)) {
-    left = Math.min(left, box.x);
-    top = Math.min(top, box.y);
-    right = Math.max(right, box.x + box.width);
-    bottom = Math.max(bottom, box.y + box.height);
-  }
-  return { x: left, y: top, width: right - left, height: bottom - top };
-}
-function px(value) {
-  return `${value}px`;
-}
-function flightZoom(input) {
-  const fallback = {
-    originX: "50%",
-    originY: "46%",
-    fromScale: "1.000",
-    coverX: "18%",
-    coverY: "12%",
-    coverW: "64%",
-    coverH: "70%"
-  };
-  if (input.host.width <= 0 || input.host.height <= 0 || !input.spread) return fallback;
-  const localX = input.spread.x - input.host.x;
-  const localY = input.spread.y - input.host.y;
-  const width = input.spread.width;
-  const height = input.spread.height;
-  const originX = localX + width / 2;
-  const originY = localY + height / 2;
-  return {
-    originX: `${clampPercent(originX / input.host.width * 100)}%`,
-    originY: `${clampPercent(originY / input.host.height * 100)}%`,
-    fromScale: "1.000",
-    coverX: px(localX),
-    coverY: px(localY),
-    coverW: px(width),
-    coverH: px(height)
-  };
-}
-function clampPercent(value) {
-  const next = Math.max(0, Math.min(100, value));
-  return next.toFixed(2);
-}
-
-// src/reader/flight/page.ts
-function spreadFromPainted(pages, fallback) {
-  const painted = pages.map((page) => ({ page: page.page, lines: cleanLines(page.lines) })).filter((page) => page.lines.length > 0);
-  const leftPage = painted[0];
-  const rightPage = painted[1];
-  if (leftPage && rightPage) {
-    const page = pageNumber(rightPage.page ?? leftPage.page, fallback.page);
-    return withHeadings(page, leftPage.lines, rightPage.lines, fallback);
-  }
-  if (leftPage) {
-    const page = pageNumber(leftPage.page, fallback.page);
-    const combined = cleanLines([...fallback.left, ...fallback.right]);
-    if (sameLines(leftPage.lines, combined)) {
-      return withHeadings(
-        page,
-        cleanLines(fallback.left),
-        cleanLines(fallback.right),
-        fallback
-      );
-    }
-    const mid = Math.ceil(leftPage.lines.length / 2);
-    return withHeadings(
-      page,
-      leftPage.lines.slice(0, mid),
-      leftPage.lines.slice(mid),
-      fallback
-    );
-  }
-  return {
-    page: fallback.page,
-    headingLeft: fallback.headingLeft,
-    headingRight: fallback.headingRight,
-    left: cleanLines(fallback.left),
-    right: cleanLines(fallback.right)
-  };
-}
-function withHeadings(page, left, right, fallback) {
-  const samePage = page === fallback.page;
-  return {
-    page,
-    headingLeft: samePage ? fallback.headingLeft : void 0,
-    headingRight: samePage ? fallback.headingRight ?? `p. ${page}` : `p. ${page}`,
-    left,
-    right
-  };
-}
-function cleanLines(lines) {
-  return lines.map((line) => line.trim()).filter((line) => line.length > 0);
-}
-function sameLines(a, b) {
-  return a.length === b.length && a.every((line, index) => line === b[index]);
-}
-function pageNumber(value, fallback) {
-  if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
-  return fallback;
-}
-
-// src/reader/flight/styles.ts
-var OPEN_BOOK_FLIGHT_CSS = `
-/* Hallmark \xB7 checked: 2026-10-23 \xB7 genre: modern-minimal (inferred)
- * built: the project \xB7 redesign: polish \xB7 v2.0.0
- * waive 64 \xB7 page figures stay IBM Plex Mono \xB7 1.5.0 token lock */
-.atomic-open-flight {
-  --atomic-r-object: 3px;
-  --atomic-r-control: 9px;
-  --atomic-r-well: 14px;
-  --atomic-ease: ${FLIGHT_EASE};
-  --atomic-ink: var(--text-normal, #222222);
-  --atomic-ink-2: var(--text-muted, #5c5c5c);
-  --atomic-rule: #e0e0e0;
-  --atomic-open-cover: #3d2a1c;
-  --atomic-open-ink: #f4ecdf;
-  --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
-  --atomic-flight-stage: var(--background-primary, var(--atomic-flight-paper));
-  --atomic-flight-edge: #2a1c12;
-  --atomic-flight-board: #f3eadc;
-  --atomic-flight-fore: linear-gradient(#f4eadc, #d7c6ae 46%, #c4b094);
-  --atomic-flight-cast: rgba(36, 24, 16, 0.22);
-  --atomic-flight-cast-shadow: 0 22px 36px rgba(36, 24, 16, 0.18);
-  --atomic-flight-sheet-edge: 0 0 0 1px rgba(90, 70, 48, 0.22);
-  --atomic-flight-gutter-wash: linear-gradient(90deg, rgba(48, 32, 18, 0), rgba(48, 32, 18, 0.16), rgba(48, 32, 18, 0));
-  --atomic-flight-shade: linear-gradient(90deg, rgba(36, 24, 16, 0) 4%, rgba(36, 24, 16, 0.38) 76%, rgba(36, 24, 16, 0.08));
-  --atomic-flight-rib-rule: rgba(90, 70, 48, 0.14);
-  --atomic-flight-edge-line: rgba(90, 70, 48, 0.35);
-  --atomic-flight-quire: linear-gradient(90deg, #efe3d2, #dccab4 72%, #cbb89e);
-  --atomic-flight-quire-line: rgba(90, 70, 48, 0.28);
-  --atomic-flight-cover-shade: linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 14%);
-  --atomic-flight-cover-ring: rgba(244, 236, 223, 0.45);
-  --atomic-flight-cover-rule: rgba(244, 236, 223, 0.28);
-  --atomic-flight-cover-drop: rgba(36, 24, 16, 0.55);
-  --flight-from: 1;
-  --flight-ox: 50%;
-  --flight-oy: 46%;
-  --flight-seam: 50%;
-  --font-interface: var(--font-interface), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-  --font-text: "Literata", "Source Serif 4", Georgia, "Iowan Old Style", Palatino, serif;
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  margin: 0;
-  overflow: hidden;
-  pointer-events: none;
-  background: transparent;
-  color: var(--atomic-ink);
-  font-family: var(--font-interface);
-}
-.atomic-open-flight.is-on {
-  pointer-events: auto;
-}
-.atomic-flight-camera {
-  position: absolute;
-  inset: 0;
-  transform-origin: var(--flight-ox) var(--flight-oy);
-  transform: scale(var(--flight-from));
-  transform-style: preserve-3d;
-}
-.atomic-open-flight.is-playing .atomic-flight-camera {
-  animation: atomic-flight-zoom ${FLIGHT_MS}ms var(--atomic-ease) forwards;
-}
-.atomic-flight-snapshot {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  pointer-events: none;
-}
-.atomic-open-flight.is-playing .atomic-flight-snapshot {
-  animation: atomic-flight-reveal ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-flight-veil {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: var(--atomic-flight-stage);
-  pointer-events: none;
-}
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-veil {
-  animation: atomic-flight-veil ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-flight-stage {
-  position: absolute;
-  left: var(--flight-cover-x, 18%);
-  top: var(--flight-cover-y, 12%);
-  width: var(--flight-cover-w, 64%);
-  height: var(--flight-cover-h, 70%);
-  z-index: 3;
-  perspective: 2200px;
-  perspective-origin: 50% 50%;
-  transform-style: preserve-3d;
-  pointer-events: none;
-}
-.atomic-flight-volume {
-  position: absolute;
-  inset: 0;
-  transform-origin: 50% 50%;
-  transform: translateX(-14%);
-  transform-style: preserve-3d;
-}
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-volume {
-  animation: atomic-flight-volume ${FLIGHT_MS}ms ${COVER_EASE} forwards;
-}
-.atomic-open-flight.is-flat .atomic-flight-volume {
-  transform: none;
-}
-.atomic-flight-cast {
-  position: absolute;
-  left: 16%;
-  right: 2%;
-  bottom: -7%;
-  height: 12%;
-  border-radius: 50%;
-  background: var(--atomic-flight-cast);
-  box-shadow: var(--atomic-flight-cast-shadow);
-  pointer-events: none;
-}
-.atomic-flight-sheet {
-  position: absolute;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--atomic-flight-paper);
-  box-shadow: var(--atomic-flight-sheet-edge);
-  pointer-events: none;
-}
-.atomic-flight-sheet.is-left { left: 0; opacity: 0; }
-.atomic-flight-sheet.is-right { left: 50%; }
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-sheet.is-left {
-  animation: atomic-flight-sheet-left ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-open-flight .atomic-flight-sheet .atomic-reader-page,
-.atomic-open-flight .atomic-flight-sheet .atomic-page {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  box-shadow: none;
-}
-.atomic-flight-gutter {
-  position: absolute;
-  left: var(--flight-seam, 50%);
-  top: 0;
-  width: 36px;
-  height: 100%;
-  margin-left: -18px;
-  opacity: 0;
-  background: var(--atomic-flight-gutter-wash);
-  pointer-events: none;
-}
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-gutter {
-  animation: atomic-flight-gutter ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-flight-flips {
-  position: absolute;
-  left: var(--flight-seam, 50%);
-  top: 0;
-  width: 50%;
-  height: 100%;
-  transform-style: preserve-3d;
-  pointer-events: none;
-}
-.atomic-flight-flip {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-}
-.atomic-flight-contact {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  background: var(--atomic-flight-shade);
-  pointer-events: none;
-}
-.atomic-flight-rib {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: ${(100 / PAGE_RIBS).toFixed(4)}%;
-  height: 100%;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-}
-.atomic-flight-rib .atomic-flight-rib {
-  left: 100%;
-  width: 100%;
-}
-.atomic-flight-rib-face,
-.atomic-flight-rib-back {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: -1px;
-  backface-visibility: hidden;
-}
-.atomic-flight-rib-face {
-  background: var(--atomic-flight-paper);
-  transform: translateZ(1px);
-}
-.atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-face {
-  background:
-    repeating-linear-gradient(180deg, transparent, transparent 22px, var(--atomic-flight-rib-rule) 22px, var(--atomic-flight-rib-rule) 23px),
-    var(--atomic-flight-paper);
-}
-.atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-clip {
-  opacity: 0;
-}
-.atomic-flight-paper-edge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 5px;
-  height: 100%;
-  background: var(--atomic-flight-fore);
-  box-shadow: inset -1px 0 0 var(--atomic-flight-edge-line);
-  transform-origin: right center;
-  transform: rotateY(90deg);
-  pointer-events: none;
-}
-.atomic-flight-rib-clip {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  backface-visibility: hidden;
-}
-.atomic-flight-rib-back {
-  background: var(--atomic-flight-board);
-  transform: rotateY(180deg) translateZ(1px);
-}
-.atomic-open-flight .atomic-flight-rib-clip .atomic-reader-page,
-.atomic-open-flight .atomic-flight-rib-clip .atomic-page {
-  position: absolute;
-  top: 0;
-  left: var(--rib-shift, 0%);
-  width: ${PAGE_RIBS * 100}%;
-  height: 100%;
-  margin: 0;
-  box-shadow: none;
-}
-.atomic-flight-quire {
-  position: absolute;
-  top: 1.4%;
-  width: 16px;
-  height: 97.2%;
-  pointer-events: none;
-  background: var(--atomic-flight-quire);
-  box-shadow: inset 0 0 0 1px var(--atomic-flight-quire-line);
-}
-.atomic-flight-quire.is-right {
-  right: -14px;
-  border-radius: 0 3px 3px 0;
-  transform-origin: right center;
-}
-.atomic-flight-quire.is-left {
-  left: calc(var(--flight-seam, 50%) - 16px);
-  border-radius: 3px 0 0 3px;
-  opacity: 0;
-  transform: scaleX(0.15);
-  transform-origin: right center;
-}
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-quire.is-right {
-  animation: atomic-flight-quire-right ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-quire.is-left {
-  animation: atomic-flight-quire-left ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-flight-edge {
-  position: absolute;
-  top: var(--edge-inset, 0px);
-  bottom: var(--edge-inset, 0px);
-  width: 2px;
-  background: var(--atomic-flight-paper);
-  box-shadow: inset -1px 0 0 var(--atomic-flight-edge-line);
-}
-.atomic-flight-quire.is-right .atomic-flight-edge { right: var(--edge-x, 0px); }
-.atomic-flight-quire.is-left .atomic-flight-edge { left: var(--edge-x, 0px); }
-.atomic-flight-cover {
-  position: absolute;
-  left: var(--flight-seam, 50%);
-  top: 0;
-  width: 50%;
-  height: 100%;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-}
-.atomic-open-flight.is-playing .atomic-flight-cover {
-  animation: atomic-flight-cover ${COVER_OPEN_MS.duration}ms ${COVER_OPEN_MS.delay}ms linear forwards;
-}
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-face,
-.atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-cover-in {
-  animation: atomic-flight-cover-ink ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-open-flight.is-flat.is-playing .atomic-flight-cover {
-  animation: atomic-flight-cover-fade ${FLIGHT_MS}ms var(--atomic-ease) forwards;
-}
-.atomic-open-flight.is-flat.is-playing .atomic-flight-veil {
-  animation: atomic-flight-cover-fade ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-flight-cover-face,
-.atomic-flight-cover-in,
-.atomic-flight-cover-edge {
-  position: absolute;
-  backface-visibility: hidden;
-}
-.atomic-flight-cover-face,
-.atomic-flight-cover-in {
-  inset: 0;
-  border-radius: var(--atomic-r-object);
-}
-.atomic-flight-cover-face {
-  transform: translateZ(1px);
-}
-.atomic-flight-cover-face {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 14%;
-  text-align: center;
-  background-color: var(--atomic-open-cover);
-  background-image: var(--atomic-flight-cover-shade);
-  box-shadow:
-    inset 0 0 0 1px var(--atomic-flight-cover-ring),
-    inset 0 0 0 10px var(--atomic-open-cover),
-    inset 0 0 0 11px var(--atomic-flight-cover-rule),
-    0 16px 28px -18px var(--atomic-flight-cover-drop);
-  color: var(--atomic-open-ink);
-}
-.atomic-flight-cover-edge {
-  top: 0;
-  right: 0;
-  width: 8px;
-  height: 100%;
-  transform-origin: right center;
-  transform: rotateY(90deg);
-  background: var(--atomic-flight-edge);
-}
-.atomic-flight-title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-}
-.atomic-flight-author {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--atomic-open-ink);
-}
-.atomic-flight-cover-in {
-  background: var(--atomic-flight-board);
-  box-shadow: inset 0 0 0 1px var(--atomic-flight-edge-line);
-  transform: rotateY(180deg) translateZ(1px);
-}
-${flipRules()}
-.atomic-open-flight.is-flat .atomic-flight-flip,
-.atomic-open-flight.is-flat .atomic-flight-quire,
-.atomic-open-flight.is-flat .atomic-flight-gutter,
-.atomic-open-flight.is-flat .atomic-flight-cast,
-.atomic-open-flight.is-flat .atomic-flight-sheet {
-  opacity: 0;
-}
-.atomic-open-flight.is-flat.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-rib[data-rib],
-.atomic-open-flight.is-flat.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-contact {
-  animation: none;
-}
-.atomic-open-hint {
-  position: absolute;
-  left: 50%;
-  bottom: 18px;
-  z-index: 5;
-  transform: translateX(-50%);
-  padding: 6px 12px;
-  border: 1px solid var(--atomic-rule);
-  border-radius: var(--atomic-r-well);
-  background: var(--atomic-flight-stage);
-  color: var(--atomic-ink-2);
-  font-family: var(--font-interface);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  pointer-events: none;
-  opacity: 1;
-}
-.atomic-open-flight.is-playing .atomic-open-hint {
-  animation: atomic-flight-hint ${FLIGHT_MS}ms linear forwards;
-}
-.atomic-open-flight.is-reduced {
-  background: var(--atomic-flight-stage);
-  animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
-}
-@keyframes atomic-flight-zoom {
-  0%, 100% { transform: scale(var(--flight-from)); }
-}
-@keyframes atomic-flight-reveal {
-  0%, 99% { opacity: 1; }
-  100% { opacity: 0; }
-}
-@keyframes atomic-flight-cover {
-  0% { transform: translateZ(16px) rotateY(0deg); }
-  30% { transform: translateZ(16px) rotateY(-24deg); }
-  58% { transform: translateZ(16px) rotateY(-92deg); }
-  82% { transform: translateZ(12px) rotateY(-168deg); }
-  100% { transform: translateZ(4px) rotateY(-178deg); }
-}
-@keyframes atomic-flight-cover-ink {
-  0%, 46% { opacity: 1; }
-  62%, 100% { opacity: 0; }
-}
-@keyframes atomic-flight-cover-fade {
-  0%, 36% { opacity: 1; }
-  100% { opacity: 0; }
-}
-@keyframes atomic-flight-volume {
-  0% { transform: translateX(-14%); }
-  36%, 100% { transform: translateX(0%); }
-}
-.atomic-open-flight.is-settling .atomic-flight-volume {
-  opacity: 0;
-  transition: opacity 480ms linear;
-}
-@keyframes atomic-flight-veil {
-  0%, 78% { opacity: 1; }
-  92%, 100% { opacity: 0; }
-}
-@keyframes atomic-flight-spine {
-  0% { transform: rotateY(0deg); }
-  20% { transform: rotateY(-6deg); }
-  45% { transform: rotateY(-36deg); }
-  75% { transform: rotateY(-130deg); }
-  100% { transform: rotateY(-178deg); }
-}
-@keyframes atomic-flight-leaf-fade {
-  0%, 92% { opacity: 1; }
-  100% { opacity: 0; }
-}
-${bendFrames()}
-@keyframes atomic-flight-contact {
-  0% { opacity: 0; transform: translateX(22%); }
-  28% { opacity: 1; transform: translateX(0%); }
-  100% { opacity: 0; transform: translateX(-36%); }
-}
-@keyframes atomic-flight-quire-right {
-  0% { transform: scaleX(1); opacity: 1; }
-  48% { transform: scaleX(0.8); opacity: 1; }
-  74%, 100% { transform: scaleX(0.2); opacity: 0; }
-}
-@keyframes atomic-flight-quire-left {
-  0%, 22% { transform: scaleX(0.15); opacity: 0; }
-  58%, 70% { transform: scaleX(1); opacity: 1; }
-  82%, 100% { transform: scaleX(1); opacity: 0; }
-}
-@keyframes atomic-flight-sheet-left {
-  0%, 14% { opacity: 0; }
-  24%, 100% { opacity: 1; }
-}
-@keyframes atomic-flight-gutter {
-  0%, 18% { opacity: 0; }
-  30%, 70% { opacity: 1; }
-  82%, 100% { opacity: 0; }
-}
-@keyframes atomic-flight-hint {
-  0%, 68% { opacity: 1; }
-  86%, 100% { opacity: 0; }
-}
-@keyframes atomic-flight-fade {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-.atomic-open-flight.is-phone .atomic-flight-volume,
-.atomic-open-flight.is-phone.is-playing:not(.is-flat) .atomic-flight-volume {
-  transform: none;
-  animation: none;
-}
-.atomic-open-flight.is-phone .atomic-flight-sheet.is-left,
-.atomic-open-flight.is-phone .atomic-flight-quire.is-left,
-.atomic-open-flight.is-phone .atomic-flight-gutter {
-  display: none;
-}
-.atomic-open-flight.is-phone .atomic-flight-sheet.is-right,
-.atomic-open-flight.is-phone .atomic-flight-flips,
-.atomic-open-flight.is-phone .atomic-flight-cover {
-  left: 0;
-  width: 100%;
-}
-.atomic-open-flight.is-phone .atomic-flight-cover {
-  transform-origin: left center;
-}
-@media (prefers-reduced-motion: reduce) {
-  .atomic-open-flight.is-playing .atomic-flight-camera,
-  .atomic-open-flight.is-playing .atomic-flight-cover,
-  .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-volume,
-  .atomic-open-flight.is-playing .atomic-flight-veil,
-  .atomic-open-flight.is-playing .atomic-flight-quire,
-  .atomic-open-flight.is-playing .atomic-flight-gutter,
-  .atomic-open-flight.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-rib[data-rib],
-  .atomic-open-flight.is-playing .atomic-flight-flip[data-leaf] .atomic-flight-contact {
-    animation: none;
-  }
-}
-`.trim();
-function bendFrames() {
-  const joints = [
-    [6, 12, 2],
-    [8, 12, 3],
-    [10, 13, 3],
-    [11, 13, 4],
-    [12, 14, 4],
-    [13, 14, 5],
-    [16, 16, 5]
-  ].slice(0, PAGE_RIBS - 1);
-  return joints.map((joint, index) => {
-    const rib = index + 1;
-    const [lead, peak, late] = joint;
-    return [
-      `@keyframes atomic-flight-bend-${rib} {`,
-      `  0% { transform: rotateY(0deg); }`,
-      `  20% { transform: rotateY(-${lead}deg); }`,
-      `  45% { transform: rotateY(-${peak}deg); }`,
-      `  75% { transform: rotateY(-${late}deg); }`,
-      `  100% { transform: rotateY(0deg); }`,
-      `}`
-    ].join("\n");
-  }).join("\n");
-}
-function flipRules() {
-  const lines = [];
-  FLIP_LEAVES.forEach((leaf, index) => {
-    const clock = `${leaf.duration}ms ${leaf.delay}ms`;
-    const shadow = `${leaf.duration}ms ${Math.max(0, leaf.delay - RIB_STAGGER_MS)}ms`;
-    const lift = 12 - index * 3;
-    lines.push(
-      `.atomic-flight-flip[data-leaf="${index}"] { transform: translateZ(${lift}px); }`,
-      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-contact { animation: atomic-flight-contact ${shadow} linear forwards; }`,
-      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-rib-face,`,
-      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-rib-back,`,
-      `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-paper-edge { animation: atomic-flight-leaf-fade ${clock} linear forwards; }`
-    );
-    for (let rib = 0; rib < PAGE_RIBS; rib += 1) {
-      const name = rib === 0 ? "atomic-flight-spine" : `atomic-flight-bend-${rib}`;
-      lines.push(
-        `.atomic-open-flight.is-playing .atomic-flight-flip[data-leaf="${index}"] .atomic-flight-rib[data-rib="${rib}"] { animation: ${name} ${clock} ${CURL_EASE} forwards; }`
-      );
-    }
-  });
-  return lines.join("\n");
-}
-
-// src/reader/flight/mount.ts
-var OPEN_BOOK_PAGE_SELECTOR = ".atomic-page, .atomic-reader-page";
-var OPEN_BOOK_HINT = "Tap to skip";
-var STYLE_ID = "atomic-open-flight-style";
-var sessions = /* @__PURE__ */ new WeakMap();
-function openBookFlightView() {
-  if (typeof activeWindow !== "undefined" && activeWindow?.document?.body) {
-    return activeWindow;
-  }
-  const active = readActiveDocument();
-  const view = active?.defaultView ?? null;
-  if (view?.document?.body) return view;
-  return null;
-}
-function flightOverlayBody(view, active) {
-  if (active?.body && active.defaultView === view) return active.body;
-  const body = view.document?.body;
-  if (!body) throw new Error("Open Book flight needs a document body");
-  return body;
-}
-function abortOpenBookFlight(view) {
-  const doc = view.document;
-  if (!doc) return;
-  sessions.get(doc)?.finish("aborted");
-}
-function mountOpenBookFlight(request, onLand) {
-  const view = request.view;
-  const body = flightOverlayBody(view, readActiveDocument());
-  const doc = body.ownerDocument ?? view.document;
-  sessions.get(doc)?.finish("aborted");
-  const layout = resolveFlightLayout(request.layout, view.innerWidth || 0);
-  const motion = resolveFlightMotion({
-    reducedMotion: request.reducedMotion === true || mediaMatches(view, "(prefers-reduced-motion: reduce)"),
-    coarsePointer: mediaMatches(view, "(pointer: coarse)"),
-    layout
-  });
-  ensureFlightStyles(doc);
-  const built = buildOverlay(doc, request, layout, motion);
-  const overlay = built.overlay;
-  request.destination.appendChild(overlay);
-  let closed = false;
-  let timer = 0;
-  let settle = 0;
-  let frame = 0;
-  let resolveDone = () => {
-  };
-  const done = new Promise((resolve) => {
-    resolveDone = resolve;
-  });
-  let session3;
-  function finish2(reason) {
-    if (closed) return;
-    closed = true;
-    if (timer) view.clearTimeout(timer);
-    if (settle) view.clearTimeout(settle);
-    if (frame && typeof view.cancelAnimationFrame === "function") {
-      view.cancelAnimationFrame(frame);
-    }
-    overlay.removeEventListener("click", onClick);
-    view.removeEventListener("keydown", onKey, true);
-    view.removeEventListener("pagehide", onLeave);
-    overlay.remove();
-    request.destination.dispatchEvent(new CustomEvent("atomic-flight-done", { bubbles: true }));
-    if (session3 && sessions.get(doc) === session3) sessions.delete(doc);
-    resolveDone(reason);
-    if (reason !== "aborted") onLand?.(reason);
-  }
-  function onClick() {
-    finish2("skipped");
-  }
-  function onLeave() {
-    finish2("aborted");
-  }
-  function onKey(event) {
-    if (event.key !== "Escape") return;
-    event.preventDefault();
-    event.stopPropagation();
-    finish2("skipped");
-  }
-  session3 = { finish: finish2 };
-  sessions.set(doc, session3);
-  overlay.addEventListener("click", onClick);
-  view.addEventListener("keydown", onKey, true);
-  view.addEventListener("pagehide", onLeave);
-  const start = () => {
-    if (closed) return;
-    const page = spreadFromPainted(paintedPages(request.destination), request.page);
-    const marked = readPageNumber(request.destination.getAttribute("data-page"));
-    overlay.setAttribute("data-page", String(marked ?? page.page));
-    if (motion === "reduced") {
-      overlay.classList.add("is-on");
-      timer = view.setTimeout(() => finish2("reduced"), REDUCED_FADE_MS);
-      return;
-    }
-    placeLanding(built.camera, request.destination);
-    overlay.classList.add("is-on");
-    void overlay.offsetWidth;
-    overlay.classList.add("is-playing");
-    timer = view.setTimeout(() => finish2("landed"), FLIGHT_SKIP_MS);
-    settle = view.setTimeout(() => {
-      settle = 0;
-      if (closed) return;
-      placeLanding(built.camera, request.destination);
-      overlay.classList.add("is-settling");
-    }, FLIGHT_SETTLE_MS);
-  };
-  const spread = spreadBox(request.destination);
-  if (spread || typeof view.requestAnimationFrame !== "function") {
-    start();
-  } else {
-    frame = view.requestAnimationFrame(() => {
-      frame = 0;
-      if (closed) return;
-      start();
-    });
-  }
-  return {
-    overlay,
-    abort: () => finish2("aborted"),
-    skip: () => finish2("skipped"),
-    done
-  };
-}
-function readActiveDocument() {
-  if (typeof activeDocument === "undefined") return null;
-  return activeDocument;
-}
-function mediaMatches(view, query) {
-  if (typeof view.matchMedia !== "function") return false;
-  return view.matchMedia(query).matches;
-}
-function ensureFlightStyles(doc) {
-  if (doc.getElementById(STYLE_ID)) return;
-  const style = doc.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = OPEN_BOOK_FLIGHT_CSS;
-  const head = doc.head ?? doc.body;
-  if (head) head.appendChild(style);
-}
-function spreadBox(root) {
-  return unionBoxes(pageBoxes(root));
-}
-function livePages(root) {
-  return elements(root, OPEN_BOOK_PAGE_SELECTOR).filter((el) => !belongsToFlight(el));
-}
-function pageBoxes(root) {
-  return livePages(root).map((el) => {
-    const rect = el.getBoundingClientRect();
-    return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
-  });
-}
-function paintedPages(root) {
-  return livePages(root).map((el) => ({
-    page: readPageNumber(el.getAttribute("data-page")),
-    lines: paragraphLines(el)
-  }));
-}
-function readPageNumber(value) {
-  if (!value) return null;
-  const page = Number(value);
-  if (!Number.isFinite(page) || page <= 0) return null;
-  return page;
-}
-function paragraphLines(el) {
-  const lines = elements(el, "p").map((para) => (para.textContent ?? "").trim()).filter((line) => line.length > 0);
-  if (lines.length > 0) return lines;
-  const text = (el.textContent ?? "").trim();
-  return text ? [text] : [];
-}
-function elements(root, selector) {
-  const found = [];
-  root.querySelectorAll(selector).forEach((node) => {
-    if (isHtmlElement2(node)) found.push(node);
-  });
-  return found;
-}
-function isHtmlElement2(node) {
-  if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
-  return node.nodeType === 1;
-}
-function placeLanding(camera, destination) {
-  const pages = measuredPages(destination);
-  const spread = unionBoxes(pages.map((page) => page.box));
-  applyZoom(camera, zoomFor(destination, spread), destination);
-  if (!spread) return;
-  for (const page of pages) {
-    const sheet = sheetFor(camera, page.side);
-    if (!sheet) continue;
-    sheet.style.setProperty("left", cssPx(page.box.x - spread.x));
-    sheet.style.setProperty("top", cssPx(page.box.y - spread.y));
-    sheet.style.setProperty("width", cssPx(page.box.width));
-    sheet.style.setProperty("height", cssPx(page.box.height));
-  }
-  const right = pages.find((page) => page.side === "right") ?? pages[pages.length - 1];
-  if (!right) return;
-  camera.style.setProperty("--flight-seam", cssPx(right.box.x - spread.x));
-}
-function applyZoom(camera, zoom, destination) {
-  camera.style.setProperty("--flight-ox", zoom.originX);
-  camera.style.setProperty("--flight-oy", zoom.originY);
-  camera.style.setProperty("--flight-from", zoom.fromScale);
-  camera.style.setProperty("--flight-cover-x", zoom.coverX);
-  camera.style.setProperty("--flight-cover-y", zoom.coverY);
-  camera.style.setProperty("--flight-cover-w", zoom.coverW);
-  camera.style.setProperty("--flight-cover-h", zoom.coverH);
-  const host = destination.getBoundingClientRect();
-  const recto = rectoBox(destination);
-  if (!recto || host.width <= 0) return;
-  camera.style.setProperty("--flight-recto-x", cssPx(recto.x - host.left));
-  camera.style.setProperty("--flight-recto-y", cssPx(recto.y - host.top));
-  camera.style.setProperty("--flight-recto-w", cssPx(recto.width));
-  camera.style.setProperty("--flight-recto-h", cssPx(recto.height));
-}
-function cssPx(value) {
-  return `${value}px`;
-}
-function measuredPages(root) {
-  const pages = [];
-  for (const el of livePages(root)) {
-    const rect = el.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) continue;
-    pages.push({
-      side: el.classList.contains("is-verso") ? "left" : "right",
-      box: { x: rect.left, y: rect.top, width: rect.width, height: rect.height }
-    });
-  }
-  return pages;
-}
-function sheetFor(camera, side) {
-  const name = side === "left" ? "is-left" : "is-right";
-  const found = camera.querySelectorAll(".atomic-flight-sheet");
-  for (let index = 0; index < found.length; index += 1) {
-    const sheet = found[index];
-    if (!isHtmlElement2(sheet) || !sheet.classList.contains(name)) continue;
-    return sheet;
-  }
-  return null;
-}
-function rectoBox(root) {
-  const pages = livePages(root);
-  const recto = pages.find((el) => el.classList.contains("is-recto")) ?? pages[pages.length - 1];
-  if (!recto) return null;
-  const rect = recto.getBoundingClientRect();
-  if (rect.width <= 0 || rect.height <= 0) return null;
-  return { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
-}
-function zoomFor(destination, spread) {
-  const host = destination.getBoundingClientRect();
-  return flightZoom({
-    host: { x: host.left, y: host.top, width: host.width, height: host.height },
-    spread
-  });
-}
-function buildOverlay(doc, request, layout, motion) {
-  const overlay = doc.createElement("div");
-  overlay.className = "atomic-open-flight";
-  overlay.classList.add(layout === "phone" ? "is-phone" : "is-desktop");
-  overlay.setAttribute("data-open", layout === "phone" ? "page" : "spread");
-  if (motion === "flat") overlay.classList.add("is-flat");
-  if (motion === "reduced") overlay.classList.add("is-reduced");
-  overlay.setAttribute("data-testid", "atomic-open-flight");
-  overlay.setAttribute("data-overlay-host", "leaf");
-  overlay.setAttribute("data-motion", motion);
-  overlay.setAttribute("data-zoom", motion === "reduced" ? "fade" : "out");
-  overlay.setAttribute("role", "presentation");
-  const color = safeCoverColor(request.cover.color);
-  const ink = safeCoverColor(request.cover.ink);
-  if (color) overlay.style.setProperty("--atomic-open-cover", color);
-  if (ink) overlay.style.setProperty("--atomic-open-ink", ink);
-  if (motion === "reduced") return { overlay, camera: overlay };
-  const camera = doc.createElement("div");
-  camera.className = "atomic-flight-camera";
-  camera.setAttribute("data-testid", "atomic-flight-camera");
-  const snapshot = snapshotReader(doc, request.destination);
-  snapshot.classList.add("atomic-flight-snapshot");
-  snapshot.setAttribute("data-testid", "atomic-flight-snapshot");
-  camera.appendChild(snapshot);
-  const veil = doc.createElement("div");
-  veil.className = "atomic-flight-veil";
-  const stage = doc.createElement("div");
-  stage.className = "atomic-flight-stage";
-  stage.setAttribute("aria-hidden", "true");
-  const volume = doc.createElement("div");
-  volume.className = "atomic-flight-volume";
-  const cast = doc.createElement("div");
-  cast.className = "atomic-flight-cast";
-  const gutter = doc.createElement("div");
-  gutter.className = "atomic-flight-gutter";
-  const flips = doc.createElement("div");
-  flips.className = "atomic-flight-flips";
-  const turning = liveSide(request.destination, "recto");
-  for (let leaf = FLIP_LEAVES.length - 1; leaf >= 0; leaf -= 1) {
-    flips.appendChild(buildLeaf(doc, turning, leaf));
-  }
-  volume.append(
-    cast,
-    buildSheet(doc, request.destination, "left"),
-    buildSheet(doc, request.destination, "right"),
-    gutter,
-    flips,
-    buildCover(doc, request.cover),
-    buildQuire(doc, "left"),
-    buildQuire(doc, "right")
-  );
-  stage.appendChild(volume);
-  const hint = doc.createElement("div");
-  hint.className = "atomic-open-hint";
-  hint.setAttribute("data-testid", "atomic-open-flight-hint");
-  hint.textContent = request.hint?.trim() || OPEN_BOOK_HINT;
-  camera.append(veil, stage);
-  overlay.append(camera, hint);
-  return { overlay, camera };
-}
-function buildCover(doc, cover) {
-  const node = doc.createElement("div");
-  node.className = "atomic-flight-cover";
-  const edge = doc.createElement("div");
-  edge.className = "atomic-flight-cover-edge";
-  const face = doc.createElement("div");
-  face.className = "atomic-flight-cover-face";
-  const title = doc.createElement("span");
-  title.className = "atomic-flight-title";
-  title.textContent = cover.title;
-  face.appendChild(title);
-  if (cover.author) {
-    const author = doc.createElement("span");
-    author.className = "atomic-flight-author";
-    author.textContent = cover.author;
-    face.appendChild(author);
-  }
-  const inside = doc.createElement("div");
-  inside.className = "atomic-flight-cover-in";
-  node.append(edge, face, inside);
-  return node;
-}
-function buildLeaf(doc, turning, leaf) {
-  const flip = doc.createElement("div");
-  flip.className = "atomic-flight-flip";
-  flip.setAttribute("data-leaf", String(leaf));
-  const contact = doc.createElement("div");
-  contact.className = "atomic-flight-contact";
-  flip.append(contact, buildRib(doc, turning, 0));
-  return flip;
-}
-function buildRib(doc, turning, rib) {
-  const node = doc.createElement("div");
-  node.className = "atomic-flight-rib";
-  node.setAttribute("data-rib", String(rib));
-  node.style.setProperty("--rib", String(rib));
-  node.style.setProperty("--rib-shift", `${-rib * 100}%`);
-  const face = doc.createElement("div");
-  face.className = "atomic-flight-rib-face";
-  const clip2 = doc.createElement("div");
-  clip2.className = "atomic-flight-rib-clip";
-  const page = turning ? clonePage(doc, turning) : null;
-  if (page) clip2.appendChild(page);
-  face.appendChild(clip2);
-  const back = doc.createElement("div");
-  back.className = "atomic-flight-rib-back";
-  node.append(face, back);
-  if (rib + 1 < PAGE_RIBS) node.appendChild(buildRib(doc, turning, rib + 1));
-  else {
-    const edge = doc.createElement("div");
-    edge.className = "atomic-flight-paper-edge";
-    node.appendChild(edge);
-  }
-  return node;
-}
-function buildSheet(doc, destination, side) {
-  const sheet = doc.createElement("div");
-  sheet.className = `atomic-flight-sheet is-${side}`;
-  const source = liveSide(destination, side === "left" ? "verso" : "recto");
-  const clone = source ? clonePage(doc, source) : null;
-  if (clone) sheet.appendChild(clone);
-  return sheet;
-}
-function buildQuire(doc, side) {
-  const quire = doc.createElement("div");
-  quire.className = `atomic-flight-quire is-${side}`;
-  for (let edge = 0; edge < QUIRE_EDGES; edge += 1) {
-    const sheet = doc.createElement("div");
-    sheet.className = "atomic-flight-edge";
-    sheet.style.setProperty("--edge-x", `${edge * 1.6}px`);
-    sheet.style.setProperty("--edge-inset", `${edge}px`);
-    quire.appendChild(sheet);
-  }
-  return quire;
-}
-function liveSide(destination, side) {
-  const pages = livePages(destination);
-  const found = pages.find((el) => el.classList.contains(`is-${side}`));
-  if (found) return found;
-  if (side === "recto") return pages[pages.length - 1] ?? null;
-  return pages[0] ?? null;
-}
-function clonePage(doc, source) {
-  if (typeof source.cloneNode === "function") {
-    const cloned = source.cloneNode(true);
-    if (isHtmlElement2(cloned)) return cloned;
-  }
-  return copyElement(doc, source);
-}
-function snapshotReader(doc, source) {
-  if (typeof source.cloneNode === "function") {
-    const cloned = source.cloneNode(true);
-    if (isHtmlElement2(cloned)) return cloned;
-  }
-  return copyElement(doc, source);
-}
-function copyElement(doc, source) {
-  const copy = doc.createElement(source.tagName.toLowerCase());
-  copy.className = source.className;
-  copyAttributes(source, copy);
-  copyStyle(source, copy);
-  const kids = source.children;
-  if (!kids || kids.length === 0) {
-    copy.textContent = source.textContent;
-    return copy;
-  }
-  for (let index = 0; index < kids.length; index++) {
-    const child = kids[index];
-    if (child && isHtmlElement2(child)) copy.appendChild(copyElement(doc, child));
-  }
-  return copy;
-}
-function copyStyle(from, to) {
-  const style = from.style;
-  if (style.map) {
-    style.map.forEach((value, key) => {
-      to.style.setProperty(key, value);
-    });
-    return;
-  }
-  if (typeof style.length !== "number") return;
-  for (let index = 0; index < style.length; index++) {
-    const name = style.item(index);
-    if (!name) continue;
-    to.style.setProperty(name, style.getPropertyValue(name));
-  }
-}
-function copyAttributes(from, to) {
-  const named = from.attributes;
-  if (named && typeof named.length === "number") {
-    for (let index = 0; index < named.length; index++) {
-      const attr2 = named.item(index);
-      if (!attr2 || attr2.name === "class") continue;
-      to.setAttribute(attr2.name, attr2.value);
-    }
-    return;
-  }
-  const bag = from.attrs;
-  if (!bag) return;
-  bag.forEach((value, key) => {
-    if (key !== "class") to.setAttribute(key, value);
-  });
-}
-function belongsToFlight(node) {
-  let current = node;
-  while (current) {
-    if (current.classList.contains("atomic-open-flight")) return true;
-    current = current.parentElement;
-  }
-  return false;
-}
-
-// src/reader/flight/register.ts
-var LIVE_PAGE_FRAMES = 300;
-var LIVE_READER_SELECTOR = "[data-testid='atomic-reader']";
-function registerOpenBookFlight(openDirect) {
-  registerReaderFlight({
-    open(request) {
-      return playOpenBookFlight(openDirect, request);
-    }
-  });
-}
-async function playOpenBookFlight(openDirect, request) {
-  const view = openBookFlightView();
-  if (!view) return false;
-  if (prefersReducedMotion4(view)) abortOpenBookFlight(view);
-  await openDirect(request);
-  const destination = await waitForLiveReader(view);
-  if (destination) {
-    mountOpenBookFlight({
-      view,
-      from: coverBox(request),
-      cover: {
-        title: request.title
-      },
-      page: { page: settledPage(destination, request.page), left: [], right: [] },
-      destination,
-      layout: flightLayoutForReader(destination)
-    });
-  }
-  return true;
-}
-function flightLayoutForReader(root) {
-  return root.classList.contains("is-phone") ? "phone" : "desktop";
-}
-function settledPage(root, fallback) {
-  const marked = positivePage(root.getAttribute("data-page"));
-  if (marked) return marked;
-  const requested = positivePage(fallback);
-  if (requested) return requested;
-  return 1;
-}
-function positivePage(value) {
-  const page = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(page) || page < 1) return null;
-  return Math.trunc(page);
-}
-function prefersReducedMotion4(view) {
-  if (typeof view.matchMedia !== "function") return false;
-  return view.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-function coverBox(request) {
-  const cover = request.coverRect;
-  if (!cover) return { x: 0, y: 0, width: 0, height: 0 };
-  return {
-    x: cover.x,
-    y: cover.y,
-    width: cover.width,
-    height: cover.height
-  };
-}
-async function waitForLiveReader(view) {
-  const doc = view.document;
-  if (!doc) return null;
-  let root = readerRoot(doc);
-  for (let frame = 0; frame < LIVE_PAGE_FRAMES && !livePageReady(root); frame++) {
-    await nextFrame(view);
-    root = readerRoot(doc);
-  }
-  if (!livePageReady(root)) return null;
-  return root;
-}
-function readerRoot(doc) {
-  const nodes = htmlElements(doc.querySelectorAll(LIVE_READER_SELECTOR));
-  const active = nodes.find((node) => inActiveLeaf(node));
-  if (active) return active;
-  const shown = nodes.find((node) => livePageReady(node));
-  return shown ?? nodes[0] ?? null;
-}
-function inActiveLeaf(node) {
-  if (typeof node.closest !== "function") return false;
-  const leaf = node.closest(".workspace-leaf");
-  if (!leaf || !isHtmlElement3(leaf)) return false;
-  return leaf.classList.contains("mod-active");
-}
-function livePageReady(root) {
-  if (!root) return false;
-  if (root.getAttribute("data-settled") === "false") return false;
-  const pages = root.querySelectorAll(OPEN_BOOK_PAGE_SELECTOR);
-  for (let index = 0; index < pages.length; index++) {
-    const node = pages[index];
-    if (!node || !isHtmlElement3(node)) continue;
-    const rect = node.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) return true;
-  }
-  return false;
-}
-function nextFrame(view) {
-  return new Promise((resolve) => {
-    if (typeof view.requestAnimationFrame === "function") {
-      view.requestAnimationFrame(() => resolve());
-      return;
-    }
-    view.setTimeout(() => resolve(), 16);
-  });
-}
-function htmlElements(nodes) {
-  const found = [];
-  for (let index = 0; index < nodes.length; index++) {
-    const node = nodes[index];
-    if (node && isHtmlElement3(node)) found.push(node);
-  }
-  return found;
-}
-function isHtmlElement3(node) {
-  if (typeof node.instanceOf === "function") return node.instanceOf(HTMLElement);
-  return node.nodeType === 1;
 }
 
 // src/reader/shell/open.ts
@@ -13416,7 +12117,7 @@ ${suppressCss()}
 `.trim();
 
 // src/reader/theater/mount.ts
-var sessions2 = /* @__PURE__ */ new WeakMap();
+var sessions = /* @__PURE__ */ new WeakMap();
 var live = /* @__PURE__ */ new WeakMap();
 function mountTheater(options) {
   const frame = options.frame;
@@ -13543,7 +12244,7 @@ function mountTheater(options) {
     if (live.get(frame) === handle) live.delete(frame);
     if (docSession.frames.size === 0) {
       docSession.style.remove();
-      sessions2.delete(doc);
+      sessions.delete(doc);
     }
     syncDocument(doc);
     if (user) options.onExit?.();
@@ -13588,7 +12289,7 @@ function clockFromView(view) {
   };
 }
 function ensureDoc(doc) {
-  const existing = sessions2.get(doc);
+  const existing = sessions.get(doc);
   if (existing) return existing;
   const style = doc.createElement("style");
   style.setAttribute("data-atomic-theater-style", "on");
@@ -13596,12 +12297,12 @@ function ensureDoc(doc) {
   const head = doc.head ?? doc.documentElement;
   head.appendChild(style);
   const created = { style, frames: /* @__PURE__ */ new Set() };
-  sessions2.set(doc, created);
+  sessions.set(doc, created);
   return created;
 }
 function syncDocument(doc) {
   const root = doc.documentElement;
-  const frames = sessions2.get(doc)?.frames;
+  const frames = sessions.get(doc)?.frames;
   if (!frames || frames.size === 0) {
     root.classList.remove("atomic-theater-dim", "atomic-theater-chrome", "is-reduced");
     return;
@@ -13684,12 +12385,12 @@ function walk(root, skip, visit) {
   const kids = root.children;
   for (let i = 0; i < kids.length; i++) {
     const child = kids[i];
-    if (!child || !isHtmlElement4(child) || child === skip) continue;
+    if (!child || !isHtmlElement2(child) || child === skip) continue;
     visit(child);
     walk(child, skip, visit);
   }
 }
-function isHtmlElement4(node) {
+function isHtmlElement2(node) {
   const probed = node;
   if (typeof probed.instanceOf === "function" && typeof HTMLElement === "function") {
     return probed.instanceOf(HTMLElement);
@@ -13716,7 +12417,7 @@ var ENTER_TESTID = "atomic-theater-enter";
 var PAGE_WIDTH_VAR = "--atomic-page-w";
 var PAGE_HEIGHT_VAR = "--atomic-page-h";
 function attachReaderTheater(slot, session3, copy) {
-  const root = readerRoot2(slot);
+  const root = readerRoot(slot);
   if (!root) return;
   const notePath = session3.notePath;
   ensureEnter(slot, root, notePath, copy, session3);
@@ -13803,21 +12504,21 @@ function restoreProp(root, name, previous) {
   if (previous) root.style.setProperty(name, previous);
   else root.style.removeProperty(name);
 }
-function readerRoot2(slot) {
+function readerRoot(slot) {
   const found = slot.closest(".atomic-reader");
-  if (!found || !isHtmlElement5(found)) return null;
+  if (!found || !isHtmlElement3(found)) return null;
   return found;
 }
 function findEnter(slot) {
   const kids = slot.children;
   for (let i = 0; i < kids.length; i++) {
     const child = kids[i];
-    if (!child || !isHtmlElement5(child)) continue;
+    if (!child || !isHtmlElement3(child)) continue;
     if (child.getAttribute("data-testid") === ENTER_TESTID) return child;
   }
   return null;
 }
-function isHtmlElement5(node) {
+function isHtmlElement3(node) {
   const probed = node;
   if (typeof probed.instanceOf === "function" && typeof HTMLElement === "function") {
     return probed.instanceOf(HTMLElement);
@@ -14110,7 +12811,6 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     this.observed = false;
     this.keys = false;
     this.theaterWanted = false;
-    this.phoneAfterFlight = null;
   }
   getViewType() {
     return ATOMIC_READER_VIEW;
@@ -14162,34 +12862,15 @@ var AtomicReaderView = class extends import_obsidian17.ItemView {
     this.observed = true;
     const observer = new ResizeObserver(() => {
       const phone = isPhoneReaderLayout(this.contentEl.clientWidth);
-      const flying = Boolean(this.contentEl.querySelector("[data-testid='atomic-open-flight']"));
       if (phone !== this.phone) {
-        if (flying) {
-          this.phoneAfterFlight = phone;
-          return;
-        }
         this.phone = phone;
         this.paint();
         return;
       }
-      if (flying) return;
       this.fitBook();
     });
     observer.observe(this.contentEl);
     this.register(() => observer.disconnect());
-    const onFlightDone = () => {
-      const phone = this.phoneAfterFlight;
-      this.phoneAfterFlight = null;
-      if (phone != null && phone !== this.phone) {
-        if (this.contentEl.querySelector("[data-testid='atomic-open-flight']")) return;
-        this.phone = phone;
-        this.paint();
-        return;
-      }
-      this.fitBook();
-    };
-    this.contentEl.addEventListener("atomic-flight-done", onFlightDone);
-    this.register(() => this.contentEl.removeEventListener("atomic-flight-done", onFlightDone));
   }
   ensureKeys() {
     if (this.keys) return;
@@ -14615,9 +13296,6 @@ function linkedFile(plugin, notePath, title) {
     files: bookFiles(plugin)
   });
 }
-function prefersReducedMotion5() {
-  return activeWindow.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
 async function savedReaderPage(plugin, notePath) {
   const file = plugin.data.getFileByPath(notePath);
   if (!(file instanceof import_obsidian18.TFile)) return 1;
@@ -14651,19 +13329,7 @@ async function openLinkedBook(plugin, request) {
     return;
   }
   const page = request.page ?? await savedReaderPage(plugin, request.notePath);
-  const opening = { ...request, page };
-  const plan = readerOpenPlan({
-    reducedMotion: prefersReducedMotion5(),
-    hasFlight: Boolean(readerMounts().flight)
-  });
-  if (plan === "flight") {
-    const flight = readerMounts().flight;
-    if (flight) {
-      const handled = await flight.open(opening);
-      if (handled) return;
-    }
-  }
-  await openReaderDirect(plugin, opening);
+  await openReaderDirect(plugin, { ...request, page });
 }
 async function openBookChooser2(plugin, request) {
   const language = plugin.settings.language;
@@ -14910,7 +13576,6 @@ var FitnessPlugin = class extends import_obsidian19.Plugin {
         );
       }
     });
-    registerOpenBookFlight((request) => openReaderDirect(this, request));
     registerBookChooser((request) => {
       void openBookChooser2(this, request);
     });

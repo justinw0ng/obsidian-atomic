@@ -1,6 +1,6 @@
 /**
  * Composer for the reader shell. Later workstreams register here.
- * Direct open is the baseline when flight is absent or motion is reduced.
+ * Open Book goes straight to the settled reader.
  */
 export {
   registerReaderAsk,
