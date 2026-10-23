@@ -24,6 +24,9 @@ import {
  * 1.5.0 tokens. No black stage. No purple.
  */
 export const OPEN_BOOK_FLIGHT_CSS = `
+/* Hallmark · checked: 2026-10-23 · genre: modern-minimal (inferred)
+ * built: the project · redesign: polish · v2.0.0
+ * waive 64 · page figures stay IBM Plex Mono · 1.5.0 token lock */
 .atomic-open-flight {
   --atomic-r-object: 3px;
   --atomic-r-control: 9px;
@@ -35,6 +38,23 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
   --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
+  --atomic-flight-stage: var(--background-primary, var(--atomic-flight-paper));
+  --atomic-flight-edge: #2a1c12;
+  --atomic-flight-board: #f3eadc;
+  --atomic-flight-fore: linear-gradient(#f4eadc, #d7c6ae 46%, #c4b094);
+  --atomic-flight-cast: rgba(36, 24, 16, 0.22);
+  --atomic-flight-cast-shadow: 0 22px 36px rgba(36, 24, 16, 0.18);
+  --atomic-flight-sheet-edge: 0 0 0 1px rgba(90, 70, 48, 0.22);
+  --atomic-flight-gutter-wash: linear-gradient(90deg, rgba(48, 32, 18, 0), rgba(48, 32, 18, 0.16), rgba(48, 32, 18, 0));
+  --atomic-flight-shade: linear-gradient(90deg, rgba(36, 24, 16, 0) 4%, rgba(36, 24, 16, 0.38) 76%, rgba(36, 24, 16, 0.08));
+  --atomic-flight-rib-rule: rgba(90, 70, 48, 0.14);
+  --atomic-flight-edge-line: rgba(90, 70, 48, 0.35);
+  --atomic-flight-quire: linear-gradient(90deg, #efe3d2, #dccab4 72%, #cbb89e);
+  --atomic-flight-quire-line: rgba(90, 70, 48, 0.28);
+  --atomic-flight-cover-shade: linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 14%);
+  --atomic-flight-cover-ring: rgba(244, 236, 223, 0.45);
+  --atomic-flight-cover-rule: rgba(244, 236, 223, 0.28);
+  --atomic-flight-cover-drop: rgba(36, 24, 16, 0.55);
   --flight-from: 1;
   --flight-ox: 50%;
   --flight-oy: 46%;
@@ -80,7 +100,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: var(--background-primary, #ffffff);
+  background: var(--atomic-flight-stage);
   pointer-events: none;
 }
 .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-veil {
@@ -118,8 +138,8 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   bottom: -7%;
   height: 12%;
   border-radius: 50%;
-  background: rgba(36, 24, 16, 0.22);
-  box-shadow: 0 22px 36px rgba(36, 24, 16, 0.18);
+  background: var(--atomic-flight-cast);
+  box-shadow: var(--atomic-flight-cast-shadow);
   pointer-events: none;
 }
 .atomic-flight-sheet {
@@ -129,7 +149,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   overflow: hidden;
   background: var(--atomic-flight-paper);
-  box-shadow: 0 0 0 1px rgba(90, 70, 48, 0.22);
+  box-shadow: var(--atomic-flight-sheet-edge);
   pointer-events: none;
 }
 .atomic-flight-sheet.is-left { left: 0; opacity: 0; }
@@ -154,7 +174,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   margin-left: -18px;
   opacity: 0;
-  background: linear-gradient(90deg, rgba(48, 32, 18, 0), rgba(48, 32, 18, 0.16), rgba(48, 32, 18, 0));
+  background: var(--atomic-flight-gutter-wash);
   pointer-events: none;
 }
 .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-gutter {
@@ -178,7 +198,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   position: absolute;
   inset: 0;
   opacity: 0;
-  background: linear-gradient(90deg, rgba(36, 24, 16, 0) 4%, rgba(36, 24, 16, 0.38) 76%, rgba(36, 24, 16, 0.08));
+  background: var(--atomic-flight-shade);
   pointer-events: none;
 }
 .atomic-flight-rib {
@@ -209,7 +229,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-face {
   background:
-    repeating-linear-gradient(180deg, transparent, transparent 22px, rgba(90, 70, 48, 0.14) 22px, rgba(90, 70, 48, 0.14) 23px),
+    repeating-linear-gradient(180deg, transparent, transparent 22px, var(--atomic-flight-rib-rule) 22px, var(--atomic-flight-rib-rule) 23px),
     var(--atomic-flight-paper);
 }
 .atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-clip {
@@ -221,8 +241,8 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   right: 0;
   width: 5px;
   height: 100%;
-  background: linear-gradient(#f4eadc, #d7c6ae 46%, #c4b094);
-  box-shadow: inset -1px 0 0 rgba(90, 70, 48, 0.35);
+  background: var(--atomic-flight-fore);
+  box-shadow: inset -1px 0 0 var(--atomic-flight-edge-line);
   transform-origin: right center;
   transform: rotateY(90deg);
   pointer-events: none;
@@ -234,7 +254,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   backface-visibility: hidden;
 }
 .atomic-flight-rib-back {
-  background: #f3eadc;
+  background: var(--atomic-flight-board);
   transform: rotateY(180deg) translateZ(1px);
 }
 .atomic-open-flight .atomic-flight-rib-clip .atomic-reader-page,
@@ -253,8 +273,8 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   width: 16px;
   height: 97.2%;
   pointer-events: none;
-  background: linear-gradient(90deg, #efe3d2, #dccab4 72%, #cbb89e);
-  box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.28);
+  background: var(--atomic-flight-quire);
+  box-shadow: inset 0 0 0 1px var(--atomic-flight-quire-line);
 }
 .atomic-flight-quire.is-right {
   right: -14px;
@@ -280,7 +300,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   bottom: var(--edge-inset, 0px);
   width: 2px;
   background: var(--atomic-flight-paper);
-  box-shadow: inset -1px 0 0 rgba(90, 70, 48, 0.35);
+  box-shadow: inset -1px 0 0 var(--atomic-flight-edge-line);
 }
 .atomic-flight-quire.is-right .atomic-flight-edge { right: var(--edge-x, 0px); }
 .atomic-flight-quire.is-left .atomic-flight-edge { left: var(--edge-x, 0px); }
@@ -329,12 +349,12 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   padding: 14%;
   text-align: center;
   background-color: var(--atomic-open-cover);
-  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 14%);
+  background-image: var(--atomic-flight-cover-shade);
   box-shadow:
-    inset 0 0 0 1px rgba(244, 236, 223, 0.45),
+    inset 0 0 0 1px var(--atomic-flight-cover-ring),
     inset 0 0 0 10px var(--atomic-open-cover),
-    inset 0 0 0 11px rgba(244, 236, 223, 0.28),
-    0 16px 28px -18px rgba(36, 24, 16, 0.55);
+    inset 0 0 0 11px var(--atomic-flight-cover-rule),
+    0 16px 28px -18px var(--atomic-flight-cover-drop);
   color: var(--atomic-open-ink);
 }
 .atomic-flight-cover-edge {
@@ -344,7 +364,7 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   transform-origin: right center;
   transform: rotateY(90deg);
-  background: #2a1c12;
+  background: var(--atomic-flight-edge);
 }
 .atomic-flight-title {
   font-size: 22px;
@@ -353,15 +373,15 @@ export const OPEN_BOOK_FLIGHT_CSS = `
   line-height: 1.15;
 }
 .atomic-flight-author {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.7;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--atomic-open-ink);
 }
 .atomic-flight-cover-in {
-  background: #f3eadc;
-  box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.35);
+  background: var(--atomic-flight-board);
+  box-shadow: inset 0 0 0 1px var(--atomic-flight-edge-line);
   transform: rotateY(180deg) translateZ(1px);
 }
 ${flipRules()}
@@ -385,20 +405,20 @@ ${flipRules()}
   padding: 6px 12px;
   border: 1px solid var(--atomic-rule);
   border-radius: var(--atomic-r-well);
-  background: var(--background-primary, #ffffff);
+  background: var(--atomic-flight-stage);
   color: var(--atomic-ink-2);
   font-family: var(--font-interface);
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
 }
 .atomic-open-flight.is-playing .atomic-open-hint {
   animation: atomic-flight-hint ${FLIGHT_MS}ms linear forwards;
 }
 .atomic-open-flight.is-reduced {
-  background: var(--background-primary, #ffffff);
+  background: var(--atomic-flight-stage);
   animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
 }
 @keyframes atomic-flight-zoom {

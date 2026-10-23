@@ -237,13 +237,13 @@ var en = {
   "settings.askBaseUrlDesc": "API root ending in /v1, or the full chat completions URL. Local http is limited to localhost.",
   "settings.askKey": "AI provider key",
   "settings.askKeyDesc": "Settings keep the name only. The value stays in the app Keychain on this device.",
-  "settings.askSavedDesc": "Obsidian secret storage \xB7 \u22651.11.4",
+  "settings.askSavedDesc": "Obsidian secret storage, 1.11.4 or newer",
   "settings.askEmptyDesc": "Not configured",
   "settings.askEmptyTitle": "No key in secret storage",
   "settings.askEmptyBody": "Add a provider key in Obsidian's secret storage (1.11.4+). Atomic reads it and never writes the raw key into notes.",
   "settings.askOpenStorage": "Open secret storage",
   "settings.askErrorBanner": "Key rejected. Check the secret or replace the key.",
-  "settings.askErrorDesc": "Secret present \xB7 last error",
+  "settings.askErrorDesc": "Secret present. Last error.",
   "settings.askRetry": "Retry",
   "settings.askStored": "Stored in Obsidian secrets",
   "settings.askNameHint": "Name {name}. A synced vault copies the name, not the key.",
@@ -259,7 +259,7 @@ var en = {
   "settings.askState.error": "Error",
   "settings.readerDefaultOpen": "Default open",
   "settings.readerDefaultOpenDesc": "Chooser keeps Open Notes primary.",
-  "settings.readerDefaultOpen.chooser": "Chooser \xB7 Open Notes primary",
+  "settings.readerDefaultOpen.chooser": "Chooser. Open Notes is primary.",
   "settings.readerDefaultOpen.notes": "Open Notes",
   "settings.readerDefaultOpen.book": "Open Book",
   "settings.readerTheater": "Theater",
@@ -511,7 +511,7 @@ var en = {
   "view.cueLog.placeholder": "Keep the lead arm soft\n**Tempo** \u2014 count one-two",
   "view.cueLog.add": "Add cue",
   "view.cueLog.needsSavedNote": "Save this note to add cues.",
-  "view.bookShelf.summary": "{count} books \xB7 {reading} reading \xB7 {finished} finished",
+  "view.bookShelf.summary": "{count} books, {reading} reading, {finished} finished",
   "view.bookShelf.clickToOpen": "Click to open",
   "view.bookShelf.clickAgain": "Click again to choose",
   "view.bookShelf.tapAgain": "Tap again to choose",
@@ -649,13 +649,13 @@ var zhHantEn = {
   "settings.askBaseUrlDesc": "API \u6839\u8DEF\u5F91\uFF0C\u7D50\u5C3E\u4FC2 /v1\uFF0C\u6216\u8005\u5B8C\u6574\u5605 chat completions URL\u3002\u672C\u6A5F http \u53EA\u9650 localhost\u3002",
   "settings.askKey": "\u4F9B\u61C9\u5546\u5319",
   "settings.askKeyDesc": "\u8A2D\u5B9A\u53EA\u4FDD\u7559\u540D\u7A31\u3002\u6578\u503C\u7559\u55BA\u5462\u90E8\u6A5F\u5605 Keychain\u3002",
-  "settings.askSavedDesc": "Obsidian secret storage \xB7 1.11.4 \u6216\u66F4\u65B0",
+  "settings.askSavedDesc": "Obsidian secret storage\uFF0C1.11.4 \u6216\u66F4\u65B0",
   "settings.askEmptyDesc": "\u672A\u8A2D\u5B9A",
   "settings.askEmptyTitle": "secret storage \u672A\u6709\u5319",
   "settings.askEmptyBody": "\u55BA Obsidian secret storage\uFF081.11.4 \u6216\u66F4\u65B0\uFF09\u52A0\u4F9B\u61C9\u5546\u5319\u3002Atomic \u53EA\u6703\u8B80\uFF0C\u5514\u6703\u628A\u5319\u5BEB\u5165\u7B46\u8A18\u3002",
   "settings.askOpenStorage": "\u6253\u958B secret storage",
   "settings.askErrorBanner": "\u5319\u88AB\u62D2\u7D55\u3002\u6AA2\u67E5\u500B\u5BC6\u9470\uFF0C\u6216\u8005\u63DB\u4E00\u628A\u3002",
-  "settings.askErrorDesc": "\u5BC6\u9470\u4EF2\u55BA\u5EA6 \xB7 \u4E0A\u6B21\u51FA\u932F",
+  "settings.askErrorDesc": "\u5BC6\u9470\u4EF2\u55BA\u5EA6\u3002\u4E0A\u6B21\u51FA\u932F\u3002",
   "settings.askRetry": "\u518D\u8A66",
   "settings.askStored": "\u5DF2\u5B58\u653E\u55BA Obsidian secrets",
   "settings.askNameHint": "\u540D\u7A31 {name}\u3002\u540C\u6B65 vault \u53EA\u6703\u6284\u540D\u7A31\uFF0C\u5514\u6703\u6284\u5319\u3002",
@@ -671,7 +671,7 @@ var zhHantEn = {
   "settings.askState.error": "\u51FA\u932F",
   "settings.readerDefaultOpen": "\u9810\u8A2D\u6253\u958B",
   "settings.readerDefaultOpenDesc": "\u9078\u64C7\u5668\u4ECD\u7136\u4EE5\u7B46\u8A18\u505A\u4E3B\u3002",
-  "settings.readerDefaultOpen.chooser": "\u9078\u64C7\u5668 \xB7 \u7B46\u8A18\u512A\u5148",
+  "settings.readerDefaultOpen.chooser": "\u9078\u64C7\u5668\u3002\u7B46\u8A18\u512A\u5148\u3002",
   "settings.readerDefaultOpen.notes": "\u6253\u958B\u7B46\u8A18",
   "settings.readerDefaultOpen.book": "\u6253\u958B\u66F8",
   "settings.readerTheater": "\u5287\u5834",
@@ -923,7 +923,7 @@ var zhHantEn = {
   "view.cueLog.placeholder": "\u524D\u81C2\u653E\u9B06\n**Tempo\u7BC0\u594F** \u2014 count one-two",
   "view.cueLog.add": "\u52A0\u63D0\u793A",
   "view.cueLog.needsSavedNote": "\u5148\u5132\u5B58\u7B46\u8A18\u624D\u52A0\u5F97\u63D0\u793A\u3002",
-  "view.bookShelf.summary": "{count} \u672C \xB7 {reading} \u672C\u95B1\u8B80\u4E2D \xB7 {finished} \u672C\u8B80\u5B8C",
+  "view.bookShelf.summary": "{count} \u672C\uFF0C{reading} \u672C\u95B1\u8B80\u4E2D\uFF0C{finished} \u672C\u8B80\u5B8C",
   "view.bookShelf.clickToOpen": "\u64B3\u4E00\u4E0B\u958B\u555F",
   "view.bookShelf.tapAgain": "\u518D\u64B3\u4E00\u6B21\u9078\u64C7",
   "view.bookShelf.noActivity": "\u5C1A\u672A\u8A2D\u5B9A\u652F\u63F4 timer \u7684\u8208\u8DA3\u6D3B\u52D5: {activity}\u3002",
@@ -11332,6 +11332,9 @@ function pageNumber(value, fallback) {
 
 // src/reader/flight/styles.ts
 var OPEN_BOOK_FLIGHT_CSS = `
+/* Hallmark \xB7 checked: 2026-10-23 \xB7 genre: modern-minimal (inferred)
+ * built: the project \xB7 redesign: polish \xB7 v2.0.0
+ * waive 64 \xB7 page figures stay IBM Plex Mono \xB7 1.5.0 token lock */
 .atomic-open-flight {
   --atomic-r-object: 3px;
   --atomic-r-control: 9px;
@@ -11343,6 +11346,23 @@ var OPEN_BOOK_FLIGHT_CSS = `
   --atomic-open-cover: #3d2a1c;
   --atomic-open-ink: #f4ecdf;
   --atomic-flight-paper: var(--atomic-paper, var(--background-primary, #ffffff));
+  --atomic-flight-stage: var(--background-primary, var(--atomic-flight-paper));
+  --atomic-flight-edge: #2a1c12;
+  --atomic-flight-board: #f3eadc;
+  --atomic-flight-fore: linear-gradient(#f4eadc, #d7c6ae 46%, #c4b094);
+  --atomic-flight-cast: rgba(36, 24, 16, 0.22);
+  --atomic-flight-cast-shadow: 0 22px 36px rgba(36, 24, 16, 0.18);
+  --atomic-flight-sheet-edge: 0 0 0 1px rgba(90, 70, 48, 0.22);
+  --atomic-flight-gutter-wash: linear-gradient(90deg, rgba(48, 32, 18, 0), rgba(48, 32, 18, 0.16), rgba(48, 32, 18, 0));
+  --atomic-flight-shade: linear-gradient(90deg, rgba(36, 24, 16, 0) 4%, rgba(36, 24, 16, 0.38) 76%, rgba(36, 24, 16, 0.08));
+  --atomic-flight-rib-rule: rgba(90, 70, 48, 0.14);
+  --atomic-flight-edge-line: rgba(90, 70, 48, 0.35);
+  --atomic-flight-quire: linear-gradient(90deg, #efe3d2, #dccab4 72%, #cbb89e);
+  --atomic-flight-quire-line: rgba(90, 70, 48, 0.28);
+  --atomic-flight-cover-shade: linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 14%);
+  --atomic-flight-cover-ring: rgba(244, 236, 223, 0.45);
+  --atomic-flight-cover-rule: rgba(244, 236, 223, 0.28);
+  --atomic-flight-cover-drop: rgba(36, 24, 16, 0.55);
   --flight-from: 1;
   --flight-ox: 50%;
   --flight-oy: 46%;
@@ -11388,7 +11408,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: var(--background-primary, #ffffff);
+  background: var(--atomic-flight-stage);
   pointer-events: none;
 }
 .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-veil {
@@ -11426,8 +11446,8 @@ var OPEN_BOOK_FLIGHT_CSS = `
   bottom: -7%;
   height: 12%;
   border-radius: 50%;
-  background: rgba(36, 24, 16, 0.22);
-  box-shadow: 0 22px 36px rgba(36, 24, 16, 0.18);
+  background: var(--atomic-flight-cast);
+  box-shadow: var(--atomic-flight-cast-shadow);
   pointer-events: none;
 }
 .atomic-flight-sheet {
@@ -11437,7 +11457,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   overflow: hidden;
   background: var(--atomic-flight-paper);
-  box-shadow: 0 0 0 1px rgba(90, 70, 48, 0.22);
+  box-shadow: var(--atomic-flight-sheet-edge);
   pointer-events: none;
 }
 .atomic-flight-sheet.is-left { left: 0; opacity: 0; }
@@ -11462,7 +11482,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   margin-left: -18px;
   opacity: 0;
-  background: linear-gradient(90deg, rgba(48, 32, 18, 0), rgba(48, 32, 18, 0.16), rgba(48, 32, 18, 0));
+  background: var(--atomic-flight-gutter-wash);
   pointer-events: none;
 }
 .atomic-open-flight.is-playing:not(.is-flat) .atomic-flight-gutter {
@@ -11486,7 +11506,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   position: absolute;
   inset: 0;
   opacity: 0;
-  background: linear-gradient(90deg, rgba(36, 24, 16, 0) 4%, rgba(36, 24, 16, 0.38) 76%, rgba(36, 24, 16, 0.08));
+  background: var(--atomic-flight-shade);
   pointer-events: none;
 }
 .atomic-flight-rib {
@@ -11517,7 +11537,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
 }
 .atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-face {
   background:
-    repeating-linear-gradient(180deg, transparent, transparent 22px, rgba(90, 70, 48, 0.14) 22px, rgba(90, 70, 48, 0.14) 23px),
+    repeating-linear-gradient(180deg, transparent, transparent 22px, var(--atomic-flight-rib-rule) 22px, var(--atomic-flight-rib-rule) 23px),
     var(--atomic-flight-paper);
 }
 .atomic-flight-flip:not([data-leaf="0"]) .atomic-flight-rib-clip {
@@ -11529,8 +11549,8 @@ var OPEN_BOOK_FLIGHT_CSS = `
   right: 0;
   width: 5px;
   height: 100%;
-  background: linear-gradient(#f4eadc, #d7c6ae 46%, #c4b094);
-  box-shadow: inset -1px 0 0 rgba(90, 70, 48, 0.35);
+  background: var(--atomic-flight-fore);
+  box-shadow: inset -1px 0 0 var(--atomic-flight-edge-line);
   transform-origin: right center;
   transform: rotateY(90deg);
   pointer-events: none;
@@ -11542,7 +11562,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   backface-visibility: hidden;
 }
 .atomic-flight-rib-back {
-  background: #f3eadc;
+  background: var(--atomic-flight-board);
   transform: rotateY(180deg) translateZ(1px);
 }
 .atomic-open-flight .atomic-flight-rib-clip .atomic-reader-page,
@@ -11561,8 +11581,8 @@ var OPEN_BOOK_FLIGHT_CSS = `
   width: 16px;
   height: 97.2%;
   pointer-events: none;
-  background: linear-gradient(90deg, #efe3d2, #dccab4 72%, #cbb89e);
-  box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.28);
+  background: var(--atomic-flight-quire);
+  box-shadow: inset 0 0 0 1px var(--atomic-flight-quire-line);
 }
 .atomic-flight-quire.is-right {
   right: -14px;
@@ -11588,7 +11608,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   bottom: var(--edge-inset, 0px);
   width: 2px;
   background: var(--atomic-flight-paper);
-  box-shadow: inset -1px 0 0 rgba(90, 70, 48, 0.35);
+  box-shadow: inset -1px 0 0 var(--atomic-flight-edge-line);
 }
 .atomic-flight-quire.is-right .atomic-flight-edge { right: var(--edge-x, 0px); }
 .atomic-flight-quire.is-left .atomic-flight-edge { left: var(--edge-x, 0px); }
@@ -11637,12 +11657,12 @@ var OPEN_BOOK_FLIGHT_CSS = `
   padding: 14%;
   text-align: center;
   background-color: var(--atomic-open-cover);
-  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.22), transparent 14%);
+  background-image: var(--atomic-flight-cover-shade);
   box-shadow:
-    inset 0 0 0 1px rgba(244, 236, 223, 0.45),
+    inset 0 0 0 1px var(--atomic-flight-cover-ring),
     inset 0 0 0 10px var(--atomic-open-cover),
-    inset 0 0 0 11px rgba(244, 236, 223, 0.28),
-    0 16px 28px -18px rgba(36, 24, 16, 0.55);
+    inset 0 0 0 11px var(--atomic-flight-cover-rule),
+    0 16px 28px -18px var(--atomic-flight-cover-drop);
   color: var(--atomic-open-ink);
 }
 .atomic-flight-cover-edge {
@@ -11652,7 +11672,7 @@ var OPEN_BOOK_FLIGHT_CSS = `
   height: 100%;
   transform-origin: right center;
   transform: rotateY(90deg);
-  background: #2a1c12;
+  background: var(--atomic-flight-edge);
 }
 .atomic-flight-title {
   font-size: 22px;
@@ -11661,15 +11681,15 @@ var OPEN_BOOK_FLIGHT_CSS = `
   line-height: 1.15;
 }
 .atomic-flight-author {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.7;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--atomic-open-ink);
 }
 .atomic-flight-cover-in {
-  background: #f3eadc;
-  box-shadow: inset 0 0 0 1px rgba(90, 70, 48, 0.35);
+  background: var(--atomic-flight-board);
+  box-shadow: inset 0 0 0 1px var(--atomic-flight-edge-line);
   transform: rotateY(180deg) translateZ(1px);
 }
 ${flipRules()}
@@ -11693,20 +11713,20 @@ ${flipRules()}
   padding: 6px 12px;
   border: 1px solid var(--atomic-rule);
   border-radius: var(--atomic-r-well);
-  background: var(--background-primary, #ffffff);
+  background: var(--atomic-flight-stage);
   color: var(--atomic-ink-2);
   font-family: var(--font-interface);
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
 }
 .atomic-open-flight.is-playing .atomic-open-hint {
   animation: atomic-flight-hint ${FLIGHT_MS}ms linear forwards;
 }
 .atomic-open-flight.is-reduced {
-  background: var(--background-primary, #ffffff);
+  background: var(--atomic-flight-stage);
   animation: atomic-flight-fade ${REDUCED_FADE_MS}ms ease forwards;
 }
 @keyframes atomic-flight-zoom {
@@ -12927,9 +12947,37 @@ function suppressCss() {
 `;
 }
 var THEATER_CSS = `
+/* Hallmark \xB7 checked: 2026-10-23 \xB7 genre: modern-minimal (inferred)
+ * built: the project \xB7 redesign: polish \xB7 v2.0.0
+ * waive 2b \xB7 linen key light \xB7 theater lock
+ * waive 47a \xB7 these selectors hide the host title bar \xB7 theater lock
+ * waive 64 \xB7 Esc stays IBM Plex Mono \xB7 1.5.0 token lock */
 .atomic-theater-root.is-theater {
   --theater-void: #ebe8e2;
   --theater-paper: #f0eee6;
+  --theater-ink: #2a2824;
+  --theater-chrome: rgba(251, 250, 247, 0.92);
+  --theater-chrome-ink: #3a3834;
+  --theater-chrome-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  --theater-exit: rgba(60, 50, 40, 0.06);
+  --theater-hint: #5c5348;
+  --theater-mark: #2a45b8;
+  --theater-ui: var(--font-interface), Inter, sans-serif;
+  --theater-serif: var(--font-text), Literata, Georgia, serif;
+  --theater-mono: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
+  --theater-linen-verso: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  --theater-linen-recto: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
+  --theater-phone-page: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  --theater-ambient: radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%), radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%), linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+  --theater-key: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+  --theater-curtain-l: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  --theater-curtain-r: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  --theater-curtain-shadow-l: 6px 0 28px rgba(60, 50, 40, 0.1);
+  --theater-curtain-shadow-r: -6px 0 28px rgba(60, 50, 40, 0.1);
+  --theater-lamp: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+  --theater-verso-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  --theater-recto-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+  --theater-phone-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
   --page-w: ${THEATER_PAGE_WIDTH}px;
   --page-h: ${THEATER_PAGE_HEIGHT}px;
   --atomic-page-w: ${THEATER_PAGE_WIDTH}px;
@@ -12945,6 +12993,24 @@ var THEATER_CSS = `
 body.theme-dark .atomic-theater-root.is-theater {
   --theater-void: #0e0c0a;
   --theater-paper: #f0e8d2;
+  --theater-chrome: rgba(38, 38, 38, 0.92);
+  --theater-chrome-ink: #dadada;
+  --theater-chrome-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+  --theater-exit: rgba(255, 255, 255, 0.06);
+  --theater-hint: #c4b5a4;
+  --theater-linen-verso: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  --theater-linen-recto: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
+  --theater-phone-page: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  --theater-ambient: radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%), radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%), linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+  --theater-key: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+  --theater-curtain-l: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  --theater-curtain-r: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  --theater-curtain-shadow-l: 8px 0 32px rgba(0, 0, 0, 0.45);
+  --theater-curtain-shadow-r: -8px 0 32px rgba(0, 0, 0, 0.45);
+  --theater-lamp: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+  --theater-verso-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  --theater-recto-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+  --theater-phone-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
 }
 .atomic-theater-root.is-theater .atomic-theater-stage {
   position: relative;
@@ -12953,25 +13019,19 @@ body.theme-dark .atomic-theater-root.is-theater {
 }
 .atomic-theater-layers {
   display: contents;
-  font-family: var(--font-interface), Inter, sans-serif;
+  font-family: var(--theater-ui);
 }
 .atomic-theater-root.is-theater .th-ambient {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%),
-    linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+  background: var(--theater-ambient);
 }
 .theme-dark.atomic-theater-root.is-theater .th-ambient,
 .theme-dark .atomic-theater-root.is-theater .th-ambient,
 body.theme-dark .atomic-theater-root.is-theater .th-ambient {
-  background:
-    radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%),
-    radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%),
-    linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+  background: var(--theater-ambient);
 }
 .atomic-theater-root.is-theater .th-key {
   position: absolute;
@@ -12982,12 +13042,12 @@ body.theme-dark .atomic-theater-root.is-theater .th-ambient {
   z-index: 2;
   pointer-events: none;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+  background: var(--theater-key);
 }
 .theme-dark.atomic-theater-root.is-theater .th-key,
 .theme-dark .atomic-theater-root.is-theater .th-key,
 body.theme-dark .atomic-theater-root.is-theater .th-key {
-  background: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+  background: var(--theater-key);
 }
 .atomic-theater-root.is-theater .curtain {
   position: absolute;
@@ -13000,24 +13060,24 @@ body.theme-dark .atomic-theater-root.is-theater .th-key {
 .atomic-theater-root.is-theater .curtain.is-l { left: 0; }
 .atomic-theater-root.is-theater .curtain.is-r { right: 0; }
 .atomic-theater-root.is-theater .curtain.is-l {
-  background: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
-  box-shadow: 6px 0 28px rgba(60, 50, 40, 0.1);
+  background: var(--theater-curtain-l);
+  box-shadow: var(--theater-curtain-shadow-l);
 }
 .atomic-theater-root.is-theater .curtain.is-r {
-  background: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
-  box-shadow: -6px 0 28px rgba(60, 50, 40, 0.1);
+  background: var(--theater-curtain-r);
+  box-shadow: var(--theater-curtain-shadow-r);
 }
 .theme-dark.atomic-theater-root.is-theater .curtain.is-l,
 .theme-dark .atomic-theater-root.is-theater .curtain.is-l,
 body.theme-dark .atomic-theater-root.is-theater .curtain.is-l {
-  background: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
-  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+  background: var(--theater-curtain-l);
+  box-shadow: var(--theater-curtain-shadow-l);
 }
 .theme-dark.atomic-theater-root.is-theater .curtain.is-r,
 .theme-dark .atomic-theater-root.is-theater .curtain.is-r,
 body.theme-dark .atomic-theater-root.is-theater .curtain.is-r {
-  background: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+  background: var(--theater-curtain-r);
+  box-shadow: var(--theater-curtain-shadow-r);
 }
 .atomic-theater-root.is-theater .lamp-pool {
   position: absolute;
@@ -13027,12 +13087,12 @@ body.theme-dark .atomic-theater-root.is-theater .curtain.is-r {
   z-index: 4;
   pointer-events: none;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+  background: var(--theater-lamp);
 }
 .theme-dark.atomic-theater-root.is-theater .lamp-pool,
 .theme-dark .atomic-theater-root.is-theater .lamp-pool,
 body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
-  background: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+  background: var(--theater-lamp);
 }
 .atomic-theater-root.is-theater .lamp-pool.is-l { left: 96px; }
 .atomic-theater-root.is-theater .lamp-pool.is-r { right: 96px; }
@@ -13048,21 +13108,14 @@ body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
   height: 40px;
   padding: 0 6px;
   border-radius: var(--atomic-r-well, 14px);
-  background: rgba(251, 250, 247, 0.92);
-  color: #3a3834;
-  box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  background: var(--theater-chrome);
+  color: var(--theater-chrome-ink);
+  box-shadow: var(--theater-chrome-shadow);
   opacity: 0;
   pointer-events: none;
   transition: opacity 240ms ease;
   white-space: nowrap;
-  font-family: var(--font-interface), Inter, sans-serif;
-}
-.theme-dark.atomic-theater-root.is-theater .th-chrome,
-.theme-dark .atomic-theater-root.is-theater .th-chrome,
-body.theme-dark .atomic-theater-root.is-theater .th-chrome {
-  background: rgba(38, 38, 38, 0.92);
-  color: #dadada;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+  font-family: var(--theater-ui);
 }
 .atomic-theater-root.is-theater.is-chrome .th-chrome {
   opacity: 1;
@@ -13075,19 +13128,23 @@ body.theme-dark .atomic-theater-root.is-theater .th-chrome {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(60, 50, 40, 0.06);
+  background: var(--theater-exit);
   color: inherit;
   font: inherit;
 }
-.theme-dark .atomic-theater-root.is-theater .th-exit,
-.theme-dark.atomic-theater-root.is-theater .th-exit,
-body.theme-dark .atomic-theater-root.is-theater .th-exit {
-  background: rgba(255, 255, 255, 0.06);
+.atomic-theater-root.is-theater .th-exit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--theater-chrome), 0 0 0 4px var(--theater-mark);
+}
+.atomic-theater-root.is-theater .th-exit:active {
+  background: var(--theater-hint);
+  color: var(--theater-void);
 }
 .atomic-theater-root.is-theater .th-exit .kbd {
-  font-family: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--theater-mono);
   font-size: 11px;
-  opacity: 0.6;
+  opacity: 1;
+  color: var(--theater-hint);
 }
 .atomic-theater-root.is-theater .th-hint {
   position: absolute;
@@ -13097,16 +13154,11 @@ body.theme-dark .atomic-theater-root.is-theater .th-exit {
   z-index: 6;
   text-align: center;
   pointer-events: none;
-  font-family: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(60, 55, 48, 0.45);
-}
-.theme-dark.atomic-theater-root.is-theater .th-hint,
-.theme-dark .atomic-theater-root.is-theater .th-hint,
-body.theme-dark .atomic-theater-root.is-theater .th-hint {
-  color: rgba(255, 230, 200, 0.32);
+  font-family: var(--theater-ui);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--theater-hint);
 }
 .atomic-theater-root.is-theater .atomic-pane,
 .atomic-theater-root.is-theater .atomic-spread,
@@ -13137,7 +13189,7 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
 .atomic-theater-root.is-theater .atomic-page,
 .atomic-theater-root.is-theater .atomic-reader-page {
   margin: 0;
-  color: #2a2824;
+  color: var(--theater-ink);
   width: var(--page-w);
   height: var(--page-h);
   overflow: hidden;
@@ -13145,14 +13197,14 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
 .atomic-theater-root.is-theater .atomic-page.is-verso,
 .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
   border-radius: var(--atomic-r-object, 3px) 0 0 var(--atomic-r-object, 3px);
-  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  background: var(--theater-linen-verso);
+  box-shadow: var(--theater-verso-shadow);
 }
 .atomic-theater-root.is-theater .atomic-page.is-recto,
 .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
   border-radius: 0 var(--atomic-r-object, 3px) var(--atomic-r-object, 3px) 0;
-  background: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+  background: var(--theater-linen-recto);
+  box-shadow: var(--theater-recto-shadow);
 }
 .theme-dark.atomic-theater-root.is-theater .atomic-page.is-verso,
 .theme-dark.atomic-theater-root.is-theater .atomic-reader-page.is-verso,
@@ -13160,8 +13212,8 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
 .theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso,
 body.theme-dark .atomic-theater-root.is-theater .atomic-page.is-verso,
 body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
-  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  background: var(--theater-linen-verso);
+  box-shadow: var(--theater-verso-shadow);
 }
 .theme-dark.atomic-theater-root.is-theater .atomic-page.is-recto,
 .theme-dark.atomic-theater-root.is-theater .atomic-reader-page.is-recto,
@@ -13169,15 +13221,15 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
 .theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto,
 body.theme-dark .atomic-theater-root.is-theater .atomic-page.is-recto,
 body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
-  background: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+  background: var(--theater-linen-recto);
+  box-shadow: var(--theater-recto-shadow);
 }
 .atomic-theater-root.is-theater .atomic-page p,
 .atomic-theater-root.is-theater .atomic-page h3,
 .atomic-theater-root.is-theater .atomic-reader-page p,
 .atomic-theater-root.is-theater .atomic-reader-page h3 {
-  color: #2a2824;
-  font-family: var(--font-text), Literata, Georgia, serif;
+  color: var(--theater-ink);
+  font-family: var(--theater-serif);
 }
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .curtain,
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .th-key,
@@ -13227,9 +13279,9 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
   margin: 0 auto;
   overflow: hidden;
   border-radius: var(--atomic-r-object, 3px);
-  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
-  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
-  color: #2a2824;
+  background: var(--theater-phone-page);
+  box-shadow: var(--theater-phone-shadow);
+  color: var(--theater-ink);
 }
 .theme-dark.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
 .theme-dark.atomic-theater-root.is-theater.is-phone .atomic-reader-page,
@@ -13237,8 +13289,8 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
 .theme-dark .atomic-theater-root.is-theater.is-phone .atomic-reader-page,
 body.theme-dark .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
 body.theme-dark .atomic-theater-root.is-theater.is-phone .atomic-reader-page {
-  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  background: var(--theater-phone-page);
+  box-shadow: var(--theater-phone-shadow);
 }
 html.atomic-theater-dim .titlebar,
 html.atomic-theater-dim .workspace-ribbon,
@@ -13597,7 +13649,7 @@ function buildLayers(doc, surface, exitLabel) {
   chrome.appendChild(exitButton);
   root.appendChild(chrome);
   const hint = make(doc, "div", "th-hint", { "aria-hidden": "true" });
-  hint.textContent = "Chrome hides after 2 s \xB7 move mouse to show";
+  hint.textContent = "Chrome hides after 2 s. Move the mouse to show it.";
   root.appendChild(hint);
   switch (surface) {
     case "desk":

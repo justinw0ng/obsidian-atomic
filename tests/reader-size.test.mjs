@@ -92,14 +92,15 @@ test("theater locks XL at 340×500 and about 23 lines without changing the settl
   assert.match(settled, /reader\.size: m\n/);
 });
 
-test("resize motion is 200ms and instant under reduced motion in styles.css", () => {
+test("fixed XL does not animate page width or height", () => {
   assert.equal(READER_SIZE_MOTION_MS, 200);
   assert.equal(READER_SIZE_EASING, "cubic-bezier(0.2, 0, 0, 1)");
   const styles = readFileSync(join(root, "styles.css"), "utf8");
   const section = styles.slice(styles.indexOf("/* Book size"));
   assert.ok(section.length > 0, "styles.css has a book size section");
-  assert.match(section, /width 200ms cubic-bezier\(0\.2, 0, 0, 1\)/);
-  assert.match(section, /height 200ms cubic-bezier\(0\.2, 0, 0, 1\)/);
+  assert.doesNotMatch(section, /width 200ms/);
+  assert.doesNotMatch(section, /height 200ms/);
+  assert.match(section, /\.atomic-reader-page \{[^}]*transition:\s*none/s);
   assert.match(section, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(section, /\.atomic-reader-sized\.is-instant \{[^}]*transition:\s*none/s);
   assert.doesNotMatch(section, /purple|#7c3aed|#6d28d9|#8b5cf6/i);

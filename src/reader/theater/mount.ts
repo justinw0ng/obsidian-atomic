@@ -337,7 +337,7 @@ function buildLayers(doc: Document, surface: TheaterSurface, exitLabel: string |
   root.appendChild(chrome);
 
   const hint = make(doc, "div", "th-hint", { "aria-hidden": "true" });
-  hint.textContent = "Chrome hides after 2 s · move mouse to show";
+  hint.textContent = "Chrome hides after 2 s. Move the mouse to show it.";
   root.appendChild(hint);
 
   switch (surface) {

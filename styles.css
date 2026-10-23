@@ -1,3 +1,13 @@
+/* Hallmark · checked: 2026-10-23 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL on the reader sheets · fixed: 10a, 26a, 39a, 40, 48, 63, 67
+ * structural: 24b, 42, 44, 58, 59, 78 printed · app scope
+ * waive 64 · page numbers and the Esc key stay IBM Plex Mono · 1.5.0 token lock
+ * waive 2b · theater linen key light · theater lock
+ * waive 7b · paper stays the 1.5.0 background · 1.5.0 paper lock
+ * waive 34 · overflow clip on html and body would clip the Obsidian host
+ * waive 39b · chooser rows and the 28px Exit pill stay · chooser and theater lock
+ * waive 47a · theater hides the host title bar · theater lock
+ * built: the project · redesign: polish · v2.0.0 */
 /*
   Atomic Tracker 1.5.0. Notes stay the desk. Data is paper (rules, no boxes).
   Controls sit in a well. Cue cards and books are the objects. One glass
@@ -31,6 +41,31 @@
   --atomic-t-move: 560ms;
   --atomic-stagger: 30ms;
   --atomic-c: var(--text-muted);
+  --atomic-serif: Literata, "Source Serif Pro", "IBM Plex Serif", Georgia, serif;
+  --atomic-solid: #222222;
+  --atomic-on-solid: #ffffff;
+  --atomic-ink-quiet: #5c5c5c;
+  --atomic-mark: #5b7cfa;
+  --atomic-mark-ink: #2a45b8;
+  --atomic-gold: #e0b430;
+  --atomic-ok: #1a7a3a;
+  --atomic-danger: #9d1c28;
+  --atomic-ok-fill: rgba(40, 160, 80, 0.12);
+  --atomic-danger-fill: rgba(157, 28, 40, 0.1);
+  --atomic-danger-banner: rgba(157, 28, 40, 0.08);
+  --atomic-ink-veil: rgba(34, 34, 34, 0.045);
+  --atomic-ink-veil-2: rgba(34, 34, 34, 0.08);
+  --atomic-ink-veil-3: rgba(34, 34, 34, 0.13);
+  --atomic-on-solid-veil: rgba(255, 255, 255, 0.14);
+  --atomic-paper-veil: rgba(255, 255, 255, 0.06);
+  --atomic-paper-veil-strong: rgba(255, 255, 255, 0.22);
+  --atomic-veil: rgba(20, 18, 16, 0.28);
+  --atomic-lift: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
+  --atomic-remark-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+  --atomic-sel-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55);
+  --atomic-title-veil: rgba(255, 255, 255, 0.1);
+  --atomic-size-shadow: 0 0 0 1px var(--atomic-rule), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --atomic-sheet-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
   font-family: var(--atomic-font);
   font-size: 13px;
   line-height: 1.45;
@@ -38,6 +73,34 @@
   max-width: 100%;
   min-width: 0;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Same reader tokens for settings and canvas, which sit outside the block. */
+.atomic-chooser-veil,
+.atomic-secret-pill,
+.atomic-ask-error,
+.atomic-ask-empty,
+.atomic-secret-mask,
+[data-testid="atomic-setting-reader-enabled"] .checkbox-container,
+[data-testid="atomic-setting-reader-theater"] .checkbox-container,
+.workspace-leaf-content[data-type="canvas"] {
+  --atomic-solid: #222222;
+  --atomic-on-solid: #ffffff;
+  --atomic-ink-quiet: #5c5c5c;
+  --atomic-mark: #5b7cfa;
+  --atomic-mark-ink: #2a45b8;
+  --atomic-gold: #e0b430;
+  --atomic-ok: #1a7a3a;
+  --atomic-danger: #9d1c28;
+  --atomic-ok-fill: rgba(40, 160, 80, 0.12);
+  --atomic-danger-fill: rgba(157, 28, 40, 0.1);
+  --atomic-danger-banner: rgba(157, 28, 40, 0.08);
+  --atomic-ink-veil: rgba(34, 34, 34, 0.045);
+  --atomic-ink-veil-2: rgba(34, 34, 34, 0.08);
+  --atomic-paper-veil: rgba(255, 255, 255, 0.06);
+  --atomic-veil: rgba(20, 18, 16, 0.28);
+  --atomic-focus: #2a45b8;
+  --atomic-paper: #ffffff;
 }
 
 .fitness-plugin.atomic-block-pending {
@@ -3105,13 +3168,13 @@
   max-width: 42%;
   padding: 0 12px;
   border-radius: 7px;
-  background: rgba(34, 34, 34, 0.13);
+  background: var(--atomic-ink-veil-3);
   font-size: 12.5px;
   font-weight: 500;
 }
 
 .theme-dark .atomic-reader-bar .atomic-reader-title {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--atomic-title-veil);
 }
 
 .atomic-reader-bar .atomic-reader-title .atomic-dot {
@@ -3181,7 +3244,7 @@
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1;
-  color: #ababab;
+  color: var(--atomic-ink-quiet);
 }
 
 .atomic-reader-page.is-verso .atomic-reader-pn {
@@ -3258,6 +3321,7 @@
 
 .atomic-reader-foot .atomic-btn:disabled {
   opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .atomic-reader.is-phone {
@@ -3342,7 +3406,7 @@
   width: var(--atomic-chooser-width, 100%);
   height: var(--atomic-chooser-height, 100%);
   padding: 0 16px 24px;
-  background: rgba(20, 18, 16, 0.28);
+  background: var(--atomic-veil);
 }
 
 .atomic-chooser-veil.is-phone {
@@ -3357,7 +3421,7 @@
   padding: 10px 12px 14px;
   border-radius: 16px;
   background: var(--background-primary);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--atomic-lift);
 }
 
 .atomic-chooser.is-phone {
@@ -3372,11 +3436,11 @@
   height: 4px;
   margin: 4px auto 12px;
   border-radius: 2px;
-  background: rgba(34, 34, 34, 0.13);
+  background: var(--atomic-ink-veil-3);
 }
 
 .theme-dark .atomic-chooser-grab {
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--atomic-paper-veil-strong);
 }
 
 button.atomic-chooser-row,
@@ -3401,11 +3465,11 @@ button.atomic-chooser-row {
   margin-bottom: 4px;
   padding: 12px;
   border-radius: var(--atomic-r-control);
-  background: rgba(34, 34, 34, 0.045);
+  background: var(--atomic-ink-veil);
 }
 
 .theme-dark .atomic-chooser-row {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--atomic-paper-veil);
 }
 
 .atomic-chooser-row:hover {
@@ -3414,8 +3478,8 @@ button.atomic-chooser-row {
 
 .atomic-chooser-row.is-primary,
 .atomic-chooser-row.is-primary:hover {
-  background: #222;
-  color: #fff;
+  background: var(--atomic-solid);
+  color: var(--atomic-on-solid);
 }
 
 .atomic-chooser-row.is-primary .atomic-chooser-label span {
@@ -3436,11 +3500,11 @@ button.atomic-chooser-row {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: rgba(34, 34, 34, 0.08);
+  background: var(--atomic-ink-veil-2);
 }
 
 .atomic-chooser-row.is-primary .atomic-chooser-ico {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--atomic-on-solid-veil);
 }
 
 .atomic-chooser-ico svg {
@@ -3486,7 +3550,7 @@ button.atomic-chooser-row {
   padding: 10px;
   font-size: 13px;
   font-weight: 500;
-  color: #5c5c5c;
+  color: var(--atomic-ink-quiet);
 }
 
 .theme-dark .atomic-chooser-cancel {
@@ -3496,7 +3560,12 @@ button.atomic-chooser-row {
 .atomic-chooser-row:focus-visible,
 .atomic-chooser-cancel:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--background-primary), 0 0 0 4px #222;
+  box-shadow: 0 0 0 2px var(--atomic-paper), 0 0 0 4px var(--atomic-solid);
+}
+
+.atomic-chooser-row:active:not(.is-primary),
+.atomic-chooser-cancel:active {
+  background: var(--atomic-fill-2);
 }
 
 /* Book size — settled reader and phone sheet.
@@ -3560,7 +3629,7 @@ button.atomic-chooser-row {
 .fitness-plugin .atomic-reader-size-opt.is-on {
   background: var(--atomic-paper);
   color: var(--atomic-ink);
-  box-shadow: 0 0 0 1px var(--atomic-rule), 0 1px 2px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--atomic-size-shadow);
 }
 
 .fitness-plugin .atomic-reader-size-opt.is-on:hover {
@@ -3644,12 +3713,9 @@ button.atomic-chooser-row {
   height: var(--atomic-reader-page-h);
   padding: 22px 22px 28px;
   overflow: hidden;
-  font-family: Literata, "Source Serif Pro", "IBM Plex Serif", Georgia, serif;
+  font-family: var(--atomic-serif);
   font-size: var(--atomic-reader-font-size, 12.5px);
   line-height: var(--atomic-reader-line-height, 19px);
-  transition:
-    width 200ms cubic-bezier(0.2, 0, 0, 1),
-    height 200ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .atomic-reader-sized.is-phone {
@@ -3676,9 +3742,7 @@ button.atomic-chooser-row {
 }
 
 .atomic-reader-page {
-  transition:
-    width 200ms cubic-bezier(0.2, 0, 0, 1),
-    height 200ms cubic-bezier(0.2, 0, 0, 1);
+  transition: none;
 }
 
 .atomic-reader.is-instant .atomic-reader-page {
@@ -3701,7 +3765,7 @@ button.atomic-chooser-row {
   padding: 12px 12px 4px;
   border-radius: 16px;
   background: var(--background-primary);
-  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--atomic-sheet-shadow);
 }
 
 
@@ -3754,10 +3818,10 @@ button.atomic-chooser-row {
   box-sizing: border-box;
   padding: 8px 10px;
   border: 0;
-  border-left: 3px solid #e0b430;
+  border-left: 3px solid var(--atomic-gold);
   border-radius: var(--atomic-r-control);
   background: var(--atomic-paper);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--atomic-remark-shadow);
   color: var(--atomic-ink-2);
   font-family: var(--font-interface, var(--atomic-font));
   font-size: 12px;
@@ -3768,7 +3832,7 @@ button.atomic-chooser-row {
 
 .atomic-reader-gutter.is-ask .atomic-remark,
 .atomic-reader-ask .atomic-remark.is-ai {
-  border-left-color: #5b7cfa;
+  border-left-color: var(--atomic-mark);
 }
 
 .atomic-reader-ask .atomic-remark strong {
@@ -3777,12 +3841,12 @@ button.atomic-chooser-row {
   color: var(--atomic-ink);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
 .atomic-reader-ask .atomic-remark.is-ai strong {
-  color: #5b7cfa;
+  color: var(--atomic-mark-ink);
 }
 
 .atomic-reader-ask .atomic-mdot {
@@ -3794,8 +3858,20 @@ button.atomic-chooser-row {
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: #5b7cfa;
+  background: var(--atomic-mark);
   cursor: pointer;
+}
+
+.atomic-reader-ask .atomic-remark:focus-visible,
+.atomic-reader-ask .atomic-mdot:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--atomic-paper),
+    0 0 0 4px var(--atomic-focus);
+}
+
+.atomic-reader-ask .atomic-remark:active {
+  background: var(--atomic-fill-1);
 }
 
 .atomic-reader-ask .atomic-slip {
@@ -3808,11 +3884,11 @@ button.atomic-chooser-row {
   border-left: 3px solid var(--interactive-accent);
   border-radius: var(--atomic-r-control);
   background: var(--atomic-paper);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 6px 16px -8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--atomic-remark-shadow);
 }
 
 .atomic-reader-ask .atomic-slip[data-kind="quote"] {
-  border-left-color: #e0b430;
+  border-left-color: var(--atomic-gold);
 }
 
 .atomic-reader-ask .atomic-slip .atomic-hint {
@@ -3831,9 +3907,9 @@ button.atomic-chooser-row {
   height: 34px;
   padding: 0 6px;
   border-radius: 999px;
-  background: #222;
-  color: #fff;
-  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55);
+  background: var(--atomic-solid);
+  color: var(--atomic-on-solid);
+  box-shadow: var(--atomic-sel-shadow);
 }
 
 .atomic-reader-ask .atomic-selbar .atomic-btn,
@@ -3843,10 +3919,17 @@ button.atomic-chooser-row {
   padding: 0 12px;
   border-radius: 999px;
   background: transparent;
-  color: #fff;
+  color: var(--atomic-on-solid);
   box-shadow: none;
   font-size: 12.5px;
   font-weight: 500;
+}
+
+.atomic-reader-ask .atomic-selbar .atomic-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--atomic-on-solid),
+    0 0 0 4px var(--atomic-mark);
 }
 
 .atomic-reader-gutter.is-ask .atomic-ask {
@@ -4013,38 +4096,38 @@ button.atomic-chooser-row {
   margin-left: 8px;
   padding: 0 8px;
   border-radius: 999px;
-  font-family: var(--font-monospace, ui-monospace, monospace);
+  font-family: var(--font-interface, var(--atomic-font));
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .atomic-secret-pill[data-state="saved"] {
-  background: rgba(40, 160, 80, 0.12);
-  color: #1a7a3a;
+  background: var(--atomic-ok-fill);
+  color: var(--atomic-ok);
 }
 
 .atomic-secret-pill[data-state="empty"] {
-  background: rgba(34, 34, 34, 0.08);
-  color: #5c5c5c;
+  background: var(--atomic-ink-veil-2);
+  color: var(--atomic-ink-quiet);
 }
 
 .atomic-secret-pill[data-state="error"] {
-  background: rgba(224, 49, 64, 0.1);
-  color: #e03140;
+  background: var(--atomic-danger-fill);
+  color: var(--atomic-danger);
 }
 
 .atomic-ask-empty {
   margin-top: 12px;
   padding: 28px 20px;
   border-radius: 14px;
-  background: rgba(34, 34, 34, 0.045);
+  background: var(--atomic-ink-veil);
   text-align: center;
 }
 
 .theme-dark .atomic-ask-empty {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--atomic-paper-veil);
 }
 
 .atomic-ask-empty strong {
@@ -4066,10 +4149,22 @@ button.atomic-chooser-row {
   padding: 0 14px;
   border: 0;
   border-radius: 9px;
-  background: #222;
-  color: #fff;
+  background: var(--atomic-solid);
+  color: var(--atomic-on-solid);
   font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
+}
+
+.atomic-ask-empty .atomic-ask-open:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--atomic-on-solid),
+    0 0 0 4px var(--atomic-mark);
+}
+
+.atomic-ask-empty .atomic-ask-open:active {
+  background: var(--atomic-ink-quiet);
 }
 
 .atomic-ask-empty .mod-warning {
@@ -4087,32 +4182,32 @@ button.atomic-chooser-row {
 
 [data-testid="atomic-setting-reader-enabled"] .checkbox-container.is-enabled,
 [data-testid="atomic-setting-reader-theater"] .checkbox-container.is-enabled {
-  background-color: #1a7a3a;
+  background-color: var(--atomic-ok);
 }
 
 .atomic-ask-error {
   margin: 0 0 12px;
   padding: 10px 12px;
   border-radius: 9px;
-  background: rgba(224, 49, 64, 0.08);
-  color: #e03140;
+  background: var(--atomic-danger-banner);
+  color: var(--atomic-danger);
   font-size: 13px;
 }
 
 .atomic-secret-mask {
   font-family: var(--font-monospace, var(--atomic-mono));
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   color: var(--text-muted);
 }
 
 /* Book canvas. JSON sets the board. The left rule is the frame edge Obsidian cannot store. */
 .workspace-leaf-content[data-type="canvas"] .canvas-node[data-color="3"] .canvas-node-container,
 .workspace-leaf-content[data-type="canvas"] .canvas-node.canvas-color-3 .canvas-node-container {
-  box-shadow: inset 3px 0 0 #e0b430;
+  box-shadow: inset 3px 0 0 var(--atomic-gold);
 }
 
 .workspace-leaf-content[data-type="canvas"] .canvas-node[data-color="5"] .canvas-node-container,
 .workspace-leaf-content[data-type="canvas"] .canvas-node.canvas-color-5 .canvas-node-container {
-  box-shadow: inset 3px 0 0 #5b7cfa;
+  box-shadow: inset 3px 0 0 var(--atomic-mark);
 }
 

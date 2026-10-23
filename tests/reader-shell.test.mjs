@@ -220,7 +220,8 @@ test("reader shell styles keep Literata metrics and the 1.5.0 radii", () => {
   assert.match(block, /padding:\s*0 16px 24px/);
   assert.match(block, /padding:\s*0 24px 40px/);
   assert.match(block, /\.atomic-chooser-veil/);
-  assert.match(block, /rgba\(20,\s*18,\s*16,\s*0\.28\)/);
+  assert.match(styles, /--atomic-veil:\s*rgba\(20,\s*18,\s*16,\s*0\.28\)/);
+  assert.match(block, /background:\s*var\(--atomic-veil\)/);
   assert.match(block, /\.atomic-chooser-scrim \{[^}]*background:\s*transparent/s);
   assert.match(block, /width:\s*36px/);
   assert.match(block, /margin:\s*4px auto 12px/);

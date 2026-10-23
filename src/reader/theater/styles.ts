@@ -16,9 +16,37 @@ function suppressCss(): string {
  * with the block. Tokens: hairline, radii 3 / 9 / 14, Inter + Literata.
  */
 export const THEATER_CSS = `
+/* Hallmark · checked: 2026-10-23 · genre: modern-minimal (inferred)
+ * built: the project · redesign: polish · v2.0.0
+ * waive 2b · linen key light · theater lock
+ * waive 47a · these selectors hide the host title bar · theater lock
+ * waive 64 · Esc stays IBM Plex Mono · 1.5.0 token lock */
 .atomic-theater-root.is-theater {
   --theater-void: #ebe8e2;
   --theater-paper: #f0eee6;
+  --theater-ink: #2a2824;
+  --theater-chrome: rgba(251, 250, 247, 0.92);
+  --theater-chrome-ink: #3a3834;
+  --theater-chrome-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  --theater-exit: rgba(60, 50, 40, 0.06);
+  --theater-hint: #5c5348;
+  --theater-mark: #2a45b8;
+  --theater-ui: var(--font-interface), Inter, sans-serif;
+  --theater-serif: var(--font-text), Literata, Georgia, serif;
+  --theater-mono: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
+  --theater-linen-verso: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  --theater-linen-recto: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
+  --theater-phone-page: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
+  --theater-ambient: radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%), radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%), linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+  --theater-key: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+  --theater-curtain-l: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  --theater-curtain-r: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
+  --theater-curtain-shadow-l: 6px 0 28px rgba(60, 50, 40, 0.1);
+  --theater-curtain-shadow-r: -6px 0 28px rgba(60, 50, 40, 0.1);
+  --theater-lamp: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+  --theater-verso-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  --theater-recto-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+  --theater-phone-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
   --page-w: ${THEATER_PAGE_WIDTH}px;
   --page-h: ${THEATER_PAGE_HEIGHT}px;
   --atomic-page-w: ${THEATER_PAGE_WIDTH}px;
@@ -34,6 +62,24 @@ export const THEATER_CSS = `
 body.theme-dark .atomic-theater-root.is-theater {
   --theater-void: #0e0c0a;
   --theater-paper: #f0e8d2;
+  --theater-chrome: rgba(38, 38, 38, 0.92);
+  --theater-chrome-ink: #dadada;
+  --theater-chrome-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+  --theater-exit: rgba(255, 255, 255, 0.06);
+  --theater-hint: #c4b5a4;
+  --theater-linen-verso: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  --theater-linen-recto: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
+  --theater-phone-page: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
+  --theater-ambient: radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%), radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%), linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+  --theater-key: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+  --theater-curtain-l: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  --theater-curtain-r: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
+  --theater-curtain-shadow-l: 8px 0 32px rgba(0, 0, 0, 0.45);
+  --theater-curtain-shadow-r: -8px 0 32px rgba(0, 0, 0, 0.45);
+  --theater-lamp: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+  --theater-verso-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  --theater-recto-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+  --theater-phone-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
 }
 .atomic-theater-root.is-theater .atomic-theater-stage {
   position: relative;
@@ -42,25 +88,19 @@ body.theme-dark .atomic-theater-root.is-theater {
 }
 .atomic-theater-layers {
   display: contents;
-  font-family: var(--font-interface), Inter, sans-serif;
+  font-family: var(--theater-ui);
 }
 .atomic-theater-root.is-theater .th-ambient {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 70% 55% at 38% 32%, rgba(255, 236, 200, 0.5), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 72% 48%, rgba(210, 200, 185, 0.22), transparent 65%),
-    linear-gradient(180deg, #f2efe9 0%, #e5e1d9 55%, #dcd7cf 100%);
+  background: var(--theater-ambient);
 }
 .theme-dark.atomic-theater-root.is-theater .th-ambient,
 .theme-dark .atomic-theater-root.is-theater .th-ambient,
 body.theme-dark .atomic-theater-root.is-theater .th-ambient {
-  background:
-    radial-gradient(ellipse 65% 50% at 36% 30%, rgba(255, 186, 110, 0.24), transparent 58%),
-    radial-gradient(ellipse 40% 35% at 70% 55%, rgba(120, 90, 60, 0.08), transparent 60%),
-    linear-gradient(180deg, #161310 0%, #0e0c0a 55%, #0a0908 100%);
+  background: var(--theater-ambient);
 }
 .atomic-theater-root.is-theater .th-key {
   position: absolute;
@@ -71,12 +111,12 @@ body.theme-dark .atomic-theater-root.is-theater .th-ambient {
   z-index: 2;
   pointer-events: none;
   border-radius: 50%;
-  background: radial-gradient(ellipse at 40% 35%, rgba(255, 220, 160, 0.38), rgba(255, 200, 120, 0.1) 45%, transparent 70%);
+  background: var(--theater-key);
 }
 .theme-dark.atomic-theater-root.is-theater .th-key,
 .theme-dark .atomic-theater-root.is-theater .th-key,
 body.theme-dark .atomic-theater-root.is-theater .th-key {
-  background: radial-gradient(ellipse at 40% 35%, rgba(255, 186, 110, 0.4), rgba(255, 160, 80, 0.12) 42%, transparent 68%);
+  background: var(--theater-key);
 }
 .atomic-theater-root.is-theater .curtain {
   position: absolute;
@@ -89,24 +129,24 @@ body.theme-dark .atomic-theater-root.is-theater .th-key {
 .atomic-theater-root.is-theater .curtain.is-l { left: 0; }
 .atomic-theater-root.is-theater .curtain.is-r { right: 0; }
 .atomic-theater-root.is-theater .curtain.is-l {
-  background: linear-gradient(90deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
-  box-shadow: 6px 0 28px rgba(60, 50, 40, 0.1);
+  background: var(--theater-curtain-l);
+  box-shadow: var(--theater-curtain-shadow-l);
 }
 .atomic-theater-root.is-theater .curtain.is-r {
-  background: linear-gradient(270deg, #c8c2b4 0%, #ddd7cb 6%, #b8b0a0 14%, #e4dfd4 22%, #c4bcae 32%, #ebe6dc 42%, #d0cabe 55%, #e8e3d8 70%, #d8d2c4 85%, rgba(232, 227, 216, 0) 100%);
-  box-shadow: -6px 0 28px rgba(60, 50, 40, 0.1);
+  background: var(--theater-curtain-r);
+  box-shadow: var(--theater-curtain-shadow-r);
 }
 .theme-dark.atomic-theater-root.is-theater .curtain.is-l,
 .theme-dark .atomic-theater-root.is-theater .curtain.is-l,
 body.theme-dark .atomic-theater-root.is-theater .curtain.is-l {
-  background: linear-gradient(90deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
-  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+  background: var(--theater-curtain-l);
+  box-shadow: var(--theater-curtain-shadow-l);
 }
 .theme-dark.atomic-theater-root.is-theater .curtain.is-r,
 .theme-dark .atomic-theater-root.is-theater .curtain.is-r,
 body.theme-dark .atomic-theater-root.is-theater .curtain.is-r {
-  background: linear-gradient(270deg, #2c2620 0%, #221e1a 8%, #3a322c 16%, #1a1612 28%, #2e2822 40%, #181410 55%, #26201a 72%, rgba(14, 12, 10, 0) 100%);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+  background: var(--theater-curtain-r);
+  box-shadow: var(--theater-curtain-shadow-r);
 }
 .atomic-theater-root.is-theater .lamp-pool {
   position: absolute;
@@ -116,12 +156,12 @@ body.theme-dark .atomic-theater-root.is-theater .curtain.is-r {
   z-index: 4;
   pointer-events: none;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(255, 200, 130, 0.22), rgba(255, 186, 110, 0.06) 48%, transparent 74%);
+  background: var(--theater-lamp);
 }
 .theme-dark.atomic-theater-root.is-theater .lamp-pool,
 .theme-dark .atomic-theater-root.is-theater .lamp-pool,
 body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
-  background: radial-gradient(ellipse, rgba(255, 186, 110, 0.36), rgba(255, 150, 70, 0.12) 44%, transparent 72%);
+  background: var(--theater-lamp);
 }
 .atomic-theater-root.is-theater .lamp-pool.is-l { left: 96px; }
 .atomic-theater-root.is-theater .lamp-pool.is-r { right: 96px; }
@@ -137,21 +177,14 @@ body.theme-dark .atomic-theater-root.is-theater .lamp-pool {
   height: 40px;
   padding: 0 6px;
   border-radius: var(--atomic-r-well, 14px);
-  background: rgba(251, 250, 247, 0.92);
-  color: #3a3834;
-  box-shadow: 0 0 0 1px rgba(60, 50, 40, 0.12), 0 10px 24px -12px rgba(60, 50, 40, 0.35);
+  background: var(--theater-chrome);
+  color: var(--theater-chrome-ink);
+  box-shadow: var(--theater-chrome-shadow);
   opacity: 0;
   pointer-events: none;
   transition: opacity 240ms ease;
   white-space: nowrap;
-  font-family: var(--font-interface), Inter, sans-serif;
-}
-.theme-dark.atomic-theater-root.is-theater .th-chrome,
-.theme-dark .atomic-theater-root.is-theater .th-chrome,
-body.theme-dark .atomic-theater-root.is-theater .th-chrome {
-  background: rgba(38, 38, 38, 0.92);
-  color: #dadada;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px -10px rgba(0, 0, 0, 0.7);
+  font-family: var(--theater-ui);
 }
 .atomic-theater-root.is-theater.is-chrome .th-chrome {
   opacity: 1;
@@ -164,19 +197,23 @@ body.theme-dark .atomic-theater-root.is-theater .th-chrome {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(60, 50, 40, 0.06);
+  background: var(--theater-exit);
   color: inherit;
   font: inherit;
 }
-.theme-dark .atomic-theater-root.is-theater .th-exit,
-.theme-dark.atomic-theater-root.is-theater .th-exit,
-body.theme-dark .atomic-theater-root.is-theater .th-exit {
-  background: rgba(255, 255, 255, 0.06);
+.atomic-theater-root.is-theater .th-exit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--theater-chrome), 0 0 0 4px var(--theater-mark);
+}
+.atomic-theater-root.is-theater .th-exit:active {
+  background: var(--theater-hint);
+  color: var(--theater-void);
 }
 .atomic-theater-root.is-theater .th-exit .kbd {
-  font-family: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--theater-mono);
   font-size: 11px;
-  opacity: 0.6;
+  opacity: 1;
+  color: var(--theater-hint);
 }
 .atomic-theater-root.is-theater .th-hint {
   position: absolute;
@@ -186,16 +223,11 @@ body.theme-dark .atomic-theater-root.is-theater .th-exit {
   z-index: 6;
   text-align: center;
   pointer-events: none;
-  font-family: var(--font-monospace), "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(60, 55, 48, 0.45);
-}
-.theme-dark.atomic-theater-root.is-theater .th-hint,
-.theme-dark .atomic-theater-root.is-theater .th-hint,
-body.theme-dark .atomic-theater-root.is-theater .th-hint {
-  color: rgba(255, 230, 200, 0.32);
+  font-family: var(--theater-ui);
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--theater-hint);
 }
 .atomic-theater-root.is-theater .atomic-pane,
 .atomic-theater-root.is-theater .atomic-spread,
@@ -226,7 +258,7 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
 .atomic-theater-root.is-theater .atomic-page,
 .atomic-theater-root.is-theater .atomic-reader-page {
   margin: 0;
-  color: #2a2824;
+  color: var(--theater-ink);
   width: var(--page-w);
   height: var(--page-h);
   overflow: hidden;
@@ -234,14 +266,14 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
 .atomic-theater-root.is-theater .atomic-page.is-verso,
 .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
   border-radius: var(--atomic-r-object, 3px) 0 0 var(--atomic-r-object, 3px);
-  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.95), 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
+  background: var(--theater-linen-verso);
+  box-shadow: var(--theater-verso-shadow);
 }
 .atomic-theater-root.is-theater .atomic-page.is-recto,
 .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
   border-radius: 0 var(--atomic-r-object, 3px) var(--atomic-r-object, 3px) 0;
-  background: linear-gradient(208deg, #ebe4d4 0%, #f0ebe0 36%, #e6dfd0 72%, #ddd4c4 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 246, 220, 0.55), 0 20px 44px -16px rgba(40, 30, 20, 0.3), 0 3px 8px rgba(40, 30, 20, 0.08);
+  background: var(--theater-linen-recto);
+  box-shadow: var(--theater-recto-shadow);
 }
 .theme-dark.atomic-theater-root.is-theater .atomic-page.is-verso,
 .theme-dark.atomic-theater-root.is-theater .atomic-reader-page.is-verso,
@@ -249,8 +281,8 @@ body.theme-dark .atomic-theater-root.is-theater .th-hint {
 .theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso,
 body.theme-dark .atomic-theater-root.is-theater .atomic-page.is-verso,
 body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
-  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  background: var(--theater-linen-verso);
+  box-shadow: var(--theater-verso-shadow);
 }
 .theme-dark.atomic-theater-root.is-theater .atomic-page.is-recto,
 .theme-dark.atomic-theater-root.is-theater .atomic-reader-page.is-recto,
@@ -258,15 +290,15 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-verso {
 .theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto,
 body.theme-dark .atomic-theater-root.is-theater .atomic-page.is-recto,
 body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
-  background: linear-gradient(208deg, #d8ceb8 0%, #e6dcc8 34%, #ebe4d4 62%, #ddd2bc 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.72);
+  background: var(--theater-linen-recto);
+  box-shadow: var(--theater-recto-shadow);
 }
 .atomic-theater-root.is-theater .atomic-page p,
 .atomic-theater-root.is-theater .atomic-page h3,
 .atomic-theater-root.is-theater .atomic-reader-page p,
 .atomic-theater-root.is-theater .atomic-reader-page h3 {
-  color: #2a2824;
-  font-family: var(--font-text), Literata, Georgia, serif;
+  color: var(--theater-ink);
+  font-family: var(--theater-serif);
 }
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .curtain,
 .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .th-key,
@@ -316,9 +348,9 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
   margin: 0 auto;
   overflow: hidden;
   border-radius: var(--atomic-r-object, 3px);
-  background: linear-gradient(152deg, #fffaf0 0%, #f5f0e4 28%, #f0eee6 58%, #e8e0d0 100%);
-  box-shadow: 0 20px 44px -16px rgba(40, 30, 20, 0.34), 0 3px 8px rgba(40, 30, 20, 0.1);
-  color: #2a2824;
+  background: var(--theater-phone-page);
+  box-shadow: var(--theater-phone-shadow);
+  color: var(--theater-ink);
 }
 .theme-dark.atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
 .theme-dark.atomic-theater-root.is-theater.is-phone .atomic-reader-page,
@@ -326,8 +358,8 @@ body.theme-dark .atomic-theater-root.is-theater .atomic-reader-page.is-recto {
 .theme-dark .atomic-theater-root.is-theater.is-phone .atomic-reader-page,
 body.theme-dark .atomic-theater-root.is-theater[data-atomic-theater-surface="phone"] .atomic-page,
 body.theme-dark .atomic-theater-root.is-theater.is-phone .atomic-reader-page {
-  background: linear-gradient(152deg, #fff6e4 0%, #f5ead4 30%, #f0e8d2 58%, #e4d8c0 100%);
-  box-shadow: 0 28px 56px -12px rgba(0, 0, 0, 0.78);
+  background: var(--theater-phone-page);
+  box-shadow: var(--theater-phone-shadow);
 }
 html.atomic-theater-dim .titlebar,
 html.atomic-theater-dim .workspace-ribbon,
