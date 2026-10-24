@@ -1,8 +1,9 @@
 /**
  * Live shots for the reader hero.
  *
- * Habit frames use the daily-note capture. Flight, the settled reader, Ask,
- * canvas, and theater come from the running plugin. The page is fixed at XL
+ * Habit frames use the daily-note capture. Open Book is the shelf, the open
+ * cover, the chooser, then the settled reader. There is no open animation.
+ * Ask, canvas, and theater come from that reader. The page is fixed at XL
  * (22 lines). There is no size control and no shortcut.
  *
  * Point ATOMIC_PLUGIN_ROOT at the finished reader build. This script does not
@@ -54,10 +55,6 @@ const NOTE = `atomics/hobbies/Reading/Items/${BOOK_TITLE}.md`;
 const EPUB = `atomics/hobbies/Reading/Items/${BOOK_TITLE}.epub`;
 const CANVAS = `atomics/hobbies/Reading/Items/${BOOK_TITLE}.canvas`;
 const SECRET_NAME = "atomic-ask";
-/** Same clock as FLIGHT_MS. The land is this instant, not an earlier cover. */
-const FLIGHT_MS = 3200;
-/** Desktop guide clip: gutter is open, then the spread settles. */
-const FLIGHT_GUIDE_MS = [1200, 1700, 2200, 2700, FLIGHT_MS];
 
 const HIDE_CHROME = `
 .workspace-ribbon,
@@ -336,212 +333,121 @@ async function cropSelector(driver, selector, dest) {
   return dest;
 }
 
-async function openFlight(driver) {
-  const flight = await driver.executeAsyncScript(`
-    const done = arguments[arguments.length - 1];
-    const title = arguments[0];
-    const originalMatch = window.matchMedia.bind(window);
+async function preferFullMotion(driver) {
+  await driver.executeScript(`
+    const real = window.matchMedia.bind(window);
     window.matchMedia = (query) => {
       const text = String(query);
-      if (text.includes("prefers-reduced-motion")) {
-        return {
-          matches: false,
-          media: text,
-          addListener() {},
-          removeListener() {},
-          addEventListener() {},
-          removeEventListener() {},
-          dispatchEvent() { return false; },
-        };
-      }
-      return originalMatch(query);
-    };
-    const books = [...document.querySelectorAll('[data-testid="atomic-book"]')];
-    const book = books.find((el) => (el.textContent || "").includes(title));
-    if (!book) {
-      done({ ok: false, reason: "missing-book" });
-      return;
-    }
-    book.scrollIntoView({ block: "nearest", inline: "nearest" });
-    const started = Date.now();
-    const originalTimeout = window.setTimeout.bind(window);
-    window.setTimeout = (fn, delay, ...rest) => {
-      if (typeof delay === "number" && delay >= 2400) return 0;
-      return originalTimeout(fn, delay, ...rest);
-    };
-    const hold = (overlay) => {
-      const nodes = [overlay, ...overlay.querySelectorAll("*")];
-      let count = 0;
-      for (const node of nodes) {
-        const anims = typeof node.getAnimations === "function" ? node.getAnimations() : [];
-        for (const anim of anims) {
-          anim.pause();
-          try { anim.currentTime = 0; } catch { /* a finished timeline can refuse a seek */ }
-          count += 1;
-        }
-      }
-      window.setTimeout = originalTimeout;
-      done({
-        ok: count > 0,
-        count,
-        host: overlay.getAttribute("data-overlay-host") || "",
-        title: overlay.querySelector(".atomic-flight-title")?.textContent || "",
-        text: (overlay.innerText || "").slice(0, 400),
-        parent: overlay.parentElement?.tagName || "",
-        open: overlay.getAttribute("data-open") || "",
-        motion: overlay.getAttribute("data-motion") || "",
+      const stub = (matches) => ({
+        matches,
+        media: text,
+        addListener() {},
+        removeListener() {},
+        addEventListener() {},
+        removeEventListener() {},
+        dispatchEvent() { return false; },
       });
-    };
-    const watch = () => {
-      const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-      const cover = overlay?.querySelector(".atomic-flight-cover");
-      const ready = cover && typeof cover.getAnimations === "function" && cover.getAnimations().length > 0;
-      if (overlay && ready) {
-        hold(overlay);
-        return;
+      if (text.includes("prefers-reduced-motion")) return stub(false);
+      if (text.includes("hover") || text.includes("pointer")) {
+        return stub(text.includes("hover") || text.includes("fine") || text.includes("none"));
       }
-      if (Date.now() - started > 8000) {
-        window.setTimeout = originalTimeout;
-        done({
-          ok: false,
-          reason: overlay ? "no-animation" : "no-overlay",
-          reader: Boolean(document.querySelector('[data-testid="atomic-reader"]')),
-          chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
-          book: Boolean(document.querySelector('[data-testid="atomic-chooser-book"]')),
-        });
-        return;
-      }
-      window.requestAnimationFrame(watch);
+      return real(query);
     };
+  `);
+}
+
+async function clickShelfBook(driver) {
+  const clicked = await driver.executeScript(`
+    const title = arguments[0];
+    const book = [...document.querySelectorAll('[data-testid="atomic-book"]')]
+      .find((el) => (el.getAttribute("data-title") || "").includes(title)
+        && el.getBoundingClientRect().width > 20);
+    if (!book) return false;
+    book.scrollIntoView({ block: "center", inline: "nearest" });
     book.click();
-    originalTimeout(() => {
-      if (!document.querySelector('[data-testid="atomic-chooser"]')) book.click();
-      const arm = () => {
-        const button = document.querySelector('[data-testid="atomic-chooser-book"]');
-        if (!button) {
-          if (Date.now() - started > 8000) {
-            window.setTimeout = originalTimeout;
-            done({
-              ok: false,
-              reason: "no-open-book",
-              chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
-            });
-            return;
-          }
-          originalTimeout(arm, 40);
-          return;
-        }
-        watch();
-        button.click();
-      };
-      arm();
-    }, 180);
+    return true;
   `, BOOK_TITLE);
-  if (!flight?.ok) throw new Error(`Open Book flight did not start: ${JSON.stringify(flight)}`);
-  if (flight.host !== "leaf" || flight.parent === "BODY") {
-    throw new Error(`flight overlay was not on the reader leaf: ${JSON.stringify(flight)}`);
-  }
-  if (/pride and prejudice|netherfield|bennet/i.test(flight.text)) {
-    throw new Error(`flight still painted the Pride and Prejudice fixture: ${flight.text}`);
-  }
-  if (!flight.title.includes("Unhurried")) {
-    throw new Error(`flight cover title was ${flight.title || "empty"}`);
-  }
-  console.log(`flight ${JSON.stringify(flight)}`);
-  return flight;
+  if (!clicked) throw new Error(`missing visible shelf book ${BOOK_TITLE}`);
 }
 
-async function seekFlight(driver, timeMs) {
-  const result = await driver.executeAsyncScript(`
-    const done = arguments[arguments.length - 1];
-    const timeMs = arguments[0];
+async function readOpen(driver) {
+  return driver.executeScript(`
+    const title = arguments[0];
     const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
-    if (!overlay) {
-      done({ ok: false, reason: "missing" });
-      return;
-    }
-    const nodes = [overlay, ...overlay.querySelectorAll("*")];
-    let count = 0;
-    for (const node of nodes) {
-      const anims = typeof node.getAnimations === "function" ? node.getAnimations() : [];
-      for (const anim of anims) {
-        const timing = anim.effect && anim.effect.getTiming ? anim.effect.getTiming() : {};
-        const duration = typeof timing.duration === "number" ? timing.duration : 0;
-        const delay = typeof timing.delay === "number" ? timing.delay : 0;
-        const end = delay + duration;
-        anim.pause();
-        try {
-          anim.currentTime = end > 0 ? Math.min(timeMs, end) : timeMs;
-        } catch {
-          continue;
-        }
-        count += 1;
-      }
-    }
-    const sheets = [...overlay.querySelectorAll(".atomic-flight-sheet")].map((sheet) => {
-      const rect = sheet.getBoundingClientRect();
-      return {
-        side: sheet.classList.contains("is-left") ? "left" : "right",
-        w: Math.round(rect.width),
-        h: Math.round(rect.height),
-      };
-    });
-    const gutter = overlay.querySelector(".atomic-flight-gutter");
-    const cover = overlay.querySelector(".atomic-flight-cover-face");
-    const payload = {
-      ok: count > 0,
-      count,
-      timeMs,
-      open: overlay.getAttribute("data-open") || "",
-      gutter: gutter ? getComputedStyle(gutter).opacity : "",
-      cover: cover ? getComputedStyle(cover).opacity : "",
-      sheets,
+    const book = [...document.querySelectorAll('[data-testid="atomic-book"]')]
+      .find((el) => (el.getAttribute("data-title") || "").includes(title)
+        && el.getBoundingClientRect().width > 20);
+    const reader = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]')
+      || [...document.querySelectorAll('[data-testid="atomic-reader"]')]
+        .find((el) => el.getBoundingClientRect().width > 20)
+      || null;
+    return {
+      overlay: Boolean(overlay),
+      cover: Boolean(book?.classList.contains("is-cover-open")),
+      chooser: Boolean(document.querySelector('[data-testid="atomic-chooser-book"]')),
+      reader: Boolean(reader),
+      settled: reader?.getAttribute("data-settled") || "",
+      phone: Boolean(reader?.classList.contains("is-phone")),
+      pages: reader ? reader.querySelectorAll(".atomic-reader-page").length : 0,
+      sizeControl: Boolean(reader?.querySelector('[data-testid="atomic-reader-size"]')),
     };
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => done(payload)));
-  `, timeMs);
-  if (!result?.ok) throw new Error(`flight seek failed: ${JSON.stringify(result)}`);
-  console.log(`flight seek ${JSON.stringify(result)}`);
-  return result;
+  `, BOOK_TITLE);
 }
 
-async function captureFlightFrames(driver, kind) {
-  if (kind === "phone") {
-    const landed = await seekFlight(driver, FLIGHT_MS);
-    if (landed.open !== "page") {
-      throw new Error(`phone flight did not open one page: ${JSON.stringify(landed)}`);
-    }
-    await captureScene(driver, "flight", join(SHOT_DIR, "flight-phone.png"));
-    console.log("saved flight-phone");
-    return;
-  }
-  const seq = join(SHOT_DIR, "flight-seq");
+async function captureOpenPath(driver, kind) {
+  const phone = kind === "phone";
+  const seq = join(SHOT_DIR, phone ? "open-seq-phone" : "open-seq");
   rmSync(seq, { recursive: true, force: true });
   mkdirSync(seq, { recursive: true });
-  let landed = null;
-  for (let index = 0; index < FLIGHT_GUIDE_MS.length; index += 1) {
-    const frame = await seekFlight(driver, FLIGHT_GUIDE_MS[index]);
-    if (frame.open !== "spread") {
-      throw new Error(`desktop flight did not open from the gutter: ${JSON.stringify(frame)}`);
-    }
-    if (Number(frame.gutter) < 0.9) {
-      throw new Error(`desktop flight gutter was still closed: ${JSON.stringify(frame)}`);
-    }
-    const dest = join(seq, `${String(index).padStart(3, "0")}.png`);
-    await captureScene(driver, "flight", dest);
-    landed = frame;
-  }
-  const page = landed?.sheets?.find((sheet) => sheet.side === "right") ?? landed?.sheets?.[0];
-  if (!page || page.w < 240 || page.h < 320) {
-    throw new Error(`flight did not land on the settled page: ${JSON.stringify(landed)}`);
-  }
-  copyFileSync(join(seq, `${String(FLIGHT_GUIDE_MS.length - 1).padStart(3, "0")}.png`), join(SHOT_DIR, "flight-desktop.png"));
-  console.log("saved flight-desktop");
-}
+  await preferFullMotion(driver);
+  await captureScene(driver, "shelf", join(seq, "00-shelf.png"));
 
-async function dismissFlight(driver) {
-  await driver.executeScript(`
-    document.querySelector('[data-testid="atomic-open-flight"]')?.remove();
+  await clickShelfBook(driver);
+  await sleep(280);
+  let state = await readOpen(driver);
+  if (state.chooser) throw new Error(`chooser opened before the cover ${JSON.stringify(state)}`);
+  if (state.overlay) throw new Error(`open showed a flight ${JSON.stringify(state)}`);
+  if (!state.cover) throw new Error(`cover did not open ${JSON.stringify(state)}`);
+  await captureScene(driver, "cover", join(seq, "01-cover.png"));
+  await captureScene(driver, "cover", join(SHOT_DIR, `cover-${kind}.png`));
+
+  await clickShelfBook(driver);
+  await sleep(320);
+  state = await readOpen(driver);
+  if (state.overlay) throw new Error(`open showed a flight ${JSON.stringify(state)}`);
+  if (!state.chooser) throw new Error(`chooser did not open ${JSON.stringify(state)}`);
+  await captureScene(driver, "chooser", join(seq, "02-chooser.png"));
+  await captureScene(driver, "chooser", join(SHOT_DIR, `chooser-${kind}.png`));
+
+  const openedBook = await driver.executeScript(`
+    const button = document.querySelector('[data-testid="atomic-chooser-book"]');
+    const label = document.querySelector('[data-testid="atomic-chooser"]')?.innerText || "";
+    if (!button) return { ok: false, label: label.slice(0, 240) };
+    button.click();
+    return { ok: true, label: label.slice(0, 240) };
   `);
+  if (!openedBook?.ok) {
+    throw new Error(`Open Book was missing ${JSON.stringify(openedBook)}`);
+  }
+  const started = Date.now();
+  while (Date.now() - started < 15000) {
+    state = await readOpen(driver);
+    if (state.overlay) throw new Error(`open showed a flight ${JSON.stringify(state)}`);
+    const landed = state.reader && state.settled === "true" && !state.chooser && !state.sizeControl
+      && (phone ? state.phone && state.pages === 1 : !state.phone && state.pages >= 2);
+    if (landed) break;
+    await sleep(40);
+  }
+  if (!state.reader || state.settled !== "true" || state.overlay || state.sizeControl) {
+    throw new Error(`reader did not settle ${JSON.stringify(state)}`);
+  }
+  if (phone ? !(state.phone && state.pages === 1) : !(!state.phone && state.pages >= 2)) {
+    throw new Error(`settled layout was wrong ${JSON.stringify(state)}`);
+  }
+  await waitForReader(driver, phone);
+  await captureScene(driver, "reader", join(seq, "03-reader.png"));
+  await captureScene(driver, "reader", join(SHOT_DIR, `reader-${kind}.png`));
+  console.log(`saved open path ${kind} ${JSON.stringify(state)}`);
 }
 
 async function openReader(driver) {
@@ -784,7 +690,9 @@ async function captureDaily(driver, dest) {
 
 async function captureScene(driver, scene, dest) {
   await hideCaptureScrollbars(driver, HIDE_CHROME);
-  if (scene !== "flight" && scene !== "ask" && scene !== "theater") await parkMouse(driver);
+  if (scene !== "ask" && scene !== "theater" && scene !== "cover" && scene !== "chooser") {
+    await parkMouse(driver);
+  }
   if (scene === "theater") {
     await driver.executeScript(`
       document.querySelector(".workspace-leaf.mod-active .atomic-theater-root")?.dispatchEvent(
@@ -815,14 +723,7 @@ async function capturePass(kind) {
 
     await resizeWindow(driver, size.width, size.height);
     await sleep(300);
-    await openFlight(driver);
-    await captureFlightFrames(driver, kind);
-    await dismissFlight(driver);
-
-    await openReader(driver);
-    await waitForReader(driver, phone);
-    await captureScene(driver, "reader", join(SHOT_DIR, `reader-${kind}.png`));
-    console.log(`saved reader-${kind}`);
+    await captureOpenPath(driver, kind);
 
     await openAsk(driver);
     await captureScene(driver, "ask", join(SHOT_DIR, `ask-${kind}.png`));
@@ -847,7 +748,7 @@ async function capturePass(kind) {
 function frameShots() {
   const framed = join(SHOT_DIR, "framed");
   mkdirSync(framed, { recursive: true });
-  for (const scene of ["habits", "flight", "reader", "ask", "canvas"]) {
+  for (const scene of ["habits", "cover", "chooser", "reader", "ask", "canvas"]) {
     frameHeroContent({
       scene: "daily",
       kind: "desktop",

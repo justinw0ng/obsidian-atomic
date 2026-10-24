@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Compose the reader hero from live Obsidian shots.
 
-Frames are habit tracking, the Open Book flight, the settled reader, Ask,
-and the book canvas. Desktop and phone use the same chrome as the daily hero.
-The page is fixed at XL. There is no size control.
+Frames are habit tracking, the open cover, the chooser, the settled reader,
+Ask, and the book canvas. Open Book does not play an animation. Desktop and
+phone use the same chrome as the daily hero. The page is fixed at XL. There
+is no size control.
 
 Run after scripts/capture-reader-hero.mjs.
 """
@@ -22,13 +23,7 @@ from PIL import Image
 REPO = Path(__file__).resolve().parents[1]
 IMAGES = REPO / "docs/images"
 HEADLINE = "Your habits. Read the book."
-SCENES = ("habits", "flight", "reader", "ask", "canvas")
-GUIDE = (
-    ("flight-desktop.png", "atomic-reader.gif"),
-    ("ask-desktop.png", "atomic-reader-ask.gif"),
-    ("canvas-desktop.png", "atomic-reader-canvas.gif"),
-    ("theater-desktop.png", "atomic-reader-theater.gif"),
-)
+SCENES = ("habits", "cover", "chooser", "reader", "ask", "canvas")
 
 
 def load_compose():
@@ -109,25 +104,21 @@ def fit_width(still: Image.Image, width: int = 1280) -> Image.Image:
     return fitted
 
 
-def guide_gif(still: Image.Image, destination: Path) -> None:
-    fitted = fit_width(still)
-    save_gif([fitted, fitted], destination, "1")
-
-
-def flight_guide_gif(shots: Path, destination: Path) -> None:
-    """Desktop flight: gutter open through the settled spread."""
-    seq = sorted((shots / "flight-seq").glob("*.png"))
-    if len(seq) < 2:
-        guide_gif(require(shots / "flight-desktop.png"), destination)
-        return
-    frames = [fit_width(Image.open(path)) for path in seq]
-    width, height = frames[0].size
-    fitted = [
-        frame if frame.size == (width, height) else frame.resize((width, height), Image.Resampling.LANCZOS)
-        for frame in frames
-    ]
-    fitted.append(fitted[-1])
-    save_gif(fitted, destination, "2")
+def open_guide_gif(shots: Path, destination: Path) -> None:
+    """Shelf, open cover, chooser, then the settled reader. No open animation."""
+    seq = sorted((shots / "open-seq").glob("*.png"))
+    if len(seq) < 4:
+        raise SystemExit(f"open sequence needs shelf, cover, chooser, and reader; found {len(seq)}")
+    fitted = [fit_width(Image.open(path).convert("RGB")) for path in seq]
+    width = max(frame.width for frame in fitted)
+    height = max(frame.height for frame in fitted)
+    frames = []
+    for frame in fitted:
+        canvas = Image.new("RGB", (width, height), (255, 255, 255))
+        canvas.paste(frame, ((width - frame.width) // 2, (height - frame.height) // 2))
+        frames.append(canvas)
+    frames.append(frames[-1])
+    save_gif(frames, destination, "1")
 
 
 def require(path: Path) -> Image.Image:
@@ -154,21 +145,13 @@ def main() -> None:
             raise SystemExit(f"{scene} banner is {banner.size}")
         banners.append(banner)
 
-    png_out = IMAGES / "atomic-reader-hero.png"
     gif_out = IMAGES / "atomic-reader-hero.gif"
-    reader = banners[SCENES.index("reader")]
-    reader.save(png_out, "PNG", optimize=True)
     save_gif(banners, gif_out, "5/8")
-    print(f"wrote {png_out} {reader.size} {png_out.stat().st_size}")
     print(f"wrote {gif_out} {gif_out.stat().st_size}")
 
-    for filename, gif_name in GUIDE:
-        destination = IMAGES / gif_name
-        if gif_name == "atomic-reader.gif":
-            flight_guide_gif(shots, destination)
-        else:
-            guide_gif(require(shots / filename), destination)
-        print(f"wrote {destination} {destination.stat().st_size}")
+    reader_gif = IMAGES / "atomic-reader.gif"
+    open_guide_gif(shots, reader_gif)
+    print(f"wrote {reader_gif} {reader_gif.stat().st_size}")
 
 
 if __name__ == "__main__":
