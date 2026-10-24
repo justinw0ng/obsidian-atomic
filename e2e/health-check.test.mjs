@@ -4,6 +4,10 @@
  * Keep this suite in sync with plugin UI. After any UI or breaking change,
  * update these tests and the data-testid hooks they use. Do not replace this
  * suite with computer-use; that is only for troubleshooting a failure.
+ *
+ * Reader theater hooks, covered by tests/reader-theater.test.mjs until the
+ * reader shell is mounted in this vault: atomic-theater,
+ * atomic-theater-chrome, atomic-theater-exit.
  */
 import { after, before, describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -220,6 +224,44 @@ async function waitForCuePop(driver, index) {
     throw new Error(`cue card ${index} never popped: ${JSON.stringify(last)}`);
   }
   return last;
+}
+
+const DESK_BOOK_RATIO = (680 * 488) / (1020 * 720);
+const PHONE_BOOK_RATIO = (350 * 520) / (390 * 844);
+const DESK_THEATER_RATIO = (680 * 500) / (1020 * 720);
+const PHONE_THEATER_RATIO = (326 * 500) / (390 * 844);
+
+/** XL tokens stay 340×488. Painted size is that box times the viewport zoom. */
+function settledBook(sample, surface) {
+  if (!sample || sample.pageW !== "340px" || sample.pageH !== "488px") return false;
+  const zoom = Number(sample.zoom);
+  if (!(zoom > 0)) return false;
+  if (Math.abs(sample.pageWidth - 340 * zoom) > 3) return false;
+  if (Math.abs(sample.pageHeight - 488 * zoom) > 3) return false;
+  if (sample.clamped === "true") return true;
+  const pages = surface === "phone" ? 1 : 2;
+  const view = Number(sample.vw) * Number(sample.vh);
+  if (!(view > 0)) return false;
+  const ratio = (sample.pageWidth * pages * sample.pageHeight) / view;
+  const target = surface === "phone" ? PHONE_BOOK_RATIO : DESK_BOOK_RATIO;
+  return Math.abs(ratio - target) < 0.04;
+}
+
+/** Theater tokens stay 340×500. Painted size is that box times the theater zoom. */
+function theaterBook(sample, surface) {
+  if (!sample || sample.pageW !== "340px" || sample.pageH !== "500px") return false;
+  const zoom = Number(sample.zoom);
+  if (!(zoom > 0)) return false;
+  if (Math.abs(sample.pageWidth - 340 * zoom) > 3) return false;
+  if (Math.abs(sample.pageHeight - 500 * zoom) > 3) return false;
+  const pages = surface === "phone" ? 1 : 2;
+  if (sample.pages !== pages) return false;
+  if (sample.clamped === "true") return true;
+  const view = Number(sample.vw) * Number(sample.vh);
+  if (!(view > 0)) return false;
+  const ratio = (sample.pageWidth * pages * sample.pageHeight) / view;
+  const target = surface === "phone" ? PHONE_THEATER_RATIO : DESK_THEATER_RATIO;
+  return Math.abs(ratio - target) < 0.04;
 }
 
 function isCssTransparent(color) {
@@ -2138,6 +2180,17 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       await clickBook();
       if (pointer.reduced) {
         await driver.wait(async () => {
+          const chooser = await driver.executeScript(`
+            const node = document.querySelector('[data-testid="atomic-chooser"]');
+            if (!node || node.parentElement !== document.body) return null;
+            return node.getAttribute("data-overlay-host");
+          `);
+          return chooser === "window";
+        }, 8000);
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-notes"]').click();
+        `);
+        await driver.wait(async () => {
           const path = await driver.executeScript(
             `return app.workspace.getActiveFile()?.path || ""`,
           );
@@ -2187,11 +2240,385 @@ describe("Obsidian Selenium health check", { skip: skipReason || undefined, conc
       assert.equal(opened.path, E2E_FILES.bookshelfAll);
       await clickBook();
       await driver.wait(async () => {
+        const chooser = await driver.executeScript(`
+          const node = document.querySelector('[data-testid="atomic-chooser"]');
+          if (!node || node.parentElement !== document.body) return null;
+          return node.getAttribute("data-overlay-host");
+        `);
+        return chooser === "window";
+      }, 8000);
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-notes"]').click();
+      `);
+      await driver.wait(async () => {
         const path = await driver.executeScript(
           `return app.workspace.getActiveFile()?.path || ""`,
         );
         return path === E2E_FILES.readingCurrent;
       }, 8000);
+    });
+  });
+
+  it("opens a linked EPUB from the chooser and hides Open Book without a file", async () => {
+    await check(driver, "reader-shell", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      const clickTitledBook = (title) => driver.executeScript(`
+        document.querySelector(
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
+        ).click();
+      `, title);
+      const chooserState = () => driver.executeScript(`
+        const node = document.querySelector('[data-testid="atomic-chooser"]');
+        if (!node) return null;
+        return {
+          host: node.getAttribute("data-overlay-host") || "",
+          onBody: node.parentElement === document.body,
+          notes: Boolean(node.querySelector('[data-testid="atomic-chooser-notes"]')),
+          book: Boolean(node.querySelector('[data-testid="atomic-chooser-book"]')),
+          label: node.getAttribute("aria-label") || "",
+        };
+      `);
+      const openChooser = async (title) => {
+        await clickTitledBook(title);
+        try {
+          await driver.wait(async () => {
+            const state = await chooserState();
+            return state?.notes === true && state.label === title;
+          }, 700);
+        } catch {
+          await clickTitledBook(title);
+          await driver.wait(async () => {
+            const state = await chooserState();
+            return state?.notes === true && state.label === title;
+          }, 8000);
+        }
+        return chooserState();
+      };
+      const chooserMetrics = () => driver.executeScript(`
+        const scrim = document.querySelector('[data-testid="atomic-chooser"]');
+        const veil = scrim?.querySelector('[data-testid="atomic-chooser-veil"]');
+        const sheet = scrim?.querySelector(".atomic-chooser");
+        const notes = scrim?.querySelector('[data-testid="atomic-chooser-notes"]');
+        const book = scrim?.querySelector('[data-testid="atomic-chooser-book"]');
+        const grab = scrim?.querySelector(".atomic-chooser-grab");
+        const cancel = scrim?.querySelector('[data-testid="atomic-chooser-cancel"]');
+        const sheetStyle = sheet ? getComputedStyle(sheet) : null;
+        const notesStyle = notes ? getComputedStyle(notes) : null;
+        const grabStyle = grab ? getComputedStyle(grab) : null;
+        const cancelStyle = cancel ? getComputedStyle(cancel) : null;
+        const veilStyle = veil ? getComputedStyle(veil) : null;
+        const scrimStyle = scrim ? getComputedStyle(scrim) : null;
+        const sheetRect = sheet?.getBoundingClientRect();
+        const veilRect = veil?.getBoundingClientRect();
+        const frame = veilRect && veilRect.width > 1 ? veilRect : scrim?.getBoundingClientRect();
+        return {
+          phone: sheet?.classList.contains("is-phone") === true,
+          scrimPhone: scrim?.classList.contains("is-phone") === true,
+          notesPrimary: notes?.classList.contains("is-primary") === true,
+          bookPrimary: book?.classList.contains("is-primary") === true,
+          book: Boolean(book),
+          width: sheetRect ? Math.round(sheetRect.width) : 0,
+          radius: sheetStyle?.borderRadius || "",
+          padding: sheetStyle
+            ? [sheetStyle.paddingTop, sheetStyle.paddingRight, sheetStyle.paddingBottom, sheetStyle.paddingLeft].join(" ")
+            : "",
+          rowRadius: notesStyle?.borderRadius || "",
+          rowBg: notesStyle?.backgroundColor || "",
+          rowPad: notesStyle
+            ? [notesStyle.paddingTop, notesStyle.paddingRight, notesStyle.paddingBottom, notesStyle.paddingLeft].join(" ")
+            : "",
+          grabWidth: grab ? Math.round(grab.getBoundingClientRect().width) : 0,
+          grabHeight: grab ? Math.round(grab.getBoundingClientRect().height) : 0,
+          grabMarginTop: grabStyle?.marginTop || "",
+          grabMarginBottom: grabStyle?.marginBottom || "",
+          bottom: sheetRect && frame ? Math.round(frame.bottom - sheetRect.bottom) : -1,
+          left: sheetRect && frame ? Math.round(sheetRect.left - frame.left) : -1,
+          right: sheetRect && frame ? Math.round(frame.right - sheetRect.right) : -1,
+          centered: sheetRect && frame
+            ? Math.abs((sheetRect.left - frame.left) - (frame.right - sheetRect.right)) <= 2
+            : false,
+          cancelWeight: cancelStyle?.fontWeight || "",
+          cancelSize: cancelStyle?.fontSize || "",
+          scrim: veilStyle?.backgroundColor || "",
+          stage: scrimStyle?.backgroundColor || "",
+          rowHeight: notes ? Math.round(notes.getBoundingClientRect().height) : 0,
+        };
+      `);
+
+      await restoreDesktopPointer(driver, desktopViewport);
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(
+        driver,
+        '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+      );
+      const linked = await openChooser("Currently Reading");
+      assert.equal(linked.host, "window");
+      assert.equal(linked.onBody, true);
+      assert.equal(linked.book, true, "Open Book shows when an EPUB is linked");
+      const deskChooser = await chooserMetrics();
+      assert.equal(deskChooser.phone, false);
+      assert.equal(deskChooser.notesPrimary, true, "Open Notes stays the default row");
+      assert.equal(deskChooser.bookPrimary, false);
+      assert.equal(deskChooser.width, 420);
+      assert.equal(deskChooser.radius, "16px");
+      assert.equal(deskChooser.padding, "10px 12px 14px 12px");
+      assert.equal(deskChooser.rowRadius, "9px");
+      assert.equal(deskChooser.rowBg, "rgb(34, 34, 34)");
+      assert.equal(deskChooser.rowPad, "12px 12px 12px 12px");
+      assert.equal(deskChooser.grabWidth, 36);
+      assert.equal(deskChooser.grabHeight, 4);
+      assert.equal(deskChooser.grabMarginTop, "4px");
+      assert.equal(deskChooser.grabMarginBottom, "12px");
+      assert.ok(Math.abs(deskChooser.bottom - 24) <= 2, JSON.stringify(deskChooser));
+      assert.equal(deskChooser.centered, true, JSON.stringify(deskChooser));
+      assert.ok(deskChooser.rowHeight >= 52 && deskChooser.rowHeight <= 68, JSON.stringify(deskChooser));
+      assert.equal(deskChooser.cancelWeight, "500");
+      assert.equal(deskChooser.cancelSize, "13px");
+      assert.equal(deskChooser.scrim, "rgba(20, 18, 16, 0.28)");
+      assert.notEqual(deskChooser.stage, "rgba(20, 18, 16, 0.28)");
+
+      await driver.executeScript(`return app.plugins.getPlugin("atomic-tracker").refreshAll()`);
+      await driver.wait(async () => {
+        const report = await driver.executeScript(`
+          const chooser = document.querySelector('[data-testid="atomic-chooser"]');
+          const books = document.querySelectorAll(
+            '.workspace-leaf.mod-active [data-testid="atomic-book"]'
+          ).length;
+          const pending = document.querySelectorAll(
+            '.workspace-leaf.mod-active .atomic-block-pending-bar'
+          ).length;
+          return {
+            host: chooser?.getAttribute("data-overlay-host") || "",
+            onBody: chooser?.parentElement === document.body,
+            books,
+            pending,
+          };
+        `);
+        return report.onBody && report.host === "window" && report.books >= 2 && report.pending === 0;
+      }, 8000);
+
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-cancel"]').click();
+      `);
+      await driver.wait(async () => (await chooserState()) == null, 4000);
+
+      const finished = await openChooser("Finished Book");
+      assert.equal(finished.book, false, "Open Book stays hidden when the title has no file");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-cancel"]').click();
+      `);
+      await driver.wait(async () => (await chooserState()) == null, 4000);
+
+      await openChooser("Currently Reading");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-book"]').click();
+      `);
+      let reader = {};
+      try {
+        await driver.wait(async () => {
+          reader = await driver.executeScript(`
+            const root = document.querySelector('[data-testid="atomic-reader"]');
+            if (!root) return null;
+            const page = root.querySelector('[data-testid="atomic-reader-page"] p');
+            const style = page ? getComputedStyle(page) : null;
+            const box = root.querySelector('[data-testid="atomic-reader-page"]');
+            const boxStyle = box ? getComputedStyle(box) : null;
+            return {
+              kind: root.getAttribute("data-kind"),
+              page: root.getAttribute("data-page"),
+              total: root.getAttribute("data-total"),
+              mount: root.getAttribute("data-reader-mount"),
+              phone: root.classList.contains("is-phone"),
+              progress: root.querySelector('[data-testid="atomic-reader-progress"]')?.textContent || "",
+              last: root.querySelector('[data-testid="atomic-reader-last"]')?.textContent || "",
+              fontSize: style?.fontSize || "",
+              lineHeight: style?.lineHeight || "",
+              fontFamily: style?.fontFamily || "",
+              pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
+              pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+              pageW: root.style.getPropertyValue("--atomic-page-w").trim(),
+              pageH: root.style.getPropertyValue("--atomic-page-h").trim(),
+              zoom: root.getAttribute("data-book-zoom") || "",
+              clamped: root.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
+              radius: boxStyle?.borderRadius || "",
+              pad: boxStyle ? [boxStyle.paddingTop, boxStyle.paddingRight, boxStyle.paddingBottom, boxStyle.paddingLeft].join(" ") : "",
+              margin: boxStyle ? [boxStyle.marginTop, boxStyle.marginRight, boxStyle.marginBottom, boxStyle.marginLeft].join(" ") : "",
+              barGap: getComputedStyle(root.querySelector(".atomic-reader-bar")).gap || "",
+              seam: (() => {
+                const rects = [...root.querySelectorAll(".atomic-reader-page")]
+                  .map((el) => el.getBoundingClientRect())
+                  .sort((a, b) => a.left - b.left);
+                if (rects.length < 2) return -1;
+                return Math.round(rects[1].left - rects[0].right);
+              })(),
+              size: Boolean(root.querySelector('[data-testid="atomic-reader-slot-size"]')),
+              pageBox: root.getAttribute("data-size") || "",
+              pageNumber: root.querySelector('[data-testid="atomic-reader-pn"]')?.textContent || "",
+              heading: Boolean(root.querySelector(".atomic-reader-page h3")),
+              flight: Boolean(document.querySelector('[data-testid="atomic-open-flight"]')),
+              theater: Boolean(root.querySelector('[data-testid="atomic-reader-slot-theater"]')),
+              ask: Boolean(root.querySelector('[data-testid="atomic-reader-slot-ask"]')),
+              canvas: Boolean(root.querySelector('[data-testid="atomic-reader-canvas"]')),
+              status: root.querySelector('[data-testid="atomic-reader-status"]')?.getAttribute("data-state") || "",
+            };
+          `);
+          return reader && reader.total === "3" && reader.status === "" && reader.flight === false;
+        }, 8000);
+      } catch (error) {
+        throw new Error(`${error.message} last=${JSON.stringify(reader)}`);
+      }
+      assert.equal(reader.kind, "epub");
+      assert.equal(reader.mount, "shell");
+      assert.equal(reader.page, "1");
+      assert.equal(reader.phone, false);
+      assert.match(reader.progress, /1 \/ 3/);
+      assert.match(reader.last, /p\. 1/);
+      assert.equal(reader.fontSize, "12.5px");
+      assert.equal(reader.lineHeight, "19px");
+      assert.match(reader.fontFamily, /Literata/);
+      assert.equal(settledBook(reader, "desk"), true, JSON.stringify(reader));
+      assert.equal(reader.radius, "3px");
+      assert.equal(reader.pad, "22px 22px 28px 22px");
+      assert.equal(reader.margin, "0px 0px 0px 0px");
+      assert.equal(reader.barGap, "4px");
+      assert.ok(Math.abs(reader.seam) <= 1, `pages sit together ${reader.seam}`);
+      assert.equal(reader.size, false);
+      assert.equal(reader.pageBox, "xl");
+      assert.match(reader.progress, /1 \/ 3/);
+      assert.doesNotMatch(reader.progress, /%/);
+      assert.equal(reader.pageNumber, "1");
+      assert.equal(reader.heading, false);
+      assert.equal(reader.theater, true);
+      assert.equal(reader.ask, true);
+      assert.equal(reader.canvas, true);
+      await shot(driver, "reader-shell-desktop");
+
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-reader-next"]').click();
+      `);
+      await driver.wait(async () => {
+        const turned = await driver.executeScript(`
+          const root = document.querySelector('[data-testid="atomic-reader"]');
+          return (async () => {
+            const note = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.readingCurrent)});
+            const body = note ? await app.vault.read(note) : "";
+            return {
+              page: root?.getAttribute("data-page") || "",
+              progress: root?.querySelector('[data-testid="atomic-reader-progress"]')?.textContent || "",
+              saved: /page:\\s*3/.test(body),
+            };
+          })();
+        `);
+        return turned.page === "3" && /3 \/ 3/.test(turned.progress) && turned.saved;
+      }, 8000);
+
+      try {
+        await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+          width: 390,
+          height: 844,
+          deviceScaleFactor: 1,
+          mobile: true,
+        });
+      } catch {
+        await driver.executeScript(`window.resizeTo(390, 844)`);
+      }
+      await driver.executeScript(`
+        app.workspace.leftSplit?.collapse?.();
+        app.workspace.rightSplit?.collapse?.();
+      `);
+      let phone = {};
+      try {
+        await driver.wait(async () => {
+          phone = await driver.executeScript(`
+            const root = document.querySelector('[data-testid="atomic-reader"]');
+            const page = root?.querySelector('[data-testid="atomic-reader-page"] p');
+            const style = page ? getComputedStyle(page) : null;
+            const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+            const boxStyle = box ? getComputedStyle(box) : null;
+            const foot = root?.querySelector(".atomic-reader-foot");
+            const meter = foot?.querySelector('[data-testid="atomic-reader-meter"]');
+            const rootRect = root?.getBoundingClientRect();
+            const footRect = foot?.getBoundingClientRect();
+            return {
+              phone: root?.classList.contains("is-phone") === true,
+              width: root ? Math.round(root.getBoundingClientRect().width) : 0,
+              fontSize: style?.fontSize || "",
+              lineHeight: style?.lineHeight || "",
+              margin: root?.querySelector("[data-reader-slot='margin']") ? true : false,
+              ask: Boolean(root?.querySelector('[data-testid="atomic-reader-slot-ask"]')),
+              pages: root?.querySelectorAll('[data-testid="atomic-reader-page"]').length || 0,
+              canvas: Boolean(root?.querySelector('[data-testid="atomic-reader-canvas"]')),
+              pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
+              pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+              pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+              pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+              zoom: root?.getAttribute("data-book-zoom") || "",
+              clamped: root?.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
+              shadow: boxStyle?.boxShadow || "",
+              footHeight: foot ? Math.round(foot.getBoundingClientRect().height) : 0,
+              footWidth: footRect ? Math.round(footRect.width) : 0,
+              rootWidth: rootRect ? Math.round(rootRect.width) : 0,
+              meterWidth: meter ? Math.round(meter.getBoundingClientRect().width) : 0,
+              last: root?.querySelector('[data-testid="atomic-reader-last"]')?.textContent || "",
+              progress: root?.querySelector('[data-testid="atomic-reader-progress"]')?.textContent || "",
+              text: page?.textContent || "",
+            };
+          `);
+          return phone.phone && phone.width > 0 && phone.width < 780 && phone.fontSize === "15px" && phone.pages === 1
+            && settledBook(phone, "phone") && phone.footHeight >= 28
+            && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
+            && /Last read/.test(phone.last) && /3 \/ 3/.test(phone.progress);
+        }, 8000);
+      } catch (error) {
+        throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
+      }
+      assert.equal(phone.lineHeight, "23px");
+      assert.equal(phone.margin, false);
+      assert.equal(phone.ask, true);
+      assert.equal(phone.pages, 1);
+      assert.equal(phone.canvas, true);
+      assert.match(phone.shadow, /1px/);
+      assert.match(phone.text, /\S/);
+      assert.match(phone.last, /Last read p\. 3/);
+      assert.match(phone.progress, /3 \/ 3/);
+      assert.ok(phone.footWidth >= phone.rootWidth - 2, JSON.stringify(phone));
+      assert.ok(phone.meterWidth >= 24, JSON.stringify(phone));
+      await shot(driver, "reader-shell-phone");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-reader-shelf"]').click();
+      `);
+      await driver.wait(async () => {
+        const path = await driver.executeScript(
+          `return app.workspace.getActiveFile()?.path || ""`,
+        );
+        return path === E2E_FILES.bookshelfAll;
+      }, 8000);
+      const phoneLinked = await openChooser("Currently Reading");
+      assert.equal(phoneLinked.book, true, "Open Book still shows on the phone when an EPUB is linked");
+      const phoneChooser = await chooserMetrics();
+      assert.equal(phoneChooser.phone, true);
+      assert.equal(phoneChooser.scrimPhone, true);
+      assert.equal(phoneChooser.notesPrimary, true);
+      assert.equal(phoneChooser.radius, "16px");
+      assert.notEqual(phoneChooser.radius, "16px 16px 0 0");
+      assert.equal(phoneChooser.padding, "10px 12px 14px 12px");
+      assert.equal(phoneChooser.rowRadius, "9px");
+      assert.ok(phoneChooser.width <= 342 && phoneChooser.width >= 240, JSON.stringify(phoneChooser));
+      assert.ok(Math.abs(phoneChooser.left - 24) <= 4, JSON.stringify(phoneChooser));
+      assert.ok(Math.abs(phoneChooser.right - 24) <= 4, JSON.stringify(phoneChooser));
+      assert.ok(Math.abs(phoneChooser.bottom - 40) <= 4, JSON.stringify(phoneChooser));
+      assert.equal(phoneChooser.scrim, "rgba(20, 18, 16, 0.28)");
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-cancel"]').click();
+      `);
+      await driver.wait(async () => (await chooserState()) == null, 4000);
+      await restoreDesktopPointer(driver, desktopViewport);
     });
   });
 
@@ -2528,10 +2955,708 @@ ${E2E_CUE_LOG_FENCE}
       await waitForNotice(driver, "Enable the Bases core plugin");
     });
   });
-});
 
-if (skipReason) {
-  console.log(`Skipping Selenium E2E: ${skipReason}`);
-} else {
-  console.log(`Selenium artifacts directory: ${ARTIFACT_DIR}`);
-}
+  it("keeps the Ask key out of plugin data and paints remarks into the reader slots", async () => {
+    await check(driver, "reader-ask-slots", async () => {
+      await openAtomicSettings(driver);
+      const askRow = await driver.executeScript(`
+        const row = document.querySelector(
+          '[data-testid="atomic-setting-ask"], [data-testid="atomic-setting-ask-update"]',
+        );
+        const ask = app.plugins.getPlugin("atomic-tracker").settings.ask;
+        return {
+          visible: !!row,
+          keys: ask ? Object.keys(ask).sort() : [],
+          secretName: ask ? ask.secretName : null,
+        };
+      `);
+      assert.equal(askRow.visible, true);
+      assert.deepEqual(askRow.keys, ["baseUrl", "model", "provider", "secretName"]);
+      assert.equal(typeof askRow.secretName, "string");
+      await closeSettings(driver);
+
+      await openVaultFile(driver, E2E_FILES.readingCurrent);
+      await driver.executeScript(`
+        app.commands.executeCommandById("atomic-tracker:open-book");
+      `);
+      let slots = {};
+      await driver.wait(async () => {
+        slots = await driver.executeScript(`
+          const root = document.querySelector('[data-testid="atomic-reader"]');
+          const ask = root?.querySelector("[data-reader-slot='ask']");
+          const margin = root?.querySelector("[data-reader-slot='margin']");
+          return {
+            askHost: ask?.getAttribute("data-atomic-ask-host") === "true",
+            askPainted: Boolean(ask?.querySelector("[data-atomic-ask-root]")),
+            marginHost: margin ? margin.getAttribute("data-atomic-ask-host") === "true" : false,
+            marginPainted: margin ? Boolean(margin.querySelector("[data-atomic-ask-root]")) : false,
+            phone: root?.classList.contains("is-phone") === true,
+            total: root?.getAttribute("data-total") || "",
+          };
+        `);
+        return slots.askHost && slots.askPainted && slots.total !== "0" && slots.total !== ""
+          && (slots.phone || (slots.marginHost && slots.marginPainted));
+      }, 8000);
+      assert.equal(slots.askHost, true);
+      assert.equal(slots.askPainted, true);
+      if (!slots.phone) {
+        assert.equal(slots.marginHost, true);
+        assert.equal(slots.marginPainted, true);
+      }
+      const askSpace = await driver.executeScript(`
+        const probe = document.createElement("div");
+        probe.className = "atomic-ask";
+        const gutter = document.querySelector("[data-reader-slot='ask']");
+        gutter?.appendChild(probe);
+        const style = getComputedStyle(probe);
+        const remarkHost = document.querySelector("[data-testid='atomic-reader-margin']");
+        const remark = document.createElement("button");
+        remark.className = "atomic-remark";
+        remarkHost?.appendChild(remark);
+        const remarkStyle = remark.isConnected ? getComputedStyle(remark) : null;
+        const report = {
+          width: style.width,
+          paddingTop: style.paddingTop,
+          paddingRight: style.paddingRight,
+          paddingBottom: style.paddingBottom,
+          paddingLeft: style.paddingLeft,
+          gap: style.gap,
+          remarkPad: remarkStyle
+            ? [remarkStyle.paddingTop, remarkStyle.paddingRight, remarkStyle.paddingBottom, remarkStyle.paddingLeft].join(" ")
+            : "",
+        };
+        probe.remove();
+        remark.remove();
+        return report;
+      `);
+      assert.equal(askSpace.width, "340px");
+      assert.equal(askSpace.paddingTop, "18px");
+      assert.equal(askSpace.paddingRight, "16px");
+      assert.equal(askSpace.paddingBottom, "18px");
+      assert.equal(askSpace.paddingLeft, "16px");
+      assert.equal(askSpace.gap, "12px");
+      if (!slots.phone) assert.equal(askSpace.remarkPad, "8px 10px 8px 10px");
+    });
+  });
+
+  it("opens the settled reader without a flight", async () => {
+    await check(driver, "open-book-direct", async () => {
+      const clickTitledBook = (title) => driver.executeScript(`
+        document.querySelector(
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
+        ).click();
+      `, title);
+      const chooserTitle = () => driver.executeScript(`
+        return document.querySelector('[data-testid="atomic-chooser"]')?.getAttribute("aria-label") || "";
+      `);
+      const openChooser = async (title) => {
+        await clickTitledBook(title);
+        try {
+          await driver.wait(async () => (await chooserTitle()) === title, 700);
+        } catch {
+          await clickTitledBook(title);
+          await driver.wait(async () => (await chooserTitle()) === title, 8000);
+        }
+      };
+      const readerReport = () => driver.executeScript(`
+        const overlay = document.querySelector('[data-testid="atomic-open-flight"]');
+        const readers = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+        const reader = readers.find((el) => el.closest(".workspace-leaf")?.classList.contains("mod-active"))
+          || readers.find((el) => el.getBoundingClientRect().width > 0)
+          || readers[0]
+          || null;
+        const text = reader?.innerText || "";
+        return {
+          overlay: Boolean(overlay),
+          readers: readers.length,
+          chooser: Boolean(document.querySelector('[data-testid="atomic-chooser"]')),
+          total: reader?.getAttribute("data-total") || "",
+          page: reader?.getAttribute("data-page") || "",
+          settled: reader?.getAttribute("data-settled") || "",
+          mount: reader?.getAttribute("data-reader-mount") || "",
+          pages: reader ? reader.querySelectorAll(".atomic-reader-page").length : 0,
+          buoy: /last buoy/.test(text),
+          harbor: /Harbor light/.test(text),
+        };
+      `);
+      const settledReader = (state) => state
+        && state.overlay === false
+        && state.chooser === false
+        && state.total === "3"
+        && state.mount === "shell"
+        && state.page === "3"
+        && state.settled === "true"
+        && state.buoy
+        && state.harbor === false
+        && state.pages >= 1;
+
+      await openVaultFile(driver, E2E_FILES.bookshelfAll);
+      await waitCss(
+        driver,
+        '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+      );
+      await driver.executeScript(async (path) => {
+        const file = app.vault.getAbstractFileByPath(path);
+        if (!file) throw new Error("missing reading note");
+        const body = await app.vault.read(file);
+        let next = body;
+        if (/^reader\.page\s*:/m.test(body)) {
+          next = body.replace(/^(reader\.page\s*:\s*)\d+/m, "$110");
+        } else if (/^\s+page\s*:/m.test(body)) {
+          next = body.replace(/(^\s+page\s*:\s*)\d+/m, "$110");
+        } else {
+          const fence = body.indexOf("\n---");
+          next = fence >= 0
+            ? `${body.slice(0, fence)}\nreader:\n  page: 10${body.slice(fence)}`
+            : `---\nreader:\n  page: 10\n---\n\n${body}`;
+        }
+        if (!/page\s*:\s*10/.test(next)) throw new Error(`page 10 missing\n${next.slice(0, 500)}`);
+        if (next !== body) await app.vault.modify(file, next);
+        const check = await app.vault.read(file);
+        if (!/page\s*:\s*10/.test(check)) throw new Error(check.slice(0, 500));
+      }, E2E_FILES.readingCurrent);
+      await openChooser("Currently Reading");
+      const seen = [];
+      await driver.executeScript(`
+        document.querySelector('[data-testid="atomic-chooser-book"]').click();
+      `);
+      let settled = null;
+      try {
+        await driver.wait(async () => {
+          settled = await readerReport();
+          seen.push(settled);
+          if (seen.length > 12) seen.shift();
+          if (settled.overlay) throw new Error(`open built a flight ${JSON.stringify(settled)}`);
+          return settledReader(settled);
+        }, 8000);
+      } catch (error) {
+        throw new Error(`${error.message} last=${JSON.stringify(settled)} seen=${JSON.stringify(seen)}`);
+      }
+      assert.equal(settled.overlay, false);
+      assert.equal(settled.page, "3", "saved page 10 clamps to the last EPUB page");
+      assert.ok(seen.every((snap) => snap.overlay === false));
+
+      let emulated = false;
+      try {
+        await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
+          features: [
+            { name: "hover", value: "hover" },
+            { name: "pointer", value: "fine" },
+            { name: "prefers-reduced-motion", value: "reduce" },
+          ],
+        });
+        emulated = true;
+      } catch {
+        emulated = false;
+      }
+      if (!emulated) return;
+
+      try {
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-reader-shelf"]').click();
+        `);
+        await driver.wait(async () => {
+          const path = await driver.executeScript(
+            `return app.workspace.getActiveFile()?.path || ""`,
+          );
+          return path === E2E_FILES.bookshelfAll;
+        }, 8000);
+        await openChooser("Currently Reading");
+        const reducedSeen = [];
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        `);
+        let reduced = null;
+        await driver.wait(async () => {
+          reduced = await readerReport();
+          reducedSeen.push(reduced);
+          if (reducedSeen.length > 12) reducedSeen.shift();
+          if (reduced.overlay) throw new Error(`reduced motion built a flight ${JSON.stringify(reduced)}`);
+          return settledReader(reduced);
+        }, 8000);
+        assert.ok(reducedSeen.every((snap) => snap.overlay === false));
+        assert.equal(reduced.page, "3");
+        assert.equal(reduced.settled, "true");
+      } finally {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setEmulatedMedia", {
+            features: [
+              { name: "hover", value: "hover" },
+              { name: "pointer", value: "fine" },
+              { name: "prefers-reduced-motion", value: "no-preference" },
+            ],
+          });
+        } catch {
+          // Older DevTools builds omit emulated media features.
+        }
+      }
+    });
+  });
+
+  it("enters theme-matched theater from the reader slot", { timeout: 90000 }, async () => {
+    await check(driver, "reader-theater", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      try {
+        await restoreDesktopPointer(driver, desktopViewport);
+        await openVaultFile(driver, E2E_FILES.bookshelfAll);
+        await waitCss(
+          driver,
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+        );
+        const clickReading = () => driver.executeScript(`
+          document.querySelector(
+            '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]'
+          ).click();
+        `);
+        await clickReading();
+        try {
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open === true;
+          }, 700);
+        } catch {
+          await clickReading();
+        }
+        await waitCss(driver, '[data-testid="atomic-chooser-book"]');
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        `);
+        await waitCss(driver, '.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]');
+
+        let settled = {};
+        try {
+          await driver.wait(async () => {
+            settled = await driver.executeScript(`
+              const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+              const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+              const rect = box?.getBoundingClientRect();
+              return {
+                theater: root?.classList.contains("is-theater") === true,
+                total: root?.getAttribute("data-total") || "",
+                status: root?.querySelector('[data-testid="atomic-reader-status"]')?.getAttribute("data-state") || "",
+                pageWidth: rect ? Math.round(rect.width) : 0,
+                pageHeight: rect ? Math.round(rect.height) : 0,
+                pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+                pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+                zoom: root?.getAttribute("data-book-zoom") || "",
+                clamped: root?.getAttribute("data-book-clamped") || "",
+                vw: window.innerWidth,
+                vh: window.innerHeight,
+                enter: root?.querySelector('[data-testid="atomic-theater-enter"]')?.textContent || "",
+                readers: [...document.querySelectorAll('[data-testid="atomic-reader"]')].map((node) => ({
+                  active: Boolean(node.closest(".workspace-leaf.mod-active")),
+                  width: Math.round(node.getBoundingClientRect().width),
+                  page: Math.round(node.querySelector('[data-testid="atomic-reader-page"]')?.getBoundingClientRect().width || 0),
+                })),
+              };
+            `);
+            return settled.theater === false
+              && settled.total === "3"
+              && settled.status === ""
+              && settledBook(settled, "desk")
+              && settled.enter === "Theater";
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(settled)}`);
+        }
+
+        await driver.executeScript(`
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]').click();
+        `);
+        let on = {};
+        try {
+          await driver.wait(async () => {
+            on = await driver.executeScript(`
+              const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+              const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+              const rect = box?.getBoundingClientRect();
+              const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
+              const chrome = root?.querySelector('[data-testid="atomic-theater-chrome"]');
+              const bar = root?.querySelector(".atomic-reader-bar");
+              const ask = root?.querySelector('[data-testid="atomic-reader-slot-ask"]');
+              const room = root?.querySelector('[data-testid="atomic-theater"]');
+              return {
+                theater: root?.classList.contains("is-theater") === true,
+                xl: root?.classList.contains("sz-xl") === true,
+                size: root?.getAttribute("data-atomic-theater-size") || "",
+                pageWidth: rect ? Math.round(rect.width) : 0,
+                pageHeight: rect ? Math.round(rect.height) : 0,
+                pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+                pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+                zoom: root?.getAttribute("data-book-zoom") || "",
+                clamped: root?.getAttribute("data-book-clamped") || "",
+                vw: window.innerWidth,
+                vh: window.innerHeight,
+                pages: root?.querySelectorAll(".atomic-reader-page").length || 0,
+                pageHidden: box?.hidden === true,
+                exit: Boolean(exit),
+                exitText: exit?.textContent || "",
+                chrome: Boolean(chrome),
+                chromeOn: root?.classList.contains("is-chrome") === true,
+                room: Boolean(room),
+                barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
+                askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
+                voidColor: root ? getComputedStyle(root).getPropertyValue("--theater-void").trim() : "",
+                air: (() => {
+                  const pageTop = rect?.top ?? 0;
+                  const chromeBottom = chrome?.getBoundingClientRect().bottom ?? 0;
+                  return Math.round(pageTop - chromeBottom);
+                })(),
+                chromeGap: chrome ? getComputedStyle(chrome).gap : "",
+              };
+            `);
+            return on.theater && theaterBook(on, "desk");
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(on)}`);
+        }
+        assert.equal(theaterBook(on, "desk"), true, JSON.stringify(on));
+        const desk = await driver.executeScript(`
+          const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+          const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
+          const bar = root?.querySelector(".atomic-reader-bar");
+          const ask = root?.querySelector('[data-testid="atomic-reader-slot-ask"]');
+          return {
+            xl: root?.classList.contains("sz-xl") === true,
+            size: root?.getAttribute("data-atomic-theater-size") || "",
+            exitText: exit?.textContent || "",
+            chrome: Boolean(root?.querySelector('[data-testid="atomic-theater-chrome"]')),
+            room: Boolean(root?.querySelector('[data-testid="atomic-theater"]')),
+            barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
+            askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
+            voidColor: getComputedStyle(root).getPropertyValue("--theater-void").trim(),
+            inBar: Boolean(exit && bar?.contains(exit)),
+          };
+        `);
+        assert.equal(desk.xl, true);
+        assert.equal(desk.size, "xl");
+        assert.equal(desk.room, true);
+        assert.equal(desk.chrome, true);
+        assert.match(desk.exitText, /Exit/);
+        assert.match(desk.exitText, /Esc/);
+        assert.doesNotMatch(desk.exitText, /S|M|L|XL/);
+        assert.equal(desk.barHidden, true);
+        assert.equal(desk.askHidden, true);
+        assert.equal(desk.inBar, false);
+        assert.equal(desk.voidColor, "#ebe8e2");
+        const theaterSpace = await driver.executeScript(`
+          const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+          const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+          const chrome = root?.querySelector('[data-testid="atomic-theater-chrome"]');
+          const pageTop = box?.getBoundingClientRect().top ?? 0;
+          const chromeBottom = chrome?.getBoundingClientRect().bottom ?? 0;
+          return {
+            air: Math.round(pageTop - chromeBottom),
+            chromeGap: chrome ? getComputedStyle(chrome).gap : "",
+          };
+        `);
+        assert.equal(theaterSpace.chromeGap, "12px");
+        assert.ok(
+          theaterSpace.air >= 8 && theaterSpace.air <= 40,
+          `theater page needs air under the Exit pill ${JSON.stringify(theaterSpace)}`,
+        );
+        await shot(driver, "reader-theater-light");
+
+        await driver.executeScript(`document.body.classList.add("theme-dark");`);
+        const darkVoid = await driver.executeScript(`
+          const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+          return getComputedStyle(root).getPropertyValue("--theater-void").trim();
+        `);
+        assert.equal(darkVoid, "#0e0c0a");
+        await shot(driver, "reader-theater-dark");
+        await driver.executeScript(`document.body.classList.remove("theme-dark");`);
+
+        await driver.wait(async () => {
+          const hidden = await driver.executeScript(`
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+            return root?.classList.contains("is-chrome") === false;
+          `);
+          return hidden === true;
+        }, 4000);
+        await driver.executeScript(`
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader-page"]')
+            ?.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+        `);
+        await driver.wait(async () => {
+          const shown = await driver.executeScript(`
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+            return root?.classList.contains("is-chrome") === true;
+          `);
+          return shown === true;
+        }, 2000);
+        await driver.executeScript(`
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-exit"]').click();
+        `);
+        await driver.wait(async () => {
+          const back = await driver.executeScript(`
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+            const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+            const rect = box?.getBoundingClientRect();
+            return {
+              theater: root?.classList.contains("is-theater") === true,
+              pageWidth: rect ? Math.round(rect.width) : 0,
+              pageHeight: rect ? Math.round(rect.height) : 0,
+              pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+              pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+              zoom: root?.getAttribute("data-book-zoom") || "",
+              clamped: root?.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
+              enter: Boolean(root?.querySelector('[data-testid="atomic-theater-enter"]')),
+            };
+          `);
+          return back.theater === false && settledBook(back, "desk") && back.enter;
+        }, 4000);
+
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width: 390,
+            height: 844,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(390, 844)`);
+        }
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+        `);
+        await driver.wait(async () => {
+          const phone = await driver.executeScript(`
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+            return root?.classList.contains("is-phone") === true
+              && root?.classList.contains("is-theater") === false;
+          `);
+          return phone === true;
+        }, 8000);
+        await driver.executeScript(`
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-enter"]').click();
+        `);
+        let phone = {};
+        await driver.wait(async () => {
+          phone = await driver.executeScript(`
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+            const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+            const rect = box?.getBoundingClientRect();
+            const rootRect = root?.getBoundingClientRect();
+            const exit = root?.querySelector('[data-testid="atomic-theater-exit"]');
+            const exitRect = exit?.getBoundingClientRect();
+            const ask = root?.querySelector('[data-testid="atomic-reader-slot-ask"]');
+            const bar = root?.querySelector(".atomic-reader-bar");
+            return {
+              theater: root?.classList.contains("is-theater") === true,
+              phone: root?.classList.contains("is-phone") === true,
+              place: root?.getAttribute("data-atomic-theater-place") || "",
+              pageHidden: box?.hidden === true,
+              pageWidth: rect ? Math.round(rect.width) : 0,
+              pageHeight: rect ? Math.round(rect.height) : 0,
+              pageW: root?.style.getPropertyValue("--atomic-page-w").trim() || "",
+              pageH: root?.style.getPropertyValue("--atomic-page-h").trim() || "",
+              zoom: root?.getAttribute("data-book-zoom") || "",
+              clamped: root?.getAttribute("data-book-clamped") || "",
+              vw: window.innerWidth,
+              vh: window.innerHeight,
+              pages: root?.querySelectorAll(".atomic-reader-page").length || 0,
+              exitTop: exitRect && rootRect ? Math.round(exitRect.top - rootRect.top) : -1,
+              askHidden: !ask || ask.hidden || getComputedStyle(ask).display === "none",
+              barHidden: !bar || bar.hidden || getComputedStyle(bar).display === "none",
+              text: box?.textContent || "",
+            };
+          `);
+          return phone.theater && phone.pageHidden === false && theaterBook(phone, "phone");
+        }, 8000);
+        assert.equal(theaterBook(phone, "phone"), true, JSON.stringify(phone));
+        assert.equal(phone.phone, true);
+        assert.equal(phone.place, "screen");
+        assert.equal(phone.pageHidden, false);
+        assert.equal(phone.askHidden, true);
+        assert.equal(phone.barHidden, true);
+        assert.ok(phone.exitTop >= 40, JSON.stringify(phone));
+        assert.match(phone.text, /\S/);
+        await shot(driver, "reader-theater-phone");
+        await driver.executeScript(`
+          document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-theater-exit"]').click();
+        `);
+        await driver.wait(async () => {
+          const left = await driver.executeScript(`
+            const root = document.querySelector('.workspace-leaf.mod-active [data-testid="atomic-reader"]');
+            const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+            return root?.classList.contains("is-theater") === false && box?.hidden !== true;
+          `);
+          return left === true;
+        }, 4000);
+      } finally {
+        await driver.executeScript(`document.body.classList.remove("theme-dark");`).catch(() => {});
+        await restoreDesktopPointer(driver, desktopViewport);
+      }
+    });
+  });
+
+  it("keeps the settled reader at XL with no size control", async () => {
+    await check(driver, "reader-book-size", async () => {
+      const desktopViewport = await driver.executeScript(
+        `return { width: window.innerWidth, height: window.innerHeight }`,
+      );
+      const clickTitledBook = (title) => driver.executeScript(`
+        document.querySelector(
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="' + arguments[0] + '"]'
+        ).click();
+      `, title);
+      const readSize = () => driver.executeScript(`
+        const roots = [...document.querySelectorAll('[data-testid="atomic-reader"]')];
+        const root = roots.find((node) => node.getBoundingClientRect().width > 0) || null;
+        const page = root?.querySelector('[data-testid="atomic-reader-page"] p');
+        const style = page ? getComputedStyle(page) : null;
+        const box = root?.querySelector('[data-testid="atomic-reader-page"]');
+        const slot = root?.querySelector('[data-reader-slot="size"]');
+        const control = slot?.querySelector('[data-testid="atomic-reader-size"]');
+        return (async () => {
+          const note = app.vault.getAbstractFileByPath(${JSON.stringify(E2E_FILES.readingCurrent)});
+          const body = note ? await app.vault.read(note) : "";
+          return {
+            pageWidth: box ? Math.round(box.getBoundingClientRect().width) : 0,
+            pageHeight: box ? Math.round(box.getBoundingClientRect().height) : 0,
+            zoom: root?.getAttribute("data-book-zoom") || "",
+            clamped: root?.getAttribute("data-book-clamped") || "",
+            vw: window.innerWidth,
+            vh: window.innerHeight,
+            text: page?.textContent || "",
+            bodyLines: root?.getAttribute("data-body-lines") || "",
+            fontSize: style?.fontSize || "",
+            lineHeight: style?.lineHeight || "",
+            phone: root?.classList.contains("is-phone") === true,
+            rootWidth: root ? Math.round(root.getBoundingClientRect().width) : 0,
+            inSlot: Boolean(slot && control && slot.contains(control)),
+            readers: document.querySelectorAll('[data-testid="atomic-reader"]').length,
+            pressed: slot?.querySelector('[data-testid="atomic-reader-size-xl"]')?.getAttribute("aria-pressed") || "",
+            pageW: root ? getComputedStyle(root).getPropertyValue("--atomic-page-w").trim() : "",
+            pageH: root ? getComputedStyle(root).getPropertyValue("--atomic-page-h").trim() : "",
+            bar: control?.classList.contains("is-bar") === true,
+            controlPhone: control?.classList.contains("is-phone") === true,
+            sheet: Boolean(slot?.querySelector('[data-testid="atomic-reader-size-sheet"]')),
+            hint: slot?.querySelector('[data-testid="atomic-reader-size-hint"]')?.textContent || "",
+            rowPad: (() => {
+              const row = slot?.querySelector(".atomic-reader-size-row");
+              if (!row) return "";
+              const style = getComputedStyle(row);
+              return [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft].join(" ");
+            })(),
+            sheetTop: (() => {
+              const sheet = slot?.querySelector('[data-testid="atomic-reader-size-sheet"]');
+              const bar = root?.querySelector(".atomic-reader-bar");
+              if (!sheet || !bar || !root) return -1;
+              return Math.round(sheet.getBoundingClientRect().top - bar.getBoundingClientRect().bottom);
+            })(),
+            sheetBottom: (() => {
+              const sheet = slot?.querySelector('[data-testid="atomic-reader-size-sheet"]');
+              if (!sheet || !root) return -1;
+              return Math.round(root.getBoundingClientRect().bottom - sheet.getBoundingClientRect().bottom);
+            })(),
+            saved: /reader\\.size:\\s*\\S+/.test(body) ? (body.match(/reader\\.size:\\s*\\S+/) || [])[0] : "none",
+            last: root?.querySelector('[data-testid="atomic-reader-last"]')?.textContent || "",
+            progress: root?.querySelector('[data-testid="atomic-reader-progress"]')?.textContent || "",
+            footWidth: (() => {
+              const foot = root?.querySelector(".atomic-reader-foot");
+              return foot ? Math.round(foot.getBoundingClientRect().width) : 0;
+            })(),
+            meterWidth: (() => {
+              const meter = root?.querySelector('[data-testid="atomic-reader-meter"]');
+              return meter ? Math.round(meter.getBoundingClientRect().width) : 0;
+            })(),
+          };
+        })();
+      `);
+      const forceViewport = async (width, height, mobile) => {
+        try {
+          await driver.sendDevToolsCommand("Emulation.setDeviceMetricsOverride", {
+            width,
+            height,
+            deviceScaleFactor: 1,
+            mobile,
+          });
+        } catch {
+          await driver.executeScript(`window.resizeTo(arguments[0], arguments[1])`, width, height);
+        }
+        await driver.executeScript(`
+          app.workspace.leftSplit?.collapse?.();
+          app.workspace.rightSplit?.collapse?.();
+        `);
+      };
+      try {
+        await restoreDesktopPointer(driver, desktopViewport);
+        await forceViewport(1400, 900, false);
+        await openVaultFile(driver, E2E_FILES.bookshelfAll);
+        await waitCss(
+          driver,
+          '.workspace-leaf.mod-active [data-testid="atomic-book"][data-title="Currently Reading"]',
+        );
+        await clickTitledBook("Currently Reading");
+        try {
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 700);
+        } catch {
+          await clickTitledBook("Currently Reading");
+          await driver.wait(async () => {
+            const open = await driver.executeScript(`
+              return Boolean(document.querySelector('[data-testid="atomic-chooser-book"]'));
+            `);
+            return open;
+          }, 8000);
+        }
+        await driver.executeScript(`
+          document.querySelector('[data-testid="atomic-chooser-book"]').click();
+        `);
+        let desk = {};
+        try {
+          await driver.wait(async () => {
+            desk = await readSize();
+            return desk.phone === false && desk.fontSize === "12.5px" && desk.bodyLines === "22" && settledBook(desk, "desk") && desk.text.length > 0;
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} desk=${JSON.stringify(desk)}`);
+        }
+        assert.equal(desk.lineHeight, "19px");
+        assert.equal(desk.inSlot, false);
+        assert.equal(desk.sheet, false);
+        assert.equal(desk.hint, "");
+        assert.equal(desk.saved, "none");
+
+        await forceViewport(390, 844, true);
+        let phone = {};
+        try {
+          await driver.wait(async () => {
+            phone = await readSize();
+            const read = String(phone.last).match(/^Last read p\. (\d+)$/);
+            const count = String(phone.progress).match(/^(\d+) \/ (\d+)$/);
+            return phone.phone && phone.rootWidth > 0 && phone.rootWidth < 780 && phone.fontSize === "15px" && phone.sheet === false
+              && settledBook(phone, "phone")
+              && phone.footWidth >= phone.rootWidth - 2 && phone.meterWidth >= 24
+              && read && count && read[1] === count[1] && Number(count[2]) >= Number(count[1]);
+          }, 8000);
+        } catch (error) {
+          throw new Error(`${error.message} last=${JSON.stringify(phone)}`);
+        }
+        assert.equal(phone.lineHeight, "23px");
+        assert.equal(phone.inSlot, false);
+        assert.equal(phone.sheet, false);
+        assert.match(phone.last, /^Last read p\. \d+$/);
+        assert.match(phone.progress, /^\d+ \/ \d+$/);
+        assert.equal(phone.last.match(/(\d+)$/)?.[1], phone.progress.match(/^(\d+)/)?.[1]);
+        assert.ok(phone.footWidth >= phone.rootWidth - 2, JSON.stringify(phone));
+        assert.ok(phone.meterWidth >= 24, JSON.stringify(phone));
+        await shot(driver, "reader-book-size-phone");
+      } finally {
+        await restoreDesktopPointer(driver, desktopViewport);
+      }
+    });
+  });
+});

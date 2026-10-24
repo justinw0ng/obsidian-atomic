@@ -267,6 +267,25 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   const shelf = src("src/views/book-shelf.ts");
   assert.match(shelf, /data-testid": "atomic-bookshelf"/);
   assert.match(shelf, /data-testid": "atomic-book"/);
+  assert.match(shelf, /presentBookChooser/);
+
+  const chooser = src("src/reader/shell/chooser.ts");
+  assert.match(chooser, /data-testid": "atomic-chooser"/);
+  assert.match(chooser, /data-testid": "atomic-chooser-veil"/);
+  assert.match(chooser, /workspace-leaf\.mod-active \.view-content/);
+  assert.match(chooser, /data-testid": "atomic-chooser-notes"/);
+  assert.match(chooser, /data-testid": "atomic-chooser-book"/);
+  assert.match(chooser, /data-overlay-host": "window"/);
+  assert.match(chooser, /activeDocument\.body/);
+
+  const reader = src("src/reader/shell/view.ts");
+  assert.match(reader, /data-testid": "atomic-reader"/);
+  assert.match(reader, /data-testid": "atomic-reader-progress"/);
+  assert.match(reader, /data-testid": "atomic-reader-next"/);
+  assert.doesNotMatch(reader, /data-testid": "atomic-reader-slot-size"/);
+  assert.match(reader, /data-testid": "atomic-reader-pn"/);
+  assert.match(reader, /data-testid": "atomic-reader-slot-theater"/);
+  assert.match(reader, /data-testid": "atomic-reader-slot-ask"/);
   assert.match(shelf, /"atomic-bookshelf-scroll"/);
   assert.match(shelf, /atomic-scrollport/);
   assert.match(shelf, /"data-scale": String\(scale\)/);
@@ -316,6 +335,13 @@ test("plugin UI keeps stable Selenium data-testid hooks", () => {
   assert.match(health, /atomic-heatmap-month/);
   assert.match(health, /atomic-heatmap-scroll/);
   assert.match(health, /atomic-bookshelf-scroll/);
+  assert.match(health, /atomic-chooser/);
+  assert.match(health, /atomic-chooser-notes/);
+  assert.match(health, /atomic-chooser-book/);
+  assert.match(health, /atomic-reader/);
+  assert.match(health, /atomic-reader-progress/);
+  assert.match(health, /atomic-reader-next/);
+  assert.match(health, /data-overlay-host/);
   assert.match(health, /heatmap-scrollbars/);
   assert.match(health, /heatmap-month-align/);
   assert.match(health, /gym-session-timer/);
@@ -456,4 +482,20 @@ test("plugin source bans globalThis, unguarded Notice DOM, and static style lite
       `${file} uses messageEl outside requireApiVersion("1.8.7")`,
     );
   }
+});
+
+test("reader theater exposes stable Exit hooks", () => {
+  const mount = src("src/reader/theater/mount.ts");
+  assert.match(mount, /data-testid": "atomic-theater"/);
+  assert.match(mount, /data-testid": "atomic-theater-chrome"/);
+  assert.match(mount, /data-testid": "atomic-theater-exit"/);
+  assert.doesNotMatch(mount, /innerHTML/);
+  assert.doesNotMatch(mount, /\bglobalThis\b/);
+  const slot = src("src/reader/theater/slot.ts");
+  assert.match(slot, /atomic-theater-enter/);
+  assert.match(slot, /closest\("\.atomic-reader"\)/);
+  const health = src("e2e/health-check.test.mjs");
+  assert.match(health, /atomic-theater-exit/);
+  assert.match(health, /atomic-theater-chrome/);
+  assert.match(health, /atomic-theater-enter/);
 });

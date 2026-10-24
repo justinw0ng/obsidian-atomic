@@ -52,6 +52,7 @@ export const E2E_FILES = {
   bookshelfScaled: "E2E/Bookshelf scaled.md",
   dashboard: "atomics/Dashboard.md",
   readingCurrent: "atomics/hobbies/Reading/Items/Currently Reading.md",
+  readingCurrentEpub: "atomics/hobbies/Reading/Items/Currently Reading.epub",
   readingFinished: "atomics/hobbies/Reading/Items/Finished Book.md",
   golfSession: (year, today) => `atomics/exercise/Golf/${year}/${today}.md`,
   gymSession: (year, today) => `atomics/exercise/Gym/${year}/${today}.md`,
@@ -67,6 +68,85 @@ export function utcToday(date = new Date()) {
 
 function ensureDir(p) {
   mkdirSync(p, { recursive: true });
+}
+
+/** Stored zip. The health-check EPUB must open without an external reader library. */
+function storedZip(files) {
+  const encoder = new TextEncoder();
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const file of files) {
+    const name = encoder.encode(file.name);
+    const data = file.data;
+    const local = new Uint8Array(30 + name.byteLength + data.byteLength);
+    const localView = new DataView(local.buffer);
+    localView.setUint32(0, 0x04034b50, true);
+    localView.setUint16(4, 20, true);
+    localView.setUint16(6, 0x0800, true);
+    localView.setUint32(18, data.byteLength, true);
+    localView.setUint32(22, data.byteLength, true);
+    localView.setUint16(26, name.byteLength, true);
+    local.set(name, 30);
+    local.set(data, 30 + name.byteLength);
+    locals.push(local);
+
+    const central = new Uint8Array(46 + name.byteLength);
+    const centralView = new DataView(central.buffer);
+    centralView.setUint32(0, 0x02014b50, true);
+    centralView.setUint16(4, 20, true);
+    centralView.setUint16(6, 20, true);
+    centralView.setUint16(8, 0x0800, true);
+    centralView.setUint32(20, data.byteLength, true);
+    centralView.setUint32(24, data.byteLength, true);
+    centralView.setUint16(28, name.byteLength, true);
+    centralView.setUint32(42, offset, true);
+    central.set(name, 46);
+    centrals.push(central);
+    offset += local.byteLength;
+  }
+  const centralSize = centrals.reduce((sum, part) => sum + part.byteLength, 0);
+  const eocd = new Uint8Array(22);
+  const eocdView = new DataView(eocd.buffer);
+  eocdView.setUint32(0, 0x06054b50, true);
+  eocdView.setUint16(8, files.length, true);
+  eocdView.setUint16(10, files.length, true);
+  eocdView.setUint32(12, centralSize, true);
+  eocdView.setUint32(16, offset, true);
+  const out = new Uint8Array(offset + centralSize + eocd.byteLength);
+  let cursor = 0;
+  for (const part of [...locals, ...centrals, eocd]) {
+    out.set(part, cursor);
+    cursor += part.byteLength;
+  }
+  return out;
+}
+
+/** Three short chapters so a spread turn moves from page 1 to page 3. */
+export function e2eReadingEpubBytes() {
+  const encoder = new TextEncoder();
+  const chapter = encoder.encode(`<?xml version="1.0"?>
+<html xmlns="http://www.w3.org/1999/xhtml"><body>
+<h1>Chapter I</h1><p>Harbor light kept the first page.</p>
+<h1>Chapter II</h1><p>The channel marker follows.</p>
+<h1>Chapter III</h1><p>The last buoy is the close.</p>
+</body></html>`);
+  const opf = encoder.encode(`<?xml version="1.0"?>
+<package>
+  <manifest>
+    <item id="c1" href="chapter.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine><itemref idref="c1"/></spine>
+</package>`);
+  const container = encoder.encode(
+    `<container><rootfiles><rootfile full-path="OEBPS/content.opf"/></rootfiles></container>`,
+  );
+  return storedZip([
+    { name: "mimetype", data: encoder.encode("application/epub+zip") },
+    { name: "META-INF/container.xml", data: container },
+    { name: "OEBPS/content.opf", data: opf },
+    { name: "OEBPS/chapter.xhtml", data: chapter },
+  ]);
 }
 
 function write(p, content) {
@@ -115,7 +195,8 @@ export function assertSafeE2eVaultPath(vaultPath) {
  */
 const E2E_COVER = "https://example.invalid/e2e-cover.png";
 
-function readingItem({ title, status, totalMin, timeLog, cover = "" }) {
+function readingItem({ title, status, totalMin, timeLog, cover = "", source = "" }) {
+  const sourceLine = source ? `source: "${source}"\n` : "";
   return `---
 type: atomic-item
 domain: hobby
@@ -129,7 +210,7 @@ cover: "${cover}"
 tags:
   - books
 spine_color:
-total_min: ${totalMin}
+${sourceLine}total_min: ${totalMin}
 timer_started_at:
 related_canvas:
 ---
@@ -445,8 +526,10 @@ export function seedE2eVault(options = {}) {
       status: "reading",
       totalMin: 25,
       timeLog: `- ${today} | 25 min | seeded`,
+      source: E2E_FILES.readingCurrentEpub,
     }),
   );
+  writeFileSync(join(vault, E2E_FILES.readingCurrentEpub), e2eReadingEpubBytes());
   write(
     join(vault, E2E_FILES.readingFinished),
     readingItem({

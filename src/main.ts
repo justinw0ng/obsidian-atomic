@@ -36,6 +36,13 @@ import {
   rewriteDedicatedCueFences,
 } from "./util/rewrite-cue-fences";
 import { suggestItem } from "./util/suggest-item";
+import { registerAskOnShell, resetAskSession } from "./reader/ask/mount";
+import { registerReaderTheater, resetReaderMounts } from "./reader/shell/mount";
+import { closeReaderChrome, openActiveNoteBook, openBookChooser } from "./reader/shell/open";
+import { registerBookChooser } from "./reader/shell/present";
+import { ATOMIC_READER_VIEW, AtomicReaderView } from "./reader/shell/view";
+import { registerBookSize, resetBookSize } from "./reader/size/shell-bind";
+import { attachReaderTheater, resetReaderTheater } from "./reader/theater/slot";
 
 const REFRESH_DEBOUNCE_MS = 300;
 
@@ -48,9 +55,18 @@ export default class FitnessPlugin extends Plugin {
 
   async onload() {
     this.unloaded = false;
+    registerReaderTheater({
+      attach: (slot, session) => {
+        attachReaderTheater(slot, session, {
+          enterLabel: t("view.reader.theater", this.settings.language),
+          exitLabel: t("view.reader.theaterExit", this.settings.language),
+        });
+      },
+    });
     this.data = new VaultDataSource(this.app);
     registerCodeblocks(this);
     await this.loadSettings();
+    registerAskOnShell(this);
     registerPropertySelects(this, {
       getLanguage: () => this.settings.language,
     });
@@ -190,6 +206,19 @@ export default class FitnessPlugin extends Plugin {
       },
     });
 
+    registerBookChooser((request) => {
+      void openBookChooser(this, request);
+    });
+    registerBookSize(this);
+    this.registerView(ATOMIC_READER_VIEW, (leaf) => new AtomicReaderView(leaf, this));
+    this.addCommand({
+      id: "open-book",
+      name: t("command.openBook", this.settings.language),
+      callback: () => {
+        void openActiveNoteBook(this);
+      },
+    });
+
     this.addCommand({
       id: "open-dashboard",
       name: t("command.openDashboard", this.settings.language),
@@ -209,6 +238,11 @@ export default class FitnessPlugin extends Plugin {
 
   onunload() {
     this.unloaded = true;
+    closeReaderChrome();
+    resetAskSession();
+    resetBookSize();
+    resetReaderTheater();
+    resetReaderMounts();
     this.liveBlocks = [];
     if (this.refreshTimer != null) {
       window.clearTimeout(this.refreshTimer);

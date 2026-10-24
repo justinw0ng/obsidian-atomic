@@ -13,6 +13,10 @@ import { isSafeVaultFolder } from "./vault-path.ts";
 import { UNSEEN_UPDATE_NOTE_VERSION, parsePluginSemver } from "../core/update-notes.ts";
 // @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
 import { isRecord } from "./record.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { normalizeAskSettings } from "../reader/ask/settings-record.ts";
+// @ts-expect-error Node test runner resolves .ts extensions; esbuild/tsc use extensionless paths at bundle time
+import { normalizeReaderPreferences } from "../reader/shell/preferences.ts";
 
 function safeVaultPath(value: unknown, fallback: string): string {
   if (typeof value !== "string") return fallback;
@@ -83,6 +87,8 @@ export function mergeSettings(raw: unknown): FitnessSettings {
     ...DEFAULT_SETTINGS,
     activityTypes: cloneActivities(DEFAULT_SETTINGS.activityTypes),
     gymExercises: [...DEFAULT_SETTINGS.gymExercises],
+    ask: normalizeAskSettings(DEFAULT_SETTINGS.ask),
+    reader: normalizeReaderPreferences(DEFAULT_SETTINGS.reader),
   };
   if (!isRecord(raw)) return base;
   const golfCuesPath = safeVaultPath(
@@ -121,5 +127,7 @@ export function mergeSettings(raw: unknown): FitnessSettings {
     gymExercises: normalizeGymExercises(raw.gymExercises),
     gymLogSetup: isGymLogSetup(raw.gymLogSetup) ? raw.gymLogSetup : "pending",
     lastSeenUpdateNoteVersion: storedLastSeenUpdateNoteVersion(raw),
+    ask: normalizeAskSettings(raw.ask),
+    reader: normalizeReaderPreferences(raw.reader),
   };
 }

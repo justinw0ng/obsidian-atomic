@@ -767,47 +767,67 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
 .atomic-sheet .atomic-compose { margin-top: 12px; }
 
 /* ------------------------------------------------------------ chooser */
+/* Journey sheet: 420px desktop, floating 342px phone card. See 03-chooser.png. */
 
 .atomic-chooser-scrim {
   position: absolute; inset: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(34, 34, 34, 0.28);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 16px 24px;
+  background: rgba(20, 18, 16, 0.28);
 }
-.ob-phone-screen .atomic-chooser-scrim { align-items: flex-end; background: rgba(34, 34, 34, 0.4); }
+.ob-phone-screen .atomic-chooser-scrim {
+  align-items: flex-end;
+  padding: 0 24px 40px;
+  background: rgba(20, 18, 16, 0.28);
+}
 .atomic-chooser {
-  width: 360px; padding: 8px;
-  border-radius: 14px;
+  width: 420px; max-width: 100%;
+  padding: 10px 12px 14px;
+  border-radius: 16px;
   background: var(--background-primary);
-  box-shadow: 0 0 0 1px var(--atomic-rule), 0 24px 48px -20px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 24px 48px -20px rgba(0, 0, 0, 0.45);
 }
 .ob-phone-screen .atomic-chooser {
-  width: 100%; border-radius: 18px 18px 0 0; padding: 10px 12px 18px;
+  width: 100%; max-width: 342px;
+  padding: 10px 12px 14px;
+  border-radius: 16px;
 }
 .atomic-chooser .grab {
-  width: 40px; height: 4px; border-radius: 99px; margin: 4px auto 10px;
-  background: var(--atomic-fill-3);
+  width: 36px; height: 4px; border-radius: 2px; margin: 4px auto 12px;
+  background: rgba(34, 34, 34, 0.13);
 }
 .atomic-chooser-row {
   display: flex; align-items: center; gap: 12px;
-  width: 100%; text-align: left;
-  padding: 12px 12px; border-radius: 9px;
+  width: 100%; box-sizing: border-box;
+  margin: 0 0 4px; padding: 12px;
+  border-radius: 9px;
+  background: rgba(34, 34, 34, 0.045);
+  color: var(--atomic-ink);
+  font: inherit; text-align: left;
 }
 .atomic-chooser-row:hover { background: var(--atomic-fill-1); }
-.atomic-chooser-row.is-primary { background: var(--atomic-fill-1); }
+.atomic-chooser-row.is-primary,
+.atomic-chooser-row.is-primary:hover { background: #222; color: #fff; }
+.atomic-chooser-row.is-primary .label span,
+.atomic-chooser-row.is-primary .kbd { color: inherit; }
+.atomic-chooser-row.is-primary .label span { opacity: 0.7; }
+.atomic-chooser-row.is-primary .kbd { opacity: 0.5; }
 .atomic-chooser-row .ico {
-  width: 28px; height: 28px; border-radius: 8px;
+  width: 28px; height: 28px; border-radius: 8px; flex: none;
   display: grid; place-items: center;
-  background: var(--atomic-fill-2); font-size: 14px;
+  background: rgba(34, 34, 34, 0.08); font-size: 14px;
 }
+.atomic-chooser-row.is-primary .ico { background: rgba(255, 255, 255, 0.14); }
 .atomic-chooser-row .label { flex: 1; min-width: 0; }
 .atomic-chooser-row .label b { display: block; font-size: 14px; font-weight: 600; }
-.atomic-chooser-row .label span { display: block; font-size: 12px; color: var(--atomic-ink-2); margin-top: 2px; }
+.atomic-chooser-row .label span { display: block; font-size: 12px; color: inherit; opacity: 0.7; margin-top: 2px; }
 .atomic-chooser-row .kbd {
   font-family: var(--atomic-mono); font-size: 11px; color: var(--text-faint);
 }
 .atomic-chooser-cancel {
-  width: 100%; margin-top: 4px; padding: 10px;
-  text-align: center; color: var(--atomic-ink-2); font-size: 13px;
+  width: 100%; margin: 0; padding: 10px;
+  text-align: center; color: #5c5c5c;
+  font: 500 13px/1.2 var(--font-interface);
 }
 
 /* ----------------------------------------------------------- book size */
@@ -2057,7 +2077,7 @@ button { appearance: none; background: none; border: 0; padding: 0; cursor: poin
     }
     return el("div", { class: "atomic-chooser-scrim", "data-chooser": "" },
       el("div", { class: "atomic-chooser fitness-plugin" }, [
-        phone ? el("div", { class: "grab" }) : null,
+        el("div", { class: "grab" }),
         ...rows,
         el("button", { type: "button", class: "atomic-chooser-cancel", "data-act": "chooser-cancel" }, "Cancel"),
       ]),

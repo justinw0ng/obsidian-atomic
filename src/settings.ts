@@ -22,6 +22,8 @@ import { applyLabelEdit, labelForLanguage } from "./util/bilingual-label";
 import { shadesFromBaseColor } from "./util/colors";
 import { isSafeVaultFolder } from "./util/vault-path";
 import { runGymLogSetup } from "./commands/gym-log-setup";
+import { askSettingRows } from "./reader/ask/settings-section";
+import { readerSettingRows } from "./reader/shell/preferences-section";
 
 export { mergeSettings } from "./util/merge-settings";
 
@@ -119,7 +121,7 @@ type BoundControl =
       validate?: (value: string) => string | void;
     };
 
-type SettingsRow =
+export type SettingsRow =
   | { kind: "heading"; name: string; desc: string }
   | { kind: "control"; name: string; desc: string; key: SettingsKey }
   | {
@@ -291,6 +293,15 @@ export class FitnessSettingTab extends PluginSettingTab {
         this.paintGymImport(setting);
       },
     });
+    const settingsHost = {
+      app: this.app,
+      settings: this.plugin.settings,
+      save: () => this.plugin.saveSettings(),
+      redisplay: () => {
+        this.redrawSettings();
+      },
+    };
+    rows.push(...askSettingRows(settingsHost), ...readerSettingRows(settingsHost));
     return rows;
   }
 
